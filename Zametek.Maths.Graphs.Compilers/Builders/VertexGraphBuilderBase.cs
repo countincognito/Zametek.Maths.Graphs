@@ -13,22 +13,20 @@ namespace Zametek.Maths.Graphs
     {
         #region Ctors
 
-        protected VertexGraphBuilderBase(Func<T> edgeIdGenerator, Func<T> nodeIdGenerator)
-            : base(edgeIdGenerator, nodeIdGenerator)
+        protected VertexGraphBuilderBase(
+            Func<T> edgeIdGenerator,
+            Func<T> nodeIdGenerator,
+            Func<T, TEvent> createEvent)
+            : base(edgeIdGenerator, nodeIdGenerator, createEvent)
         { }
 
         protected VertexGraphBuilderBase(
             Graph<T, TEvent, TActivity> graph,
             Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator)
-            : base(graph, edgeIdGenerator, nodeIdGenerator)
+            Func<T> nodeIdGenerator,
+            Func<T, TEvent> createEvent)
+            : base(graph, edgeIdGenerator, nodeIdGenerator, createEvent)
         { }
-
-        #endregion
-
-        #region Protected Methods
-
-        protected abstract TEvent CreateEvent(T id);
 
         #endregion
 

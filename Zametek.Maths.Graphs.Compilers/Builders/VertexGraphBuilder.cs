@@ -8,17 +8,34 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
+        #region Fields
+
+        private static readonly Func<T, IEvent<T>> s_CreateEvent = (id) =>
+        {
+            var output = new Event<T>(id);
+            output.SetAsRemovable();
+            return output;
+        };
+
+        #endregion
+
         #region Ctors
 
-        public VertexGraphBuilder(Func<T> edgeIdGenerator, Func<T> nodeIdGenerator)
-            : base(edgeIdGenerator, nodeIdGenerator)
+        public VertexGraphBuilder(
+            Func<T> edgeIdGenerator,
+            Func<T> nodeIdGenerator)
+            : base(edgeIdGenerator, nodeIdGenerator, s_CreateEvent)
         { }
 
         public VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator)
-            : base(graph, edgeIdGenerator, nodeIdGenerator)
+            : base(
+                  graph,
+                  edgeIdGenerator,
+                  nodeIdGenerator,
+                  s_CreateEvent)
         {
             if (NormalNodes.Any())
             {
@@ -37,13 +54,6 @@ namespace Zametek.Maths.Graphs
         #endregion
 
         #region Overrides
-
-        protected override IEvent<T> CreateEvent(T id)
-        {
-            var output = new Event<T>(id);
-            output.SetAsRemovable();
-            return output;
-        }
 
         public override object WorkingCopy()
         {

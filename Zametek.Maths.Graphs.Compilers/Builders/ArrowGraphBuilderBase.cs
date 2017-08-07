@@ -12,8 +12,8 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        protected readonly Func<T, TEvent> m_CreateEvent;
         protected readonly Func<T, int?, int?, TEvent> m_CreateEventWithTimes;
+        protected readonly Func<T, TActivity> m_CreateDummyActivity;
 
         #endregion
 
@@ -23,19 +23,21 @@ namespace Zametek.Maths.Graphs
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator,
             Func<T, TEvent> createEvent,
-            Func<T, int?, int?, TEvent> createEventWithTimes)
-            : base(edgeIdGenerator, nodeIdGenerator)
+            Func<T, int?, int?, TEvent> createEventWithTimes,
+            Func<T, TActivity> createDummyActivity)
+            : base(edgeIdGenerator, nodeIdGenerator, createEvent)
         {
-            m_CreateEvent = createEvent ?? throw new ArgumentNullException(nameof(createEvent));
             m_CreateEventWithTimes = createEventWithTimes ?? throw new ArgumentNullException(nameof(createEventWithTimes));
+            m_CreateDummyActivity = createDummyActivity ?? throw new ArgumentNullException(nameof(createDummyActivity));
             Initialize();
         }
 
         protected ArrowGraphBuilderBase(
             Graph<T, TActivity, TEvent> graph,
             Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator)
-            : base(graph, edgeIdGenerator, nodeIdGenerator)
+            Func<T> nodeIdGenerator,
+            Func<T, TEvent> createEvent)
+            : base(graph, edgeIdGenerator, nodeIdGenerator, createEvent)
         {
             // Check Start and End nodes.
             if (StartNodes.Count() == 1)
@@ -154,17 +156,15 @@ namespace Zametek.Maths.Graphs
 
         #region Protected Methods
 
-        protected TEvent CreateEvent(T id)
-        {
-            return m_CreateEvent(id);
-        }
-
         protected TEvent CreateEvent(T id, int? earliestFinishTime, int? latestFinishTime)
         {
             return m_CreateEventWithTimes(id, earliestFinishTime, latestFinishTime);
         }
 
-        protected abstract TActivity CreateDummyActivity(T id);
+        protected TActivity CreateDummyActivity(T id)
+        {
+            return m_CreateDummyActivity(id);
+        }
 
         #endregion
 

@@ -8,6 +8,14 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
+        #region Fields
+
+        private static readonly Func<T, IEvent<T>> s_CreateEvent = (id) => new Event<T>(id);
+        private static readonly Func<T, int?, int?, IEvent<T>> s_CreateEventWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
+        private static readonly Func<T, TActivity> s_CreateDummyActivity = (id) => (TActivity)Activity<T>.CreateActivityDummy(id);
+
+        #endregion
+
         #region Ctors
 
         public ArrowGraphBuilder(
@@ -16,29 +24,25 @@ namespace Zametek.Maths.Graphs
             : base(
                   edgeIdGenerator,
                   nodeIdGenerator,
-                  (id) => new Event<T>(id),
-                  (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime))
+                  s_CreateEvent,
+                  s_CreateEventWithTimes,
+                  s_CreateDummyActivity)
         { }
 
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator)
-            : base(graph, edgeIdGenerator, nodeIdGenerator)
+            : base(
+                  graph,
+                  edgeIdGenerator,
+                  nodeIdGenerator,
+                  s_CreateEvent)
         { }
 
         #endregion
 
-        #region Private Methods
-
-        #endregion
-
         #region Overrides
-
-        protected override TActivity CreateDummyActivity(T id)
-        {
-            return (TActivity)Activity<T>.CreateActivityDummy(id);
-        }
 
         public override object WorkingCopy()
         {

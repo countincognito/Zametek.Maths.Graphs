@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
@@ -32,28 +33,55 @@ namespace Zametek.Maths.Graphs
         #region Private Types
 
         private class DependentActivityArrowGraphBuilder
-            : ArrowGraphBuilder<T, TDependentActivity>
+            : ArrowGraphBuilderBase<T, TDependentActivity, IEvent<T>>
         {
+            #region Fields
+
+            private static readonly Func<T, IEvent<T>> s_CreateEvent = (id) => new Event<T>(id);
+            private static readonly Func<T, int?, int?, IEvent<T>> s_CreateEventWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
+            private static readonly Func<T, TDependentActivity> s_CreateDummyActivity = (id) => (TDependentActivity)DependentActivity<T>.CreateDependentActivityDummy(id);
+
+            #endregion
+
             #region Ctors
 
-            public DependentActivityArrowGraphBuilder(Func<T> edgeIdGenerator, Func<T> nodeIdGenerator)
-                : base(edgeIdGenerator, nodeIdGenerator)
+            public DependentActivityArrowGraphBuilder(
+                Func<T> edgeIdGenerator,
+                Func<T> nodeIdGenerator)
+                : base(
+                      edgeIdGenerator,
+                      nodeIdGenerator,
+                      s_CreateEvent,
+                      s_CreateEventWithTimes,
+                      s_CreateDummyActivity)
             { }
 
             public DependentActivityArrowGraphBuilder(
                 Graph<T, TDependentActivity, IEvent<T>> graph,
                 Func<T> edgeIdGenerator,
                 Func<T> nodeIdGenerator)
-                : base(graph, edgeIdGenerator, nodeIdGenerator)
+                : base(
+                      graph,
+                      edgeIdGenerator,
+                      nodeIdGenerator,
+                      s_CreateEvent)
             { }
 
             #endregion
 
             #region Overrides
 
-            protected override TDependentActivity CreateDummyActivity(T id)
+            public override object WorkingCopy()
             {
-                return (TDependentActivity)DependentActivity<T>.CreateDependentActivityDummy(id);
+                Graph<T, TDependentActivity, IEvent<T>> arrowGraphCopy = ToGraph();
+                T minNodeId = arrowGraphCopy.Nodes.Select(x => x.Id).DefaultIfEmpty().Min();
+                minNodeId = minNodeId.Previous();
+                T minEdgeId = arrowGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
+                minEdgeId = minEdgeId.Previous();
+                return new DependentActivityArrowGraphBuilder(
+                    arrowGraphCopy,
+                    () => minEdgeId = minEdgeId.Previous(),
+                    () => minNodeId = minNodeId.Previous());
             }
 
             #endregion

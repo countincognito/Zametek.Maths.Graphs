@@ -114,13 +114,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VertexGraphBuilderExtensionsTests.cs" />
-    <Compile Include="ArrowGraphBuilderExtensionsTests.cs" />
-    <Compile Include="ArrowGraphBuilderTests.cs" />
-    <Compile Include="KeyExtensionsTests.cs" />
+    <Compile Include="Extensions\VertexGraphBuilderExtensionsTests.cs" />
+    <Compile Include="Extensions\ArrowGraphBuilderExtensionsTests.cs" />
+    <Compile Include="Builders\ArrowGraphBuilderTests.cs" />
+    <Compile Include="Extensions\KeyExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VertexGraphCompilerTests.cs" />
-    <Compile Include="VertexGraphBuilderTests.cs" />
+    <Compile Include="Compilers\VertexGraphCompilerTests.cs" />
+    <Compile Include="Builders\VertexGraphBuilderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zametek.Maths.Graphs.Compilers\Zametek.Maths.Graphs.Compilers.csproj">
