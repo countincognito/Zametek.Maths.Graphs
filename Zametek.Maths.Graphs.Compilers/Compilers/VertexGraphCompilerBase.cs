@@ -218,7 +218,7 @@ namespace Zametek.Maths.Graphs
                 }
 
                 // Sanity check the resources.
-                bool allResourcesExplicitTargetsButNotAllActivitiesTargetted =
+                bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
                     resources.Any()
                     && resources.All(x => x.IsExplicitTarget)
                     && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
@@ -229,11 +229,11 @@ namespace Zametek.Maths.Graphs
 
                 if (circularDependencies.Any()
                     || missingDependencies.Any()
-                    || allResourcesExplicitTargetsButNotAllActivitiesTargetted
+                    || allResourcesExplicitTargetsButNotAllActivitiesTargeted
                     || !m_VertexGraphBuilder.CleanUpEdges())
                 {
                     return new GraphCompilation<T, TDependentActivity>(
-                        allResourcesExplicitTargetsButNotAllActivitiesTargetted,
+                        allResourcesExplicitTargetsButNotAllActivitiesTargeted,
                         circularDependencies.ToList(),
                         missingDependencies.ToList(),
                         m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.WorkingCopy()),

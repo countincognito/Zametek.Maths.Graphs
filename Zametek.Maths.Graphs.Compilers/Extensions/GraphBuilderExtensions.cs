@@ -124,7 +124,7 @@ namespace Zametek.Maths.Graphs
                 }
 
                 // If all resources are explicit targets, check to make sure all activities
-                // targetted to at least one.
+                // targeted to at least one.
                 if (resources.All(x => x.IsExplicitTarget)
                     && graphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any()))
                 {
@@ -208,11 +208,11 @@ namespace Zametek.Maths.Graphs
                         T activityId = nullableActivityId.GetValueOrDefault();
                         IActivity<T> activity = tmpGraphBuilder.Activity(activityId);
 
-                        // Check to see if the activity has to be targetted to specific resources,
+                        // Check to see if the activity has to be targeted to specific resources,
                         // and that this resource is one of those specific targets.
-                        bool activityMustBeTargettedToSpecificResource = !infiniteResources && activity.TargetResources.Any();
+                        bool activityMustBeTargetedToSpecificResource = !infiniteResources && activity.TargetResources.Any();
 
-                        if (!activityMustBeTargettedToSpecificResource)
+                        if (!activityMustBeTargetedToSpecificResource)
                         {
                             foreach (ResourceScheduleBuilder<T> resourceScheduleBuilder in resourceScheduleBuilders)
                             {
