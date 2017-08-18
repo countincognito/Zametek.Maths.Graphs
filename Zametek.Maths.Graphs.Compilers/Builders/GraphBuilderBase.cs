@@ -237,7 +237,7 @@ namespace Zametek.Maths.Graphs
 
         public IList<CircularDependency<T>> FindStrongCircularDependencies()
         {
-            return Nodes.SelectMany(x => FindStrongCircularDependenciesFromNode(x.Id)).Distinct().ToList();
+            return FindStronglyConnectedComponents().Where(x => x.Dependencies.Count > 1).ToList();
         }
 
         public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
@@ -520,7 +520,7 @@ namespace Zametek.Maths.Graphs
             return false;
         }
 
-        protected abstract IList<CircularDependency<T>> FindStrongCircularDependenciesFromNode(T referenceNodeId);
+        protected abstract IList<CircularDependency<T>> FindStronglyConnectedComponents();
 
         #endregion
 

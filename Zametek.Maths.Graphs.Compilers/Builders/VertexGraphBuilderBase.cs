@@ -663,46 +663,72 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        protected override IList<CircularDependency<T>> FindStrongCircularDependenciesFromNode(T referenceNodeId)
+        protected override IList<CircularDependency<T>> FindStronglyConnectedComponents()
         {
-            Node<T, TActivity> referenceNode = m_Nodes[referenceNodeId];
+            int index = 0;
+            var stack = new Stack<T>();
+            var indexLookup = new Dictionary<T, int>();
+            var lowLinkLookup = new Dictionary<T, int>();
             var circularDependencies = new List<CircularDependency<T>>();
-            if (referenceNode.NodeType != NodeType.Normal)
+
+            foreach (T id in NodeIds)
             {
-                return circularDependencies;
+                indexLookup.Add(id, -1);
+                lowLinkLookup.Add(id, -1);
             }
 
-            var stack = new Stack<Tuple<T, IEnumerator<T>>>();
-            stack.Push(new Tuple<T, IEnumerator<T>>(referenceNodeId, referenceNode.NextOutgoingEdge().GetEnumerator()));
-            while (stack.Any())
+            Action<T> strongConnect = null;
+            strongConnect = referenceId =>
             {
-                IEnumerator<T> outgoingEdgesEnumerator = stack.Peek().Item2;
-                if (outgoingEdgesEnumerator.MoveNext())
-                {
-                    T outgoingEdgeId = outgoingEdgesEnumerator.Current;
-                    Node<T, TActivity> currentNode = m_EdgeHeadNodeLookup[outgoingEdgeId];
-                    T currentNodeId = currentNode.Id;
+                indexLookup[referenceId] = index;
+                lowLinkLookup[referenceId] = index;
+                index++;
+                stack.Push(referenceId);
 
-                    if (currentNodeId.Equals(referenceNodeId))
+                Node<T, TActivity> referenceNode = m_Nodes[referenceId];
+                if (referenceNode.NodeType == NodeType.End || referenceNode.NodeType == NodeType.Normal)
+                {
+                    foreach (T incomingEdgeId in referenceNode.IncomingEdges)
                     {
-                        IEnumerable<T> circularDependencyNodeIds =
-                            stack.Select(x => m_EdgeHeadNodeLookup[x.Item2.Current].Id).Where(x => !Activity(x).CanBeRemoved);
-                        circularDependencies.Add(new CircularDependency<T>(circularDependencyNodeIds));
-                    }
-                    else
-                    {
-                        bool visited = stack.Any(x => currentNodeId.Equals(x.Item1));
-                        if (!visited && currentNode.NodeType != NodeType.End)
+                        Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[incomingEdgeId];
+                        T tailNodeId = tailNode.Id;
+                        if (indexLookup[tailNodeId] < 0)
                         {
-                            stack.Push(new Tuple<T, IEnumerator<T>>(currentNodeId, currentNode.NextOutgoingEdge().GetEnumerator()));
+                            strongConnect(tailNodeId);
+                            lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], lowLinkLookup[tailNodeId]);
+                        }
+                        else if (stack.Contains(tailNodeId))
+                        {
+                            lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], indexLookup[tailNodeId]);
                         }
                     }
                 }
-                else
+
+                if (lowLinkLookup[referenceId] == indexLookup[referenceId])
                 {
-                    stack.Pop();
+                    var circularDependency = new CircularDependency<T>(Enumerable.Empty<T>());
+                    T currentId;
+                    do
+                    {
+                        currentId = stack.Pop();
+                        Node<T, TActivity> currentNode = m_Nodes[currentId];
+                        if (!currentNode.Content.IsDummy && !currentNode.Content.CanBeRemoved)
+                        {
+                            circularDependency.Dependencies.Add(currentId);
+                        }
+                    } while (!referenceId.Equals(currentId));
+                    circularDependencies.Add(circularDependency);
+                }
+            };
+
+            foreach (T id in NodeIds)
+            {
+                if (indexLookup[id] < 0)
+                {
+                    strongConnect(id);
                 }
             }
+
             return circularDependencies;
         }
 
