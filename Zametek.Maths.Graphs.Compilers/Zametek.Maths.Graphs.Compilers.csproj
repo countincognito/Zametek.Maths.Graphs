@@ -10,12 +10,12 @@
     <PackageLicenseUrl>https://github.com/countincognito/Zametek.Maths.Graphs.Compilers/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/countincognito/Zametek.Maths.Graphs.Compilers</PackageProjectUrl>
     <Description>Base and basic builders, compilers and extensions for creating vertex and arrow directed graphs. Includes the following capabilities: dynamic dependency resolution for activities; transitive reduction; edge redirection; critical path calculation; activity priority calculation; mapped and unmapped resource scheduling.</Description>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Zametek.Utility" Version="1.1.0" />
-    <PackageReference Include="Zametek.Maths.Graphs.Primitives" Version="1.0.1" />
+    <PackageReference Include="Zametek.Maths.Graphs.Primitives" Version="1.0.2" />
   </ItemGroup>
 
 </Project>
