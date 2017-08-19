@@ -712,7 +712,7 @@ namespace Zametek.Maths.Graphs
                     {
                         currentId = stack.Pop();
                         Node<T, TActivity> currentNode = m_Nodes[currentId];
-                        if (!currentNode.Content.IsDummy && !currentNode.Content.CanBeRemoved)
+                        if (!currentNode.Content.CanBeRemoved)
                         {
                             circularDependency.Dependencies.Add(currentId);
                         }

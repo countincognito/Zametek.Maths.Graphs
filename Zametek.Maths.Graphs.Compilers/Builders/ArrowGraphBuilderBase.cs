@@ -714,7 +714,7 @@ namespace Zametek.Maths.Graphs
                     {
                         currentId = stack.Pop();
                         Edge<T, TActivity> currentEdge = m_Edges[currentId];
-                        if (!currentEdge.Content.IsDummy && !currentEdge.Content.CanBeRemoved)
+                        if (!currentEdge.Content.CanBeRemoved)
                         {
                             circularDependency.Dependencies.Add(currentId);
                         }

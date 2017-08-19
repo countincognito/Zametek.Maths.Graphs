@@ -1186,6 +1186,32 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [TestMethod]
+        public void VertexGraphBuilder_AllDummyActivitiesFindCircularDependencies_FindsCircularDependency()
+        {
+            int eventId = 0;
+            int dummyActivityId = 100;
+            var graphBuilder = new VertexGraphBuilder<int, IActivity<int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            graphBuilder.AddActivity(new Activity<int>(1, 0));
+            graphBuilder.AddActivity(new Activity<int>(2, 0), new HashSet<int>(new[] { 7 }));
+            graphBuilder.AddActivity(new Activity<int>(3, 0));
+            graphBuilder.AddActivity(new Activity<int>(4, 0), new HashSet<int>(new[] { 2 }));
+            graphBuilder.AddActivity(new Activity<int>(5, 0), new HashSet<int>(new[] { 1, 2, 3, 8 }));
+            graphBuilder.AddActivity(new Activity<int>(6, 0), new HashSet<int>(new[] { 3 }));
+            graphBuilder.AddActivity(new Activity<int>(7, 0), new HashSet<int>(new[] { 4 }));
+            graphBuilder.AddActivity(new Activity<int>(8, 0), new HashSet<int>(new[] { 9, 6 }));
+            graphBuilder.AddActivity(new Activity<int>(9, 0), new HashSet<int>(new[] { 5 }));
+            IList<CircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
+
+            Assert.AreEqual(2, circularDependencies.Count);
+            CollectionAssert.AreEquivalent(
+                new List<int>(new int[] { 2, 4, 7 }),
+                circularDependencies[0].Dependencies.ToList());
+            CollectionAssert.AreEquivalent(
+                new List<int>(new int[] { 5, 8, 9 }),
+                circularDependencies[1].Dependencies.ToList());
+        }
+
+        [TestMethod]
         public void VertexGraphBuilder_FindCircularDependencies_FindsCircularDependency()
         {
             int eventId = 0;
