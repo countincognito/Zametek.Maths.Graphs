@@ -88,18 +88,18 @@ namespace Zametek.Maths.Graphs
             // Check all edges are used.
             if (!m_Edges.Keys.OrderBy(x => x).SequenceEqual(m_EdgeHeadNodeLookup.Keys.OrderBy(x => x)))
             {
-                throw new ArgumentException("List of Edge IDs and Edges referenced by head Nodes do not match");
+                throw new ArgumentException(@"List of Edge IDs and Edges referenced by head Nodes do not match");
             }
             if (!m_Edges.Keys.OrderBy(x => x).SequenceEqual(m_EdgeTailNodeLookup.Keys.OrderBy(x => x)))
             {
-                throw new ArgumentException("List of Edge IDs and Edges referenced by tail Nodes do not match");
+                throw new ArgumentException(@"List of Edge IDs and Edges referenced by tail Nodes do not match");
             }
 
             // Check all nodes are used.
             IEnumerable<T> edgeNodeLookupIds = m_EdgeHeadNodeLookup.Values.Select(x => x.Id).Union(m_EdgeTailNodeLookup.Values.Select(x => x.Id));
             if (!m_Nodes.Values.Where(x => x.NodeType != NodeType.Isolated).Select(x => x.Id).OrderBy(x => x).SequenceEqual(edgeNodeLookupIds.OrderBy(x => x)))
             {
-                throw new ArgumentException("List of Node IDs and Edges referenced by tail Nodes do not match");
+                throw new ArgumentException(@"List of Node IDs and Edges referenced by tail Nodes do not match");
             }
         }
 
@@ -315,7 +315,7 @@ namespace Zametek.Maths.Graphs
             bool changeTailSuccess = ChangeEdgeTailNodeWithoutCleanup(edgeId, newTailNodeId);
             if (!changeTailSuccess)
             {
-                throw new InvalidOperationException("TODO");
+                throw new InvalidOperationException($@"Unable to change tail node of edge {edgeId} to node {newTailNodeId} without cleanup");
             }
 
             // If the old tail node has no other outgoing edges, then
@@ -330,7 +330,7 @@ namespace Zametek.Maths.Graphs
                     bool changeHeadSuccess = ChangeEdgeHeadNodeWithoutCleanup(oldTailNodeIncomingEdgeId, headNode.Id);
                     if (!changeHeadSuccess)
                     {
-                        throw new InvalidOperationException("TODO");
+                        throw new InvalidOperationException($@"Unable to change head node of edge {oldTailNodeIncomingEdgeId} to node {headNode.Id} without cleanup");
                     }
                 }
             }
@@ -359,7 +359,7 @@ namespace Zametek.Maths.Graphs
             bool changeHeadSuccess = ChangeEdgeHeadNodeWithoutCleanup(edgeId, newHeadNodeId);
             if (!changeHeadSuccess)
             {
-                throw new InvalidOperationException("TODO");
+                throw new InvalidOperationException($@"Unable to change head node of edge {edgeId} to node {newHeadNodeId} without cleanup");
             }
 
             // If the old head node has no other incoming edges, then
@@ -374,7 +374,7 @@ namespace Zametek.Maths.Graphs
                     bool changeTailSuccess = ChangeEdgeTailNodeWithoutCleanup(oldHeadNodeOutgoingEdgeId, tailNode.Id);
                     if (!changeTailSuccess)
                     {
-                        throw new InvalidOperationException("TODO");
+                        throw new InvalidOperationException($@"Unable to change tail node of edge {oldHeadNodeOutgoingEdgeId} to node {tailNode.Id} without cleanup");
                     }
                 }
             }

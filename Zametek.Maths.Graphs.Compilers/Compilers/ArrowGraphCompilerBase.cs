@@ -39,7 +39,7 @@ namespace Zametek.Maths.Graphs
                 IEnumerable<T> missingDependencies = m_ArrowGraphBuilder.MissingDependencies;
                 if (missingDependencies.Any())
                 {
-                    throw new InvalidOperationException("Cannot construct arrow graph, missing dependencies");
+                    throw new InvalidOperationException(@"Cannot construct arrow graph, missing dependencies");
                 }
 
                 m_ArrowGraphBuilder.CalculateCriticalPath();

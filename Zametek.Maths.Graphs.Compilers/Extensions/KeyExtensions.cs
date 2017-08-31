@@ -17,7 +17,7 @@ namespace Zametek.Maths.Graphs
                 .Case<Guid>(x => incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextGuid)))
                 .Default(x =>
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException($@"Type of input ({typeof(T)}) not defined for increment");
                 });
             ParameterExpression paramInput = Expression.Parameter(typeof(T), nameof(objectifiedInput));
             UnaryExpression body = Expression.Increment(paramInput, incrementMethod);
@@ -45,7 +45,7 @@ namespace Zametek.Maths.Graphs
                 .Case<Guid>(x => decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousGuid)))
                 .Default(x =>
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException($@"Type of input ({typeof(T)}) not defined for decrement");
                 });
             ParameterExpression paramInput = Expression.Parameter(typeof(T), nameof(objectifiedInput));
             UnaryExpression body = Expression.Decrement(paramInput, decrementMethod);

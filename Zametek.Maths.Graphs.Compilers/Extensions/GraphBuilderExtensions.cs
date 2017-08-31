@@ -79,7 +79,7 @@ namespace Zametek.Maths.Graphs
             }
             if (tmpGraphBuilder.Activities.Any(x => !x.IsDummy))
             {
-                throw new InvalidOperationException("Cannot calculate critical path priority list");
+                throw new InvalidOperationException(@"Cannot calculate critical path priority list");
             }
             return priorityList;
         }
@@ -102,7 +102,7 @@ namespace Zametek.Maths.Graphs
             }
             if (resources.Count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(resources), "Value cannot be negative");
+                throw new ArgumentOutOfRangeException(nameof(resources), @"Value cannot be negative");
             }
             if (!graphBuilder.Activities.Any())
             {
@@ -118,17 +118,21 @@ namespace Zametek.Maths.Graphs
                 HashSet<T> allTargetResources = graphBuilder.Activities
                     .Select(x => x.TargetResources)
                     .Aggregate((previous, next) => new HashSet<T>(previous.Union(next)));
-                if (!allTargetResources.IsSubsetOf(resources.Select(x => x.Id)))
+
+                bool allTargetResourcesAreSubsetOfResources = allTargetResources.IsSubsetOf(resources.Select(x => x.Id));
+                if (!allTargetResourcesAreSubsetOfResources)
                 {
-                    throw new InvalidOperationException("TODO");
+                    throw new InvalidOperationException(@"At least one specified target resources are not present in the resources provided");
                 }
 
                 // If all resources are explicit targets, check to make sure all activities
                 // targeted to at least one.
-                if (resources.All(x => x.IsExplicitTarget)
-                    && graphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any()))
+                bool allResourcesAreExplicitTargets = resources.All(x => x.IsExplicitTarget);
+                bool atLeastOneActivityRequiresNonExplicitTargetResource = graphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
+                if (allResourcesAreExplicitTargets
+                    && atLeastOneActivityRequiresNonExplicitTargetResource)
                 {
-                    throw new InvalidOperationException("TODO");
+                    throw new InvalidOperationException(@"At least one activity requires a non-explicit target resource, but all provided resources are explicit targets");
                 }
             }
 
@@ -288,7 +292,7 @@ namespace Zametek.Maths.Graphs
                                     else
                                     {
                                         // TODO
-                                        throw new NotImplementedException();
+                                        throw new NotImplementedException(@"Unknown TargetResourceOperator value");
                                         //throw new InvalidEnumArgumentException(@"Unknown TargetResourceOperator value");
                                     }
                                 }

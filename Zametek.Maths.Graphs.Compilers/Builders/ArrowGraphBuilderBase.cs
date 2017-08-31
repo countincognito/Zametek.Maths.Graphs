@@ -46,7 +46,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
-                throw new ArgumentException("ArrowGraph contains more than one Start node");
+                throw new ArgumentException(@"ArrowGraph contains more than one Start node");
             }
             if (EndNodes.Count() == 1)
             {
@@ -54,7 +54,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
-                throw new ArgumentException("ArrowGraph contains more than one End node");
+                throw new ArgumentException(@"ArrowGraph contains more than one End node");
             }
         }
 
@@ -129,7 +129,7 @@ namespace Zametek.Maths.Graphs
                     bool changeTailSuccess = ChangeEdgeTailNode(headNodeOutgoingEdgeId, tailNode.Id);
                     if (!changeTailSuccess)
                     {
-                        throw new InvalidOperationException("TODO");
+                        throw new InvalidOperationException($@"Unable to change tail node of edge {headNodeOutgoingEdgeId} to node {tailNode.Id} when removing dummy activity {activityId}");
                     }
                 }
             }
@@ -145,7 +145,7 @@ namespace Zametek.Maths.Graphs
                     bool changeHeadSuccess = ChangeEdgeHeadNode(tailNodeIncomingEdgeId, headNode.Id);
                     if (!changeHeadSuccess)
                     {
-                        throw new InvalidOperationException("TODO");
+                        throw new InvalidOperationException($@"Unable to change head node of edge {tailNodeIncomingEdgeId} to node {headNode.Id} when removing dummy activity {activityId}");
                     }
                 }
             }
@@ -255,9 +255,10 @@ namespace Zametek.Maths.Graphs
                 // Redirect all common dependencies towards the original node.
                 foreach (T commonDependencyEdgeId in commonDependencyEdgeIds.Where(x => !outgoingDummyEdgeIdLookup.Contains(x)).OrderBy(x => x))
                 {
-                    if (!ChangeEdgeHeadNode(commonDependencyEdgeId, node.Id))
+                    bool changeHeadSuccess = ChangeEdgeHeadNode(commonDependencyEdgeId, node.Id);
+                    if (!changeHeadSuccess)
                     {
-                        throw new InvalidOperationException("TODO");
+                        throw new InvalidOperationException($@"Unable to change head node of edge {commonDependencyEdgeId} to node {node.Id} when redirecting dummy activities");
                     }
                 }
 
@@ -644,25 +645,25 @@ namespace Zametek.Maths.Graphs
             bool transitivelyReduced = TransitiveReduction();
             if (!transitivelyReduced)
             {
-                throw new InvalidOperationException("Cannot perform transitive reduction");
+                throw new InvalidOperationException(@"Cannot perform transitive reduction");
             }
             bool edgesCleaned = CleanUpEdges();
             if (!edgesCleaned)
             {
-                throw new InvalidOperationException("Cannot perform edge clean up");
+                throw new InvalidOperationException(@"Cannot perform edge clean up");
             }
             this.ClearCriticalPathVariables();
             if (!this.CalculateEventEarliestFinishTimes())
             {
-                throw new InvalidOperationException("Cannot calculate Event earliest finish times");
+                throw new InvalidOperationException(@"Cannot calculate Event earliest finish times");
             }
             if (!this.CalculateEventLatestFinishTimes())
             {
-                throw new InvalidOperationException("Cannot calculate Event latest finish times");
+                throw new InvalidOperationException(@"Cannot calculate Event latest finish times");
             }
             if (!this.CalculateCriticalPathVariables())
             {
-                throw new InvalidOperationException("Cannot calculate critical path");
+                throw new InvalidOperationException(@"Cannot calculate critical path");
             }
         }
 

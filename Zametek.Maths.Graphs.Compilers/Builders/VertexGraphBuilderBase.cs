@@ -650,16 +650,16 @@ namespace Zametek.Maths.Graphs
             bool edgesCleaned = CleanUpEdges();
             if (!edgesCleaned)
             {
-                throw new InvalidOperationException("Cannot perform edge clean up");
+                throw new InvalidOperationException(@"Cannot perform edge clean up");
             }
             this.ClearCriticalPathVariables();
             if (!this.CalculateCriticalPathForwardFlow())
             {
-                throw new InvalidOperationException("Cannot calculate critical path forward flow");
+                throw new InvalidOperationException(@"Cannot calculate critical path forward flow");
             }
             if (!this.CalculateCriticalPathBackwardFlow())
             {
-                throw new InvalidOperationException("Cannot calculate critical path backward flow");
+                throw new InvalidOperationException(@"Cannot calculate critical path backward flow");
             }
         }
 
