@@ -596,6 +596,22 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
+        public override IList<T> ActivityDependencyIds(T activityId)
+        {
+            Node<T, TActivity> node = m_Nodes[activityId];
+            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+            {
+                return new List<T>();
+            }
+            var output = new List<T>();
+            foreach (Edge<T, TEvent> incomingEdge in node.IncomingEdges.Select(x => m_Edges[x]))
+            {
+                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[incomingEdge.Id];
+                output.Add(tailNode.Id);
+            }
+            return output;
+        }
+
         public override IList<T> StrongActivityDependencyIds(T activityId)
         {
             Node<T, TActivity> node = m_Nodes[activityId];

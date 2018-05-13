@@ -487,6 +487,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int>(activityId8, 4), new HashSet<int>(new[] { 4, 6 }));
             graphBuilder.AddActivity(new Activity<int>(activityId9, 10), new HashSet<int>(new[] { 5 }));
 
+            graphBuilder.TransitiveReduction();
             graphBuilder.CalculateCriticalPath();
 
             Assert.AreEqual(0, graphBuilder.Activity(activityId1).EarliestStartTime);
@@ -578,6 +579,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int>(activityId8, 4), new HashSet<int>(new[] { 4, 6 }));
             graphBuilder.AddActivity(new Activity<int>(activityId9, 10) { MinimumEarliestStartTime = 20 }, new HashSet<int>(new[] { 5 }));
 
+            graphBuilder.TransitiveReduction();
             graphBuilder.CalculateCriticalPath();
 
             Assert.AreEqual(0, graphBuilder.Activity(activityId1).EarliestStartTime);

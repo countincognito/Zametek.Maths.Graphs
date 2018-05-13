@@ -593,6 +593,21 @@ namespace Zametek.Maths.Graphs
             throw new NotImplementedException();
         }
 
+        public override IList<T> ActivityDependencyIds(T activityId)
+        {
+            Node<T, TEvent> tailNode = m_EdgeTailNodeLookup[activityId];
+            if (tailNode.NodeType == NodeType.Start || tailNode.NodeType == NodeType.Isolated)
+            {
+                return new List<T>();
+            }
+            var output = new List<T>();
+            foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_Edges[x]))
+            {
+                output.Add(incomingEdge.Id);
+            }
+            return output;
+        }
+
         public override IList<T> StrongActivityDependencyIds(T activityId)
         {
             Node<T, TEvent> tailNode = m_EdgeTailNodeLookup[activityId];
@@ -642,11 +657,6 @@ namespace Zametek.Maths.Graphs
 
         public override void CalculateCriticalPath()
         {
-            bool transitivelyReduced = TransitiveReduction();
-            if (!transitivelyReduced)
-            {
-                throw new InvalidOperationException(@"Cannot perform transitive reduction");
-            }
             bool edgesCleaned = CleanUpEdges();
             if (!edgesCleaned)
             {

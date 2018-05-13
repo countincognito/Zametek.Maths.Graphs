@@ -136,7 +136,7 @@ namespace Zametek.Maths.Graphs
                     return false;
                 }
 
-                var activity = m_VertexGraphBuilder.Activity(activityId);
+                TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
                 var resourceAndCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.Dependencies));
                 var resourceOrCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.Dependencies));
                 var onlyCompiledDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
@@ -317,6 +317,27 @@ namespace Zametek.Maths.Graphs
 
                 m_VertexGraphBuilder.Activity(activityId)?.SetAsRemovable();
                 return m_VertexGraphBuilder.RemoveActivity(activityId);
+            }
+        }
+
+        public override void TransitiveReduction()
+        {
+            lock (m_Lock)
+            {
+                bool transitivelyReduced = m_VertexGraphBuilder.TransitiveReduction();
+                if (!transitivelyReduced)
+                {
+                    throw new InvalidOperationException(@"Cannot perform transitive reduction");
+                }
+
+                // Now set the compiled dependencies to match the actual remaining dependencies.
+                foreach (T activityId in m_VertexGraphBuilder.ActivityIds)
+                {
+                    TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
+                    IList<T> allDependencyIds = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
+                    var remainingCompiledDependencies = new HashSet<T>(activity.Dependencies.Intersect(allDependencyIds));
+                    SetActivityDependencies(activityId, remainingCompiledDependencies);
+                }
             }
         }
 

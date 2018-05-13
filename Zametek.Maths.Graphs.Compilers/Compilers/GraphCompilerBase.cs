@@ -91,6 +91,8 @@ namespace Zametek.Maths.Graphs
 
         public abstract bool RemoveActivity(T activityId);
 
+        public abstract void TransitiveReduction();
+
         public Graph<T, TEdgeContent, TNodeContent> ToGraph()
         {
             lock (m_Lock)

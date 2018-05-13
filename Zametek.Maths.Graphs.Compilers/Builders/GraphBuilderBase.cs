@@ -260,6 +260,8 @@ namespace Zametek.Maths.Graphs
             return nodeIdAncestorLookup;
         }
 
+        public abstract IList<T> ActivityDependencyIds(T activityId);
+
         public abstract IList<T> StrongActivityDependencyIds(T activityId);
 
         public abstract bool TransitiveReduction();

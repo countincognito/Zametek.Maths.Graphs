@@ -79,6 +79,18 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        public override void TransitiveReduction()
+        {
+            lock (m_Lock)
+            {
+                bool transitivelyReduced = m_ArrowGraphBuilder.TransitiveReduction();
+                if (!transitivelyReduced)
+                {
+                    throw new InvalidOperationException(@"Cannot perform transitive reduction");
+                }
+            }
+        }
+
         #endregion
     }
 }
