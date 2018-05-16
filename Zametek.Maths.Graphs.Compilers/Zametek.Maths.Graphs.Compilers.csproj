@@ -6,11 +6,11 @@
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Authors>countincognito</Authors>
     <Company>countincognito</Company>
-    <Copyright>Copyright (c) 2017 Riccardo M Bennett-Lovsey</Copyright>
+    <Copyright>Copyright (c) 2018 Riccardo M Bennett-Lovsey</Copyright>
     <PackageLicenseUrl>https://github.com/countincognito/Zametek.Maths.Graphs.Compilers/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/countincognito/Zametek.Maths.Graphs.Compilers</PackageProjectUrl>
     <Description>Base and basic builders, compilers and extensions for creating vertex and arrow directed graphs. Includes the following capabilities: dynamic dependency resolution for activities; transitive reduction; edge redirection; critical path calculation; activity priority calculation; mapped and unmapped resource scheduling.</Description>
-    <Version>1.0.4</Version>
+    <Version>1.1.0-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>
