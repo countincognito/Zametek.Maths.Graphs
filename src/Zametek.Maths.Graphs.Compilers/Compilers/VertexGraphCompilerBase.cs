@@ -198,6 +198,11 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        public GraphCompilation<T, TDependentActivity> Compile()
+        {
+            return Compile(new List<IResource<T>>());
+        }
+
         public GraphCompilation<T, TDependentActivity> Compile(IList<IResource<T>> resources)
         {
             if (resources == null)

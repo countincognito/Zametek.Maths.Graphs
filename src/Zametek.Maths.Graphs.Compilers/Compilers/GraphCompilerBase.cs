@@ -43,6 +43,7 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        // https://en.wikipedia.org/wiki/Cyclomatic_complexity
         public int CyclomaticComplexity
         {
             get
@@ -50,8 +51,20 @@ namespace Zametek.Maths.Graphs
                 lock (m_Lock)
                 {
                     int edgeCount = m_GraphBuilder.Edges.Count();
-                    int nodeCount = m_GraphBuilder.Nodes.Where(x => x.NodeType != NodeType.Isolated).Count();
-                    return edgeCount - nodeCount + 2;
+                    int nodeCount = m_GraphBuilder.Nodes.Count();
+
+                    // Correction factor for multiple entry and exit points.
+
+                    // Artificial Start and End nodes.
+                    int extraNodes = 2;
+                    // Artificial edges to connect the artificial Start and End nodes.
+                    int extraEdges = m_GraphBuilder.StartNodes.Count() + m_GraphBuilder.EndNodes.Count();
+
+                    // Isolated nodes count as separate connected components.
+                    int isolatedNodeCount = m_GraphBuilder.IsolatedNodes.Count();
+
+                    int cyclomaticComplexity = (edgeCount + extraEdges) - (nodeCount + extraNodes) + 2 * (1 + isolatedNodeCount);
+                    return cyclomaticComplexity;
                 }
             }
         }

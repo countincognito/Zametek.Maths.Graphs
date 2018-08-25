@@ -41,7 +41,7 @@ namespace Zametek.Maths.Graphs
                 {
                     throw new InvalidOperationException(@"Cannot construct arrow graph, missing dependencies");
                 }
-
+                TransitiveReduction();
                 m_ArrowGraphBuilder.CalculateCriticalPath();
             }
         }
