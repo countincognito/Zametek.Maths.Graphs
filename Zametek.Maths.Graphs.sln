@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zametek.Maths.Graphs.Compilers", "src\Zametek.Maths.Graphs.Compilers\Zametek.Maths.Graphs.Compilers.csproj", "{2EAAFC11-0B1B-4132-ABF9-5F6A453D88A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zametek.Maths.Graphs.Compilers.Tests", "test\Zametek.Maths.Graphs.Compilers.Tests\Zametek.Maths.Graphs.Compilers.Tests.csproj", "{D472B03B-7478-4718-A0C7-ACC2F18F2018}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{895B6118-66F3-4856-B257-A369601319B0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8512E004-3787-4F37-A916-E2310D44551B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zametek.Maths.Graphs.Primitives", "src\Zametek.Maths.Graphs.Primitives\Zametek.Maths.Graphs.Primitives.csproj", "{6F623119-3632-4059-A585-105ECCC35738}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2EAAFC11-0B1B-4132-ABF9-5F6A453D88A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EAAFC11-0B1B-4132-ABF9-5F6A453D88A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EAAFC11-0B1B-4132-ABF9-5F6A453D88A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EAAFC11-0B1B-4132-ABF9-5F6A453D88A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D472B03B-7478-4718-A0C7-ACC2F18F2018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D472B03B-7478-4718-A0C7-ACC2F18F2018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D472B03B-7478-4718-A0C7-ACC2F18F2018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D472B03B-7478-4718-A0C7-ACC2F18F2018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F623119-3632-4059-A585-105ECCC35738}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F623119-3632-4059-A585-105ECCC35738}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F623119-3632-4059-A585-105ECCC35738}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F623119-3632-4059-A585-105ECCC35738}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2EAAFC11-0B1B-4132-ABF9-5F6A453D88A0} = {895B6118-66F3-4856-B257-A369601319B0}
+		{D472B03B-7478-4718-A0C7-ACC2F18F2018} = {8512E004-3787-4F37-A916-E2310D44551B}
+		{6F623119-3632-4059-A585-105ECCC35738} = {895B6118-66F3-4856-B257-A369601319B0}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {99C0F0BE-D570-4B89-ADFC-585B13E51654}
+	EndGlobalSection
+EndGlobal

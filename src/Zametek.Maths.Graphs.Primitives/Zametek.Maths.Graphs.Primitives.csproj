@@ -4,20 +4,15 @@
     <TargetFramework>netstandard1.4</TargetFramework>
     <RootNamespace>Zametek.Maths.Graphs</RootNamespace>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Authors>countincognito</Authors>
     <Company>countincognito</Company>
+    <Authors>countincognito</Authors>
     <Copyright>Copyright (c) 2020 Riccardo M Bennett-Lovsey</Copyright>
-    <PackageLicenseUrl></PackageLicenseUrl>
+    <Description>Primitive classes, interfaces and enums for use in Zametek.Maths.Graphs.</Description>
     <PackageProjectUrl>https://github.com/countincognito/Zametek.Maths.Graphs</PackageProjectUrl>
-    <Description>Base and basic builders, compilers and extensions for creating vertex and arrow directed graphs. Includes the following capabilities: dynamic dependency resolution for activities; transitive reduction; edge redirection; critical path calculation; activity priority calculation; mapped and unmapped resource scheduling.</Description>
-    <Version>1.1.1</Version>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <Version>1.0.3</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Zametek.Utility" Version="1.1.0" />
-    <PackageReference Include="Zametek.Maths.Graphs.Primitives" Version="1.0.3" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\LICENSE">
