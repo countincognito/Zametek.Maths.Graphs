@@ -1,12 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    [TestClass]
     public class ArrowGraphCompilerTests
     {
-        [TestMethod]
+        [Fact]
         public void ArrowGraphCompiler_CyclomaticComplexityWithNoNodes_FindsZero()
         {
             var graphCompiler = ArrowGraphCompiler<int, IDependentActivity<int>>.Create();
@@ -14,7 +13,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(0, graphCompiler.CyclomaticComplexity);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphCompiler_CyclomaticComplexityInOneNetwork_AsExpected()
         {
             int activityId1 = 1;
@@ -42,7 +41,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(6, graphCompiler.CyclomaticComplexity);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphCompiler_CyclomaticComplexityInThreeNetworks_AsExpected()
         {
             int activityId1 = 1;
@@ -64,7 +63,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(3, graphCompiler.CyclomaticComplexity);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphCompiler_CyclomaticComplexityWithTwoLoneNodes_AsExpected()
         {
             int activityId1 = 1;

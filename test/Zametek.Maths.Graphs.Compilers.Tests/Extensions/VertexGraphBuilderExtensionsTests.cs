@@ -1,13 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    [TestClass]
     public class VertexGraphBuilderExtensionsTests
     {
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathForwardFlow_AsExpected()
         {
             int eventId = 0;
@@ -62,7 +61,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(26, graphBuilder.Activity(activityId9).EarliestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathBackwardFlow_AsExpected()
         {
             int eventId = 0;
@@ -118,7 +117,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(26, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPath_AsExpected()
         {
             int eventId = 0;
@@ -209,7 +208,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(26, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathWithMinimumFreeSlackInStartActivity_AsExpected()
         {
             int eventId = 0;
@@ -300,7 +299,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(34, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathWithMinimumFreeSlackInNormalActivity_AsExpected()
         {
             int eventId = 0;
@@ -391,7 +390,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(41, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathWithMinimumFreeSlackInEndActivity_AsExpected()
         {
             int eventId = 0;
@@ -482,7 +481,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(41, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathWithMinimumEarliestStartTimeInStartActivity_AsExpected()
         {
             int eventId = 0;
@@ -573,7 +572,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(34, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathWithMinimumEarliestStartTimeInNormalActivity_AsExpected()
         {
             int eventId = 0;
@@ -664,7 +663,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(28, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathWithMinimumEarliestStartTimeInEndActivity_AsExpected()
         {
             int eventId = 0;
@@ -755,7 +754,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(30, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_AddingAndRemovingDependenciesCalculateCriticalPathForwardFlow_AsExpected()
         {
             int eventId = 0;
@@ -934,7 +933,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(26, graphBuilder.Activity(activityId9).EarliestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_AddingAndRemovingDependenciesCalculateCriticalPathBackwardFlow_AsExpected()
         {
             int eventId = 0;
@@ -1117,7 +1116,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(26, graphBuilder.Activity(activityId9).EarliestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_AddingAndRemovingDependenciesCalculateCriticalPath_AsExpected()
         {
             int eventId = 0;
@@ -1292,7 +1291,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(26, graphBuilder.Activity(activityId9).EarliestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateCriticalPathPriorityList_CorrectOrder()
         {
             int eventId = 0;
@@ -1315,7 +1314,7 @@ namespace Zametek.Maths.Graphs.Tests
                 priorityList);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListOneResource_CorrectOrder()
         {
             int eventId = 0;
@@ -1379,7 +1378,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(65, resourceSchedule[0].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListTwoResources_CorrectOrder()
         {
             int eventId = 0;
@@ -1448,7 +1447,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(31, resourceSchedules[1].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListThreeResources_CorrectOrder()
         {
             int eventId = 0;
@@ -1521,7 +1520,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(22, resourceSchedules[2].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListFourResources_CorrectOrder()
         {
             int eventId = 0;
@@ -1595,7 +1594,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(22, resourceSchedules[2].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListUnlimitedResources_CorrectOrder()
         {
             int eventId = 0;

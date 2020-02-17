@@ -1,14 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    [TestClass]
     public class VertexGraphBuilderTests
     {
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_Contructor_NoException()
         {
             int eventId = 0;
@@ -22,7 +21,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsFalse(graphBuilder.EndNodes.Any());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithNullEdgeIdGenerator_ShouldThrowArgumentNullException()
         {
             int dummyActivityId = 0;
@@ -30,7 +29,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(null, () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithNullNodeIdGenerator_ShouldThrowArgumentNullException()
         {
             int eventId = 0;
@@ -38,7 +37,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(() => eventId = eventId.Next(), null));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_SingleActivityNoDependencies_NoStartOrEndNodes()
         {
             int eventId = 0;
@@ -65,7 +64,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsFalse(graphBuilder.Edges.Any());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_TwoActivitiesOneDependency_ActivitiesHookedUpByEdge()
         {
             int eventId = 0;
@@ -126,7 +125,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Contains(eventId1));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_TwoActivitiesOneDependencyReverseOrder_ActivitiesHookedUpByEdge()
         {
             int eventId = 0;
@@ -186,7 +185,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Contains(eventId1));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_ThreeActivitiesOneDependentOnOtherTwo_DependentActivityHookedUpByTwoEdges()
         {
             int eventId = 0;
@@ -285,7 +284,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Contains(eventId2));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_ThreeActivitiesOneDependentOnOtherTwoReverseOrder_DependentActivityHookedUpByTwoEdges()
         {
             int eventId = 0;
@@ -384,7 +383,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Contains(eventId2));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_ThreeActivitiesOneDependentOnOtherTwoRemovedInStages_StructureAsExpected()
         {
             int eventId = 0;
@@ -524,7 +523,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsFalse(graphBuilder.EdgeIds.Contains(activityId3));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_FourActivitiesOneDependentOnOtherThreeGetAncestorNodesLookup_AncestorsAsExpected()
         {
             int eventId = 0;
@@ -572,7 +571,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(endNodeAncestors.Contains(activityId3));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_FiveActivitiesWithTwoUnnecessaryDependencies_TransitiveReductionAsExpected()
         {
             int eventId = 0;
@@ -771,7 +770,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeTailNode(eventId6).OutgoingEdges.Contains(eventId6));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithNullGraph_ShouldThrowArgumentNullException()
         {
             int eventId = 0;
@@ -780,7 +779,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(null, () => eventId = eventId.Next(), () => activityId1++));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraph_GraphSuccessfullyAssimilated()
         {
             int eventId = 0;
@@ -819,7 +818,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(firstGraph, secondGraph);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithMissingEdge_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -858,7 +857,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithTooManyEdges_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -897,7 +896,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithMissingNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -937,7 +936,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithTooManyNodes_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -976,7 +975,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithNoStartNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -1018,7 +1017,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithNoEndNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -1060,7 +1059,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithOnlyIsolatedNodes_NoException()
         {
             int eventId = 0;
@@ -1089,7 +1088,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(2, graphBuilder2.IsolatedNodes.Count());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithUnconnectedStartNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -1137,7 +1136,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_CtorCalledWithGraphWithUnconnectedOneEndNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -1185,7 +1184,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new VertexGraphBuilder<int, IActivity<int>>(graph, () => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_AllDummyActivitiesFindCircularDependencies_FindsCircularDependency()
         {
             int eventId = 0;
@@ -1211,7 +1210,7 @@ namespace Zametek.Maths.Graphs.Tests
                 circularDependencies[1].Dependencies.ToList());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphBuilder_FindCircularDependencies_FindsCircularDependency()
         {
             int eventId = 0;

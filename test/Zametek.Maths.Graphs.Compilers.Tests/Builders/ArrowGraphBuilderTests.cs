@@ -1,14 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    [TestClass]
     public class ArrowGraphBuilderTests
     {
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_Contructor_NoException()
         {
             int eventId = 0;
@@ -22,7 +21,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(0, graphBuilder.EndNode.IncomingEdges.Count);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithNullEdgeIdGenerator_ShouldThrowArgumentNullException()
         {
             int eventId = 0;
@@ -30,7 +29,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(null, () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithNullNodeIdGenerator_ShouldThrowArgumentNullException()
         {
             int dummyActivityId = 0;
@@ -38,7 +37,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(() => dummyActivityId = dummyActivityId.Next(), null));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_AccessOutgoingEdgesOfEndNode_ShouldThrowInvalidOperationException()
         {
             int eventId = 0;
@@ -48,7 +47,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => graphBuilder.EndNode.OutgoingEdges.Any());
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_SingleActivityNoDependencies_HooksUpToStartAndEndNodes()
         {
             int eventId = 0;
@@ -74,7 +73,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_TwoActivitiesOneDependency_ActivitiesHookedUpByDummyEdge()
         {
             int eventId = 0;
@@ -179,7 +178,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_TwoActivitiesOneDependencyReverseOrder_ActivitiesHookedUpByDummyEdge()
         {
             int eventId = 0;
@@ -279,7 +278,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(graphBuilder.EndNode.Id, graphBuilder.EdgeHeadNode(dummyActivityId1).Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_ThreeActivitiesOneDependentOnOtherTwo_DependentActivityHookedUpByTwoDummyEdges()
         {
             int eventId = 0;
@@ -497,7 +496,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_ThreeActivitiesOneDependentOnOtherTwoReverseOrder_DependentActivityHookedUpByTwoDummyEdges()
         {
             int eventId = 0;
@@ -691,7 +690,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId1));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_ThreeActivitiesOneDependentOnOtherTwoRemovedInStages_StructureAsExpected()
         {
             int eventId = 0;
@@ -892,7 +891,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsFalse(result11);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_ThreeActivitiesOneDependentOnOtherTwoRedirectDummyEdges_DummiesRedirectedAsExpected()
         {
             int eventId = 0;
@@ -1061,7 +1060,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(graphBuilder.EndNode.Id, graphBuilder.EdgeHeadNode(dummyActivityId5).Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_FourActivitiesOneDependentOnOtherThreeRedirectDummyEdges_DummiesRedirectedAsExpected()
         {
             int eventId = 0;
@@ -1283,7 +1282,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreNotEqual(graphBuilder.StartNode.Id, graphBuilder.EdgeTailNode(dummyActivityId7).Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_FourActivitiesOneDependentOnOtherThreeGetAncestorNodesLookup_AncestorsAsExpected()
         {
             int eventId = 0;
@@ -1368,7 +1367,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(event7NodeAncestors.Contains(eventId6));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_ThreeActivitiesOneDependentOnOtherTwoWithTwoUnnecessaryDummies_TransitiveReductionAsExpected()
         {
             int eventId = 0;
@@ -1632,7 +1631,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsTrue(graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_FiveActivitiesWithThreeUnnecessaryDummies_RemoveRedundantDummyEdgesAsExpected()
         {
             int eventId = 0;
@@ -1798,7 +1797,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(graphBuilder.EdgeHeadNode(activityId5).Id, graphBuilder.EdgeTailNode(dummyActivityId8).Id);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithNullArrowGraph_ShouldThrowArgumentNullException()
         {
             int eventId = 0;
@@ -1807,7 +1806,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(null, () => activityId1++, () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraph_GraphSuccessfullyAssimilated()
         {
             int eventId = 0;
@@ -1846,7 +1845,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(firstGraph, secondGraph);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithMissingEdge_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -1885,7 +1884,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithTooManyEdges_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -1924,7 +1923,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithMissingNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -1964,7 +1963,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithTooManyNodes_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -2003,7 +2002,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithNoStartNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -2043,7 +2042,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithNoEndNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -2083,7 +2082,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithMoreThanOneStartNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -2131,7 +2130,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_CtorCalledWithGraphWithMoreThanOneEndNode_ShouldThrowArgumentException()
         {
             int eventId = 0;
@@ -2179,7 +2178,7 @@ namespace Zametek.Maths.Graphs.Tests
                 () => new ArrowGraphBuilder<int, IActivity<int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next()));
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_AllDummyActivitiesFindCircularDependencies_FindsCircularDependency()
         {
             int eventId = 0;
@@ -2205,7 +2204,7 @@ namespace Zametek.Maths.Graphs.Tests
                 circularDependencies[1].Dependencies.ToList());
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilder_FindCircularDependencies_FindsCircularDependency()
         {
             int eventId = 0;

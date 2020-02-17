@@ -1,12 +1,11 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    [TestClass]
     public class KeyExtensionsTests
     {
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_NextInt_ValueIsIncrementedByOne()
         {
             int first = new Random().Next();
@@ -14,7 +13,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(first + 1, second);
         }
 
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_NextTypeInt_ValueIsIncrementedByOne()
         {
             int first = new Random().Next();
@@ -22,7 +21,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(first + 1, second);
         }
 
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_NextGuid_ValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
@@ -30,7 +29,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreNotEqual(first, second);
         }
 
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_NextTypeGuid_ValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
@@ -38,7 +37,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreNotEqual(first, second);
         }
 
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_PreviousInt_ValueIsDecrementedByOne()
         {
             int first = new Random().Next();
@@ -46,7 +45,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(first - 1, second);
         }
 
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_PreviousTypeInt_ValueIsDecrementedByOne()
         {
             int first = new Random().Next();
@@ -54,7 +53,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(first - 1, second);
         }
 
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_PreviousGuid_ValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
@@ -62,7 +61,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreNotEqual(first, second);
         }
 
-        [TestMethod]
+        [Fact]
         public void KeyExtensions_PreviousTypeGuid_ValueIsDifferent()
         {
             Guid first = Guid.NewGuid();

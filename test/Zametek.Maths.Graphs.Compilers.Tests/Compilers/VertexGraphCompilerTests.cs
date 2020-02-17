@@ -1,13 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    [TestClass]
     public class VertexGraphCompilerTests
     {
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_Contructor_NoException()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
@@ -19,7 +18,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsFalse(graphBuilder.EndNodes.Any());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_SingleActivityNoDependencies_NoStartOrEndNodes()
         {
             int activityId = 0;
@@ -45,7 +44,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.IsFalse(graphBuilder.Edges.Any());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CompileWithCircularDependencies_FindsCircularDependencies()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
@@ -72,7 +71,7 @@ namespace Zametek.Maths.Graphs.Tests
                 complication.CircularDependencies[1].Dependencies.ToList());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CompileWithMissingDependencies_FindsMissingDependencies()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
@@ -95,7 +94,7 @@ namespace Zametek.Maths.Graphs.Tests
                 complication.MissingDependencies.ToList());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CompileWithCircularAndMissingDependencies_FindsCircularAndMissingDependencies()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
@@ -124,7 +123,7 @@ namespace Zametek.Maths.Graphs.Tests
                 complication.MissingDependencies.ToList());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CompileWithUnlimitedResources_ResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
@@ -281,7 +280,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(0, graphBuilder.Activity(activityId9).ResourceDependencies.Count());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CompileWithFreeSlackUnlimitedResources_ResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
@@ -438,7 +437,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(0, graphBuilder.Activity(activityId9).ResourceDependencies.Count());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CompileWithTwoResources_ResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
@@ -608,7 +607,7 @@ namespace Zametek.Maths.Graphs.Tests
                 graphBuilder.Activity(activityId9).ResourceDependencies.ToList());
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CyclomaticComplexityWithNoNodes_FindsZero()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
@@ -616,7 +615,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(0, graphCompiler.CyclomaticComplexity);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CyclomaticComplexityInOneNetwork_AsExpected()
         {
             int activityId1 = 1;
@@ -644,7 +643,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(6, graphCompiler.CyclomaticComplexity);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CyclomaticComplexityInThreeNetworks_AsExpected()
         {
             int activityId1 = 1;
@@ -666,7 +665,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(3, graphCompiler.CyclomaticComplexity);
         }
 
-        [TestMethod]
+        [Fact]
         public void VertexGraphCompiler_CyclomaticComplexityWithTwoLoneNodes_AsExpected()
         {
             int activityId1 = 1;

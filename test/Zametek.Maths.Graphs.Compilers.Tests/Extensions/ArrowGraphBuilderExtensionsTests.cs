@@ -1,13 +1,12 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    [TestClass]
     public class ArrowGraphBuilderExtensionsTests
     {
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPath_AsExpected()
         {
             int eventId = 0;
@@ -98,7 +97,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(26, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPathWithMinimumFreeSlackInStartActivity_AsExpected()
         {
             int eventId = 0;
@@ -189,7 +188,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(34, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPathWithMinimumFreeSlackInNormalActivity_AsExpected()
         {
             int eventId = 0;
@@ -280,7 +279,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(41, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPathWithMinimumFreeSlackInEndActivity_AsExpected()
         {
             int eventId = 0;
@@ -371,7 +370,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(41, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPathWithMinimumEarliestStartTimeInStartActivity_AsExpected()
         {
             int eventId = 0;
@@ -462,7 +461,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(34, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPathWithMinimumEarliestStartTimeInNormalActivity_AsExpected()
         {
             int eventId = 0;
@@ -554,7 +553,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(28, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPathWithMinimumEarliestStartTimeInEndActivity_AsExpected()
         {
             int eventId = 0;
@@ -646,7 +645,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(30, graphBuilder.Activity(activityId9).LatestFinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateCriticalPathPriorityList_CorrectOrder()
         {
             int eventId = 0;
@@ -669,7 +668,7 @@ namespace Zametek.Maths.Graphs.Tests
                 priorityList);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListOneResource_CorrectOrder()
         {
             int eventId = 0;
@@ -733,7 +732,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(65, resourceSchedule[0].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListTwoResources_CorrectOrder()
         {
             int eventId = 0;
@@ -802,7 +801,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(31, resourceSchedules[1].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListThreeResources_CorrectOrder()
         {
             int eventId = 0;
@@ -875,7 +874,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(22, resourceSchedules[2].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListFourResources_CorrectOrder()
         {
             int eventId = 0;
@@ -949,7 +948,7 @@ namespace Zametek.Maths.Graphs.Tests
             Assert.AreEqual(22, resourceSchedules[2].ScheduledActivities.Last().FinishTime);
         }
 
-        [TestMethod]
+        [Fact]
         public void ArrowGraphBuilderExtensions_CalculateResourceSchedulesByPriorityListUnlimitedResources_CorrectOrder()
         {
             int eventId = 0;
