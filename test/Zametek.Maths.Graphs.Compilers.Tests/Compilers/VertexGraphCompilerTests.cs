@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using FluentAssertions;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -7,19 +8,19 @@ namespace Zametek.Maths.Graphs.Tests
     public class VertexGraphCompilerTests
     {
         [Fact]
-        public void VertexGraphCompiler_Contructor_NoException()
+        public void VertexGraphCompiler_GivenContructor_ThenNoException()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
             var graphBuilder = graphCompiler.Builder;
-            Assert.IsFalse(graphBuilder.EdgeIds.Any());
-            Assert.IsFalse(graphBuilder.NodeIds.Any());
-            Assert.IsTrue(graphBuilder.AllDependenciesSatisfied);
-            Assert.IsFalse(graphBuilder.StartNodes.Any());
-            Assert.IsFalse(graphBuilder.EndNodes.Any());
+            graphBuilder.EdgeIds.Any().Should().BeFalse();
+            graphBuilder.NodeIds.Any().Should().BeFalse();
+            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.StartNodes.Any().Should().BeFalse();
+            graphBuilder.EndNodes.Any().Should().BeFalse();
         }
 
         [Fact]
-        public void VertexGraphCompiler_SingleActivityNoDependencies_NoStartOrEndNodes()
+        public void VertexGraphCompiler_GivenSingleActivityNoDependencies_ThenNoStartOrEndNodes()
         {
             int activityId = 0;
             int activityId1 = activityId + 1;
@@ -28,24 +29,24 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity = new DependentActivity<int>(activityId1, 0);
             bool result = graphCompiler.AddActivity(activity);
-            Assert.IsTrue(result);
+            result.Should().BeTrue();
 
-            Assert.IsFalse(graphBuilder.EdgeIds.Any());
-            Assert.AreEqual(1, graphBuilder.NodeIds.Count());
-            Assert.IsTrue(graphBuilder.AllDependenciesSatisfied);
+            graphBuilder.EdgeIds.Any().Should().BeFalse();
+            graphBuilder.NodeIds.Count().Should().Be(1);
+            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
 
-            Assert.IsFalse(graphBuilder.StartNodes.Any());
-            Assert.IsFalse(graphBuilder.EndNodes.Any());
+            graphBuilder.StartNodes.Any().Should().BeFalse();
+            graphBuilder.EndNodes.Any().Should().BeFalse();
 
-            Assert.AreEqual(activityId1, graphBuilder.Node(activityId1).Id);
-            Assert.AreEqual(NodeType.Isolated, graphBuilder.Node(activityId1).NodeType);
-            Assert.AreEqual(activityId1, graphBuilder.Activity(activityId1).Id);
-            Assert.AreEqual(1, graphBuilder.Activities.Count());
-            Assert.IsFalse(graphBuilder.Edges.Any());
+            graphBuilder.Node(activityId1).Id.Should().Be(activityId1);
+            graphBuilder.Node(activityId1).NodeType.Should().Be(NodeType.Isolated);
+            graphBuilder.Activity(activityId1).Id.Should().Be(activityId1);
+            graphBuilder.Activities.Count().Should().Be(1);
+            graphBuilder.Edges.Any().Should().BeFalse();
         }
 
         [Fact]
-        public void VertexGraphCompiler_CompileWithCircularDependencies_FindsCircularDependencies()
+        public void VertexGraphCompiler_GivenCompileWithCircularDependencies_ThenFindsCircularDependencies()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
             graphCompiler.AddActivity(new DependentActivity<int>(1, 10));
@@ -60,19 +61,15 @@ namespace Zametek.Maths.Graphs.Tests
 
             GraphCompilation<int, IDependentActivity<int>> complication = graphCompiler.Compile();
 
-            Assert.AreEqual(0, complication.ResourceSchedules.Count);
-            Assert.AreEqual(0, complication.MissingDependencies.Count);
-            Assert.AreEqual(2, complication.CircularDependencies.Count);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { 2, 4, 7 }),
-                complication.CircularDependencies[0].Dependencies.ToList());
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { 5, 8, 9 }),
-                complication.CircularDependencies[1].Dependencies.ToList());
+            complication.ResourceSchedules.Count.Should().Be(0);
+            complication.MissingDependencies.Count.Should().Be(0);
+            complication.CircularDependencies.Count.Should().Be(2);
+            complication.CircularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
+            complication.CircularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
         }
 
         [Fact]
-        public void VertexGraphCompiler_CompileWithMissingDependencies_FindsMissingDependencies()
+        public void VertexGraphCompiler_GivenCompileWithMissingDependencies_ThenFindsMissingDependencies()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
             graphCompiler.AddActivity(new DependentActivity<int>(1, 10));
@@ -87,15 +84,13 @@ namespace Zametek.Maths.Graphs.Tests
 
             GraphCompilation<int, IDependentActivity<int>> complication = graphCompiler.Compile();
 
-            Assert.AreEqual(0, complication.ResourceSchedules.Count);
-            Assert.AreEqual(0, complication.CircularDependencies.Count);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { 21, 22 }),
-                complication.MissingDependencies.ToList());
+            complication.ResourceSchedules.Count.Should().Be(0);
+            complication.CircularDependencies.Count.Should().Be(0);
+            complication.MissingDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
         }
 
         [Fact]
-        public void VertexGraphCompiler_CompileWithCircularAndMissingDependencies_FindsCircularAndMissingDependencies()
+        public void VertexGraphCompiler_GivenCompileWithCircularAndMissingDependencies_ThenFindsCircularAndMissingDependencies()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
             graphCompiler.AddActivity(new DependentActivity<int>(1, 10));
@@ -110,21 +105,15 @@ namespace Zametek.Maths.Graphs.Tests
 
             GraphCompilation<int, IDependentActivity<int>> complication = graphCompiler.Compile();
 
-            Assert.AreEqual(0, complication.ResourceSchedules.Count);
-            Assert.AreEqual(2, complication.CircularDependencies.Count);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { 2, 4, 7 }),
-                complication.CircularDependencies[0].Dependencies.ToList());
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { 5, 8, 9 }),
-                complication.CircularDependencies[1].Dependencies.ToList());
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { 21, 22 }),
-                complication.MissingDependencies.ToList());
+            complication.ResourceSchedules.Count.Should().Be(0);
+            complication.CircularDependencies.Count.Should().Be(2);
+            complication.CircularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
+            complication.CircularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
+            complication.MissingDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
         }
 
         [Fact]
-        public void VertexGraphCompiler_CompileWithUnlimitedResources_ResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithUnlimitedResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -149,139 +138,139 @@ namespace Zametek.Maths.Graphs.Tests
 
             GraphCompilation<int, IDependentActivity<int>> complication = graphCompiler.Compile();
 
-            Assert.AreEqual(0, complication.MissingDependencies.Count);
-            Assert.AreEqual(0, complication.CircularDependencies.Count);
-            Assert.AreEqual(3, complication.ResourceSchedules.Count);
+            complication.MissingDependencies.Count.Should().Be(0);
+            complication.CircularDependencies.Count.Should().Be(0);
+            complication.ResourceSchedules.Count.Should().Be(3);
 
-            Assert.AreEqual(3, complication.ResourceSchedules[0].ScheduledActivities.Count());
+            complication.ResourceSchedules[0].ScheduledActivities.Count().Should().Be(3);
 
-            Assert.AreEqual(activityId3, complication.ResourceSchedules[0].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[0].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(8, complication.ResourceSchedules[0].ScheduledActivities[0].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId3);
+            complication.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(8);
 
-            Assert.AreEqual(activityId5, complication.ResourceSchedules[0].ScheduledActivities[1].Id);
-            Assert.AreEqual(8, complication.ResourceSchedules[0].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(16, complication.ResourceSchedules[0].ScheduledActivities[1].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[1].Id.Should().Be(activityId5);
+            complication.ResourceSchedules[0].ScheduledActivities[1].StartTime.Should().Be(8);
+            complication.ResourceSchedules[0].ScheduledActivities[1].FinishTime.Should().Be(16);
 
-            Assert.AreEqual(activityId9, complication.ResourceSchedules[0].ScheduledActivities[2].Id);
-            Assert.AreEqual(16, complication.ResourceSchedules[0].ScheduledActivities[2].StartTime);
-            Assert.AreEqual(26, complication.ResourceSchedules[0].ScheduledActivities[2].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[2].Id.Should().Be(activityId9);
+            complication.ResourceSchedules[0].ScheduledActivities[2].StartTime.Should().Be(16);
+            complication.ResourceSchedules[0].ScheduledActivities[2].FinishTime.Should().Be(26);
 
-            Assert.AreEqual(26, complication.ResourceSchedules[0].ScheduledActivities.Last().FinishTime);
-
-
-
-            Assert.AreEqual(3, complication.ResourceSchedules[1].ScheduledActivities.Count());
-
-            Assert.AreEqual(activityId2, complication.ResourceSchedules[1].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[1].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(7, complication.ResourceSchedules[1].ScheduledActivities[0].FinishTime);
-
-            Assert.AreEqual(activityId4, complication.ResourceSchedules[1].ScheduledActivities[1].Id);
-            Assert.AreEqual(7, complication.ResourceSchedules[1].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(18, complication.ResourceSchedules[1].ScheduledActivities[1].FinishTime);
-
-            Assert.AreEqual(activityId7, complication.ResourceSchedules[1].ScheduledActivities[2].Id);
-            Assert.AreEqual(18, complication.ResourceSchedules[1].ScheduledActivities[2].StartTime);
-            Assert.AreEqual(22, complication.ResourceSchedules[1].ScheduledActivities[2].FinishTime);
-
-            Assert.AreEqual(22, complication.ResourceSchedules[1].ScheduledActivities.Last().FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(26);
 
 
 
-            Assert.AreEqual(3, complication.ResourceSchedules[2].ScheduledActivities.Count());
+            complication.ResourceSchedules[1].ScheduledActivities.Count().Should().Be(3);
 
-            Assert.AreEqual(activityId1, complication.ResourceSchedules[2].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[2].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(6, complication.ResourceSchedules[2].ScheduledActivities[0].FinishTime);
+            complication.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId2);
+            complication.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
 
-            Assert.AreEqual(activityId6, complication.ResourceSchedules[2].ScheduledActivities[1].Id);
-            Assert.AreEqual(8, complication.ResourceSchedules[2].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(15, complication.ResourceSchedules[2].ScheduledActivities[1].FinishTime);
+            complication.ResourceSchedules[1].ScheduledActivities[1].Id.Should().Be(activityId4);
+            complication.ResourceSchedules[1].ScheduledActivities[1].StartTime.Should().Be(7);
+            complication.ResourceSchedules[1].ScheduledActivities[1].FinishTime.Should().Be(18);
 
-            Assert.AreEqual(activityId8, complication.ResourceSchedules[2].ScheduledActivities[2].Id);
-            Assert.AreEqual(18, complication.ResourceSchedules[2].ScheduledActivities[2].StartTime);
-            Assert.AreEqual(22, complication.ResourceSchedules[2].ScheduledActivities[2].FinishTime);
+            complication.ResourceSchedules[1].ScheduledActivities[2].Id.Should().Be(activityId7);
+            complication.ResourceSchedules[1].ScheduledActivities[2].StartTime.Should().Be(18);
+            complication.ResourceSchedules[1].ScheduledActivities[2].FinishTime.Should().Be(22);
 
-            Assert.AreEqual(22, complication.ResourceSchedules[2].ScheduledActivities.Last().FinishTime);
+            complication.ResourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
 
 
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId1).EarliestStartTime);
-            Assert.AreEqual(6, graphBuilder.Activity(activityId1).EarliestFinishTime);
-            Assert.AreEqual(2, graphBuilder.Activity(activityId1).FreeSlack);
-            Assert.AreEqual(2, graphBuilder.Activity(activityId1).TotalSlack);
-            Assert.AreEqual(2, graphBuilder.Activity(activityId1).LatestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId1).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId1).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities.Count().Should().Be(3);
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).EarliestStartTime);
-            Assert.AreEqual(7, graphBuilder.Activity(activityId2).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).FreeSlack);
-            Assert.AreEqual(1, graphBuilder.Activity(activityId2).TotalSlack);
-            Assert.AreEqual(1, graphBuilder.Activity(activityId2).LatestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId2).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities[0].Id.Should().Be(activityId1);
+            complication.ResourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).EarliestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId3).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).TotalSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).LatestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId3).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities[1].Id.Should().Be(activityId6);
+            complication.ResourceSchedules[2].ScheduledActivities[1].StartTime.Should().Be(8);
+            complication.ResourceSchedules[2].ScheduledActivities[1].FinishTime.Should().Be(15);
 
-            Assert.AreEqual(7, graphBuilder.Activity(activityId4).EarliestStartTime);
-            Assert.AreEqual(18, graphBuilder.Activity(activityId4).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId4).FreeSlack);
-            Assert.AreEqual(4, graphBuilder.Activity(activityId4).TotalSlack);
-            Assert.AreEqual(11, graphBuilder.Activity(activityId4).LatestStartTime);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId4).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId4).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities[2].Id.Should().Be(activityId8);
+            complication.ResourceSchedules[2].ScheduledActivities[2].StartTime.Should().Be(18);
+            complication.ResourceSchedules[2].ScheduledActivities[2].FinishTime.Should().Be(22);
 
-            Assert.AreEqual(8, graphBuilder.Activity(activityId5).EarliestStartTime);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId5).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId5).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId5).TotalSlack);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId5).LatestStartTime);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId5).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId5).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities.Last().FinishTime.Should().Be(22);
 
-            Assert.AreEqual(8, graphBuilder.Activity(activityId6).EarliestStartTime);
-            Assert.AreEqual(15, graphBuilder.Activity(activityId6).EarliestFinishTime);
-            Assert.AreEqual(3, graphBuilder.Activity(activityId6).FreeSlack);
-            Assert.AreEqual(7, graphBuilder.Activity(activityId6).TotalSlack);
-            Assert.AreEqual(15, graphBuilder.Activity(activityId6).LatestStartTime);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId6).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId6).ResourceDependencies.Count());
 
-            Assert.AreEqual(18, graphBuilder.Activity(activityId7).EarliestStartTime);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId7).EarliestFinishTime);
-            Assert.AreEqual(4, graphBuilder.Activity(activityId7).FreeSlack);
-            Assert.AreEqual(4, graphBuilder.Activity(activityId7).TotalSlack);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId7).LatestStartTime);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId7).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId7).ResourceDependencies.Count());
 
-            Assert.AreEqual(18, graphBuilder.Activity(activityId8).EarliestStartTime);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId8).EarliestFinishTime);
-            Assert.AreEqual(4, graphBuilder.Activity(activityId8).FreeSlack);
-            Assert.AreEqual(4, graphBuilder.Activity(activityId8).TotalSlack);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId8).LatestStartTime);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId8).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId8).ResourceDependencies.Count());
+            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(6);
+            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(2);
+            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count().Should().Be(0);
 
-            Assert.AreEqual(16, graphBuilder.Activity(activityId9).EarliestStartTime);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId9).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId9).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId9).TotalSlack);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId9).LatestStartTime);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId9).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId9).ResourceDependencies.Count());
+            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
+            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
+            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
+            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
+            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(4);
+            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(11);
+            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
+            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(16);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(3);
+            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(7);
+            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(4);
+            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(4);
+            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(4);
+            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(4);
+            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(22);
+            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Count().Should().Be(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_CompileWithFreeSlackUnlimitedResources_ResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithFreeSlackUnlimitedResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -306,139 +295,139 @@ namespace Zametek.Maths.Graphs.Tests
 
             GraphCompilation<int, IDependentActivity<int>> complication = graphCompiler.Compile();
 
-            Assert.AreEqual(0, complication.MissingDependencies.Count);
-            Assert.AreEqual(0, complication.CircularDependencies.Count);
-            Assert.AreEqual(3, complication.ResourceSchedules.Count);
+            complication.MissingDependencies.Count.Should().Be(0);
+            complication.CircularDependencies.Count.Should().Be(0);
+            complication.ResourceSchedules.Count.Should().Be(3);
 
-            Assert.AreEqual(4, complication.ResourceSchedules[0].ScheduledActivities.Count());
+            complication.ResourceSchedules[0].ScheduledActivities.Count().Should().Be(4);
 
-            Assert.AreEqual(activityId2, complication.ResourceSchedules[0].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[0].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(7, complication.ResourceSchedules[0].ScheduledActivities[0].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId2);
+            complication.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(7);
 
-            Assert.AreEqual(activityId4, complication.ResourceSchedules[0].ScheduledActivities[1].Id);
-            Assert.AreEqual(7, complication.ResourceSchedules[0].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(18, complication.ResourceSchedules[0].ScheduledActivities[1].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[1].Id.Should().Be(activityId4);
+            complication.ResourceSchedules[0].ScheduledActivities[1].StartTime.Should().Be(7);
+            complication.ResourceSchedules[0].ScheduledActivities[1].FinishTime.Should().Be(18);
 
-            Assert.AreEqual(activityId7, complication.ResourceSchedules[0].ScheduledActivities[2].Id);
-            Assert.AreEqual(18, complication.ResourceSchedules[0].ScheduledActivities[2].StartTime);
-            Assert.AreEqual(22, complication.ResourceSchedules[0].ScheduledActivities[2].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[2].Id.Should().Be(activityId7);
+            complication.ResourceSchedules[0].ScheduledActivities[2].StartTime.Should().Be(18);
+            complication.ResourceSchedules[0].ScheduledActivities[2].FinishTime.Should().Be(22);
 
-            Assert.AreEqual(activityId9, complication.ResourceSchedules[0].ScheduledActivities[3].Id);
-            Assert.AreEqual(31, complication.ResourceSchedules[0].ScheduledActivities[3].StartTime);
-            Assert.AreEqual(41, complication.ResourceSchedules[0].ScheduledActivities[3].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[3].Id.Should().Be(activityId9);
+            complication.ResourceSchedules[0].ScheduledActivities[3].StartTime.Should().Be(31);
+            complication.ResourceSchedules[0].ScheduledActivities[3].FinishTime.Should().Be(41);
 
-            Assert.AreEqual(41, complication.ResourceSchedules[0].ScheduledActivities.Last().FinishTime);
-
-
-
-            Assert.AreEqual(3, complication.ResourceSchedules[1].ScheduledActivities.Count());
-
-            Assert.AreEqual(activityId3, complication.ResourceSchedules[1].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[1].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(8, complication.ResourceSchedules[1].ScheduledActivities[0].FinishTime);
-
-            Assert.AreEqual(activityId6, complication.ResourceSchedules[1].ScheduledActivities[1].Id);
-            Assert.AreEqual(8, complication.ResourceSchedules[1].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(15, complication.ResourceSchedules[1].ScheduledActivities[1].FinishTime);
-
-            Assert.AreEqual(activityId8, complication.ResourceSchedules[1].ScheduledActivities[2].Id);
-            Assert.AreEqual(18, complication.ResourceSchedules[1].ScheduledActivities[2].StartTime);
-            Assert.AreEqual(22, complication.ResourceSchedules[1].ScheduledActivities[2].FinishTime);
-
-            Assert.AreEqual(22, complication.ResourceSchedules[1].ScheduledActivities.Last().FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(41);
 
 
 
-            Assert.AreEqual(2, complication.ResourceSchedules[2].ScheduledActivities.Count());
+            complication.ResourceSchedules[1].ScheduledActivities.Count().Should().Be(3);
 
-            Assert.AreEqual(activityId1, complication.ResourceSchedules[2].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[2].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(6, complication.ResourceSchedules[2].ScheduledActivities[0].FinishTime);
+            complication.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId3);
+            complication.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(8);
 
-            Assert.AreEqual(activityId5, complication.ResourceSchedules[2].ScheduledActivities[1].Id);
-            Assert.AreEqual(8, complication.ResourceSchedules[2].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(16, complication.ResourceSchedules[2].ScheduledActivities[1].FinishTime);
+            complication.ResourceSchedules[1].ScheduledActivities[1].Id.Should().Be(activityId6);
+            complication.ResourceSchedules[1].ScheduledActivities[1].StartTime.Should().Be(8);
+            complication.ResourceSchedules[1].ScheduledActivities[1].FinishTime.Should().Be(15);
 
-            Assert.AreEqual(16, complication.ResourceSchedules[2].ScheduledActivities.Last().FinishTime);
+            complication.ResourceSchedules[1].ScheduledActivities[2].Id.Should().Be(activityId8);
+            complication.ResourceSchedules[1].ScheduledActivities[2].StartTime.Should().Be(18);
+            complication.ResourceSchedules[1].ScheduledActivities[2].FinishTime.Should().Be(22);
+
+            complication.ResourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
 
 
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId1).EarliestStartTime);
-            Assert.AreEqual(6, graphBuilder.Activity(activityId1).EarliestFinishTime);
-            Assert.AreEqual(2, graphBuilder.Activity(activityId1).FreeSlack);
-            Assert.AreEqual(17, graphBuilder.Activity(activityId1).TotalSlack);
-            Assert.AreEqual(17, graphBuilder.Activity(activityId1).LatestStartTime);
-            Assert.AreEqual(23, graphBuilder.Activity(activityId1).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId1).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities.Count().Should().Be(2);
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).EarliestStartTime);
-            Assert.AreEqual(7, graphBuilder.Activity(activityId2).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).FreeSlack);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId2).TotalSlack);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId2).LatestStartTime);
-            Assert.AreEqual(23, graphBuilder.Activity(activityId2).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities[0].Id.Should().Be(activityId1);
+            complication.ResourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).EarliestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId3).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).FreeSlack);
-            Assert.AreEqual(15, graphBuilder.Activity(activityId3).TotalSlack);
-            Assert.AreEqual(15, graphBuilder.Activity(activityId3).LatestStartTime);
-            Assert.AreEqual(23, graphBuilder.Activity(activityId3).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities[1].Id.Should().Be(activityId5);
+            complication.ResourceSchedules[2].ScheduledActivities[1].StartTime.Should().Be(8);
+            complication.ResourceSchedules[2].ScheduledActivities[1].FinishTime.Should().Be(16);
 
-            Assert.AreEqual(7, graphBuilder.Activity(activityId4).EarliestStartTime);
-            Assert.AreEqual(18, graphBuilder.Activity(activityId4).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId4).FreeSlack);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId4).TotalSlack);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId4).LatestStartTime);
-            Assert.AreEqual(37, graphBuilder.Activity(activityId4).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId4).ResourceDependencies.Count());
+            complication.ResourceSchedules[2].ScheduledActivities.Last().FinishTime.Should().Be(16);
 
-            Assert.AreEqual(8, graphBuilder.Activity(activityId5).EarliestStartTime);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId5).EarliestFinishTime);
-            Assert.AreEqual(15, graphBuilder.Activity(activityId5).FreeSlack);
-            Assert.AreEqual(15, graphBuilder.Activity(activityId5).TotalSlack);
-            Assert.AreEqual(23, graphBuilder.Activity(activityId5).LatestStartTime);
-            Assert.AreEqual(31, graphBuilder.Activity(activityId5).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId5).ResourceDependencies.Count());
 
-            Assert.AreEqual(8, graphBuilder.Activity(activityId6).EarliestStartTime);
-            Assert.AreEqual(15, graphBuilder.Activity(activityId6).EarliestFinishTime);
-            Assert.AreEqual(3, graphBuilder.Activity(activityId6).FreeSlack);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId6).TotalSlack);
-            Assert.AreEqual(30, graphBuilder.Activity(activityId6).LatestStartTime);
-            Assert.AreEqual(37, graphBuilder.Activity(activityId6).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId6).ResourceDependencies.Count());
 
-            Assert.AreEqual(18, graphBuilder.Activity(activityId7).EarliestStartTime);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId7).EarliestFinishTime);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId7).FreeSlack);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId7).TotalSlack);
-            Assert.AreEqual(37, graphBuilder.Activity(activityId7).LatestStartTime);
-            Assert.AreEqual(41, graphBuilder.Activity(activityId7).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId7).ResourceDependencies.Count());
+            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(6);
+            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(17);
+            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(17);
+            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(23);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count().Should().Be(0);
 
-            Assert.AreEqual(18, graphBuilder.Activity(activityId8).EarliestStartTime);
-            Assert.AreEqual(22, graphBuilder.Activity(activityId8).EarliestFinishTime);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId8).FreeSlack);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId8).TotalSlack);
-            Assert.AreEqual(37, graphBuilder.Activity(activityId8).LatestStartTime);
-            Assert.AreEqual(41, graphBuilder.Activity(activityId8).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId8).ResourceDependencies.Count());
+            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
+            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(16);
+            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(23);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count().Should().Be(0);
 
-            Assert.AreEqual(31, graphBuilder.Activity(activityId9).EarliestStartTime);
-            Assert.AreEqual(41, graphBuilder.Activity(activityId9).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId9).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId9).TotalSlack);
-            Assert.AreEqual(31, graphBuilder.Activity(activityId9).LatestStartTime);
-            Assert.AreEqual(41, graphBuilder.Activity(activityId9).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId9).ResourceDependencies.Count());
+            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(15);
+            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(15);
+            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(23);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
+            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(19);
+            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(26);
+            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(37);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
+            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(15);
+            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(15);
+            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(23);
+            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(31);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(3);
+            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(22);
+            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(30);
+            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(37);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(19);
+            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(19);
+            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(37);
+            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(41);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(19);
+            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(19);
+            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(37);
+            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(41);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(31);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(41);
+            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(31);
+            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(41);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Count().Should().Be(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_CompileWithTwoResources_ResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithTwoResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -468,155 +457,141 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int>(2, string.Empty, false, InterActivityAllocationType.None, 1.0, 0),
                 }));
 
-            Assert.AreEqual(0, complication.MissingDependencies.Count);
-            Assert.AreEqual(0, complication.CircularDependencies.Count);
-            Assert.AreEqual(2, complication.ResourceSchedules.Count);
+            complication.MissingDependencies.Count.Should().Be(0);
+            complication.CircularDependencies.Count.Should().Be(0);
+            complication.ResourceSchedules.Count.Should().Be(2);
 
-            Assert.AreEqual(5, complication.ResourceSchedules[0].ScheduledActivities.Count());
+            complication.ResourceSchedules[0].ScheduledActivities.Count().Should().Be(5);
 
-            Assert.AreEqual(activityId3, complication.ResourceSchedules[0].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[0].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(8, complication.ResourceSchedules[0].ScheduledActivities[0].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId3);
+            complication.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(8);
 
-            Assert.AreEqual(activityId4, complication.ResourceSchedules[0].ScheduledActivities[1].Id);
-            Assert.AreEqual(8, complication.ResourceSchedules[0].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(19, complication.ResourceSchedules[0].ScheduledActivities[1].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[1].Id.Should().Be(activityId4);
+            complication.ResourceSchedules[0].ScheduledActivities[1].StartTime.Should().Be(8);
+            complication.ResourceSchedules[0].ScheduledActivities[1].FinishTime.Should().Be(19);
 
-            Assert.AreEqual(activityId6, complication.ResourceSchedules[0].ScheduledActivities[2].Id);
-            Assert.AreEqual(19, complication.ResourceSchedules[0].ScheduledActivities[2].StartTime);
-            Assert.AreEqual(26, complication.ResourceSchedules[0].ScheduledActivities[2].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[2].Id.Should().Be(activityId6);
+            complication.ResourceSchedules[0].ScheduledActivities[2].StartTime.Should().Be(19);
+            complication.ResourceSchedules[0].ScheduledActivities[2].FinishTime.Should().Be(26);
 
-            Assert.AreEqual(activityId7, complication.ResourceSchedules[0].ScheduledActivities[3].Id);
-            Assert.AreEqual(26, complication.ResourceSchedules[0].ScheduledActivities[3].StartTime);
-            Assert.AreEqual(30, complication.ResourceSchedules[0].ScheduledActivities[3].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[3].Id.Should().Be(activityId7);
+            complication.ResourceSchedules[0].ScheduledActivities[3].StartTime.Should().Be(26);
+            complication.ResourceSchedules[0].ScheduledActivities[3].FinishTime.Should().Be(30);
 
-            Assert.AreEqual(activityId8, complication.ResourceSchedules[0].ScheduledActivities[4].Id);
-            Assert.AreEqual(30, complication.ResourceSchedules[0].ScheduledActivities[4].StartTime);
-            Assert.AreEqual(34, complication.ResourceSchedules[0].ScheduledActivities[4].FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities[4].Id.Should().Be(activityId8);
+            complication.ResourceSchedules[0].ScheduledActivities[4].StartTime.Should().Be(30);
+            complication.ResourceSchedules[0].ScheduledActivities[4].FinishTime.Should().Be(34);
 
-            Assert.AreEqual(34, complication.ResourceSchedules[0].ScheduledActivities.Last().FinishTime);
-
-
-
-            Assert.AreEqual(4, complication.ResourceSchedules[1].ScheduledActivities.Count());
-
-            Assert.AreEqual(activityId2, complication.ResourceSchedules[1].ScheduledActivities[0].Id);
-            Assert.AreEqual(0, complication.ResourceSchedules[1].ScheduledActivities[0].StartTime);
-            Assert.AreEqual(7, complication.ResourceSchedules[1].ScheduledActivities[0].FinishTime);
-
-            Assert.AreEqual(activityId1, complication.ResourceSchedules[1].ScheduledActivities[1].Id);
-            Assert.AreEqual(7, complication.ResourceSchedules[1].ScheduledActivities[1].StartTime);
-            Assert.AreEqual(13, complication.ResourceSchedules[1].ScheduledActivities[1].FinishTime);
-
-            Assert.AreEqual(activityId5, complication.ResourceSchedules[1].ScheduledActivities[2].Id);
-            Assert.AreEqual(13, complication.ResourceSchedules[1].ScheduledActivities[2].StartTime);
-            Assert.AreEqual(21, complication.ResourceSchedules[1].ScheduledActivities[2].FinishTime);
-
-            Assert.AreEqual(activityId9, complication.ResourceSchedules[1].ScheduledActivities[3].Id);
-            Assert.AreEqual(21, complication.ResourceSchedules[1].ScheduledActivities[3].StartTime);
-            Assert.AreEqual(31, complication.ResourceSchedules[1].ScheduledActivities[3].FinishTime);
-
-            Assert.AreEqual(31, complication.ResourceSchedules[1].ScheduledActivities.Last().FinishTime);
+            complication.ResourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(34);
 
 
 
-            Assert.AreEqual(7, graphBuilder.Activity(activityId1).EarliestStartTime);
-            Assert.AreEqual(13, graphBuilder.Activity(activityId1).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId1).FreeSlack);
-            Assert.AreEqual(3, graphBuilder.Activity(activityId1).TotalSlack);
-            Assert.AreEqual(10, graphBuilder.Activity(activityId1).LatestStartTime);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId1).LatestFinishTime);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { 2 }),
-                graphBuilder.Activity(activityId1).ResourceDependencies.ToList());
+            complication.ResourceSchedules[1].ScheduledActivities.Count().Should().Be(4);
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).EarliestStartTime);
-            Assert.AreEqual(7, graphBuilder.Activity(activityId2).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).FreeSlack);
-            Assert.AreEqual(1, graphBuilder.Activity(activityId2).TotalSlack);
-            Assert.AreEqual(1, graphBuilder.Activity(activityId2).LatestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId2).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId2).ResourceDependencies.Count());
+            complication.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId2);
+            complication.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
+            complication.ResourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
 
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).EarliestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId3).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).TotalSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).LatestStartTime);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId3).LatestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId3).ResourceDependencies.Count());
+            complication.ResourceSchedules[1].ScheduledActivities[1].Id.Should().Be(activityId1);
+            complication.ResourceSchedules[1].ScheduledActivities[1].StartTime.Should().Be(7);
+            complication.ResourceSchedules[1].ScheduledActivities[1].FinishTime.Should().Be(13);
 
-            Assert.AreEqual(8, graphBuilder.Activity(activityId4).EarliestStartTime);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId4).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId4).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId4).TotalSlack);
-            Assert.AreEqual(8, graphBuilder.Activity(activityId4).LatestStartTime);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId4).LatestFinishTime);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { activityId3 }),
-                graphBuilder.Activity(activityId4).ResourceDependencies.ToList());
+            complication.ResourceSchedules[1].ScheduledActivities[2].Id.Should().Be(activityId5);
+            complication.ResourceSchedules[1].ScheduledActivities[2].StartTime.Should().Be(13);
+            complication.ResourceSchedules[1].ScheduledActivities[2].FinishTime.Should().Be(21);
 
-            Assert.AreEqual(13, graphBuilder.Activity(activityId5).EarliestStartTime);
-            Assert.AreEqual(21, graphBuilder.Activity(activityId5).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId5).FreeSlack);
-            Assert.AreEqual(3, graphBuilder.Activity(activityId5).TotalSlack);
-            Assert.AreEqual(16, graphBuilder.Activity(activityId5).LatestStartTime);
-            Assert.AreEqual(24, graphBuilder.Activity(activityId5).LatestFinishTime);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { activityId1 }),
-                graphBuilder.Activity(activityId5).ResourceDependencies.ToList());
+            complication.ResourceSchedules[1].ScheduledActivities[3].Id.Should().Be(activityId9);
+            complication.ResourceSchedules[1].ScheduledActivities[3].StartTime.Should().Be(21);
+            complication.ResourceSchedules[1].ScheduledActivities[3].FinishTime.Should().Be(31);
 
-            Assert.AreEqual(19, graphBuilder.Activity(activityId6).EarliestStartTime);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId6).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId6).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId6).TotalSlack);
-            Assert.AreEqual(19, graphBuilder.Activity(activityId6).LatestStartTime);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId6).LatestFinishTime);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { activityId4 }),
-                graphBuilder.Activity(activityId6).ResourceDependencies.ToList());
+            complication.ResourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(31);
 
-            Assert.AreEqual(26, graphBuilder.Activity(activityId7).EarliestStartTime);
-            Assert.AreEqual(30, graphBuilder.Activity(activityId7).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId7).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId7).TotalSlack);
-            Assert.AreEqual(26, graphBuilder.Activity(activityId7).LatestStartTime);
-            Assert.AreEqual(30, graphBuilder.Activity(activityId7).LatestFinishTime);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { activityId6 }),
-                graphBuilder.Activity(activityId7).ResourceDependencies.ToList());
 
-            Assert.AreEqual(30, graphBuilder.Activity(activityId8).EarliestStartTime);
-            Assert.AreEqual(34, graphBuilder.Activity(activityId8).EarliestFinishTime);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId8).FreeSlack);
-            Assert.AreEqual(0, graphBuilder.Activity(activityId8).TotalSlack);
-            Assert.AreEqual(30, graphBuilder.Activity(activityId8).LatestStartTime);
-            Assert.AreEqual(34, graphBuilder.Activity(activityId8).LatestFinishTime);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { activityId7 }),
-                graphBuilder.Activity(activityId8).ResourceDependencies.ToList());
 
-            Assert.AreEqual(21, graphBuilder.Activity(activityId9).EarliestStartTime);
-            Assert.AreEqual(31, graphBuilder.Activity(activityId9).EarliestFinishTime);
-            Assert.AreEqual(3, graphBuilder.Activity(activityId9).FreeSlack);
-            Assert.AreEqual(3, graphBuilder.Activity(activityId9).TotalSlack);
-            Assert.AreEqual(24, graphBuilder.Activity(activityId9).LatestStartTime);
-            Assert.AreEqual(34, graphBuilder.Activity(activityId9).LatestFinishTime);
-            CollectionAssert.AreEquivalent(
-                new List<int>(new int[] { activityId5 }),
-                graphBuilder.Activity(activityId9).ResourceDependencies.ToList());
+            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(7);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(13);
+            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(3);
+            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(10);
+            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(16);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 2 }));
+
+            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
+            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
+            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
+            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count().Should().Be(0);
+
+            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(19);
+            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(19);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId3 }));
+
+            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(13);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(21);
+            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(3);
+            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(24);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId1 }));
+
+            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(19);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(19);
+            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId4 }));
+
+            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(26);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(30);
+            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(26);
+            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(30);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId6 }));
+
+            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(30);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(34);
+            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(30);
+            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(34);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId7 }));
+
+            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(21);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(31);
+            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(3);
+            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(3);
+            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(24);
+            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(34);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId5 }));
         }
 
         [Fact]
-        public void VertexGraphCompiler_CyclomaticComplexityWithNoNodes_FindsZero()
+        public void VertexGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
         {
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
             graphCompiler.Compile();
-            Assert.AreEqual(0, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_CyclomaticComplexityInOneNetwork_AsExpected()
+        public void VertexGraphCompiler_GivenCyclomaticComplexityInOneNetwork_ThenAsExpected()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -640,11 +615,11 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            Assert.AreEqual(6, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(6);
         }
 
         [Fact]
-        public void VertexGraphCompiler_CyclomaticComplexityInThreeNetworks_AsExpected()
+        public void VertexGraphCompiler_GivenCyclomaticComplexityInThreeNetworks_ThenAsExpected()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -662,18 +637,16 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            Assert.AreEqual(3, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(3);
         }
 
         [Fact]
-        public void VertexGraphCompiler_CyclomaticComplexityWithTwoLoneNodes_AsExpected()
+        public void VertexGraphCompiler_GivenCyclomaticComplexityWithTwoLoneNodes_ThenAsExpected()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
-            int activityId5 = activityId4 + 1;
-            int activityId6 = activityId5 + 1;
             var graphCompiler = VertexGraphCompiler<int, IDependentActivity<int>>.Create();
             graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
@@ -682,7 +655,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            Assert.AreEqual(3, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(3);
         }
     }
 }

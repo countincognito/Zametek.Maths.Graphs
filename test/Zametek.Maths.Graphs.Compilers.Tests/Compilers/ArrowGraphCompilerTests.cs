@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using FluentAssertions;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
@@ -6,15 +7,15 @@ namespace Zametek.Maths.Graphs.Tests
     public class ArrowGraphCompilerTests
     {
         [Fact]
-        public void ArrowGraphCompiler_CyclomaticComplexityWithNoNodes_FindsZero()
+        public void ArrowGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
         {
             var graphCompiler = ArrowGraphCompiler<int, IDependentActivity<int>>.Create();
             graphCompiler.Compile();
-            Assert.AreEqual(0, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(0);
         }
 
         [Fact]
-        public void ArrowGraphCompiler_CyclomaticComplexityInOneNetwork_AsExpected()
+        public void ArrowGraphCompiler_GivenCyclomaticComplexityInOneNetwork_ThenAsExpected()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -38,11 +39,11 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            Assert.AreEqual(6, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(6);
         }
 
         [Fact]
-        public void ArrowGraphCompiler_CyclomaticComplexityInThreeNetworks_AsExpected()
+        public void ArrowGraphCompiler_GivenCyclomaticComplexityInThreeNetworks_ThenAsExpected()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -60,18 +61,16 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            Assert.AreEqual(3, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(3);
         }
 
         [Fact]
-        public void ArrowGraphCompiler_CyclomaticComplexityWithTwoLoneNodes_AsExpected()
+        public void ArrowGraphCompiler_GivenCyclomaticComplexityWithTwoLoneNodes_ThenAsExpected()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
-            int activityId5 = activityId4 + 1;
-            int activityId6 = activityId5 + 1;
             var graphCompiler = ArrowGraphCompiler<int, IDependentActivity<int>>.Create();
             graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
@@ -80,7 +79,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            Assert.AreEqual(3, graphCompiler.CyclomaticComplexity);
+            graphCompiler.CyclomaticComplexity.Should().Be(3);
         }
     }
 }

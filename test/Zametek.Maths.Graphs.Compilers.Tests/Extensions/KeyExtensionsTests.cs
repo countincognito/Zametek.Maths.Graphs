@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentAssertions;
+using System;
 using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
@@ -6,67 +7,67 @@ namespace Zametek.Maths.Graphs.Tests
     public class KeyExtensionsTests
     {
         [Fact]
-        public void KeyExtensions_NextInt_ValueIsIncrementedByOne()
+        public void KeyExtensions_GivenNextInt_ThenValueIsIncrementedByOne()
         {
             int first = new Random().Next();
             int second = KeyExtensions.NextInt(first);
-            Assert.AreEqual(first + 1, second);
+            second.Should().Be(first + 1);
         }
 
         [Fact]
-        public void KeyExtensions_NextTypeInt_ValueIsIncrementedByOne()
+        public void KeyExtensions_GivenNextTypeInt_ThenValueIsIncrementedByOne()
         {
             int first = new Random().Next();
             int second = first.Next();
-            Assert.AreEqual(first + 1, second);
+            second.Should().Be(first + 1);
         }
 
         [Fact]
-        public void KeyExtensions_NextGuid_ValueIsDifferent()
+        public void KeyExtensions_GivenNextGuid_ThenValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
             Guid second = KeyExtensions.NextGuid(first);
-            Assert.AreNotEqual(first, second);
+            second.Should().NotBe(first);
         }
 
         [Fact]
-        public void KeyExtensions_NextTypeGuid_ValueIsDifferent()
+        public void KeyExtensions_GivenNextTypeGuid_ThenValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
             Guid second = first.Next();
-            Assert.AreNotEqual(first, second);
+            second.Should().NotBe(first);
         }
 
         [Fact]
-        public void KeyExtensions_PreviousInt_ValueIsDecrementedByOne()
+        public void KeyExtensions_GivenPreviousInt_ThenValueIsDecrementedByOne()
         {
             int first = new Random().Next();
             int second = KeyExtensions.PreviousInt(first);
-            Assert.AreEqual(first - 1, second);
+            second.Should().Be(first - 1);
         }
 
         [Fact]
-        public void KeyExtensions_PreviousTypeInt_ValueIsDecrementedByOne()
+        public void KeyExtensions_GivenPreviousTypeInt_ThenValueIsDecrementedByOne()
         {
             int first = new Random().Next();
             int second = first.Previous();
-            Assert.AreEqual(first - 1, second);
+            second.Should().Be(first - 1);
         }
 
         [Fact]
-        public void KeyExtensions_PreviousGuid_ValueIsDifferent()
+        public void KeyExtensions_GivenPreviousGuid_ThenValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
             Guid second = KeyExtensions.PreviousGuid(first);
-            Assert.AreNotEqual(first, second);
+            second.Should().NotBe(first);
         }
 
         [Fact]
-        public void KeyExtensions_PreviousTypeGuid_ValueIsDifferent()
+        public void KeyExtensions_GivenPreviousTypeGuid_ThenValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
             Guid second = first.Previous();
-            Assert.AreNotEqual(first, second);
+            second.Should().NotBe(first);
         }
     }
 }
