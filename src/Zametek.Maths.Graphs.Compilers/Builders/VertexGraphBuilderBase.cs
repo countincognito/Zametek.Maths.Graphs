@@ -47,13 +47,13 @@ namespace Zametek.Maths.Graphs
             // In a vertex graph, all edges should be removable.
             var tailNodeParallelEdgesLookup = new Dictionary<T, HashSet<T>>();
             IEnumerable<T> removableIncomingEdgeIds =
-                node.IncomingEdges.Select(x => m_Edges[x])
+                node.IncomingEdges.Select(x => EdgeLookup[x])
                 .Where(x => x.Content.CanBeRemoved)
                 .Select(x => x.Id);
 
             foreach (T incomingEdgeId in removableIncomingEdgeIds)
             {
-                T tailNodeId = m_EdgeTailNodeLookup[incomingEdgeId].Id;
+                T tailNodeId = EdgeTailNodeLookup[incomingEdgeId].Id;
                 if (!tailNodeParallelEdgesLookup.TryGetValue(tailNodeId, out HashSet<T> edgeIds))
                 {
                     edgeIds = new HashSet<T>();
@@ -74,7 +74,7 @@ namespace Zametek.Maths.Graphs
 
             foreach (T tailNodeId in setsOfMoreThanOneEdge)
             {
-                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[tailNodeId];
+                Node<T, TActivity> tailNode = EdgeTailNodeLookup[tailNodeId];
                 IList<T> edgeIds = tailNodeParallelEdgesLookup[tailNodeId].ToList();
                 int length = edgeIds.Count;
                 // Leave one edge behind.
@@ -84,14 +84,14 @@ namespace Zametek.Maths.Graphs
 
                     // Remove the edge from the tail node.
                     tailNode.OutgoingEdges.Remove(edgeId);
-                    m_EdgeTailNodeLookup.Remove(edgeId);
+                    EdgeTailNodeLookup.Remove(edgeId);
 
                     // Remove the edge from the head node.
                     node.IncomingEdges.Remove(edgeId);
-                    m_EdgeHeadNodeLookup.Remove(edgeId);
+                    EdgeHeadNodeLookup.Remove(edgeId);
 
                     // Remove the edge completely.
-                    m_Edges.Remove(edgeId);
+                    EdgeLookup.Remove(edgeId);
                 }
             }
         }
@@ -102,7 +102,7 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }
-            Node<T, TActivity> node = m_Nodes[nodeId];
+            Node<T, TActivity> node = NodeLookup[nodeId];
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
             {
                 return;
@@ -111,33 +111,33 @@ namespace Zametek.Maths.Graphs
             // Go through all the incoming edges and collate the
             // ancestors of their tail nodes.
             var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
-                .Select(x => m_EdgeTailNodeLookup[x].Id)
+                .Select(x => EdgeTailNodeLookup[x].Id)
                 .SelectMany(x => nodeIdAncestorLookup[x]));
 
             // Go through the incoming edges and remove any that connect
             // directly to any ancestors of the edges' tail nodes.
             // In a vertex graph, all edges should be removable.
-            foreach (T edgeId in node.IncomingEdges.Select(x => m_Edges[x]).Where(x => x.Content.CanBeRemoved).Select(x => x.Id).ToList())
+            foreach (T edgeId in node.IncomingEdges.Select(x => EdgeLookup[x]).Where(x => x.Content.CanBeRemoved).Select(x => x.Id).ToList())
             {
-                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[edgeId];
+                Node<T, TActivity> tailNode = EdgeTailNodeLookup[edgeId];
                 T edgeTailNodeId = tailNode.Id;
                 if (tailNodeAncestors.Contains(edgeTailNodeId))
                 {
                     // Remove the edge from the tail node.
                     tailNode.OutgoingEdges.Remove(edgeId);
-                    m_EdgeTailNodeLookup.Remove(edgeId);
+                    EdgeTailNodeLookup.Remove(edgeId);
 
                     // Remove the edge from the node itself.
                     node.IncomingEdges.Remove(edgeId);
-                    m_EdgeHeadNodeLookup.Remove(edgeId);
+                    EdgeHeadNodeLookup.Remove(edgeId);
 
                     // Remove the edge completely.
-                    m_Edges.Remove(edgeId);
+                    EdgeLookup.Remove(edgeId);
                 }
             }
 
             // Go through all the remaining incoming edges and repeat.
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_EdgeTailNodeLookup[x].Id).ToList())
+            foreach (T tailNodeId in node.IncomingEdges.Select(x => EdgeTailNodeLookup[x].Id).ToList())
             {
                 RemoveRedundantIncomingEdges(tailNodeId, nodeIdAncestorLookup);
             }
@@ -146,14 +146,14 @@ namespace Zametek.Maths.Graphs
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
         {
             // Check to make sure the node really exists.
-            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> dependencyNode))
+            if (!NodeLookup.TryGetValue(activityId, out Node<T, TActivity> dependencyNode))
             {
                 return;
             }
 
             // Check to see if any existing activities were expecting this activity
             // as a dependency. If so, then then hook their nodes to this activity with an edge.
-            if (m_UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes))
+            if (UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes))
             {
                 // If the dependency node is an End or Isolated node, then convert it.
                 if (dependencyNode.NodeType == NodeType.End)
@@ -167,22 +167,22 @@ namespace Zametek.Maths.Graphs
 
                 foreach (Node<T, TActivity> successorNode in unsatisfiedSuccessorNodes)
                 {
-                    T edgeId = m_EdgeIdGenerator();
+                    T edgeId = EdgeIdGenerator();
                     var edge = new Edge<T, TEvent>(CreateEvent(edgeId));
                     dependencyNode.OutgoingEdges.Add(edgeId);
-                    m_EdgeTailNodeLookup.Add(edgeId, dependencyNode);
+                    EdgeTailNodeLookup.Add(edgeId, dependencyNode);
                     successorNode.IncomingEdges.Add(edgeId);
-                    m_EdgeHeadNodeLookup.Add(edgeId, successorNode);
-                    m_Edges.Add(edgeId, edge);
+                    EdgeHeadNodeLookup.Add(edgeId, successorNode);
+                    EdgeLookup.Add(edgeId, edge);
                 }
-                m_UnsatisfiedSuccessorsLookup.Remove(activityId);
+                UnsatisfiedSuccessorsLookup.Remove(activityId);
             }
         }
 
         private void RemoveUnsatisfiedSuccessorActivity(T activityId)
         {
             // Check to make sure the node really exists.
-            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
+            if (!NodeLookup.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return;
             }
@@ -192,7 +192,7 @@ namespace Zametek.Maths.Graphs
             {
                 // If the activity was an unsatisfied successor, then remove it from the lookup.
                 IList<KeyValuePair<T, HashSet<Node<T, TActivity>>>> kvps =
-                    m_UnsatisfiedSuccessorsLookup.Where(x => x.Value.Select(y => y.Id).Contains(activityId)).ToList();
+                    UnsatisfiedSuccessorsLookup.Where(x => x.Value.Select(y => y.Id).Contains(activityId)).ToList();
 
                 foreach (KeyValuePair<T, HashSet<Node<T, TActivity>>> kvp in kvps)
                 {
@@ -200,7 +200,7 @@ namespace Zametek.Maths.Graphs
                     unsatisfiedSuccessorNodes.RemoveWhere(x => x.Id.Equals(activityId));
                     if (!unsatisfiedSuccessorNodes.Any())
                     {
-                        m_UnsatisfiedSuccessorsLookup.Remove(kvp);
+                        UnsatisfiedSuccessorsLookup.Remove(kvp);
                     }
                 }
             }
@@ -217,12 +217,12 @@ namespace Zametek.Maths.Graphs
             // then remove them from the lookup.
             foreach (T dependencyId in dependencies)
             {
-                if (m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes))
+                if (UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes))
                 {
                     unsatisfiedSuccessorNodes.RemoveWhere(x => x.Id.Equals(activityId));
                     if (!unsatisfiedSuccessorNodes.Any())
                     {
-                        m_UnsatisfiedSuccessorsLookup.Remove(dependencyId);
+                        UnsatisfiedSuccessorsLookup.Remove(dependencyId);
                     }
                 }
             }
@@ -232,18 +232,18 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
-        public override IEnumerable<TActivity> Activities => m_Nodes.Values.Select(x => x.Content);
+        public override IEnumerable<TActivity> Activities => NodeLookup.Values.Select(x => x.Content);
 
-        public override IEnumerable<TEvent> Events => m_Edges.Values.Select(x => x.Content);
+        public override IEnumerable<TEvent> Events => EdgeLookup.Values.Select(x => x.Content);
 
         public override TActivity Activity(T key)
         {
-            return m_Nodes[key].Content;
+            return NodeLookup[key].Content;
         }
 
         public override TEvent Event(T key)
         {
-            return m_Edges[key].Content;
+            return EdgeLookup[key].Content;
         }
 
         public override bool AddActivity(TActivity activity)
@@ -261,7 +261,7 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
-            if (m_Nodes.ContainsKey(activity.Id))
+            if (NodeLookup.ContainsKey(activity.Id))
             {
                 return false;
             }
@@ -271,7 +271,7 @@ namespace Zametek.Maths.Graphs
             }
             // Create a new Isolated node for the activity.
             var node = new Node<T, TActivity>(NodeType.Isolated, activity);
-            m_Nodes.Add(node.Id, node);
+            NodeLookup.Add(node.Id, node);
 
             // We expect dependencies at some point.
             if (dependencies.Any())
@@ -279,17 +279,17 @@ namespace Zametek.Maths.Graphs
                 node.SetNodeType(NodeType.End);
 
                 // Check which of the expected dependencies currently exist.
-                IList<T> existingDependencies = m_Nodes.Keys.Intersect(dependencies).ToList();
+                IList<T> existingDependencies = NodeLookup.Keys.Intersect(dependencies).ToList();
                 IList<T> nonExistingDependencies = dependencies.Except(existingDependencies).ToList();
 
                 // If any expected dependencies currently exist, generate an edge to connect them.
                 foreach (T dependencyId in existingDependencies)
                 {
-                    Node<T, TActivity> dependencyNode = m_Nodes[dependencyId];
-                    T edgeId = m_EdgeIdGenerator();
+                    Node<T, TActivity> dependencyNode = NodeLookup[dependencyId];
+                    T edgeId = EdgeIdGenerator();
                     var edge = new Edge<T, TEvent>(CreateEvent(edgeId));
                     node.IncomingEdges.Add(edgeId);
-                    m_EdgeHeadNodeLookup.Add(edgeId, node);
+                    EdgeHeadNodeLookup.Add(edgeId, node);
 
                     // If the dependency node is an End or Isolated node, then convert it.
                     if (dependencyNode.NodeType == NodeType.End)
@@ -302,18 +302,18 @@ namespace Zametek.Maths.Graphs
                     }
 
                     dependencyNode.OutgoingEdges.Add(edgeId);
-                    m_EdgeTailNodeLookup.Add(edgeId, dependencyNode);
-                    m_Edges.Add(edgeId, edge);
+                    EdgeTailNodeLookup.Add(edgeId, dependencyNode);
+                    EdgeLookup.Add(edgeId, edge);
                 }
 
                 // If any expected dependencies currently do not exist, then record their
                 // IDs and add this node as an unsatisfied successor.
                 foreach (T dependencyId in nonExistingDependencies)
                 {
-                    if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> successorNodes))
+                    if (!UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> successorNodes))
                     {
                         successorNodes = new HashSet<Node<T, TActivity>>();
-                        m_UnsatisfiedSuccessorsLookup.Add(dependencyId, successorNodes);
+                        UnsatisfiedSuccessorsLookup.Add(dependencyId, successorNodes);
                     }
                     successorNodes.Add(node);
                 }
@@ -329,7 +329,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(dependencies));
             }
 
-            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
+            if (!NodeLookup.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return false;
             }
@@ -353,17 +353,17 @@ namespace Zametek.Maths.Graphs
             }
 
             // Check which of the expected dependencies currently exist.
-            IList<T> existingDependencies = m_Nodes.Keys.Intersect(dependencies).ToList();
+            IList<T> existingDependencies = NodeLookup.Keys.Intersect(dependencies).ToList();
             IList<T> nonExistingDependencies = dependencies.Except(existingDependencies).ToList();
 
             // If any expected dependencies currently exist, generate an edge to connect them.
             foreach (T dependencyId in existingDependencies)
             {
-                Node<T, TActivity> dependencyNode = m_Nodes[dependencyId];
-                T edgeId = m_EdgeIdGenerator();
+                Node<T, TActivity> dependencyNode = NodeLookup[dependencyId];
+                T edgeId = EdgeIdGenerator();
                 var edge = new Edge<T, TEvent>(CreateEvent(edgeId));
                 node.IncomingEdges.Add(edgeId);
-                m_EdgeHeadNodeLookup.Add(edgeId, node);
+                EdgeHeadNodeLookup.Add(edgeId, node);
 
                 // If the dependency node is an End or Isolated node, then convert it.
                 if (dependencyNode.NodeType == NodeType.End)
@@ -376,18 +376,18 @@ namespace Zametek.Maths.Graphs
                 }
 
                 dependencyNode.OutgoingEdges.Add(edgeId);
-                m_EdgeTailNodeLookup.Add(edgeId, dependencyNode);
-                m_Edges.Add(edgeId, edge);
+                EdgeTailNodeLookup.Add(edgeId, dependencyNode);
+                EdgeLookup.Add(edgeId, edge);
             }
 
             // If any expected dependencies currently do not exist, then record their
             // IDs and add this node as an unsatisfied successor.
             foreach (T dependencyId in nonExistingDependencies)
             {
-                if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> successorNodes))
+                if (!UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> successorNodes))
                 {
                     successorNodes = new HashSet<Node<T, TActivity>>();
-                    m_UnsatisfiedSuccessorsLookup.Add(dependencyId, successorNodes);
+                    UnsatisfiedSuccessorsLookup.Add(dependencyId, successorNodes);
                 }
                 successorNodes.Add(node);
             }
@@ -397,7 +397,7 @@ namespace Zametek.Maths.Graphs
         public override bool RemoveActivity(T activityId)
         {
             // Retrieve the activity's node.
-            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
+            if (!NodeLookup.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return false;
             }
@@ -407,7 +407,7 @@ namespace Zametek.Maths.Graphs
             }
 
             RemoveUnsatisfiedSuccessorActivity(activityId);
-            m_Nodes.Remove(node.Id);
+            NodeLookup.Remove(node.Id);
 
             if (node.NodeType == NodeType.Isolated)
             {
@@ -422,11 +422,11 @@ namespace Zametek.Maths.Graphs
                 for (int i = 0; i < length; i++)
                 {
                     T edgeId = incomingEdgeIds[i];
-                    Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[edgeId];
+                    Node<T, TActivity> tailNode = EdgeTailNodeLookup[edgeId];
 
                     // Remove the edge from the tail node.
                     tailNode.OutgoingEdges.Remove(edgeId);
-                    m_EdgeTailNodeLookup.Remove(edgeId);
+                    EdgeTailNodeLookup.Remove(edgeId);
 
                     if (!tailNode.OutgoingEdges.Any())
                     {
@@ -442,7 +442,7 @@ namespace Zametek.Maths.Graphs
 
                     // Remove the edge from the head node.
                     node.IncomingEdges.Remove(edgeId);
-                    m_EdgeHeadNodeLookup.Remove(edgeId);
+                    EdgeHeadNodeLookup.Remove(edgeId);
 
                     if (!node.IncomingEdges.Any())
                     {
@@ -457,7 +457,7 @@ namespace Zametek.Maths.Graphs
                     }
 
                     // Remove the edge completely.
-                    m_Edges.Remove(edgeId);
+                    EdgeLookup.Remove(edgeId);
                 }
             }
 
@@ -469,11 +469,11 @@ namespace Zametek.Maths.Graphs
                 for (int i = 0; i < length; i++)
                 {
                     T edgeId = outgoingEdgeIds[i];
-                    Node<T, TActivity> headNode = m_EdgeHeadNodeLookup[edgeId];
+                    Node<T, TActivity> headNode = EdgeHeadNodeLookup[edgeId];
 
                     // Remove the edge from the head node.
                     headNode.IncomingEdges.Remove(edgeId);
-                    m_EdgeHeadNodeLookup.Remove(edgeId);
+                    EdgeHeadNodeLookup.Remove(edgeId);
 
                     if (!headNode.IncomingEdges.Any())
                     {
@@ -489,7 +489,7 @@ namespace Zametek.Maths.Graphs
 
                     // Remove the edge from the tail node.
                     node.OutgoingEdges.Remove(edgeId);
-                    m_EdgeTailNodeLookup.Remove(edgeId);
+                    EdgeTailNodeLookup.Remove(edgeId);
 
                     if (!node.OutgoingEdges.Any())
                     {
@@ -504,7 +504,7 @@ namespace Zametek.Maths.Graphs
                     }
 
                     // Remove the edge completely.
-                    m_Edges.Remove(edgeId);
+                    EdgeLookup.Remove(edgeId);
                 }
             }
             return true;
@@ -516,7 +516,7 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
-            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
+            if (!NodeLookup.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return false;
             }
@@ -534,13 +534,13 @@ namespace Zametek.Maths.Graphs
             }
 
             // If any dependencies currently exist, remove them.
-            var existingDependencyLookup = new HashSet<T>(m_Nodes.Keys.Intersect(dependencies));
+            var existingDependencyLookup = new HashSet<T>(NodeLookup.Keys.Intersect(dependencies));
             IList<T> incomingEdgeIds = node.IncomingEdges.ToList();
             int length = incomingEdgeIds.Count;
             for (int i = 0; i < length; i++)
             {
                 T edgeId = incomingEdgeIds[i];
-                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[edgeId];
+                Node<T, TActivity> tailNode = EdgeTailNodeLookup[edgeId];
 
                 if (!existingDependencyLookup.Contains(tailNode.Id))
                 {
@@ -549,7 +549,7 @@ namespace Zametek.Maths.Graphs
 
                 // Remove the edge from the tail node.
                 tailNode.OutgoingEdges.Remove(edgeId);
-                m_EdgeTailNodeLookup.Remove(edgeId);
+                EdgeTailNodeLookup.Remove(edgeId);
 
                 if (!tailNode.OutgoingEdges.Any())
                 {
@@ -565,10 +565,10 @@ namespace Zametek.Maths.Graphs
 
                 // Remove the edge from the head node.
                 node.IncomingEdges.Remove(edgeId);
-                m_EdgeHeadNodeLookup.Remove(edgeId);
+                EdgeHeadNodeLookup.Remove(edgeId);
 
                 // Remove the edge completely.
-                m_Edges.Remove(edgeId);
+                EdgeLookup.Remove(edgeId);
             }
 
             if (!node.IncomingEdges.Any())
@@ -588,15 +588,15 @@ namespace Zametek.Maths.Graphs
 
         public override IList<T> ActivityDependencyIds(T activityId)
         {
-            Node<T, TActivity> node = m_Nodes[activityId];
+            Node<T, TActivity> node = NodeLookup[activityId];
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
             {
                 return new List<T>();
             }
             var output = new List<T>();
-            foreach (Edge<T, TEvent> incomingEdge in node.IncomingEdges.Select(x => m_Edges[x]))
+            foreach (Edge<T, TEvent> incomingEdge in node.IncomingEdges.Select(x => EdgeLookup[x]))
             {
-                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[incomingEdge.Id];
+                Node<T, TActivity> tailNode = EdgeTailNodeLookup[incomingEdge.Id];
                 output.Add(tailNode.Id);
             }
             return output;
@@ -604,15 +604,15 @@ namespace Zametek.Maths.Graphs
 
         public override IList<T> StrongActivityDependencyIds(T activityId)
         {
-            Node<T, TActivity> node = m_Nodes[activityId];
+            Node<T, TActivity> node = NodeLookup[activityId];
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
             {
                 return new List<T>();
             }
             var output = new List<T>();
-            foreach (Edge<T, TEvent> incomingEdge in node.IncomingEdges.Select(x => m_Edges[x]))
+            foreach (Edge<T, TEvent> incomingEdge in node.IncomingEdges.Select(x => EdgeLookup[x]))
             {
-                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[incomingEdge.Id];
+                Node<T, TActivity> tailNode = EdgeTailNodeLookup[incomingEdge.Id];
                 if (tailNode.Content.IsDummy)
                 {
                     output.AddRange(StrongActivityDependencyIds(tailNode.Id));
@@ -692,12 +692,12 @@ namespace Zametek.Maths.Graphs
                 index++;
                 stack.Push(referenceId);
 
-                Node<T, TActivity> referenceNode = m_Nodes[referenceId];
+                Node<T, TActivity> referenceNode = NodeLookup[referenceId];
                 if (referenceNode.NodeType == NodeType.End || referenceNode.NodeType == NodeType.Normal)
                 {
                     foreach (T incomingEdgeId in referenceNode.IncomingEdges)
                     {
-                        Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[incomingEdgeId];
+                        Node<T, TActivity> tailNode = EdgeTailNodeLookup[incomingEdgeId];
                         T tailNodeId = tailNode.Id;
                         if (indexLookup[tailNodeId] < 0)
                         {
@@ -718,7 +718,7 @@ namespace Zametek.Maths.Graphs
                     do
                     {
                         currentId = stack.Pop();
-                        Node<T, TActivity> currentNode = m_Nodes[currentId];
+                        Node<T, TActivity> currentNode = NodeLookup[currentId];
                         if (!currentNode.Content.CanBeRemoved)
                         {
                             circularDependency.Dependencies.Add(currentId);
