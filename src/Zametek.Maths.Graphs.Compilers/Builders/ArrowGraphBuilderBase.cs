@@ -10,25 +10,18 @@ namespace Zametek.Maths.Graphs
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
-        #region Fields
-
-        protected readonly Func<T, int?, int?, TEvent> m_CreateEventWithTimes;
-        protected readonly Func<T, TActivity> m_CreateDummyActivity;
-
-        #endregion
-
         #region Ctors
 
         protected ArrowGraphBuilderBase(
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator,
-            Func<T, TEvent> createEvent,
-            Func<T, int?, int?, TEvent> createEventWithTimes,
-            Func<T, TActivity> createDummyActivity)
-            : base(edgeIdGenerator, nodeIdGenerator, createEvent)
+            Func<T, TEvent> eventGenerator,
+            Func<T, int?, int?, TEvent> eventGeneratorWithTimes,
+            Func<T, TActivity> dummyActivityGenerator)
+            : base(edgeIdGenerator, nodeIdGenerator, eventGenerator)
         {
-            m_CreateEventWithTimes = createEventWithTimes ?? throw new ArgumentNullException(nameof(createEventWithTimes));
-            m_CreateDummyActivity = createDummyActivity ?? throw new ArgumentNullException(nameof(createDummyActivity));
+            EventGeneratorWithTimes = eventGeneratorWithTimes ?? throw new ArgumentNullException(nameof(eventGeneratorWithTimes));
+            DummyActivityGenerator = dummyActivityGenerator ?? throw new ArgumentNullException(nameof(dummyActivityGenerator));
             Initialize();
         }
 
@@ -36,8 +29,8 @@ namespace Zametek.Maths.Graphs
             Graph<T, TActivity, TEvent> graph,
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator,
-            Func<T, TEvent> createEvent)
-            : base(graph, edgeIdGenerator, nodeIdGenerator, createEvent)
+            Func<T, TEvent> eventGenerator)
+            : base(graph, edgeIdGenerator, nodeIdGenerator, eventGenerator)
         {
             // Check Start and End nodes.
             if (StartNodes.Count() == 1)
@@ -61,6 +54,10 @@ namespace Zametek.Maths.Graphs
         #endregion
 
         #region Properties
+
+        protected Func<T, int?, int?, TEvent> EventGeneratorWithTimes { get; }
+
+        protected Func<T, TActivity> DummyActivityGenerator { get; }
 
         public Node<T, TEvent> StartNode
         {
@@ -153,29 +150,15 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region Protected Methods
-
-        protected TEvent CreateEvent(T id, int? earliestFinishTime, int? latestFinishTime)
-        {
-            return m_CreateEventWithTimes(id, earliestFinishTime, latestFinishTime);
-        }
-
-        protected TActivity CreateDummyActivity(T id)
-        {
-            return m_CreateDummyActivity(id);
-        }
-
-        #endregion
-
         #region Private Methods
 
         private void Initialize()
         {
             T startEventId = NodeIdGenerator();
-            StartNode = new Node<T, TEvent>(NodeType.Start, CreateEvent(startEventId, 0, 0));
+            StartNode = new Node<T, TEvent>(NodeType.Start, EventGeneratorWithTimes(startEventId, 0, 0));
             NodeLookup.Add(StartNode.Id, StartNode);
             T endEventId = NodeIdGenerator();
-            EndNode = new Node<T, TEvent>(NodeType.End, CreateEvent(endEventId));
+            EndNode = new Node<T, TEvent>(NodeType.End, EventGenerator(endEventId));
             NodeLookup.Add(EndNode.Id, EndNode);
         }
 
@@ -431,7 +414,7 @@ namespace Zametek.Maths.Graphs
             {
                 // We know that there are unsatisfied dependencies, so create a head node.
                 T headEventId = NodeIdGenerator();
-                var headNode = new Node<T, TEvent>(CreateEvent(headEventId));
+                var headNode = new Node<T, TEvent>(EventGenerator(headEventId));
                 headNode.IncomingEdges.Add(activityId);
                 EdgeHeadNodeLookup.Add(activityId, headNode);
                 NodeLookup.Add(headNode.Id, headNode);
@@ -439,7 +422,7 @@ namespace Zametek.Maths.Graphs
                 foreach (Node<T, TEvent> tailNode in unsatisfiedSuccessorTailNodes)
                 {
                     T dummyEdgeId = EdgeIdGenerator();
-                    var dummyEdge = new Edge<T, TActivity>(CreateDummyActivity(dummyEdgeId));
+                    var dummyEdge = new Edge<T, TActivity>(DummyActivityGenerator(dummyEdgeId));
                     tailNode.IncomingEdges.Add(dummyEdgeId);
                     EdgeHeadNodeLookup.Add(dummyEdgeId, tailNode);
                     headNode.OutgoingEdges.Add(dummyEdgeId);
@@ -453,14 +436,14 @@ namespace Zametek.Maths.Graphs
                 // No existing activities were expecting this activity as a dependency,
                 // so attach it directly to the end node via a dummy.
                 T headEventId = NodeIdGenerator();
-                Node<T, TEvent> dependencyHeadNode = new Node<T, TEvent>(CreateEvent(headEventId));
+                Node<T, TEvent> dependencyHeadNode = new Node<T, TEvent>(EventGenerator(headEventId));
 
                 dependencyHeadNode.IncomingEdges.Add(activityId);
                 EdgeHeadNodeLookup.Add(activityId, dependencyHeadNode);
                 NodeLookup.Add(dependencyHeadNode.Id, dependencyHeadNode);
 
                 T dummyEdgeId = EdgeIdGenerator();
-                var dummyEdge = new Edge<T, TActivity>(CreateDummyActivity(dummyEdgeId));
+                var dummyEdge = new Edge<T, TActivity>(DummyActivityGenerator(dummyEdgeId));
 
                 dependencyHeadNode.OutgoingEdges.Add(dummyEdgeId);
                 EdgeTailNodeLookup.Add(dummyEdgeId, dependencyHeadNode);
@@ -522,7 +505,7 @@ namespace Zametek.Maths.Graphs
                 // Since we use dummy edges to connect all tail nodes, we can create
                 // a new tail node for this edge.
                 T tailEventId = NodeIdGenerator();
-                var tailNode = new Node<T, TEvent>(CreateEvent(tailEventId));
+                var tailNode = new Node<T, TEvent>(EventGenerator(tailEventId));
                 tailNode.OutgoingEdges.Add(edge.Id);
                 EdgeTailNodeLookup.Add(edge.Id, tailNode);
                 NodeLookup.Add(tailNode.Id, tailNode);
@@ -537,7 +520,7 @@ namespace Zametek.Maths.Graphs
                 {
                     Node<T, TEvent> dependencyHeadNode = EdgeHeadNodeLookup[dependencyId];
                     T dummyEdgeId = EdgeIdGenerator();
-                    var dummyEdge = new Edge<T, TActivity>(CreateDummyActivity(dummyEdgeId));
+                    var dummyEdge = new Edge<T, TActivity>(DummyActivityGenerator(dummyEdgeId));
                     tailNode.IncomingEdges.Add(dummyEdgeId);
                     EdgeHeadNodeLookup.Add(dummyEdgeId, tailNode);
 

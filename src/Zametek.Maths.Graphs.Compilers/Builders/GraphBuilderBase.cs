@@ -12,20 +12,6 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T>
         where TEvent : IEvent<T>
     {
-        #region Fields
-
-        //protected readonly Func<T> EdgeIdGenerator;
-        //protected readonly Func<T> NodeIdGenerator;
-        //protected readonly Func<T, TEvent> m_CreateEvent;
-
-        //protected readonly IDictionary<T, Edge<T, TEdgeContent>> EdgeLookup;
-        //protected readonly IDictionary<T, Node<T, TNodeContent>> NodeLookup;
-        //protected readonly IDictionary<T, HashSet<Node<T, TNodeContent>>> UnsatisfiedSuccessorsLookup;
-        //protected readonly IDictionary<T, Node<T, TNodeContent>> EdgeHeadNodeLookup;
-        //protected readonly IDictionary<T, Node<T, TNodeContent>> EdgeTailNodeLookup;
-
-        #endregion
-
         #region Ctors
 
         private GraphBuilderBase()
@@ -40,20 +26,20 @@ namespace Zametek.Maths.Graphs
         protected GraphBuilderBase(
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator,
-            Func<T, TEvent> createEvent)
+            Func<T, TEvent> eventGenerator)
             : this()
         {
             EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
             NodeIdGenerator = nodeIdGenerator ?? throw new ArgumentNullException(nameof(nodeIdGenerator));
-            m_CreateEvent = createEvent ?? throw new ArgumentNullException(nameof(createEvent));
+            EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
         }
 
         protected GraphBuilderBase(
             Graph<T, TEdgeContent, TNodeContent> arrowGraph,
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator,
-            Func<T, TEvent> createEvent)
-            : this(edgeIdGenerator, nodeIdGenerator, createEvent)
+            Func<T, TEvent> eventGenerator)
+            : this(edgeIdGenerator, nodeIdGenerator, eventGenerator)
         {
             if (arrowGraph == null)
             {
@@ -111,7 +97,7 @@ namespace Zametek.Maths.Graphs
 
         protected Func<T> NodeIdGenerator { get; }
 
-        protected readonly Func<T, TEvent> m_CreateEvent;
+        protected Func<T, TEvent> EventGenerator { get; }
 
         protected IDictionary<T, Edge<T, TEdgeContent>> EdgeLookup { get; }
 
@@ -313,11 +299,6 @@ namespace Zametek.Maths.Graphs
         #endregion
 
         #region Protected Methods
-
-        protected TEvent CreateEvent(T id)
-        {
-            return m_CreateEvent(id);
-        }
 
         protected bool ChangeEdgeTailNode(T edgeId, T newTailNodeId)
         {

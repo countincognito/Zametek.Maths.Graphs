@@ -3,14 +3,14 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class VertexGraphBuilder<T, TActivity>
+    public sealed class VertexGraphBuilder<T, TActivity>
         : VertexGraphBuilderBase<T, TActivity, IEvent<T>>
         where TActivity : IActivity<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
         #region Fields
 
-        private static readonly Func<T, IEvent<T>> s_CreateEvent = (id) =>
+        private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) =>
         {
             var output = new Event<T>(id);
             output.SetAsRemovable();
@@ -24,7 +24,7 @@ namespace Zametek.Maths.Graphs
         public VertexGraphBuilder(
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator)
-            : base(edgeIdGenerator, nodeIdGenerator, s_CreateEvent)
+            : base(edgeIdGenerator, nodeIdGenerator, s_EventGenerator)
         { }
 
         public VertexGraphBuilder(
@@ -35,7 +35,7 @@ namespace Zametek.Maths.Graphs
                   graph,
                   edgeIdGenerator,
                   nodeIdGenerator,
-                  s_CreateEvent)
+                  s_EventGenerator)
         {
             if (NormalNodes.Any())
             {

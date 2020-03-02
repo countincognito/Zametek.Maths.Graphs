@@ -37,9 +37,9 @@ namespace Zametek.Maths.Graphs
         {
             #region Fields
 
-            private static readonly Func<T, IEvent<T>> s_CreateEvent = (id) => new Event<T>(id);
-            private static readonly Func<T, int?, int?, IEvent<T>> s_CreateEventWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
-            private static readonly Func<T, TDependentActivity> s_CreateDummyActivity = (id) => (TDependentActivity)DependentActivity<T>.CreateDependentActivityDummy(id);
+            private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) => new Event<T>(id);
+            private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorEventWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
+            private static readonly Func<T, TDependentActivity> s_DummyActivityGenerator = (id) => (TDependentActivity)DependentActivity<T>.CreateDependentActivityDummy(id);
 
             #endregion
 
@@ -51,9 +51,9 @@ namespace Zametek.Maths.Graphs
                 : base(
                       edgeIdGenerator,
                       nodeIdGenerator,
-                      s_CreateEvent,
-                      s_CreateEventWithTimes,
-                      s_CreateDummyActivity)
+                      s_EventGenerator,
+                      s_EventGeneratorEventWithTimes,
+                      s_DummyActivityGenerator)
             { }
 
             public DependentActivityArrowGraphBuilder(
@@ -64,7 +64,7 @@ namespace Zametek.Maths.Graphs
                       graph,
                       edgeIdGenerator,
                       nodeIdGenerator,
-                      s_CreateEvent)
+                      s_EventGenerator)
             { }
 
             #endregion

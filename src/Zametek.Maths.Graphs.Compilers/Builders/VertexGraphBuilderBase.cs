@@ -168,7 +168,7 @@ namespace Zametek.Maths.Graphs
                 foreach (Node<T, TActivity> successorNode in unsatisfiedSuccessorNodes)
                 {
                     T edgeId = EdgeIdGenerator();
-                    var edge = new Edge<T, TEvent>(CreateEvent(edgeId));
+                    var edge = new Edge<T, TEvent>(EventGenerator(edgeId));
                     dependencyNode.OutgoingEdges.Add(edgeId);
                     EdgeTailNodeLookup.Add(edgeId, dependencyNode);
                     successorNode.IncomingEdges.Add(edgeId);
@@ -287,7 +287,7 @@ namespace Zametek.Maths.Graphs
                 {
                     Node<T, TActivity> dependencyNode = NodeLookup[dependencyId];
                     T edgeId = EdgeIdGenerator();
-                    var edge = new Edge<T, TEvent>(CreateEvent(edgeId));
+                    var edge = new Edge<T, TEvent>(EventGenerator(edgeId));
                     node.IncomingEdges.Add(edgeId);
                     EdgeHeadNodeLookup.Add(edgeId, node);
 
@@ -361,7 +361,7 @@ namespace Zametek.Maths.Graphs
             {
                 Node<T, TActivity> dependencyNode = NodeLookup[dependencyId];
                 T edgeId = EdgeIdGenerator();
-                var edge = new Edge<T, TEvent>(CreateEvent(edgeId));
+                var edge = new Edge<T, TEvent>(EventGenerator(edgeId));
                 node.IncomingEdges.Add(edgeId);
                 EdgeHeadNodeLookup.Add(edgeId, node);
 

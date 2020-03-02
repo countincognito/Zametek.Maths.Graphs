@@ -3,16 +3,16 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class ArrowGraphBuilder<T, TActivity>
+    public sealed class ArrowGraphBuilder<T, TActivity>
         : ArrowGraphBuilderBase<T, TActivity, IEvent<T>>
         where TActivity : IActivity<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
         #region Fields
 
-        private static readonly Func<T, IEvent<T>> s_CreateEvent = (id) => new Event<T>(id);
-        private static readonly Func<T, int?, int?, IEvent<T>> s_CreateEventWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
-        private static readonly Func<T, TActivity> s_CreateDummyActivity = (id) => (TActivity)Activity<T>.CreateActivityDummy(id);
+        private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) => new Event<T>(id);
+        private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
+        private static readonly Func<T, TActivity> s_DummyActivityGenerator = (id) => (TActivity)Activity<T>.CreateActivityDummy(id);
 
         #endregion
 
@@ -24,9 +24,9 @@ namespace Zametek.Maths.Graphs
             : base(
                   edgeIdGenerator,
                   nodeIdGenerator,
-                  s_CreateEvent,
-                  s_CreateEventWithTimes,
-                  s_CreateDummyActivity)
+                  s_EventGenerator,
+                  s_EventGeneratorWithTimes,
+                  s_DummyActivityGenerator)
         { }
 
         public ArrowGraphBuilder(
@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs
                   graph,
                   edgeIdGenerator,
                   nodeIdGenerator,
-                  s_CreateEvent)
+                  s_EventGenerator)
         { }
 
         #endregion
