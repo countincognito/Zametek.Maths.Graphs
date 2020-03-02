@@ -238,12 +238,12 @@ namespace Zametek.Maths.Graphs
                     || !m_VertexGraphBuilder.CleanUpEdges())
                 {
                     return new GraphCompilation<T, TDependentActivity>(
+                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
+                        Enumerable.Empty<IResourceSchedule<T>>(),
                         new GraphCompilationErrors<T>(
                             allResourcesExplicitTargetsButNotAllActivitiesTargeted,
                             circularDependencies.ToList(),
-                            missingDependencies.ToList()),
-                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
-                        Enumerable.Empty<IResourceSchedule<T>>());
+                            missingDependencies.ToList()));
                 }
 
                 // Perform first compilation and calculate resource schedules.
@@ -285,7 +285,6 @@ namespace Zametek.Maths.Graphs
                 }
 
                 return new GraphCompilation<T, TDependentActivity>(
-                    null,
                     m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
                     resourceSchedules.ToList());
             }

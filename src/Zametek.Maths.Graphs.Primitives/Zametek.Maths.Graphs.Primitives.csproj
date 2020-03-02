@@ -10,7 +10,7 @@
     <Description>Primitive classes, interfaces and enums for use in Zametek.Maths.Graphs.</Description>
     <PackageProjectUrl>https://github.com/countincognito/Zametek.Maths.Graphs</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>

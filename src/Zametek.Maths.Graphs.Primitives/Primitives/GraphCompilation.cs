@@ -19,9 +19,9 @@ namespace Zametek.Maths.Graphs
         }
 
         public GraphCompilation(
-            GraphCompilationErrors<T> graphCompilationErrors,
             IEnumerable<TDependentActivity> dependentActivities,
-            IEnumerable<IResourceSchedule<T>> resourceSchedules)
+            IEnumerable<IResourceSchedule<T>> resourceSchedules,
+            GraphCompilationErrors<T> graphCompilationErrors)
             : this(dependentActivities, resourceSchedules)
         {
             Errors = graphCompilationErrors ?? throw new ArgumentNullException(nameof(graphCompilationErrors));
