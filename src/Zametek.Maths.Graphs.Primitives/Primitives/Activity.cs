@@ -16,6 +16,12 @@ namespace Zametek.Maths.Graphs
             TargetResources = new HashSet<T>();
         }
 
+        public Activity(T id, int duration, bool canBeRemoved)
+            : this(id, duration)
+        {
+            CanBeRemoved = canBeRemoved;
+        }
+
         public Activity(
             T id, string name, IEnumerable<T> targetResources, LogicalOperator targetLogicalOperator,
             bool canBeRemoved, int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime,
@@ -192,14 +198,7 @@ namespace Zametek.Maths.Graphs
             CanBeRemoved = true;
         }
 
-        public static IActivity<T> CreateActivityDummy(T id)
-        {
-            var dummy = new Activity<T>(id, 0);
-            dummy.SetAsRemovable();
-            return dummy;
-        }
-
-        public virtual object WorkingCopy()
+        public virtual object CloneObject()
         {
             return new Activity<T>(
                 Id, Name, TargetResources, TargetResourceOperator, CanBeRemoved, Duration, FreeSlack,

@@ -18,7 +18,8 @@ namespace Zametek.Maths.Graphs
             Func<T> nodeIdGenerator,
             Func<T, TEvent> createEvent)
             : base(edgeIdGenerator, nodeIdGenerator, createEvent)
-        { }
+        {
+        }
 
         protected VertexGraphBuilderBase(
             Graph<T, TEvent, TActivity> graph,
@@ -26,75 +27,76 @@ namespace Zametek.Maths.Graphs
             Func<T> nodeIdGenerator,
             Func<T, TEvent> createEvent)
             : base(graph, edgeIdGenerator, nodeIdGenerator, createEvent)
-        { }
+        {
+        }
 
         #endregion
 
         #region Private Methods
 
-        private void RemoveParallelIncomingEdges(Node<T, TActivity> node)
-        {
-            if (node == null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-            // Clean up any dummy edges that are parallel coming into the head node.
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
-            {
-                return;
-            }
-            // First, find the tail nodes that connect to this node via ALL edges.
-            // In a vertex graph, all edges should be removable.
-            var tailNodeParallelEdgesLookup = new Dictionary<T, HashSet<T>>();
-            IEnumerable<T> removableIncomingEdgeIds =
-                node.IncomingEdges.Select(x => EdgeLookup[x])
-                .Where(x => x.Content.CanBeRemoved)
-                .Select(x => x.Id);
+        //private void RemoveParallelIncomingEdges(Node<T, TActivity> node)
+        //{
+        //    if (node == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(node));
+        //    }
+        //    // Clean up any dummy edges that are parallel coming into the head node.
+        //    if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+        //    {
+        //        return;
+        //    }
+        //    // First, find the tail nodes that connect to this node via ALL edges.
+        //    // In a vertex graph, all edges should be removable.
+        //    var tailNodeParallelEdgesLookup = new Dictionary<T, HashSet<T>>();
+        //    IEnumerable<T> removableIncomingEdgeIds =
+        //        node.IncomingEdges.Select(x => EdgeLookup[x])
+        //        .Where(x => x.Content.CanBeRemoved)
+        //        .Select(x => x.Id);
 
-            foreach (T incomingEdgeId in removableIncomingEdgeIds)
-            {
-                T tailNodeId = EdgeTailNodeLookup[incomingEdgeId].Id;
-                if (!tailNodeParallelEdgesLookup.TryGetValue(tailNodeId, out HashSet<T> edgeIds))
-                {
-                    edgeIds = new HashSet<T>();
-                    tailNodeParallelEdgesLookup.Add(tailNodeId, edgeIds);
-                }
-                if (!edgeIds.Contains(incomingEdgeId))
-                {
-                    edgeIds.Add(incomingEdgeId);
-                }
-            }
+        //    foreach (T incomingEdgeId in removableIncomingEdgeIds)
+        //    {
+        //        T tailNodeId = EdgeTailNodeLookup[incomingEdgeId].Id;
+        //        if (!tailNodeParallelEdgesLookup.TryGetValue(tailNodeId, out HashSet<T> edgeIds))
+        //        {
+        //            edgeIds = new HashSet<T>();
+        //            tailNodeParallelEdgesLookup.Add(tailNodeId, edgeIds);
+        //        }
+        //        if (!edgeIds.Contains(incomingEdgeId))
+        //        {
+        //            edgeIds.Add(incomingEdgeId);
+        //        }
+        //    }
 
-            // Now find the tail nodes that connect to this node via multiple edges.
-            IList<T> setsOfMoreThanOneEdge =
-                tailNodeParallelEdgesLookup
-                .Where(x => x.Value.Count > 1)
-                .Select(x => x.Key)
-                .ToList();
+        //    // Now find the tail nodes that connect to this node via multiple edges.
+        //    IList<T> setsOfMoreThanOneEdge =
+        //        tailNodeParallelEdgesLookup
+        //        .Where(x => x.Value.Count > 1)
+        //        .Select(x => x.Key)
+        //        .ToList();
 
-            foreach (T tailNodeId in setsOfMoreThanOneEdge)
-            {
-                Node<T, TActivity> tailNode = EdgeTailNodeLookup[tailNodeId];
-                IList<T> edgeIds = tailNodeParallelEdgesLookup[tailNodeId].ToList();
-                int length = edgeIds.Count;
-                // Leave one edge behind.
-                for (int i = 1; i < length; i++)
-                {
-                    T edgeId = edgeIds[i];
+        //    foreach (T tailNodeId in setsOfMoreThanOneEdge)
+        //    {
+        //        Node<T, TActivity> tailNode = EdgeTailNodeLookup[tailNodeId];
+        //        IList<T> edgeIds = tailNodeParallelEdgesLookup[tailNodeId].ToList();
+        //        int length = edgeIds.Count;
+        //        // Leave one edge behind.
+        //        for (int i = 1; i < length; i++)
+        //        {
+        //            T edgeId = edgeIds[i];
 
-                    // Remove the edge from the tail node.
-                    tailNode.OutgoingEdges.Remove(edgeId);
-                    EdgeTailNodeLookup.Remove(edgeId);
+        //            // Remove the edge from the tail node.
+        //            tailNode.OutgoingEdges.Remove(edgeId);
+        //            EdgeTailNodeLookup.Remove(edgeId);
 
-                    // Remove the edge from the head node.
-                    node.IncomingEdges.Remove(edgeId);
-                    EdgeHeadNodeLookup.Remove(edgeId);
+        //            // Remove the edge from the head node.
+        //            node.IncomingEdges.Remove(edgeId);
+        //            EdgeHeadNodeLookup.Remove(edgeId);
 
-                    // Remove the edge completely.
-                    EdgeLookup.Remove(edgeId);
-                }
-            }
-        }
+        //            // Remove the edge completely.
+        //            EdgeLookup.Remove(edgeId);
+        //        }
+        //    }
+        //}
 
         private void RemoveRedundantIncomingEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
@@ -656,16 +658,16 @@ namespace Zametek.Maths.Graphs
             bool edgesCleaned = CleanUpEdges();
             if (!edgesCleaned)
             {
-                throw new InvalidOperationException(@"Cannot perform edge clean up");
+                throw new InvalidOperationException(Properties.Resources.CannotPerformEdgeCleanUp);
             }
             this.ClearCriticalPathVariables();
             if (!this.CalculateCriticalPathForwardFlow())
             {
-                throw new InvalidOperationException(@"Cannot calculate critical path forward flow");
+                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPathForwardFlow);
             }
             if (!this.CalculateCriticalPathBackwardFlow())
             {
-                throw new InvalidOperationException(@"Cannot calculate critical path backward flow");
+                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPathBackwardFlow);
             }
         }
 

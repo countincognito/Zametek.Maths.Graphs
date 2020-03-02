@@ -39,7 +39,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
-                throw new ArgumentException(@"ArrowGraph contains more than one Start node");
+                throw new ArgumentException(Properties.Resources.ArrowGraphContainsMoreThanOneStartNode);
             }
             if (EndNodes.Count() == 1)
             {
@@ -47,7 +47,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
-                throw new ArgumentException(@"ArrowGraph contains more than one End node");
+                throw new ArgumentException(Properties.Resources.ArrowGraphContainsMoreThanOneEndNode);
             }
         }
 
@@ -639,20 +639,20 @@ namespace Zametek.Maths.Graphs
             bool edgesCleaned = CleanUpEdges();
             if (!edgesCleaned)
             {
-                throw new InvalidOperationException(@"Cannot perform edge clean up");
+                throw new InvalidOperationException(Properties.Resources.CannotPerformEdgeCleanUp);
             }
             this.ClearCriticalPathVariables();
             if (!this.CalculateEventEarliestFinishTimes())
             {
-                throw new InvalidOperationException(@"Cannot calculate Event earliest finish times");
+                throw new InvalidOperationException(Properties.Resources.CannotCalculateEventEarliestFinishTimes);
             }
             if (!this.CalculateEventLatestFinishTimes())
             {
-                throw new InvalidOperationException(@"Cannot calculate Event latest finish times");
+                throw new InvalidOperationException(Properties.Resources.CannotCalculateEventLatestFinishTimes);
             }
             if (!this.CalculateCriticalPathVariables())
             {
-                throw new InvalidOperationException(@"Cannot calculate critical path");
+                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPath);
             }
         }
 

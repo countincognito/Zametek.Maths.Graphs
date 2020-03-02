@@ -48,7 +48,7 @@ namespace Zametek.Maths.Graphs
             set;
         }
 
-        public object WorkingCopy()
+        public object CloneObject()
         {
             return new ScheduledActivity<T>(Id, Name, Duration, StartTime, FinishTime);
         }

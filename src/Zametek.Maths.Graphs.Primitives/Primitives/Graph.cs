@@ -7,8 +7,8 @@ namespace Zametek.Maths.Graphs
     public class Graph<T, TEdgeContent, TNodeContent>
         : IEquatable<Graph<T, TEdgeContent, TNodeContent>>
         where T : struct, IComparable<T>, IEquatable<T>
-        where TEdgeContent : IHaveId<T>, IWorkingCopy
-        where TNodeContent : IHaveId<T>, IWorkingCopy
+        where TEdgeContent : IHaveId<T>, ICloneObject
+        where TNodeContent : IHaveId<T>, ICloneObject
     {
         #region Fields
 

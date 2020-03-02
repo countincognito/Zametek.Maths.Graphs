@@ -5,14 +5,14 @@ namespace Zametek.Maths.Graphs
 {
     public sealed class ArrowGraphBuilder<T, TActivity>
         : ArrowGraphBuilderBase<T, TActivity, IEvent<T>>
-        where TActivity : IActivity<T>
+        where TActivity : class, IActivity<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
         #region Fields
 
         private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) => new Event<T>(id);
         private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
-        private static readonly Func<T, TActivity> s_DummyActivityGenerator = (id) => (TActivity)Activity<T>.CreateActivityDummy(id);
+        private static readonly Func<T, TActivity> s_DummyActivityGenerator = (id) => new Activity<T>(id, 0, canBeRemoved: true) as TActivity;
 
         #endregion
 
@@ -27,7 +27,8 @@ namespace Zametek.Maths.Graphs
                   s_EventGenerator,
                   s_EventGeneratorWithTimes,
                   s_DummyActivityGenerator)
-        { }
+        {
+        }
 
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
@@ -38,13 +39,14 @@ namespace Zametek.Maths.Graphs
                   edgeIdGenerator,
                   nodeIdGenerator,
                   s_EventGenerator)
-        { }
+        {
+        }
 
         #endregion
 
         #region Overrides
 
-        public override object WorkingCopy()
+        public override object CloneObject()
         {
             Graph<T, TActivity, IEvent<T>> arrowGraphCopy = ToGraph();
             T minNodeId = arrowGraphCopy.Nodes.Select(x => x.Id).DefaultIfEmpty().Min();

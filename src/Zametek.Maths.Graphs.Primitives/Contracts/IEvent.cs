@@ -3,7 +3,7 @@
 namespace Zametek.Maths.Graphs
 {
     public interface IEvent<T>
-        : IHaveId<T>, ICanBeRemoved, IWorkingCopy
+        : IHaveId<T>, ICanBeRemoved, ICloneObject
         where T : IComparable<T>, IEquatable<T>
     {
         int? EarliestFinishTime

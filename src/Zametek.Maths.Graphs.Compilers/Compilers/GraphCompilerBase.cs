@@ -8,8 +8,8 @@ namespace Zametek.Maths.Graphs
 {
     public abstract class GraphCompilerBase<T, TEdgeContent, TNodeContent, TActivity, TEvent>
         where T : struct, IComparable<T>, IEquatable<T>
-        where TEdgeContent : IHaveId<T>, IWorkingCopy
-        where TNodeContent : IHaveId<T>, IWorkingCopy
+        where TEdgeContent : IHaveId<T>, ICloneObject
+        where TNodeContent : IHaveId<T>, ICloneObject
         where TActivity : IActivity<T>
         where TEvent : IEvent<T>
     {

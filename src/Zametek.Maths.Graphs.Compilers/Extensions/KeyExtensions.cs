@@ -18,12 +18,12 @@ namespace Zametek.Maths.Graphs
             objectifiedInput.TypeSwitchOn()
                 .Case<int>(x =>
                 {
-                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextInt));
+                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextInt), BindingFlags.Static | BindingFlags.NonPublic);
                     paramInputs.Add(Expression.Parameter(typeof(T), nameof(objectifiedInput)));
                 })
                 .Case<Guid>(x =>
                 {
-                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextGuid));
+                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextGuid), BindingFlags.Static | BindingFlags.NonPublic);
                 })
                 .Default(x =>
                 {
@@ -44,12 +44,12 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        public static int NextInt(int input)
+        internal static int NextInt(int input)
         {
             return ++input;
         }
 
-        public static Guid NextGuid()
+        internal static Guid NextGuid()
         {
             return Guid.NewGuid();
         }
@@ -63,12 +63,12 @@ namespace Zametek.Maths.Graphs
             objectifiedInput.TypeSwitchOn()
                 .Case<int>(x =>
                 {
-                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousInt));
+                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousInt), BindingFlags.Static | BindingFlags.NonPublic);
                     paramInputs.Add(Expression.Parameter(typeof(T), nameof(objectifiedInput)));
                 })
                 .Case<Guid>(x =>
                 {
-                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousGuid));
+                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousGuid), BindingFlags.Static | BindingFlags.NonPublic);
                 })
                 .Default(x =>
                 {
@@ -89,12 +89,12 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        public static int PreviousInt(int input)
+        internal static int PreviousInt(int input)
         {
             return --input;
         }
 
-        public static Guid PreviousGuid()
+        internal static Guid PreviousGuid()
         {
             return Guid.NewGuid();
         }

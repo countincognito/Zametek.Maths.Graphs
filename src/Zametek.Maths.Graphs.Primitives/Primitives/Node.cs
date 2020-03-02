@@ -5,9 +5,9 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     public class Node<T, TContent>
-        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Node<T, TContent>>, IWorkingCopy
+        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Node<T, TContent>>, ICloneObject
         where T : IComparable<T>, IEquatable<T>
-        where TContent : IHaveId<T>, IWorkingCopy
+        where TContent : IHaveId<T>, ICloneObject
     {
         #region Fields
 
@@ -125,11 +125,11 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region IWorkingCopy
+        #region ICloneObject
 
-        public object WorkingCopy()
+        public object CloneObject()
         {
-            var output = new Node<T, TContent>(NodeType, (TContent)Content.WorkingCopy());
+            var output = new Node<T, TContent>(NodeType, (TContent)Content.CloneObject());
             foreach (T edgeId in m_IncomingEdges)
             {
                 output.m_IncomingEdges.Add(edgeId);

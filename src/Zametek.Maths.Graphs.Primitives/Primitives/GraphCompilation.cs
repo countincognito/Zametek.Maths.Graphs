@@ -11,34 +11,27 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         public GraphCompilation(
-            bool allResourcesExplicitTargetsButNotAllActivitiesTargeted,
-            IEnumerable<CircularDependency<T>> circularDependencies,
-            IEnumerable<T> missingDependencies,
             IEnumerable<TDependentActivity> dependentActivities,
             IEnumerable<IResourceSchedule<T>> resourceSchedules)
         {
-            AllResourcesExplicitTargetsButNotAllActivitiesTargeted = allResourcesExplicitTargetsButNotAllActivitiesTargeted;
-            CircularDependencies = circularDependencies.ToList();
-            MissingDependencies = missingDependencies.ToList();
             DependentActivities = dependentActivities.ToList();
             ResourceSchedules = resourceSchedules.ToList();
+        }
+
+        public GraphCompilation(
+            GraphCompilationErrors<T> graphCompilationErrors,
+            IEnumerable<TDependentActivity> dependentActivities,
+            IEnumerable<IResourceSchedule<T>> resourceSchedules)
+            : this(dependentActivities, resourceSchedules)
+        {
+            Errors = graphCompilationErrors ?? throw new ArgumentNullException(nameof(graphCompilationErrors));
         }
 
         #endregion
 
         #region Properties
 
-        public bool AllResourcesExplicitTargetsButNotAllActivitiesTargeted
-        {
-            get;
-        }
-
-        public IList<CircularDependency<T>> CircularDependencies
-        {
-            get;
-        }
-
-        public IList<T> MissingDependencies
+        public GraphCompilationErrors<T> Errors
         {
             get;
         }

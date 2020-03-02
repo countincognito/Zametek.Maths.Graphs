@@ -706,15 +706,15 @@ namespace Zametek.Maths.Graphs.Tests
             int dummyActivityId5 = dummyActivityId4 + 1;
             var graphBuilder = new ArrowGraphBuilder<int, IActivity<int>>(() => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
 
-            var activity1 = Activity<int>.CreateActivityDummy(activityId1);
+            var activity1 = new Activity<int>(activityId1, 0, canBeRemoved: true);
             bool result1 = graphBuilder.AddActivity(activity1);
             result1.Should().BeTrue();
 
-            var activity2 = Activity<int>.CreateActivityDummy(activityId2);
+            var activity2 = new Activity<int>(activityId2, 0, canBeRemoved: true);
             bool result2 = graphBuilder.AddActivity(activity2);
             result2.Should().BeTrue();
 
-            var activity3 = Activity<int>.CreateActivityDummy(activityId3);
+            var activity3 = new Activity<int>(activityId3, 0, canBeRemoved: true);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId2 }));
             result3.Should().BeTrue();
 
@@ -1402,15 +1402,15 @@ namespace Zametek.Maths.Graphs.Tests
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId2, activityId6 }));
             result3.Should().BeTrue();
 
-            var activity4 = Activity<int>.CreateActivityDummy(activityId4);
+            var activity4 = new Activity<int>(activityId4, 0, canBeRemoved: true);
             bool result4 = graphBuilder.AddActivity(activity4);
             result4.Should().BeTrue();
 
-            var activity5 = Activity<int>.CreateActivityDummy(activityId5);
+            var activity5 = new Activity<int>(activityId5, 0, canBeRemoved: true);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
             result5.Should().BeTrue();
 
-            var activity6 = Activity<int>.CreateActivityDummy(activityId6);
+            var activity6 = new Activity<int>(activityId6, 0, canBeRemoved: true);
             bool result6 = graphBuilder.AddActivity(activity6);
             result5.Should().BeTrue();
 

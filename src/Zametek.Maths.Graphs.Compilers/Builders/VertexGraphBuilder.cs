@@ -25,7 +25,8 @@ namespace Zametek.Maths.Graphs
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator)
             : base(edgeIdGenerator, nodeIdGenerator, s_EventGenerator)
-        { }
+        {
+        }
 
         public VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
@@ -42,11 +43,11 @@ namespace Zametek.Maths.Graphs
                 // Check Start and End nodes.
                 if (!StartNodes.Any())
                 {
-                    throw new ArgumentException(@"VertexGraph cannot contain Normal nodes without any Start nodes");
+                    throw new ArgumentException(Properties.Resources.VertexGraphCannotContainNormalNodesWithoutAnyStartNodes);
                 }
                 if (!EndNodes.Any())
                 {
-                    throw new ArgumentException(@"VertexGraph cannot contain Normal nodes without any End nodes");
+                    throw new ArgumentException(Properties.Resources.VertexGraphCannotContainNormalNodesWithoutAnyEndNodes);
                 }
             }
         }
@@ -55,7 +56,7 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
-        public override object WorkingCopy()
+        public override object CloneObject()
         {
             Graph<T, IEvent<T>, TActivity> vertexGraphCopy = ToGraph();
             T minNodeId = vertexGraphCopy.Nodes.Select(x => x.Id).DefaultIfEmpty().Min();

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Zametek.Maths.Graphs
 {
     public interface IResourceSchedule<T>
-        : IWorkingCopy
+        : ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
     {
         IResource<T> Resource

@@ -238,10 +238,11 @@ namespace Zametek.Maths.Graphs
                     || !m_VertexGraphBuilder.CleanUpEdges())
                 {
                     return new GraphCompilation<T, TDependentActivity>(
-                        allResourcesExplicitTargetsButNotAllActivitiesTargeted,
-                        circularDependencies.ToList(),
-                        missingDependencies.ToList(),
-                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.WorkingCopy()),
+                        new GraphCompilationErrors<T>(
+                            allResourcesExplicitTargetsButNotAllActivitiesTargeted,
+                            circularDependencies.ToList(),
+                            missingDependencies.ToList()),
+                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
                         Enumerable.Empty<IResourceSchedule<T>>());
                 }
 
@@ -284,10 +285,8 @@ namespace Zametek.Maths.Graphs
                 }
 
                 return new GraphCompilation<T, TDependentActivity>(
-                    false,
-                    Enumerable.Empty<CircularDependency<T>>(),
-                    Enumerable.Empty<T>(),
-                    m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.WorkingCopy()),
+                    null,
+                    m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
                     resourceSchedules.ToList());
             }
         }
@@ -332,7 +331,7 @@ namespace Zametek.Maths.Graphs
                 bool transitivelyReduced = m_VertexGraphBuilder.TransitiveReduction();
                 if (!transitivelyReduced)
                 {
-                    throw new InvalidOperationException(@"Cannot perform transitive reduction");
+                    throw new InvalidOperationException(Properties.Resources.CannotPerformTransitiveReduction);
                 }
 
                 // Now set the compiled dependencies to match the actual remaining dependencies.

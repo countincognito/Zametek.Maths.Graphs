@@ -3,9 +3,9 @@
 namespace Zametek.Maths.Graphs
 {
     public class Edge<T, TContent>
-        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Edge<T, TContent>>, IWorkingCopy
+        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Edge<T, TContent>>, ICloneObject
         where T : IComparable<T>, IEquatable<T>
-        where TContent : IHaveId<T>, IWorkingCopy
+        where TContent : IHaveId<T>, ICloneObject
     {
         #region Fields
 
@@ -70,11 +70,11 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region IWorkingCopy
+        #region ICloneObject
 
-        public object WorkingCopy()
+        public object CloneObject()
         {
-            return new Edge<T, TContent>((TContent)Content.WorkingCopy());
+            return new Edge<T, TContent>((TContent)Content.CloneObject());
         }
 
         #endregion

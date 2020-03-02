@@ -2,6 +2,7 @@
 
 namespace Zametek.Maths.Graphs
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "No better term available")]
     public class Event<T>
         : IEvent<T>
         where T : IComparable<T>, IEquatable<T>
@@ -10,7 +11,8 @@ namespace Zametek.Maths.Graphs
 
         public Event(T id)
             : this(id, null, null)
-        { }
+        {
+        }
 
         public Event(T id, int? earliestFinishTime, int? latestFinishTime)
         {
@@ -56,7 +58,7 @@ namespace Zametek.Maths.Graphs
             CanBeRemoved = true;
         }
 
-        public object WorkingCopy()
+        public object CloneObject()
         {
             return new Event<T>(Id, EarliestFinishTime, LatestFinishTime);
         }

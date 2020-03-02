@@ -55,7 +55,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public object WorkingCopy()
+        public object CloneObject()
         {
             return new Resource<T>(Id, Name, IsExplicitTarget, InterActivityAllocationType, UnitCost, DisplayOrder);
         }

@@ -5,10 +5,10 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     public abstract class GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent>
-        : IWorkingCopy
+        : ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
-        where TEdgeContent : IHaveId<T>, IWorkingCopy
-        where TNodeContent : IHaveId<T>, IWorkingCopy
+        where TEdgeContent : IHaveId<T>, ICloneObject
+        where TNodeContent : IHaveId<T>, ICloneObject
         where TActivity : IActivity<T>
         where TEvent : IEvent<T>
     {
@@ -74,18 +74,18 @@ namespace Zametek.Maths.Graphs
             // Check all edges are used.
             if (!EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(EdgeHeadNodeLookup.Keys.OrderBy(x => x)))
             {
-                throw new ArgumentException(@"List of Edge IDs and Edges referenced by head Nodes do not match");
+                throw new ArgumentException(Properties.Resources.ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch);
             }
             if (!EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(EdgeTailNodeLookup.Keys.OrderBy(x => x)))
             {
-                throw new ArgumentException(@"List of Edge IDs and Edges referenced by tail Nodes do not match");
+                throw new ArgumentException(Properties.Resources.ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch);
             }
 
             // Check all nodes are used.
             IEnumerable<T> edgeNodeLookupIds = EdgeHeadNodeLookup.Values.Select(x => x.Id).Union(EdgeTailNodeLookup.Values.Select(x => x.Id));
             if (!NodeLookup.Values.Where(x => x.NodeType != NodeType.Isolated).Select(x => x.Id).OrderBy(x => x).SequenceEqual(edgeNodeLookupIds.OrderBy(x => x)))
             {
-                throw new ArgumentException(@"List of Node IDs and Edges referenced by tail Nodes do not match");
+                throw new ArgumentException(Properties.Resources.ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch);
             }
         }
 
@@ -179,8 +179,8 @@ namespace Zametek.Maths.Graphs
                 return null;
             }
             return new Graph<T, TEdgeContent, TNodeContent>(
-                EdgeLookup.Values.Select(x => (Edge<T, TEdgeContent>)x.WorkingCopy()),
-                NodeLookup.Values.Select(x => (Node<T, TNodeContent>)x.WorkingCopy()));
+                EdgeLookup.Values.Select(x => (Edge<T, TEdgeContent>)x.CloneObject()),
+                NodeLookup.Values.Select(x => (Node<T, TNodeContent>)x.CloneObject()));
         }
 
         public Edge<T, TEdgeContent> Edge(T key)
@@ -223,6 +223,8 @@ namespace Zametek.Maths.Graphs
 
         public abstract TActivity Activity(T key);
 
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "No better term available")]
         public abstract TEvent Event(T key);
 
         public abstract bool AddActivity(TActivity activity);
@@ -390,6 +392,10 @@ namespace Zametek.Maths.Graphs
 
         protected void GetEdgesInDecendingOrder(T nodeId, IList<Edge<T, TEdgeContent>> edgesInDecendingOrder, HashSet<T> recordedEdges)
         {
+            if (edgesInDecendingOrder == null)
+            {
+                throw new ArgumentNullException(nameof(edgesInDecendingOrder));
+            }
             if (recordedEdges == null)
             {
                 throw new ArgumentNullException(nameof(recordedEdges));
@@ -617,9 +623,9 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region IWorkingCopy
+        #region ICloneObject
 
-        public abstract object WorkingCopy();
+        public abstract object CloneObject();
 
         #endregion
     }

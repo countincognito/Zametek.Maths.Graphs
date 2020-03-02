@@ -9,7 +9,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void ArrowGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
         {
-            var graphCompiler = ArrowGraphCompiler<int, IDependentActivity<int>>.Create();
+            var graphCompiler = new ArrowGraphCompiler<int, IDependentActivity<int>>();
             graphCompiler.Compile();
             graphCompiler.CyclomaticComplexity.Should().Be(0);
         }
@@ -26,7 +26,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = ArrowGraphCompiler<int, IDependentActivity<int>>.Create();
+            var graphCompiler = new ArrowGraphCompiler<int, IDependentActivity<int>>();
             graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
@@ -51,7 +51,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int activityId6 = activityId5 + 1;
-            var graphCompiler = ArrowGraphCompiler<int, IDependentActivity<int>>.Create();
+            var graphCompiler = new ArrowGraphCompiler<int, IDependentActivity<int>>();
             graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
@@ -71,7 +71,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
-            var graphCompiler = ArrowGraphCompiler<int, IDependentActivity<int>>.Create();
+            var graphCompiler = new ArrowGraphCompiler<int, IDependentActivity<int>>();
             graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));

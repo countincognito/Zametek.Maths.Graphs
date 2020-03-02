@@ -16,6 +16,13 @@ namespace Zametek.Maths.Graphs
             ResourceDependencies = new HashSet<T>();
         }
 
+        public DependentActivity(T id, int duration, bool canBeRemoved)
+            : base(id, duration, canBeRemoved)
+        {
+            Dependencies = new HashSet<T>();
+            ResourceDependencies = new HashSet<T>();
+        }
+
         public DependentActivity(T id, int duration, IEnumerable<T> dependencies)
             : base(id, duration)
         {
@@ -49,17 +56,6 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region Public Methods
-
-        public static IDependentActivity<T> CreateDependentActivityDummy(T id)
-        {
-            var dummy = new DependentActivity<T>(id, 0);
-            dummy.SetAsRemovable();
-            return dummy;
-        }
-
-        #endregion
-
         #region IHaveDependencies<T> Members
 
         public HashSet<T> Dependencies
@@ -76,7 +72,7 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
-        public override object WorkingCopy()
+        public override object CloneObject()
         {
             return new DependentActivity<T>(
                 Id, Name, TargetResources, Dependencies, ResourceDependencies, TargetResourceOperator,

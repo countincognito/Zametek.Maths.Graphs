@@ -3,7 +3,7 @@
 namespace Zametek.Maths.Graphs
 {
     public interface IScheduledActivity<T>
-        : IHaveId<T>, IWorkingCopy
+        : IHaveId<T>, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
     {
         string Name

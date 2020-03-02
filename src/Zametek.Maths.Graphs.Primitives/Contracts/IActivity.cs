@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Zametek.Maths.Graphs
 {
     public interface IActivity<T>
-        : IHaveId<T>, ICanBeRemoved, IWorkingCopy
+        : IHaveId<T>, ICanBeRemoved, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
     {
         string Name
@@ -97,6 +97,7 @@ namespace Zametek.Maths.Graphs
         }
 
         void SetAsReadOnly();
+
         void SetAsRemovable();
     }
 }

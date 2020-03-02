@@ -11,20 +11,25 @@ namespace Zametek.Maths.Graphs
 
         protected VertexGraphCompiler(VertexGraphBuilderBase<T, TDependentActivity, IEvent<T>> vertexGraphBuilder)
             : base(vertexGraphBuilder)
-        { }
+        {
+        }
+
+        public VertexGraphCompiler()
+            : this(CreateDependentActivityVertexGraphBuilder())
+        {
+        }
 
         #endregion
 
-        #region Public Methods
+        #region Private Methods
 
-        public static VertexGraphCompiler<T, TDependentActivity> Create()
+        private static VertexGraphBuilder<T, TDependentActivity> CreateDependentActivityVertexGraphBuilder()
         {
             T edgeId = default;
             T nodeId = default;
-            var vertexGraphBuilder = new VertexGraphBuilder<T, TDependentActivity>(
+            return new VertexGraphBuilder<T, TDependentActivity>(
                 () => edgeId = edgeId.Previous(),
                 () => nodeId = nodeId.Previous());
-            return new VertexGraphCompiler<T, TDependentActivity>(vertexGraphBuilder);
         }
 
         #endregion

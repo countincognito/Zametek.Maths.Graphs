@@ -29,7 +29,8 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int finishTime)
             : this(null, scheduledActivities, finishTime)
-        { }
+        {
+        }
 
         #endregion
 
@@ -51,7 +52,7 @@ namespace Zametek.Maths.Graphs
             int resourceFinishTime = scheduledActivities.Max(x => x.FinishTime);
             if (resourceFinishTime > finishTime)
             {
-                throw new InvalidOperationException("TODO");
+                throw new InvalidOperationException($@"Requested finish time ({finishTime}) cannot be less than the actual finish time ({resourceFinishTime})");
             }
             var interActivityAllocationType = InterActivityAllocationType.None;
             if (resource != null)
@@ -114,7 +115,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
-                throw new InvalidOperationException("TODO");
+                throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
             return distribution.Select(x => x == TimeType.None ? false : true).ToList();
@@ -144,16 +145,16 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public object WorkingCopy()
+        public object CloneObject()
         {
             IResource<T> resource = null;
             if (Resource != null)
             {
-                resource = (IResource<T>)Resource.WorkingCopy();
+                resource = (IResource<T>)Resource.CloneObject();
             }
             return new ResourceSchedule<T>(
                 resource,
-                ScheduledActivities.Select(x => (IScheduledActivity<T>)x.WorkingCopy()),
+                ScheduledActivities.Select(x => (IScheduledActivity<T>)x.CloneObject()),
                 FinishTime);
         }
 

@@ -157,7 +157,7 @@ namespace Zametek.Maths.Graphs
                 // finish times.
                 if (!progress)
                 {
-                    throw new InvalidOperationException(@"Cyclic dependency, cannot calculate earliest finish times.");
+                    throw new InvalidOperationException(Properties.Resources.CannotCalculateEarliestFinishTimesDueToCyclicDependency);
                 }
             }
 
@@ -312,7 +312,7 @@ namespace Zametek.Maths.Graphs
                 // finish times.
                 if (!progress)
                 {
-                    throw new InvalidOperationException(@"Cyclic dependency, cannot calculate latest finish times.");
+                    throw new InvalidOperationException(Properties.Resources.CannotCalculateLatestFinishTimesDueToCyclicDependency);
                 }
             }
 

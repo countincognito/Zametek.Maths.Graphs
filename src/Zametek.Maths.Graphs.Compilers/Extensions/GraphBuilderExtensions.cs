@@ -9,8 +9,8 @@ namespace Zametek.Maths.Graphs
         internal static void ClearCriticalPathVariables<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
-            where TEdgeContent : IHaveId<T>, IWorkingCopy
-            where TNodeContent : IHaveId<T>, IWorkingCopy
+            where TEdgeContent : IHaveId<T>, ICloneObject
+            where TNodeContent : IHaveId<T>, ICloneObject
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>
         {
@@ -34,8 +34,8 @@ namespace Zametek.Maths.Graphs
         internal static IList<T> CalculateCriticalPathPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
-            where TEdgeContent : IHaveId<T>, IWorkingCopy
-            where TNodeContent : IHaveId<T>, IWorkingCopy
+            where TEdgeContent : IHaveId<T>, ICloneObject
+            where TNodeContent : IHaveId<T>, ICloneObject
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>
         {
@@ -43,7 +43,7 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(graphBuilder));
             }
-            var tmpGraphBuilder = (GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.WorkingCopy();
+            var tmpGraphBuilder = (GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.CloneObject();
             var priorityList = new List<T>();
             bool cont = true;
             while (cont)
@@ -79,7 +79,7 @@ namespace Zametek.Maths.Graphs
             }
             if (tmpGraphBuilder.Activities.Any(x => !x.IsDummy))
             {
-                throw new InvalidOperationException(@"Cannot calculate critical path priority list");
+                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPathPriorityList);
             }
             return priorityList;
         }
@@ -87,8 +87,8 @@ namespace Zametek.Maths.Graphs
         internal static IEnumerable<IResourceSchedule<T>> CalculateResourceSchedulesByPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder, IList<IResource<T>> resources)
             where T : struct, IComparable<T>, IEquatable<T>
-            where TEdgeContent : IHaveId<T>, IWorkingCopy
-            where TNodeContent : IHaveId<T>, IWorkingCopy
+            where TEdgeContent : IHaveId<T>, ICloneObject
+            where TNodeContent : IHaveId<T>, ICloneObject
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>
         {
@@ -102,7 +102,7 @@ namespace Zametek.Maths.Graphs
             }
             if (resources.Count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(resources), @"Value cannot be negative");
+                throw new ArgumentOutOfRangeException(nameof(resources), Properties.Resources.ValueCannotBeNegative);
             }
             if (!graphBuilder.Activities.Any())
             {
@@ -122,7 +122,7 @@ namespace Zametek.Maths.Graphs
                 bool allTargetResourcesAreSubsetOfResources = allTargetResources.IsSubsetOf(resources.Select(x => x.Id));
                 if (!allTargetResourcesAreSubsetOfResources)
                 {
-                    throw new InvalidOperationException(@"At least one specified target resources are not present in the resources provided");
+                    throw new InvalidOperationException(Properties.Resources.AtLeastOneSpecifiedTargetResourcesAreNotPresentInResourcesProvided);
                 }
 
                 // If all resources are explicit targets, check to make sure all activities
@@ -132,11 +132,11 @@ namespace Zametek.Maths.Graphs
                 if (allResourcesAreExplicitTargets
                     && atLeastOneActivityRequiresNonExplicitTargetResource)
                 {
-                    throw new InvalidOperationException(@"At least one activity requires a non-explicit target resource, but all provided resources are explicit targets");
+                    throw new InvalidOperationException(Properties.Resources.AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
                 }
             }
 
-            var tmpGraphBuilder = (GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.WorkingCopy();
+            var tmpGraphBuilder = (GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.CloneObject();
             IList<T?> priorityList = tmpGraphBuilder
                 .CalculateCriticalPathPriorityList()
                 .Select(x => new T?(x))
@@ -291,9 +291,7 @@ namespace Zametek.Maths.Graphs
                                     }
                                     else
                                     {
-                                        // TODO
-                                        throw new NotImplementedException(@"Unknown TargetResourceOperator value");
-                                        //throw new InvalidEnumArgumentException(@"Unknown TargetResourceOperator value");
+                                        throw new NotImplementedException($@"Unknown TargetResourceOperator value ({activity.TargetResourceOperator})");
                                     }
                                 }
                             }
@@ -321,8 +319,8 @@ namespace Zametek.Maths.Graphs
         internal static IEnumerable<IResourceSchedule<T>> CalculateResourceSchedulesByPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
-            where TEdgeContent : IHaveId<T>, IWorkingCopy
-            where TNodeContent : IHaveId<T>, IWorkingCopy
+            where TEdgeContent : IHaveId<T>, ICloneObject
+            where TNodeContent : IHaveId<T>, ICloneObject
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>
         {
