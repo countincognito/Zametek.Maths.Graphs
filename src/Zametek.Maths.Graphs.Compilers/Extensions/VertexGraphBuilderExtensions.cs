@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public static class VertexGraphBuilderExtensions
+    internal static class VertexGraphBuilderExtensions
     {
-        public static bool CalculateCriticalPathForwardFlow<T, TActivity, TEvent>
+        internal static bool CalculateCriticalPathForwardFlow<T, TActivity, TEvent>
             (this VertexGraphBuilderBase<T, TActivity, TEvent> vertexGraphBuilder)
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>
@@ -208,7 +208,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        public static bool CalculateCriticalPathBackwardFlow<T, TActivity, TEvent>
+        internal static bool CalculateCriticalPathBackwardFlow<T, TActivity, TEvent>
             (this VertexGraphBuilderBase<T, TActivity, TEvent> vertexGraphBuilder)
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>

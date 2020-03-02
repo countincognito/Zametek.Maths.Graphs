@@ -254,7 +254,7 @@ namespace Zametek.Maths.Graphs
                     // Determine the resource dependencies and add them to the compiled dependencies.
                     foreach (IResourceSchedule<T> resourceSchedule in resourceSchedules)
                     {
-                        T previousId = default(T);
+                        T previousId = default;
                         bool first = true;
                         foreach (IScheduledActivity<T> scheduledActivity in resourceSchedule.ScheduledActivities.OrderBy(x => x.StartTime))
                         {

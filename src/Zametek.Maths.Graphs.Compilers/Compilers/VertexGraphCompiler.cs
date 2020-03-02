@@ -19,8 +19,8 @@ namespace Zametek.Maths.Graphs
 
         public static VertexGraphCompiler<T, TDependentActivity> Create()
         {
-            T edgeId = default(T);
-            T nodeId = default(T);
+            T edgeId = default;
+            T nodeId = default;
             var vertexGraphBuilder = new VertexGraphBuilder<T, TDependentActivity>(
                 () => edgeId = edgeId.Previous(),
                 () => nodeId = nodeId.Previous());

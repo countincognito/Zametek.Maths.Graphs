@@ -1,28 +1,47 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Zametek.Utility;
 
 namespace Zametek.Maths.Graphs
 {
-    public static class KeyExtensions
+    internal static class KeyExtensions
     {
-        public static T Next<T>(this T input)
+        internal static T Next<T>(this T input)
             where T : struct, IComparable<T>, IEquatable<T>
         {
             object objectifiedInput = input;
             MethodInfo incrementMethod = null;
+            var paramInputs = new List<ParameterExpression>();
             objectifiedInput.TypeSwitchOn()
-                .Case<int>(x => incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextInt)))
-                .Case<Guid>(x => incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextGuid)))
+                .Case<int>(x =>
+                {
+                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextInt));
+                    paramInputs.Add(Expression.Parameter(typeof(T), nameof(objectifiedInput)));
+                })
+                .Case<Guid>(x =>
+                {
+                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextGuid));
+                })
                 .Default(x =>
                 {
                     throw new InvalidOperationException($@"Type of input ({typeof(T)}) not defined for increment");
                 });
-            ParameterExpression paramInput = Expression.Parameter(typeof(T), nameof(objectifiedInput));
-            UnaryExpression body = Expression.Increment(paramInput, incrementMethod);
-            Func<T, T> increment = Expression.Lambda<Func<T, T>>(body, paramInput).Compile();
-            return increment((T)objectifiedInput);
+
+            if (paramInputs.Any())
+            {
+                MethodCallExpression body = Expression.Call(incrementMethod, paramInputs.ToArray());
+                Func<T, T> increment = Expression.Lambda<Func<T, T>>(body, paramInputs).Compile();
+                return increment((T)objectifiedInput);
+            }
+            else
+            {
+                MethodCallExpression body = Expression.Call(incrementMethod);
+                Func<T> increment = Expression.Lambda<Func<T>>(body).Compile();
+                return increment();
+            }
         }
 
         public static int NextInt(int input)
@@ -30,27 +49,44 @@ namespace Zametek.Maths.Graphs
             return ++input;
         }
 
-        public static Guid NextGuid(Guid input)
+        public static Guid NextGuid()
         {
             return Guid.NewGuid();
         }
 
-        public static T Previous<T>(this T input)
+        internal static T Previous<T>(this T input)
             where T : struct, IComparable<T>, IEquatable<T>
         {
             object objectifiedInput = input;
             MethodInfo decrementMethod = null;
+            var paramInputs = new List<ParameterExpression>();
             objectifiedInput.TypeSwitchOn()
-                .Case<int>(x => decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousInt)))
-                .Case<Guid>(x => decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousGuid)))
+                .Case<int>(x =>
+                {
+                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousInt));
+                    paramInputs.Add(Expression.Parameter(typeof(T), nameof(objectifiedInput)));
+                })
+                .Case<Guid>(x =>
+                {
+                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousGuid));
+                })
                 .Default(x =>
                 {
                     throw new InvalidOperationException($@"Type of input ({typeof(T)}) not defined for decrement");
                 });
-            ParameterExpression paramInput = Expression.Parameter(typeof(T), nameof(objectifiedInput));
-            UnaryExpression body = Expression.Decrement(paramInput, decrementMethod);
-            Func<T, T> decrement = Expression.Lambda<Func<T, T>>(body, paramInput).Compile();
-            return decrement((T)objectifiedInput);
+
+            if (paramInputs.Any())
+            {
+                MethodCallExpression body = Expression.Call(decrementMethod, paramInputs.ToArray());
+                Func<T, T> decrement = Expression.Lambda<Func<T, T>>(body, paramInputs).Compile();
+                return decrement((T)objectifiedInput);
+            }
+            else
+            {
+                MethodCallExpression body = Expression.Call(decrementMethod);
+                Func<T> decrement = Expression.Lambda<Func<T>>(body).Compile();
+                return decrement();
+            }
         }
 
         public static int PreviousInt(int input)
@@ -58,7 +94,7 @@ namespace Zametek.Maths.Graphs
             return --input;
         }
 
-        public static Guid PreviousGuid(Guid input)
+        public static Guid PreviousGuid()
         {
             return Guid.NewGuid();
         }

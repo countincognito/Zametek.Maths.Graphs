@@ -26,7 +26,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void KeyExtensions_GivenNextGuid_ThenValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
-            Guid second = KeyExtensions.NextGuid(first);
+            Guid second = KeyExtensions.NextGuid();
             second.Should().NotBe(first);
         }
 
@@ -58,7 +58,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void KeyExtensions_GivenPreviousGuid_ThenValueIsDifferent()
         {
             Guid first = Guid.NewGuid();
-            Guid second = KeyExtensions.PreviousGuid(first);
+            Guid second = KeyExtensions.PreviousGuid();
             second.Should().NotBe(first);
         }
 

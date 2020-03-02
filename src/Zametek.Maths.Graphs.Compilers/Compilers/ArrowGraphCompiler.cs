@@ -20,8 +20,8 @@ namespace Zametek.Maths.Graphs
 
         public static ArrowGraphCompiler<T, TDependentActivity> Create()
         {
-            T edgeId = default(T);
-            T nodeId = default(T);
+            T edgeId = default;
+            T nodeId = default;
             var arrowGraphBuilder = new DependentActivityArrowGraphBuilder(
                 () => edgeId = edgeId.Previous(),
                 () => nodeId = nodeId.Previous());

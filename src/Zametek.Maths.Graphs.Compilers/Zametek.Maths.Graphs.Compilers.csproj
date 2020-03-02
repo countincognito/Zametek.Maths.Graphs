@@ -12,9 +12,14 @@
     <Description>Base and basic builders, compilers and extensions for creating vertex and arrow directed graphs. Includes the following capabilities: dynamic dependency resolution for activities; transitive reduction; edge redirection; critical path calculation; activity priority calculation; mapped and unmapped resource scheduling.</Description>
     <Version>1.1.1</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Zametek.Maths.Graphs.Primitives" Version="1.0.3" />
     <PackageReference Include="Zametek.Utility" Version="1.1.0" />
   </ItemGroup>

@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public static class GraphBuilderExtensions
+    internal static class GraphBuilderExtensions
     {
-        public static void ClearCriticalPathVariables<T, TEdgeContent, TNodeContent, TActivity, TEvent>
+        internal static void ClearCriticalPathVariables<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
             where TEdgeContent : IHaveId<T>, IWorkingCopy
@@ -31,7 +31,7 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        public static IList<T> CalculateCriticalPathPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
+        internal static IList<T> CalculateCriticalPathPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
             where TEdgeContent : IHaveId<T>, IWorkingCopy
@@ -84,7 +84,7 @@ namespace Zametek.Maths.Graphs
             return priorityList;
         }
 
-        public static IEnumerable<IResourceSchedule<T>> CalculateResourceSchedulesByPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
+        internal static IEnumerable<IResourceSchedule<T>> CalculateResourceSchedulesByPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder, IList<IResource<T>> resources)
             where T : struct, IComparable<T>, IEquatable<T>
             where TEdgeContent : IHaveId<T>, IWorkingCopy
@@ -318,7 +318,7 @@ namespace Zametek.Maths.Graphs
                 .Where(x => x.ScheduledActivities.Any());
         }
 
-        public static IEnumerable<IResourceSchedule<T>> CalculateResourceSchedulesByPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
+        internal static IEnumerable<IResourceSchedule<T>> CalculateResourceSchedulesByPriorityList<T, TEdgeContent, TNodeContent, TActivity, TEvent>
             (this GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
             where TEdgeContent : IHaveId<T>, IWorkingCopy

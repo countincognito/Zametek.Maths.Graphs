@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public static class ArrowGraphBuilderExtensions
+    internal static class ArrowGraphBuilderExtensions
     {
-        public static bool CalculateEventEarliestFinishTimes<T, TActivity, TEvent>
+        internal static bool CalculateEventEarliestFinishTimes<T, TActivity, TEvent>
             (this ArrowGraphBuilderBase<T, TActivity, TEvent> arrowGraphBuilder)
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>
@@ -105,7 +105,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        public static bool CalculateEventLatestFinishTimes<T, TActivity, TEvent>
+        internal static bool CalculateEventLatestFinishTimes<T, TActivity, TEvent>
             (this ArrowGraphBuilderBase<T, TActivity, TEvent> arrowGraphBuilder)
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>
@@ -197,7 +197,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        public static bool CalculateCriticalPathVariables<T, TActivity, TEvent>
+        internal static bool CalculateCriticalPathVariables<T, TActivity, TEvent>
             (this ArrowGraphBuilderBase<T, TActivity, TEvent> arrowGraphBuilder)
             where TActivity : IActivity<T>
             where TEvent : IEvent<T>

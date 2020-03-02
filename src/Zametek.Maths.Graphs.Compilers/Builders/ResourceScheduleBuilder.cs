@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Zametek.Maths.Graphs;
 
 namespace Zametek.Maths.Graphs
 {
@@ -20,11 +19,7 @@ namespace Zametek.Maths.Graphs
         public ResourceScheduleBuilder(IResource<T> resource)
             : this()
         {
-            if (resource == null)
-            {
-                throw new ArgumentNullException(nameof(resource));
-            }
-            m_Resource = resource;
+            m_Resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
         public ResourceScheduleBuilder()

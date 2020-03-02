@@ -81,8 +81,7 @@ namespace Zametek.Maths.Graphs
         public bool RemoveDummyActivity(T activityId)
         {
             // Retrieve the activity's edge.
-            Edge<T, TActivity> edge;
-            if (!m_Edges.TryGetValue(activityId, out edge))
+            if (!m_Edges.TryGetValue(activityId, out Edge<T, TActivity> edge))
             {
                 return false;
             }
@@ -288,8 +287,7 @@ namespace Zametek.Maths.Graphs
             foreach (T incomingDummyEdgeId in removableIncomingDummyEdgeIds)
             {
                 T tailNodeId = m_EdgeTailNodeLookup[incomingDummyEdgeId].Id;
-                HashSet<T> dummyEdgeIds;
-                if (!tailNodeParallelDummyEdgesLookup.TryGetValue(tailNodeId, out dummyEdgeIds))
+                if (!tailNodeParallelDummyEdgesLookup.TryGetValue(tailNodeId, out HashSet<T> dummyEdgeIds))
                 {
                     dummyEdgeIds = new HashSet<T>();
                     tailNodeParallelDummyEdgesLookup.Add(tailNodeId, dummyEdgeIds);
@@ -429,8 +427,7 @@ namespace Zametek.Maths.Graphs
             // Check to see if any existing activities were expecting this activity
             // as a dependency. If so, then then hook up their tail nodes to this
             // activity's head node with a dummy edge.
-            HashSet<Node<T, TEvent>> unsatisfiedSuccessorTailNodes;
-            if (m_UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out unsatisfiedSuccessorTailNodes))
+            if (m_UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out HashSet<Node<T, TEvent>> unsatisfiedSuccessorTailNodes))
             {
                 // We know that there are unsatisfied dependencies, so create a head node.
                 T headEventId = m_NodeIdGenerator();
@@ -559,8 +556,7 @@ namespace Zametek.Maths.Graphs
                 // IDs and add this edge's tail node as an unsatisfied successor.
                 foreach (T dependencyId in nonExistingDependencies)
                 {
-                    HashSet<Node<T, TEvent>> tailNodes;
-                    if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out tailNodes))
+                    if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TEvent>> tailNodes))
                     {
                         tailNodes = new HashSet<Node<T, TEvent>>();
                         m_UnsatisfiedSuccessorsLookup.Add(dependencyId, tailNodes);
@@ -693,8 +689,7 @@ namespace Zametek.Maths.Graphs
                 lowLinkLookup.Add(id, -1);
             }
 
-            Action<T> strongConnect = null;
-            strongConnect = referenceId =>
+            void StrongConnect(T referenceId)
             {
                 indexLookup[referenceId] = index;
                 lowLinkLookup[referenceId] = index;
@@ -709,7 +704,7 @@ namespace Zametek.Maths.Graphs
                     {
                         if (indexLookup[incomingEdgeId] < 0)
                         {
-                            strongConnect(incomingEdgeId);
+                            StrongConnect(incomingEdgeId);
                             lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], lowLinkLookup[incomingEdgeId]);
                         }
                         else if (stack.Contains(incomingEdgeId))
@@ -734,13 +729,13 @@ namespace Zametek.Maths.Graphs
                     } while (!referenceId.Equals(currentId));
                     circularDependencies.Add(circularDependency);
                 }
-            };
+            }
 
             foreach (T id in EdgeIds)
             {
                 if (indexLookup[id] < 0)
                 {
-                    strongConnect(id);
+                    StrongConnect(id);
                 }
             }
 

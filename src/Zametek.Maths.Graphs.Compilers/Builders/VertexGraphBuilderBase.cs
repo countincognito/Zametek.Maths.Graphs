@@ -54,8 +54,7 @@ namespace Zametek.Maths.Graphs
             foreach (T incomingEdgeId in removableIncomingEdgeIds)
             {
                 T tailNodeId = m_EdgeTailNodeLookup[incomingEdgeId].Id;
-                HashSet<T> edgeIds;
-                if (!tailNodeParallelEdgesLookup.TryGetValue(tailNodeId, out edgeIds))
+                if (!tailNodeParallelEdgesLookup.TryGetValue(tailNodeId, out HashSet<T> edgeIds))
                 {
                     edgeIds = new HashSet<T>();
                     tailNodeParallelEdgesLookup.Add(tailNodeId, edgeIds);
@@ -147,16 +146,14 @@ namespace Zametek.Maths.Graphs
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
         {
             // Check to make sure the node really exists.
-            Node<T, TActivity> dependencyNode;
-            if (!m_Nodes.TryGetValue(activityId, out dependencyNode))
+            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> dependencyNode))
             {
                 return;
             }
 
             // Check to see if any existing activities were expecting this activity
             // as a dependency. If so, then then hook their nodes to this activity with an edge.
-            HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes;
-            if (m_UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out unsatisfiedSuccessorNodes))
+            if (m_UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes))
             {
                 // If the dependency node is an End or Isolated node, then convert it.
                 if (dependencyNode.NodeType == NodeType.End)
@@ -185,8 +182,7 @@ namespace Zametek.Maths.Graphs
         private void RemoveUnsatisfiedSuccessorActivity(T activityId)
         {
             // Check to make sure the node really exists.
-            Node<T, TActivity> node;
-            if (!m_Nodes.TryGetValue(activityId, out node))
+            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return;
             }
@@ -221,8 +217,7 @@ namespace Zametek.Maths.Graphs
             // then remove them from the lookup.
             foreach (T dependencyId in dependencies)
             {
-                HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes;
-                if (m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out unsatisfiedSuccessorNodes))
+                if (m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> unsatisfiedSuccessorNodes))
                 {
                     unsatisfiedSuccessorNodes.RemoveWhere(x => x.Id.Equals(activityId));
                     if (!unsatisfiedSuccessorNodes.Any())
@@ -315,8 +310,7 @@ namespace Zametek.Maths.Graphs
                 // IDs and add this node as an unsatisfied successor.
                 foreach (T dependencyId in nonExistingDependencies)
                 {
-                    HashSet<Node<T, TActivity>> successorNodes;
-                    if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out successorNodes))
+                    if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> successorNodes))
                     {
                         successorNodes = new HashSet<Node<T, TActivity>>();
                         m_UnsatisfiedSuccessorsLookup.Add(dependencyId, successorNodes);
@@ -335,8 +329,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(dependencies));
             }
 
-            Node<T, TActivity> node;
-            if (!m_Nodes.TryGetValue(activityId, out node))
+            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return false;
             }
@@ -391,8 +384,7 @@ namespace Zametek.Maths.Graphs
             // IDs and add this node as an unsatisfied successor.
             foreach (T dependencyId in nonExistingDependencies)
             {
-                HashSet<Node<T, TActivity>> successorNodes;
-                if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out successorNodes))
+                if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> successorNodes))
                 {
                     successorNodes = new HashSet<Node<T, TActivity>>();
                     m_UnsatisfiedSuccessorsLookup.Add(dependencyId, successorNodes);
@@ -405,8 +397,7 @@ namespace Zametek.Maths.Graphs
         public override bool RemoveActivity(T activityId)
         {
             // Retrieve the activity's node.
-            Node<T, TActivity> node;
-            if (!m_Nodes.TryGetValue(activityId, out node))
+            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return false;
             }
@@ -525,8 +516,7 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
-            Node<T, TActivity> node;
-            if (!m_Nodes.TryGetValue(activityId, out node))
+            if (!m_Nodes.TryGetValue(activityId, out Node<T, TActivity> node))
             {
                 return false;
             }
@@ -695,8 +685,7 @@ namespace Zametek.Maths.Graphs
                 lowLinkLookup.Add(id, -1);
             }
 
-            Action<T> strongConnect = null;
-            strongConnect = referenceId =>
+            void StrongConnect(T referenceId)
             {
                 indexLookup[referenceId] = index;
                 lowLinkLookup[referenceId] = index;
@@ -712,7 +701,7 @@ namespace Zametek.Maths.Graphs
                         T tailNodeId = tailNode.Id;
                         if (indexLookup[tailNodeId] < 0)
                         {
-                            strongConnect(tailNodeId);
+                            StrongConnect(tailNodeId);
                             lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], lowLinkLookup[tailNodeId]);
                         }
                         else if (stack.Contains(tailNodeId))
@@ -743,7 +732,7 @@ namespace Zametek.Maths.Graphs
             {
                 if (indexLookup[id] < 0)
                 {
-                    strongConnect(id);
+                    StrongConnect(id);
                 }
             }
 

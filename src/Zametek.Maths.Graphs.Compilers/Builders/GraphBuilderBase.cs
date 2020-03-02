@@ -183,8 +183,7 @@ namespace Zametek.Maths.Graphs
 
         public Edge<T, TEdgeContent> Edge(T key)
         {
-            Edge<T, TEdgeContent> edge;
-            if (!m_Edges.TryGetValue(key, out edge))
+            if (!m_Edges.TryGetValue(key, out Edge<T, TEdgeContent> edge))
             {
                 return null;
             }
@@ -193,8 +192,7 @@ namespace Zametek.Maths.Graphs
 
         public Node<T, TNodeContent> Node(T key)
         {
-            Node<T, TNodeContent> node;
-            if (!m_Nodes.TryGetValue(key, out node))
+            if (!m_Nodes.TryGetValue(key, out Node<T, TNodeContent> node))
             {
                 return null;
             }
@@ -536,14 +534,12 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
             // Retrieve the activity edge.
-            Edge<T, TEdgeContent> edge;
-            if (!m_Edges.TryGetValue(edgeId, out edge))
+            if (!m_Edges.TryGetValue(edgeId, out Edge<T, TEdgeContent> _))
             {
                 return false;
             }
             // Retrieve the new tail event node.
-            Node<T, TNodeContent> newTailNode;
-            if (!m_Nodes.TryGetValue(newTailNodeId, out newTailNode))
+            if (!m_Nodes.TryGetValue(newTailNodeId, out Node<T, TNodeContent> newTailNode))
             {
                 return false;
             }
@@ -567,14 +563,12 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
             // Retrieve the activity edge.
-            Edge<T, TEdgeContent> edge;
-            if (!m_Edges.TryGetValue(edgeId, out edge))
+            if (!m_Edges.TryGetValue(edgeId, out Edge<T, TEdgeContent> _))
             {
                 return false;
             }
             // Retrieve the new head event node.
-            Node<T, TNodeContent> newHeadNode;
-            if (!m_Nodes.TryGetValue(newHeadNodeId, out newHeadNode))
+            if (!m_Nodes.TryGetValue(newHeadNodeId, out Node<T, TNodeContent> newHeadNode))
             {
                 return false;
             }
@@ -614,8 +608,7 @@ namespace Zametek.Maths.Graphs
                 // If the lookup holds the ancestor nodes for the tail
                 // node then add them to the ancestor nodes. Otherwise
                 // calculate the ancestor nodes for the tail node too.
-                HashSet<T> tailNodeAncestorNodes;
-                if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out tailNodeAncestorNodes))
+                if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
                 {
                     tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);
                     nodeIdAncestorLookup.Add(tailNodeId, tailNodeAncestorNodes);
