@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class Activity<T>
-        : IActivity<T>
+    public class Activity<T, TResourceId>
+        : IActivity<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Ctors
 
@@ -13,7 +15,8 @@ namespace Zametek.Maths.Graphs
         {
             Id = id;
             Duration = duration;
-            TargetResources = new HashSet<T>();
+            TargetResources = new HashSet<TResourceId>();
+            AllocatedToResources = new HashSet<TResourceId>();
         }
 
         public Activity(T id, int duration, bool canBeRemoved)
@@ -23,9 +26,9 @@ namespace Zametek.Maths.Graphs
         }
 
         public Activity(
-            T id, string name, IEnumerable<T> targetResources, LogicalOperator targetLogicalOperator,
-            bool canBeRemoved, int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime,
-            int? minimumFreeSlack, int? minimumEarliestStartTime, DateTime? minimumEarliestStartDateTime)
+            T id, string name, IEnumerable<TResourceId> targetResources, LogicalOperator targetLogicalOperator,
+            IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, int duration, int? freeSlack,
+            int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime)
         {
             if (targetResources == null)
             {
@@ -33,8 +36,9 @@ namespace Zametek.Maths.Graphs
             }
             Id = id;
             Name = name;
-            TargetResources = new HashSet<T>(targetResources);
+            TargetResources = targetResources.ToList();
             TargetResourceOperator = targetLogicalOperator;
+            AllocatedToResources = new HashSet<TResourceId>(allocatedToResources);
             CanBeRemoved = canBeRemoved;
             Duration = duration;
             FreeSlack = freeSlack;
@@ -42,7 +46,6 @@ namespace Zametek.Maths.Graphs
             LatestFinishTime = latestFinishTime;
             MinimumFreeSlack = minimumFreeSlack;
             MinimumEarliestStartTime = minimumEarliestStartTime;
-            MinimumEarliestStartDateTime = minimumEarliestStartDateTime;
         }
 
         #endregion
@@ -60,7 +63,7 @@ namespace Zametek.Maths.Graphs
             set;
         }
 
-        public HashSet<T> TargetResources
+        public IEnumerable<TResourceId> TargetResources
         {
             get;
         }
@@ -69,6 +72,11 @@ namespace Zametek.Maths.Graphs
         {
             get;
             set;
+        }
+
+        public HashSet<TResourceId> AllocatedToResources
+        {
+            get;
         }
 
         public bool CanBeRemoved
@@ -182,12 +190,6 @@ namespace Zametek.Maths.Graphs
             set;
         }
 
-        public DateTime? MinimumEarliestStartDateTime
-        {
-            get;
-            set;
-        }
-
         public void SetAsReadOnly()
         {
             CanBeRemoved = false;
@@ -200,10 +202,9 @@ namespace Zametek.Maths.Graphs
 
         public virtual object CloneObject()
         {
-            return new Activity<T>(
-                Id, Name, TargetResources, TargetResourceOperator, CanBeRemoved, Duration, FreeSlack,
-                EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime,
-                MinimumEarliestStartDateTime);
+            return new Activity<T, TResourceId>(
+                Id, Name, TargetResources, TargetResourceOperator, AllocatedToResources, CanBeRemoved, Duration,
+                FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime);
         }
 
         #endregion

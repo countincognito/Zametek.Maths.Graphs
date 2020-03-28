@@ -23,7 +23,7 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region IActivity<T> Members
+        #region IEvent<T> Members
 
         public T Id
         {

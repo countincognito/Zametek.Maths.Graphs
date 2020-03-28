@@ -5,13 +5,14 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     public class GraphCompilationErrors<T>
+        : IGraphCompilationErrors<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
         #region Ctors
 
         public GraphCompilationErrors(
             bool allResourcesExplicitTargetsButNotAllActivitiesTargeted,
-            IEnumerable<CircularDependency<T>> circularDependencies,
+            IEnumerable<ICircularDependency<T>> circularDependencies,
             IEnumerable<T> missingDependencies)
         {
             AllResourcesExplicitTargetsButNotAllActivitiesTargeted = allResourcesExplicitTargetsButNotAllActivitiesTargeted;
@@ -21,19 +22,19 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region Properties
+        #region IGraphCompilationErrors<T> Members
 
         public bool AllResourcesExplicitTargetsButNotAllActivitiesTargeted
         {
             get;
         }
 
-        public IList<CircularDependency<T>> CircularDependencies
+        public IEnumerable<ICircularDependency<T>> CircularDependencies
         {
             get;
         }
 
-        public IList<T> MissingDependencies
+        public IEnumerable<T> MissingDependencies
         {
             get;
         }

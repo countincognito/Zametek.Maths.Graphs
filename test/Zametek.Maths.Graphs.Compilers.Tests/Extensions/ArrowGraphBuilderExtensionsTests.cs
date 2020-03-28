@@ -99,7 +99,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPathWithMinimumFreeSlackInStartActivity_ThenAsExpected()
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMinimumFreeSlackInStartActivity_ThenAsExpected()
         {
             int eventId = 0;
             int activityId1 = 1;
@@ -190,7 +190,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPathWithMinimumFreeSlackInNormalActivity_ThenAsExpected()
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMinimumFreeSlackInNormalActivity_ThenAsExpected()
         {
             int eventId = 0;
             int activityId1 = 1;
@@ -281,7 +281,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPathWithMinimumFreeSlackInEndActivity_ThenAsExpected()
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMinimumFreeSlackInEndActivity_ThenAsExpected()
         {
             int eventId = 0;
             int activityId1 = 1;
@@ -372,7 +372,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPathWithMinimumEarliestStartTimeInStartActivity_ThenAsExpected()
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMinimumEarliestStartTimeInStartActivity_ThenAsExpected()
         {
             int eventId = 0;
             int activityId1 = 1;
@@ -463,7 +463,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPathWithMinimumEarliestStartTimeInNormalActivity_ThenAsExpected()
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMinimumEarliestStartTimeInNormalActivity_ThenAsExpected()
         {
             int eventId = 0;
             int activityId1 = 1;
@@ -555,7 +555,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPathWithMinimumEarliestStartTimeInEndActivity_ThenAsExpected()
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMinimumEarliestStartTimeInEndActivity_ThenAsExpected()
         {
             int eventId = 0;
             int activityId1 = 1;
@@ -668,7 +668,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityListOneResource_ThenCorrectOrder()
+        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenOneResource_ThenCorrectOrder()
         {
             int eventId = 0;
             int dummyActivityId = 100;
@@ -732,7 +732,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityListTwoResources_ThenCorrectOrder()
+        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenTwoResources_ThenCorrectOrder()
         {
             int eventId = 0;
             int dummyActivityId = 100;
@@ -779,7 +779,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(34);
 
-            resourceSchedules[1].ScheduledActivities.Count().Should().Be(4);
+            resourceSchedules[1].ScheduledActivities.Count.Should().Be(4);
 
             resourceSchedules[1].ScheduledActivities[0].Id.Should().Be(2);
             resourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -801,7 +801,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityListThreeResources_ThenCorrectOrder()
+        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenThreeResources_ThenCorrectOrder()
         {
             int eventId = 0;
             int dummyActivityId = 100;
@@ -841,7 +841,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(26);
 
-            resourceSchedules[1].ScheduledActivities.Count().Should().Be(3);
+            resourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
             resourceSchedules[1].ScheduledActivities[0].Id.Should().Be(2);
             resourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
             resourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
@@ -857,7 +857,7 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
 
 
-            resourceSchedules[2].ScheduledActivities.Count().Should().Be(3);
+            resourceSchedules[2].ScheduledActivities.Count.Should().Be(3);
             resourceSchedules[2].ScheduledActivities[0].Id.Should().Be(1);
             resourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
             resourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);
@@ -874,7 +874,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityListFourResources_ThenCorrectOrder()
+        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenFourResources_ThenCorrectOrder()
         {
             int eventId = 0;
             int dummyActivityId = 100;
@@ -915,7 +915,8 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(26);
 
-            resourceSchedules[1].ScheduledActivities.Count().Should().Be(3);
+
+            resourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
             resourceSchedules[1].ScheduledActivities[0].Id.Should().Be(2);
             resourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
             resourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
@@ -931,7 +932,7 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
 
 
-            resourceSchedules[2].ScheduledActivities.Count().Should().Be(3);
+            resourceSchedules[2].ScheduledActivities.Count.Should().Be(3);
             resourceSchedules[2].ScheduledActivities[0].Id.Should().Be(1);
             resourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
             resourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);
@@ -948,7 +949,85 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityListUnlimitedResources_ThenCorrectOrder()
+        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenFourOrderedResources_ThenCorrectOrder()
+        {
+            int eventId = 0;
+            int dummyActivityId = 100;
+            var graphBuilder = new ArrowGraphBuilder<int, IActivity<int>>(() => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
+            graphBuilder.AddActivity(new Activity<int>(1, 6));
+            graphBuilder.AddActivity(new Activity<int>(2, 7));
+            graphBuilder.AddActivity(new Activity<int>(3, 8));
+            graphBuilder.AddActivity(new Activity<int>(4, 11), new HashSet<int>(new[] { 2 }));
+            graphBuilder.AddActivity(new Activity<int>(5, 8), new HashSet<int>(new[] { 1, 2, 3 }));
+            graphBuilder.AddActivity(new Activity<int>(6, 7), new HashSet<int>(new[] { 3 }));
+            graphBuilder.AddActivity(new Activity<int>(7, 4), new HashSet<int>(new[] { 4 }));
+            graphBuilder.AddActivity(new Activity<int>(8, 4), new HashSet<int>(new[] { 4, 6 }));
+            graphBuilder.AddActivity(new Activity<int>(9, 10), new HashSet<int>(new[] { 5 }));
+
+            IList<IResourceSchedule<int>> resourceSchedules =
+                graphBuilder.CalculateResourceSchedulesByPriorityList(
+                    new List<IResource<int>>(new[]
+                    {
+                        new Resource<int>(1, string.Empty, false, InterActivityAllocationType.None, 1.0, 4),
+                        new Resource<int>(2, string.Empty, false, InterActivityAllocationType.None, 1.0, 3),
+                        new Resource<int>(3, string.Empty, false, InterActivityAllocationType.None, 1.0, 2),
+                        new Resource<int>(4, string.Empty, false, InterActivityAllocationType.None, 1.0, 1)
+                    })).ToList();
+            resourceSchedules.Count.Should().Be(3);
+
+            resourceSchedules[0].Resource.Id.Should().Be(4);
+            resourceSchedules[0].ScheduledActivities.Count.Should().Be(3);
+            resourceSchedules[0].ScheduledActivities[0].Id.Should().Be(3);
+            resourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
+            resourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(8);
+
+            resourceSchedules[0].ScheduledActivities[1].Id.Should().Be(5);
+            resourceSchedules[0].ScheduledActivities[1].StartTime.Should().Be(8);
+            resourceSchedules[0].ScheduledActivities[1].FinishTime.Should().Be(16);
+
+            resourceSchedules[0].ScheduledActivities[2].Id.Should().Be(9);
+            resourceSchedules[0].ScheduledActivities[2].StartTime.Should().Be(16);
+            resourceSchedules[0].ScheduledActivities[2].FinishTime.Should().Be(26);
+
+            resourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(26);
+
+
+            resourceSchedules[1].Resource.Id.Should().Be(3);
+            resourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
+            resourceSchedules[1].ScheduledActivities[0].Id.Should().Be(2);
+            resourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
+            resourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
+
+            resourceSchedules[1].ScheduledActivities[1].Id.Should().Be(4);
+            resourceSchedules[1].ScheduledActivities[1].StartTime.Should().Be(7);
+            resourceSchedules[1].ScheduledActivities[1].FinishTime.Should().Be(18);
+
+            resourceSchedules[1].ScheduledActivities[2].Id.Should().Be(7);
+            resourceSchedules[1].ScheduledActivities[2].StartTime.Should().Be(18);
+            resourceSchedules[1].ScheduledActivities[2].FinishTime.Should().Be(22);
+
+            resourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
+
+
+            resourceSchedules[2].Resource.Id.Should().Be(2);
+            resourceSchedules[2].ScheduledActivities.Count.Should().Be(3);
+            resourceSchedules[2].ScheduledActivities[0].Id.Should().Be(1);
+            resourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
+            resourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);
+
+            resourceSchedules[2].ScheduledActivities[1].Id.Should().Be(6);
+            resourceSchedules[2].ScheduledActivities[1].StartTime.Should().Be(8);
+            resourceSchedules[2].ScheduledActivities[1].FinishTime.Should().Be(15);
+
+            resourceSchedules[2].ScheduledActivities[2].Id.Should().Be(8);
+            resourceSchedules[2].ScheduledActivities[2].StartTime.Should().Be(18);
+            resourceSchedules[2].ScheduledActivities[2].FinishTime.Should().Be(22);
+
+            resourceSchedules[2].ScheduledActivities.Last().FinishTime.Should().Be(22);
+        }
+
+        [Fact]
+        public void ArrowGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenUnlimitedResources_ThenCorrectOrder()
         {
             int eventId = 0;
             int dummyActivityId = 100;
@@ -966,7 +1045,7 @@ namespace Zametek.Maths.Graphs.Tests
             IList<IResourceSchedule<int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList().ToList();
             resourceSchedules.Count.Should().Be(3);
 
-            resourceSchedules[0].ScheduledActivities.Count().Should().Be(3);
+            resourceSchedules[0].ScheduledActivities.Count.Should().Be(3);
             resourceSchedules[0].ScheduledActivities[0].Id.Should().Be(3);
             resourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
             resourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(8);
@@ -981,7 +1060,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(26);
 
-            resourceSchedules[1].ScheduledActivities.Count().Should().Be(3);
+            resourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
             resourceSchedules[1].ScheduledActivities[0].Id.Should().Be(2);
             resourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
             resourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
@@ -997,7 +1076,7 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
 
 
-            resourceSchedules[2].ScheduledActivities.Count().Should().Be(3);
+            resourceSchedules[2].ScheduledActivities.Count.Should().Be(3);
             resourceSchedules[2].ScheduledActivities[0].Id.Should().Be(1);
             resourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
             resourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);

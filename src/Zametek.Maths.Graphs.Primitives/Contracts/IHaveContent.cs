@@ -2,9 +2,6 @@
 {
     public interface IHaveContent<out T>
     {
-        T Content
-        {
-            get;
-        }
+        T Content { get; }
     }
 }

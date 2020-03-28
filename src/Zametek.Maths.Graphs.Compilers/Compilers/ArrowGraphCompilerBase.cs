@@ -6,7 +6,7 @@ namespace Zametek.Maths.Graphs
 {
     public abstract class ArrowGraphCompilerBase<T, TDependentActivity, TActivity, TEvent>
         : GraphCompilerBase<T, TDependentActivity, TEvent, TDependentActivity, TEvent>
-        where TDependentActivity : IDependentActivity<T>, TActivity
+        where TDependentActivity : IDependentActivity<T>
         where TActivity : IActivity<T>
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>

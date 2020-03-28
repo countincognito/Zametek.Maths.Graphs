@@ -130,12 +130,12 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public IList<IScheduledActivity<T>> ScheduledActivities
+        public IEnumerable<IScheduledActivity<T>> ScheduledActivities
         {
             get;
         }
 
-        public IList<bool> ActivityAllocation
+        public IEnumerable<bool> ActivityAllocation
         {
             get;
         }

@@ -142,8 +142,10 @@ namespace Zametek.Maths.Graphs
                 .Select(x => new T?(x))
                 .ToList();
 
-            IList<ResourceScheduleBuilder<T>> resourceScheduleBuilders =
-                resources.Select(x => new ResourceScheduleBuilder<T>(x)).ToList();
+            IList<ResourceScheduleBuilder<T>> resourceScheduleBuilders = resources
+                .OrderBy(x => x.AllocationOrder)
+                .Select(x => new ResourceScheduleBuilder<T>(x))
+                .ToList();
 
             var completed = new HashSet<T>();
             var started = new HashSet<T>();
@@ -211,6 +213,7 @@ namespace Zametek.Maths.Graphs
                         }
                         T activityId = nullableActivityId.GetValueOrDefault();
                         IActivity<T> activity = tmpGraphBuilder.Activity(activityId);
+                        activity.AllocatedToResources.Clear();
 
                         // Check to see if the activity has to be targeted to specific resources,
                         // and that this resource is one of those specific targets.
@@ -234,6 +237,12 @@ namespace Zametek.Maths.Graphs
                                     }
 
                                     resourceScheduleBuilder.AddActivity(activity, timeCounter);
+
+                                    //if (resourceScheduleBuilder.ResourceId.HasValue)
+                                    //{
+                                    //    activity.AllocatedToResources.Add(resourceScheduleBuilder.ResourceId.GetValueOrDefault());
+                                    //}
+
                                     started.Add(activityId);
                                     keepLooking = true;
                                     ready[activityIndex] = null;
@@ -267,6 +276,12 @@ namespace Zametek.Maths.Graphs
                                     if (activity.TargetResourceOperator == LogicalOperator.OR)
                                     {
                                         resourceScheduleBuilder.AddActivity(activity, timeCounter);
+
+                                        //if (resourceScheduleBuilder.ResourceId.HasValue)
+                                        //{
+                                        //    activity.AllocatedToResources.Add(resourceScheduleBuilder.ResourceId.GetValueOrDefault());
+                                        //}
+
                                         started.Add(activityId);
                                         keepLooking = true;
                                         ready[activityIndex] = null;
@@ -277,11 +292,18 @@ namespace Zametek.Maths.Graphs
                                     {
                                         availableResourceSchedulers.Add(resourceScheduleBuilder);
 
-                                        if (activity.TargetResources.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
+                                        var targetResources = new HashSet<T>(activity.TargetResources);
+                                        if (targetResources.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
                                         {
                                             foreach (ResourceScheduleBuilder<T> availableResourceScheduler in availableResourceSchedulers)
                                             {
                                                 availableResourceScheduler.AddActivity(activity, timeCounter);
+
+                                                //if (availableResourceScheduler.ResourceId.HasValue)
+                                                //{
+                                                //    activity.AllocatedToResources.Add(availableResourceScheduler.ResourceId.GetValueOrDefault());
+                                                //}
+
                                                 started.Add(activityId);
                                             }
                                             keepLooking = true;

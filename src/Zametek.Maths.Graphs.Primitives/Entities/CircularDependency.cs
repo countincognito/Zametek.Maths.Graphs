@@ -5,7 +5,7 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     public class CircularDependency<T>
-        : IEquatable<CircularDependency<T>>
+        : ICircularDependency<T>, IEquatable<CircularDependency<T>>
         where T : IComparable<T>, IEquatable<T>
     {
         #region Fields
@@ -19,14 +19,14 @@ namespace Zametek.Maths.Graphs
 
         public CircularDependency(IEnumerable<T> circularDependencies)
         {
-            Dependencies = circularDependencies.ToList();
+            Dependencies = new HashSet<T>(circularDependencies);
         }
 
         #endregion
 
-        #region Properties
+        #region ICircularDependency<T> Members
 
-        public IList<T> Dependencies
+        public HashSet<T> Dependencies
         {
             get;
         }

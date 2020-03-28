@@ -11,14 +11,14 @@ namespace Zametek.Maths.Graphs
         public Resource(
             T id, string name, bool isExplicitTarget,
             InterActivityAllocationType interActivityAllocationType,
-            double unitCost, int displayOrder)
+            double unitCost, int allocationOrder)
         {
             Id = id;
             Name = name;
             IsExplicitTarget = isExplicitTarget;
             InterActivityAllocationType = interActivityAllocationType;
             UnitCost = unitCost;
-            DisplayOrder = displayOrder;
+            AllocationOrder = allocationOrder;
         }
 
         #endregion
@@ -50,14 +50,14 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public int DisplayOrder
+        public int AllocationOrder
         {
             get;
         }
 
         public object CloneObject()
         {
-            return new Resource<T>(Id, Name, IsExplicitTarget, InterActivityAllocationType, UnitCost, DisplayOrder);
+            return new Resource<T>(Id, Name, IsExplicitTarget, InterActivityAllocationType, UnitCost, AllocationOrder);
         }
 
         #endregion

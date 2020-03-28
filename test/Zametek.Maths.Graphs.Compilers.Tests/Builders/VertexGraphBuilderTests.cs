@@ -167,7 +167,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.StartNodes.First().Id.Should().Be(activityId1);
             graphBuilder.EdgeTailNode(eventId1).Id.Should().Be(activityId1);
 
-            graphBuilder.StartNodes.First().OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.StartNodes.First().OutgoingEdges.Count.Should().Be(1);
             graphBuilder.StartNodes.First().OutgoingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId1).Id.Should().Be(activityId1);
@@ -178,7 +178,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EndNodes.First().Id.Should().Be(activityId2);
             graphBuilder.EdgeHeadNode(eventId1).Id.Should().Be(activityId2);
 
-            graphBuilder.EndNodes.First().IncomingEdges.Count().Should().Be(1);
+            graphBuilder.EndNodes.First().IncomingEdges.Count.Should().Be(1);
             graphBuilder.EndNodes.First().IncomingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count.Should().Be(1);
             graphBuilder.EdgeHeadNode(eventId1).Id.Should().Be(activityId2);
@@ -261,7 +261,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Node(activityId1).NodeType.Should().Be(NodeType.Start);
             graphBuilder.EdgeTailNode(eventId1).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId1).Id.Should().Be(activityId1);
-            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Contains(eventId1).Should().BeTrue();
 
             // Second activity.
@@ -269,7 +269,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Node(activityId2).NodeType.Should().Be(NodeType.Start);
             graphBuilder.EdgeTailNode(eventId2).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId2).Id.Should().Be(activityId2);
-            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Contains(eventId2).Should().BeTrue();
 
             // Third activity.
@@ -279,8 +279,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeHeadNode(eventId2).Should().NotBeNull();
             graphBuilder.EdgeHeadNode(eventId1).Id.Should().Be(activityId3);
             graphBuilder.EdgeHeadNode(eventId2).Id.Should().Be(activityId3);
-            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count().Should().Be(2);
-            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count().Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count.Should().Be(2);
             graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Contains(eventId2).Should().BeTrue();
         }
@@ -360,7 +360,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Node(activityId1).NodeType.Should().Be(NodeType.Start);
             graphBuilder.EdgeTailNode(eventId2).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId2).Id.Should().Be(activityId1);
-            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Contains(eventId2).Should().BeTrue();
 
             // Second activity.
@@ -368,7 +368,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Node(activityId2).NodeType.Should().Be(NodeType.Start);
             graphBuilder.EdgeTailNode(eventId1).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId1).Id.Should().Be(activityId2);
-            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Contains(eventId1).Should().BeTrue();
 
             // Third activity.
@@ -378,8 +378,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeHeadNode(eventId2).Should().NotBeNull();
             graphBuilder.EdgeHeadNode(eventId1).Id.Should().Be(activityId3);
             graphBuilder.EdgeHeadNode(eventId2).Id.Should().Be(activityId3);
-            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count().Should().Be(2);
-            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count().Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count.Should().Be(2);
             graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Contains(eventId2).Should().BeTrue();
         }
@@ -419,7 +419,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Node(activityId1).NodeType.Should().Be(NodeType.Start);
             graphBuilder.EdgeTailNode(eventId1).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId1).Id.Should().Be(activityId1);
-            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Contains(eventId1).Should().BeTrue();
 
             // Second activity.
@@ -427,7 +427,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Node(activityId2).NodeType.Should().Be(NodeType.Start);
             graphBuilder.EdgeTailNode(eventId2).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId2).Id.Should().Be(activityId2);
-            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Contains(eventId2).Should().BeTrue();
 
             // Third activity.
@@ -437,8 +437,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeHeadNode(eventId2).Should().NotBeNull();
             graphBuilder.EdgeHeadNode(eventId1).Id.Should().Be(activityId3);
             graphBuilder.EdgeHeadNode(eventId2).Id.Should().Be(activityId3);
-            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count().Should().Be(2);
-            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count().Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count.Should().Be(2);
             graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Contains(eventId2).Should().BeTrue();
 
@@ -622,8 +622,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeTailNode(eventId3).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId1).Id.Should().Be(activityId1);
             graphBuilder.EdgeTailNode(eventId3).Id.Should().Be(activityId1);
-            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count().Should().Be(2);
-            graphBuilder.EdgeTailNode(eventId3).OutgoingEdges.Count().Should().Be(2);
+            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeTailNode(eventId3).OutgoingEdges.Count.Should().Be(2);
             graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeTailNode(eventId3).OutgoingEdges.Contains(eventId3).Should().BeTrue();
 
@@ -635,14 +635,14 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeTailNode(eventId4).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId2).Id.Should().Be(activityId2);
             graphBuilder.EdgeTailNode(eventId4).Id.Should().Be(activityId2);
-            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count().Should().Be(2);
-            graphBuilder.EdgeTailNode(eventId4).OutgoingEdges.Count().Should().Be(2);
+            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeTailNode(eventId4).OutgoingEdges.Count.Should().Be(2);
             graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Contains(eventId2).Should().BeTrue();
             graphBuilder.EdgeTailNode(eventId4).OutgoingEdges.Contains(eventId4).Should().BeTrue();
 
             graphBuilder.EdgeTailNode(eventId6).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId6).Id.Should().Be(activityId5);
-            graphBuilder.EdgeHeadNode(eventId6).IncomingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeHeadNode(eventId6).IncomingEdges.Count.Should().Be(1);
             graphBuilder.EdgeHeadNode(eventId6).IncomingEdges.Contains(eventId6).Should().BeTrue();
 
             // Third activity.
@@ -651,7 +651,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphBuilder.EdgeTailNode(eventId5).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId5).Id.Should().Be(activityId3);
-            graphBuilder.EdgeTailNode(eventId5).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId5).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId5).OutgoingEdges.Contains(eventId5).Should().BeTrue();
 
             graphBuilder.EdgeHeadNode(eventId1).Should().NotBeNull();
@@ -660,9 +660,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeHeadNode(eventId1).Id.Should().Be(activityId3);
             graphBuilder.EdgeHeadNode(eventId2).Id.Should().Be(activityId3);
             graphBuilder.EdgeHeadNode(eventId7).Id.Should().Be(activityId3);
-            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count().Should().Be(3);
-            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count().Should().Be(3);
-            graphBuilder.EdgeHeadNode(eventId7).IncomingEdges.Count().Should().Be(3);
+            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count.Should().Be(3);
+            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count.Should().Be(3);
+            graphBuilder.EdgeHeadNode(eventId7).IncomingEdges.Count.Should().Be(3);
             graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Contains(eventId2).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId7).IncomingEdges.Contains(eventId7).Should().BeTrue();
@@ -677,9 +677,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeHeadNode(eventId3).Id.Should().Be(activityId4);
             graphBuilder.EdgeHeadNode(eventId4).Id.Should().Be(activityId4);
             graphBuilder.EdgeHeadNode(eventId5).Id.Should().Be(activityId4);
-            graphBuilder.EdgeHeadNode(eventId3).IncomingEdges.Count().Should().Be(3);
-            graphBuilder.EdgeHeadNode(eventId4).IncomingEdges.Count().Should().Be(3);
-            graphBuilder.EdgeHeadNode(eventId5).IncomingEdges.Count().Should().Be(3);
+            graphBuilder.EdgeHeadNode(eventId3).IncomingEdges.Count.Should().Be(3);
+            graphBuilder.EdgeHeadNode(eventId4).IncomingEdges.Count.Should().Be(3);
+            graphBuilder.EdgeHeadNode(eventId5).IncomingEdges.Count.Should().Be(3);
             graphBuilder.EdgeHeadNode(eventId3).IncomingEdges.Contains(eventId3).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId4).IncomingEdges.Contains(eventId4).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId5).IncomingEdges.Contains(eventId5).Should().BeTrue();
@@ -692,8 +692,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeTailNode(eventId7).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId6).Id.Should().Be(activityId5);
             graphBuilder.EdgeTailNode(eventId7).Id.Should().Be(activityId5);
-            graphBuilder.EdgeTailNode(eventId6).OutgoingEdges.Count().Should().Be(2);
-            graphBuilder.EdgeTailNode(eventId7).OutgoingEdges.Count().Should().Be(2);
+            graphBuilder.EdgeTailNode(eventId6).OutgoingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeTailNode(eventId7).OutgoingEdges.Count.Should().Be(2);
             graphBuilder.EdgeTailNode(eventId6).OutgoingEdges.Contains(eventId6).Should().BeTrue();
             graphBuilder.EdgeTailNode(eventId7).OutgoingEdges.Contains(eventId7).Should().BeTrue();
 
@@ -712,7 +712,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeTailNode(eventId1).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId3).Should().BeNull();
             graphBuilder.EdgeTailNode(eventId1).Id.Should().Be(activityId1);
-            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId1).OutgoingEdges.Contains(eventId1).Should().BeTrue();
 
             // Second activity.
@@ -722,12 +722,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeTailNode(eventId2).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId4).Should().BeNull();
             graphBuilder.EdgeTailNode(eventId2).Id.Should().Be(activityId2);
-            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId2).OutgoingEdges.Contains(eventId2).Should().BeTrue();
 
             graphBuilder.EdgeTailNode(eventId6).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId6).Id.Should().Be(activityId5);
-            graphBuilder.EdgeHeadNode(eventId6).IncomingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeHeadNode(eventId6).IncomingEdges.Count.Should().Be(1);
             graphBuilder.EdgeHeadNode(eventId6).IncomingEdges.Contains(eventId6).Should().BeTrue();
 
             // Third activity.
@@ -736,7 +736,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphBuilder.EdgeTailNode(eventId5).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId5).Id.Should().Be(activityId3);
-            graphBuilder.EdgeTailNode(eventId5).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId5).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId5).OutgoingEdges.Contains(eventId5).Should().BeTrue();
 
             graphBuilder.EdgeHeadNode(eventId1).Should().NotBeNull();
@@ -744,8 +744,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeHeadNode(eventId7).Should().BeNull();
             graphBuilder.EdgeHeadNode(eventId1).Id.Should().Be(activityId3);
             graphBuilder.EdgeHeadNode(eventId2).Id.Should().Be(activityId3);
-            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count().Should().Be(2);
-            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count().Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Count.Should().Be(2);
             graphBuilder.EdgeHeadNode(eventId1).IncomingEdges.Contains(eventId1).Should().BeTrue();
             graphBuilder.EdgeHeadNode(eventId2).IncomingEdges.Contains(eventId2).Should().BeTrue();
 
@@ -757,7 +757,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeHeadNode(eventId4).Should().BeNull();
             graphBuilder.EdgeHeadNode(eventId5).Should().NotBeNull();
             graphBuilder.EdgeHeadNode(eventId5).Id.Should().Be(activityId4);
-            graphBuilder.EdgeHeadNode(eventId5).IncomingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeHeadNode(eventId5).IncomingEdges.Count.Should().Be(1);
             graphBuilder.EdgeHeadNode(eventId5).IncomingEdges.Contains(eventId5).Should().BeTrue();
 
             // Fifth activity.
@@ -767,7 +767,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.EdgeTailNode(eventId6).Should().NotBeNull();
             graphBuilder.EdgeTailNode(eventId7).Should().BeNull();
             graphBuilder.EdgeTailNode(eventId6).Id.Should().Be(activityId5);
-            graphBuilder.EdgeTailNode(eventId6).OutgoingEdges.Count().Should().Be(1);
+            graphBuilder.EdgeTailNode(eventId6).OutgoingEdges.Count.Should().Be(1);
             graphBuilder.EdgeTailNode(eventId6).OutgoingEdges.Contains(eventId6).Should().BeTrue();
         }
 
@@ -1203,8 +1203,8 @@ namespace Zametek.Maths.Graphs.Tests
             IList<CircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
-            circularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 2, 4, 7 });
-            circularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 5, 8, 9 });
+            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });
+            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new int[] { 5, 8, 9 });
         }
 
         [Fact]
@@ -1225,8 +1225,8 @@ namespace Zametek.Maths.Graphs.Tests
             IList<CircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
-            circularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 2, 4, 7 });
-            circularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 5, 8, 9 });
+            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });
+            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new int[] { 5, 8, 9 });
         }
     }
 }

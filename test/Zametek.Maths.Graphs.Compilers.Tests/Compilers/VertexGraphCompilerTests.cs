@@ -65,8 +65,8 @@ namespace Zametek.Maths.Graphs.Tests
             compilation.Errors.Should().NotBeNull();
             compilation.Errors.MissingDependencies.Count.Should().Be(0);
             compilation.Errors.CircularDependencies.Count.Should().Be(2);
-            compilation.Errors.CircularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
-            compilation.Errors.CircularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
+            compilation.Errors.CircularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
+            compilation.Errors.CircularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace Zametek.Maths.Graphs.Tests
             compilation.ResourceSchedules.Count.Should().Be(0);
             compilation.Errors.Should().NotBeNull();
             compilation.Errors.CircularDependencies.Count.Should().Be(0);
-            compilation.Errors.MissingDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
+            compilation.Errors.MissingDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
         }
 
         [Fact]
@@ -110,9 +110,9 @@ namespace Zametek.Maths.Graphs.Tests
             compilation.ResourceSchedules.Count.Should().Be(0);
             compilation.Errors.Should().NotBeNull();
             compilation.Errors.CircularDependencies.Count.Should().Be(2);
-            compilation.Errors.CircularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
-            compilation.Errors.CircularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
-            compilation.Errors.MissingDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
+            compilation.Errors.CircularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
+            compilation.Errors.CircularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
+            compilation.Errors.MissingDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace Zametek.Maths.Graphs.Tests
             compilation.Errors.Should().BeNull();
             compilation.ResourceSchedules.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Count().Should().Be(3);
+            compilation.ResourceSchedules[0].ScheduledActivities.Count.Should().Be(3);
 
             compilation.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId3);
             compilation.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -162,7 +162,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            compilation.ResourceSchedules[1].ScheduledActivities.Count().Should().Be(3);
+            compilation.ResourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
 
             compilation.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId2);
             compilation.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -180,7 +180,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            compilation.ResourceSchedules[2].ScheduledActivities.Count().Should().Be(3);
+            compilation.ResourceSchedules[2].ScheduledActivities.Count.Should().Be(3);
 
             compilation.ResourceSchedules[2].ScheduledActivities[0].Id.Should().Be(activityId1);
             compilation.ResourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -204,7 +204,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).TotalSlack.Should().Be(2);
             graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(2);
             graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
@@ -212,7 +212,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
             graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
@@ -220,7 +220,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
             graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
@@ -228,7 +228,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).TotalSlack.Should().Be(4);
             graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(11);
             graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
@@ -236,7 +236,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
@@ -244,7 +244,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).TotalSlack.Should().Be(7);
             graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(15);
             graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
             graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
@@ -252,7 +252,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).TotalSlack.Should().Be(4);
             graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(22);
             graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
             graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
@@ -260,7 +260,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).TotalSlack.Should().Be(4);
             graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(22);
             graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(16);
             graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(26);
@@ -268,7 +268,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Count.Should().Be(0);
         }
 
         [Fact]
@@ -300,7 +300,7 @@ namespace Zametek.Maths.Graphs.Tests
             compilation.Errors.Should().BeNull();
             compilation.ResourceSchedules.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Count().Should().Be(4);
+            compilation.ResourceSchedules[0].ScheduledActivities.Count.Should().Be(4);
 
             compilation.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId2);
             compilation.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -322,7 +322,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            compilation.ResourceSchedules[1].ScheduledActivities.Count().Should().Be(3);
+            compilation.ResourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
 
             compilation.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId3);
             compilation.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -340,7 +340,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            compilation.ResourceSchedules[2].ScheduledActivities.Count().Should().Be(2);
+            compilation.ResourceSchedules[2].ScheduledActivities.Count.Should().Be(2);
 
             compilation.ResourceSchedules[2].ScheduledActivities[0].Id.Should().Be(activityId1);
             compilation.ResourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -360,7 +360,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).TotalSlack.Should().Be(17);
             graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(17);
             graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(23);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
@@ -368,7 +368,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).TotalSlack.Should().Be(16);
             graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(16);
             graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(23);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
@@ -376,7 +376,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).TotalSlack.Should().Be(15);
             graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(15);
             graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(23);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
             graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
@@ -384,7 +384,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).TotalSlack.Should().Be(19);
             graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(26);
             graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(37);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
@@ -392,7 +392,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).TotalSlack.Should().Be(15);
             graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(23);
             graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(31);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
@@ -400,7 +400,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).TotalSlack.Should().Be(22);
             graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(30);
             graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(37);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
             graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
@@ -408,7 +408,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).TotalSlack.Should().Be(19);
             graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(37);
             graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(41);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
             graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
@@ -416,7 +416,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).TotalSlack.Should().Be(19);
             graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(37);
             graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(41);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Count.Should().Be(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(31);
             graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(41);
@@ -424,7 +424,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(31);
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(41);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Count.Should().Be(0);
         }
 
         [Fact]
@@ -451,17 +451,19 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
             graphCompiler.AddActivity(new DependentActivity<int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
 
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
             GraphCompilation<int, IDependentActivity<int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[]
                 {
-                    new Resource<int>(1, string.Empty, false, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(2, string.Empty, false, InterActivityAllocationType.None, 1.0, 0),
+                    new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.None, 1.0, 0),
+                    new Resource<int>(resourceId2, string.Empty, false, InterActivityAllocationType.None, 1.0, 0),
                 }));
 
             compilation.Errors.Should().BeNull();
             compilation.ResourceSchedules.Count.Should().Be(2);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Count().Should().Be(5);
+            compilation.ResourceSchedules[0].ScheduledActivities.Count.Should().Be(5);
 
             compilation.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId3);
             compilation.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -487,7 +489,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            compilation.ResourceSchedules[1].ScheduledActivities.Count().Should().Be(4);
+            compilation.ResourceSchedules[1].ScheduledActivities.Count.Should().Be(4);
 
             compilation.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId2);
             compilation.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
@@ -515,7 +517,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).TotalSlack.Should().Be(3);
             graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { 2 }));
+            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2 }));
+            graphBuilder.Activity(activityId1).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
 
             graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
@@ -523,7 +526,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
             graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId2).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
 
             graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
@@ -531,7 +535,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count().Should().Be(0);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId3).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
 
             graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(19);
@@ -539,7 +544,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(19);
-            graphBuilder.Activity(activityId4).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId3 }));
+            graphBuilder.Activity(activityId4).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId3 }));
+            graphBuilder.Activity(activityId4).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
 
             graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(13);
             graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(21);
@@ -547,7 +553,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).TotalSlack.Should().Be(3);
             graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(16);
             graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(24);
-            graphBuilder.Activity(activityId5).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId1 }));
+            graphBuilder.Activity(activityId5).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId1 }));
+            graphBuilder.Activity(activityId5).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
 
             graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(19);
             graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(26);
@@ -555,7 +562,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(19);
             graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId6).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId4 }));
+            graphBuilder.Activity(activityId6).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId4 }));
+            graphBuilder.Activity(activityId6).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
 
             graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(26);
             graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(30);
@@ -563,7 +571,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(26);
             graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(30);
-            graphBuilder.Activity(activityId7).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId6 }));
+            graphBuilder.Activity(activityId7).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId6 }));
+            graphBuilder.Activity(activityId7).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
 
             graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(30);
             graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(34);
@@ -571,7 +580,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(30);
             graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId8).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId7 }));
+            graphBuilder.Activity(activityId8).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId7 }));
+            graphBuilder.Activity(activityId8).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
 
             graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(21);
             graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(31);
@@ -579,7 +589,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).TotalSlack.Should().Be(3);
             graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(24);
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId9).ResourceDependencies.ToList().Should().BeEquivalentTo(new List<int>(new int[] { activityId5 }));
+            graphBuilder.Activity(activityId9).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId5 }));
+            graphBuilder.Activity(activityId9).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
         }
 
         [Fact]

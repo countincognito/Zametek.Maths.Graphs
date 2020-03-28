@@ -2,9 +2,6 @@
 {
     public interface ICanBeRemoved
     {
-        bool CanBeRemoved
-        {
-            get;
-        }
+        bool CanBeRemoved { get; }
     }
 }

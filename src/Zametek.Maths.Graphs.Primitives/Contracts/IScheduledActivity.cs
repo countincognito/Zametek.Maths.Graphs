@@ -2,30 +2,16 @@
 
 namespace Zametek.Maths.Graphs
 {
-    public interface IScheduledActivity<T>
+    public interface IScheduledActivity<out T>
         : IHaveId<T>, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
     {
-        string Name
-        {
-            get;
-        }
+        string Name { get; }
 
-        int Duration
-        {
-            get;
-        }
+        int Duration { get; }
 
-        int StartTime
-        {
-            get;
-            set;
-        }
+        int StartTime { get; set; }
 
-        int FinishTime
-        {
-            get;
-            set;
-        }
+        int FinishTime { get; set; }
     }
 }

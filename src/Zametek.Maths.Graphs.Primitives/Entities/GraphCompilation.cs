@@ -4,15 +4,17 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class GraphCompilation<T, TDependentActivity>
-        where TDependentActivity : IDependentActivity<T>, IActivity<T>
+    public class GraphCompilation<T, TDependentActivity, TResourceId>
+        : IGraphCompilation<T, TDependentActivity, TResourceId>
+        where TDependentActivity : IDependentActivity<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Ctors
 
         public GraphCompilation(
             IEnumerable<TDependentActivity> dependentActivities,
-            IEnumerable<IResourceSchedule<T>> resourceSchedules)
+            IEnumerable<IResourceSchedule<TResourceId>> resourceSchedules)
         {
             DependentActivities = dependentActivities.ToList();
             ResourceSchedules = resourceSchedules.ToList();
@@ -20,8 +22,8 @@ namespace Zametek.Maths.Graphs
 
         public GraphCompilation(
             IEnumerable<TDependentActivity> dependentActivities,
-            IEnumerable<IResourceSchedule<T>> resourceSchedules,
-            GraphCompilationErrors<T> graphCompilationErrors)
+            IEnumerable<IResourceSchedule<TResourceId>> resourceSchedules,
+            IGraphCompilationErrors<T> graphCompilationErrors)
             : this(dependentActivities, resourceSchedules)
         {
             Errors = graphCompilationErrors ?? throw new ArgumentNullException(nameof(graphCompilationErrors));
@@ -29,19 +31,19 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region Properties
+        #region GraphCompilation<T> Members
 
-        public GraphCompilationErrors<T> Errors
+        public IGraphCompilationErrors<T> Errors
         {
             get;
         }
 
-        public IList<TDependentActivity> DependentActivities
+        public IEnumerable<TDependentActivity> DependentActivities
         {
             get;
         }
 
-        public IList<IResourceSchedule<T>> ResourceSchedules
+        public IEnumerable<IResourceSchedule<TResourceId>> ResourceSchedules
         {
             get;
         }

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class DependentActivity<T>
-        : Activity<T>, IDependentActivity<T>
+    public class DependentActivity<T, TResourceId>
+        : Activity<T, TResourceId>, IDependentActivity<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Ctors
 
@@ -35,12 +37,12 @@ namespace Zametek.Maths.Graphs
         }
 
         public DependentActivity(
-            T id, string name, IEnumerable<T> targetResources, IEnumerable<T> dependencies, IEnumerable<T> resourceDependencies,
-            LogicalOperator targetLogicalOperator, bool canBeRemoved, int duration, int? freeSlack, int? earliestStartTime,
-            int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, DateTime? minimumEarliestStartDateTime)
+            T id, string name, IEnumerable<TResourceId> targetResources, IEnumerable<T> dependencies, IEnumerable<T> resourceDependencies,
+            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, int duration,
+            int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime)
             : base(
-                  id, name, targetResources, targetLogicalOperator, canBeRemoved, duration, freeSlack, earliestStartTime,
-                  latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, minimumEarliestStartDateTime)
+                  id, name, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, duration, freeSlack,
+                  earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime)
         {
             if (dependencies == null)
             {
@@ -56,7 +58,7 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region IHaveDependencies<T> Members
+        #region IDependentActivity<T> Members
 
         public HashSet<T> Dependencies
         {
@@ -74,10 +76,9 @@ namespace Zametek.Maths.Graphs
 
         public override object CloneObject()
         {
-            return new DependentActivity<T>(
-                Id, Name, TargetResources, Dependencies, ResourceDependencies, TargetResourceOperator,
-                CanBeRemoved, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack,
-                MinimumEarliestStartTime, MinimumEarliestStartDateTime);
+            return new DependentActivity<T, TResourceId>(
+                Id, Name, TargetResources, Dependencies, ResourceDependencies, TargetResourceOperator, AllocatedToResources,
+                CanBeRemoved, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime);
         }
 
         #endregion

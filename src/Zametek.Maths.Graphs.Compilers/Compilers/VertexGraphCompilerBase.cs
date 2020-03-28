@@ -6,7 +6,7 @@ namespace Zametek.Maths.Graphs
 {
     public abstract class VertexGraphCompilerBase<T, TDependentActivity, TActivity, TEvent>
         : GraphCompilerBase<T, TEvent, TDependentActivity, TDependentActivity, TEvent>
-        where TDependentActivity : IDependentActivity<T>, TActivity
+        where TDependentActivity : IDependentActivity<T>
         where TActivity : IActivity<T>
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -220,6 +220,7 @@ namespace Zametek.Maths.Graphs
                         activity.Id,
                         new HashSet<T>(activity.ResourceDependencies.Except(activity.Dependencies)));
                     activity.ResourceDependencies.Clear();
+                    activity.AllocatedToResources.Clear();
                 }
 
                 // Sanity check the resources.
@@ -257,8 +258,18 @@ namespace Zametek.Maths.Graphs
                     {
                         T previousId = default;
                         bool first = true;
+                        IResource<T> resource = resourceSchedule.Resource;
+
                         foreach (IScheduledActivity<T> scheduledActivity in resourceSchedule.ScheduledActivities.OrderBy(x => x.StartTime))
                         {
+                            T currentId = scheduledActivity.Id;
+                            var activity = m_VertexGraphBuilder.Activity(currentId);
+
+                            if (resource != null)
+                            {
+                                activity.AllocatedToResources.Add(resource.Id);
+                            }
+
                             if (!first)
                             {
                                 // Here we add the previous activity ID to the set of resource
@@ -266,8 +277,6 @@ namespace Zametek.Maths.Graphs
                                 // not add it to the compiled dependencies set - instead we make
                                 // the change directly to graph data (which we reverse at the start
                                 // of each compilation - see the top of this method).
-                                T currentId = scheduledActivity.Id;
-                                var activity = m_VertexGraphBuilder.Activity(currentId);
 
                                 activity.ResourceDependencies.Add(previousId);
                                 m_VertexGraphBuilder.AddActivityDependencies(

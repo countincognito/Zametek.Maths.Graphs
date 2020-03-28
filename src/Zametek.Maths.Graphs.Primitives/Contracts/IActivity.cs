@@ -3,98 +3,42 @@ using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public interface IActivity<T>
+    public interface IActivity<out T, TResourceId>
         : IHaveId<T>, ICanBeRemoved, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
-        string Name
-        {
-            get;
-            set;
-        }
+        string Name { get; set; }
 
-        HashSet<T> TargetResources
-        {
-            get;
-        }
+        IEnumerable<TResourceId> TargetResources { get; }
 
-        LogicalOperator TargetResourceOperator
-        {
-            get;
-            set;
-        }
+        LogicalOperator TargetResourceOperator { get; set; }
 
-        bool IsDummy
-        {
-            get;
-        }
+        HashSet<TResourceId> AllocatedToResources { get; }
 
-        int Duration
-        {
-            get;
-            set;
-        }
+        bool IsDummy { get; }
 
-        int? TotalSlack
-        {
-            get;
-        }
+        int Duration { get; set; }
 
-        int? FreeSlack
-        {
-            get;
-            set;
-        }
+        int? TotalSlack { get; }
 
-        int? InterferingSlack
-        {
-            get;
-        }
+        int? FreeSlack { get; set; }
 
-        bool IsCritical
-        {
-            get;
-        }
+        int? InterferingSlack { get; }
 
-        int? EarliestStartTime
-        {
-            get;
-            set;
-        }
+        bool IsCritical { get; }
 
-        int? LatestStartTime
-        {
-            get;
-        }
+        int? EarliestStartTime { get; set; }
 
-        int? EarliestFinishTime
-        {
-            get;
-        }
+        int? LatestStartTime { get; }
 
-        int? LatestFinishTime
-        {
-            get;
-            set;
-        }
+        int? EarliestFinishTime { get; }
 
-        int? MinimumFreeSlack
-        {
-            get;
-            set;
-        }
+        int? LatestFinishTime { get; set; }
 
-        int? MinimumEarliestStartTime
-        {
-            get;
-            set;
-        }
+        int? MinimumFreeSlack { get; set; }
 
-        DateTime? MinimumEarliestStartDateTime
-        {
-            get;
-            set;
-        }
+        int? MinimumEarliestStartTime { get; set; }
 
         void SetAsReadOnly();
 

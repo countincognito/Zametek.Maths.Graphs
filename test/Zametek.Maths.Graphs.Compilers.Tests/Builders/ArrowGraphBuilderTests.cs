@@ -2197,8 +2197,8 @@ namespace Zametek.Maths.Graphs.Tests
             IList<CircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
-            circularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 2, 4, 7 });
-            circularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 5, 8, 9 });
+            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });
+            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new int[] { 5, 8, 9 });
         }
 
         [Fact]
@@ -2219,8 +2219,8 @@ namespace Zametek.Maths.Graphs.Tests
             IList<CircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
-            circularDependencies[0].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 2, 4, 7 });
-            circularDependencies[1].Dependencies.ToList().Should().BeEquivalentTo(new int[] { 5, 8, 9 });
+            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });
+            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new int[] { 5, 8, 9 });
         }
     }
 }
