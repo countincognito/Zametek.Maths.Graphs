@@ -3,11 +3,12 @@ using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public interface IResourceSchedule<out T>
+    public interface IResourceSchedule<out T, out TResourceId>
         : ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
-        IResource<T> Resource { get; }
+        IResource<TResourceId> Resource { get; }
 
         IEnumerable<IScheduledActivity<T>> ScheduledActivities { get; }
 

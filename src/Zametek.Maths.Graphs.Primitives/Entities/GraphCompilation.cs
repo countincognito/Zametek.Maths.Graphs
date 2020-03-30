@@ -4,8 +4,8 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class GraphCompilation<T, TDependentActivity, TResourceId>
-        : IGraphCompilation<T, TDependentActivity, TResourceId>
+    public class GraphCompilation<T, TResourceId, TDependentActivity>
+        : IGraphCompilation<T, TResourceId, TDependentActivity>
         where TDependentActivity : IDependentActivity<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -14,7 +14,7 @@ namespace Zametek.Maths.Graphs
 
         public GraphCompilation(
             IEnumerable<TDependentActivity> dependentActivities,
-            IEnumerable<IResourceSchedule<TResourceId>> resourceSchedules)
+            IEnumerable<IResourceSchedule<T, TResourceId>> resourceSchedules)
         {
             DependentActivities = dependentActivities.ToList();
             ResourceSchedules = resourceSchedules.ToList();
@@ -22,7 +22,7 @@ namespace Zametek.Maths.Graphs
 
         public GraphCompilation(
             IEnumerable<TDependentActivity> dependentActivities,
-            IEnumerable<IResourceSchedule<TResourceId>> resourceSchedules,
+            IEnumerable<IResourceSchedule<T, TResourceId>> resourceSchedules,
             IGraphCompilationErrors<T> graphCompilationErrors)
             : this(dependentActivities, resourceSchedules)
         {
@@ -43,7 +43,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public IEnumerable<IResourceSchedule<TResourceId>> ResourceSchedules
+        public IEnumerable<IResourceSchedule<T, TResourceId>> ResourceSchedules
         {
             get;
         }

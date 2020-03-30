@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
@@ -36,7 +35,7 @@ namespace Zametek.Maths.Graphs
             }
             Id = id;
             Name = name;
-            TargetResources = targetResources.ToList();
+            TargetResources = new HashSet<TResourceId>(targetResources);
             TargetResourceOperator = targetLogicalOperator;
             AllocatedToResources = new HashSet<TResourceId>(allocatedToResources);
             CanBeRemoved = canBeRemoved;
@@ -63,7 +62,7 @@ namespace Zametek.Maths.Graphs
             set;
         }
 
-        public IEnumerable<TResourceId> TargetResources
+        public HashSet<TResourceId> TargetResources
         {
             get;
         }

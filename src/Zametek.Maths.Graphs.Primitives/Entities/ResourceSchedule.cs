@@ -4,14 +4,15 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class ResourceSchedule<T>
-        : IResourceSchedule<T>
+    public class ResourceSchedule<T, TResourceId>
+        : IResourceSchedule<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Ctors
 
         public ResourceSchedule(
-            IResource<T> resource,
+            IResource<TResourceId> resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int finishTime)
         {
@@ -37,7 +38,7 @@ namespace Zametek.Maths.Graphs
         #region Private Methods
 
         private static IList<bool> ExtractActivityAllocation(
-            IResource<T> resource,
+            IResource<TResourceId> resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int finishTime)
         {
@@ -125,7 +126,7 @@ namespace Zametek.Maths.Graphs
 
         #region IResourceSchedule<T> Members
 
-        public IResource<T> Resource
+        public IResource<TResourceId> Resource
         {
             get;
         }
@@ -147,12 +148,12 @@ namespace Zametek.Maths.Graphs
 
         public object CloneObject()
         {
-            IResource<T> resource = null;
+            IResource<TResourceId> resource = null;
             if (Resource != null)
             {
-                resource = (IResource<T>)Resource.CloneObject();
+                resource = (IResource<TResourceId>)Resource.CloneObject();
             }
-            return new ResourceSchedule<T>(
+            return new ResourceSchedule<T, TResourceId>(
                 resource,
                 ScheduledActivities.Select(x => (IScheduledActivity<T>)x.CloneObject()),
                 FinishTime);

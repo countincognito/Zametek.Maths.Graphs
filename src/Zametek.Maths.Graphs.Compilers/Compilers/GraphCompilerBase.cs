@@ -6,23 +6,24 @@ using System.Runtime.CompilerServices;
 
 namespace Zametek.Maths.Graphs
 {
-    public abstract class GraphCompilerBase<T, TEdgeContent, TNodeContent, TActivity, TEvent>
+    public abstract class GraphCompilerBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TEdgeContent : IHaveId<T>, ICloneObject
         where TNodeContent : IHaveId<T>, ICloneObject
-        where TActivity : IActivity<T>
+        where TActivity : IActivity<T, TResourceId>
         where TEvent : IEvent<T>
     {
         #region Fields
 
         private readonly object m_Lock;
-        private readonly GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> m_GraphBuilder;
+        private readonly GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent> m_GraphBuilder;
 
         #endregion
 
         #region Ctors
 
-        protected GraphCompilerBase(GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
+        protected GraphCompilerBase(GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
         {
             m_GraphBuilder = graphBuilder ?? throw new ArgumentNullException(nameof(graphBuilder));
             m_Lock = new object();
@@ -69,7 +70,7 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        internal GraphBuilderBase<T, TEdgeContent, TNodeContent, TActivity, TEvent> Builder
+        internal GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent> Builder
         {
             get
             {

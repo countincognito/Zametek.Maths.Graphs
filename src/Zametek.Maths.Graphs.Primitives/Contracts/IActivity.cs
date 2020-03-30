@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs
     {
         string Name { get; set; }
 
-        IEnumerable<TResourceId> TargetResources { get; }
+        HashSet<TResourceId> TargetResources { get; }
 
         LogicalOperator TargetResourceOperator { get; set; }
 

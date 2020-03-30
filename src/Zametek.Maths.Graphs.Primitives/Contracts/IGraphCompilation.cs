@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public interface IGraphCompilation<T, TDependentActivity, TResourceId>
+    public interface IGraphCompilation<T, out TResourceId, out TDependentActivity>
         where TDependentActivity : IDependentActivity<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -12,6 +12,6 @@ namespace Zametek.Maths.Graphs
 
         IEnumerable<TDependentActivity> DependentActivities { get; }
 
-        IEnumerable<IResourceSchedule<TResourceId>> ResourceSchedules { get; }
+        IEnumerable<IResourceSchedule<T, TResourceId>> ResourceSchedules { get; }
     }
 }

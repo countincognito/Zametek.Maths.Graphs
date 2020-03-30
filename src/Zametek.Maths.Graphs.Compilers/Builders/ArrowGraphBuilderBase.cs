@@ -4,11 +4,12 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public abstract class ArrowGraphBuilderBase<T, TActivity, TEvent>
-        : GraphBuilderBase<T, TActivity, TEvent, TActivity, TEvent>
-        where TActivity : IActivity<T>
+    public abstract class ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent>
+        : GraphBuilderBase<T, TResourceId, TActivity, TEvent, TActivity, TEvent>
+        where TActivity : IActivity<T, TResourceId>
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Ctors
 

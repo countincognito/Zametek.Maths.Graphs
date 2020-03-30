@@ -5,11 +5,12 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     // In a vertex graph, all edges should be removable.
-    public abstract class VertexGraphBuilderBase<T, TActivity, TEvent>
-        : GraphBuilderBase<T, TEvent, TActivity, TActivity, TEvent>
-        where TActivity : IActivity<T>
+    public abstract class VertexGraphBuilderBase<T, TResourceId, TActivity, TEvent>
+        : GraphBuilderBase<T, TResourceId, TEvent, TActivity, TActivity, TEvent>
+        where TActivity : IActivity<T, TResourceId>
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Ctors
 

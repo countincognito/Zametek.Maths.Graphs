@@ -4,23 +4,24 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public abstract class ArrowGraphCompilerBase<T, TDependentActivity, TActivity, TEvent>
-        : GraphCompilerBase<T, TDependentActivity, TEvent, TDependentActivity, TEvent>
-        where TDependentActivity : IDependentActivity<T>
-        where TActivity : IActivity<T>
+    public abstract class ArrowGraphCompilerBase<T, TResourceId, TDependentActivity, TActivity, TEvent>
+        : GraphCompilerBase<T, TResourceId, TDependentActivity, TEvent, TDependentActivity, TEvent>
+        where TDependentActivity : IDependentActivity<T, TResourceId>
+        where TActivity : IActivity<T, TResourceId>
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Fields
 
         private readonly object m_Lock;
-        private readonly ArrowGraphBuilderBase<T, TDependentActivity, TEvent> m_ArrowGraphBuilder;
+        private readonly ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, TEvent> m_ArrowGraphBuilder;
 
         #endregion
 
         #region Ctors
 
-        protected ArrowGraphCompilerBase(ArrowGraphBuilderBase<T, TDependentActivity, TEvent> arrowGraphBuilder)
+        protected ArrowGraphCompilerBase(ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, TEvent> arrowGraphBuilder)
             : base(arrowGraphBuilder)
         {
             m_ArrowGraphBuilder = arrowGraphBuilder ?? throw new ArgumentNullException(nameof(arrowGraphBuilder));

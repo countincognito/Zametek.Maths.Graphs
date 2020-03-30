@@ -3,10 +3,11 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public sealed class VertexGraphBuilder<T, TActivity>
-        : VertexGraphBuilderBase<T, TActivity, IEvent<T>>
-        where TActivity : IActivity<T>
+    public sealed class VertexGraphBuilder<T, TResourceId, TActivity>
+        : VertexGraphBuilderBase<T, TResourceId, TActivity, IEvent<T>>
+        where TActivity : IActivity<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Fields
 
@@ -63,7 +64,7 @@ namespace Zametek.Maths.Graphs
             minNodeId = minNodeId.Previous();
             T minEdgeId = vertexGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
             minEdgeId = minEdgeId.Previous();
-            return new VertexGraphBuilder<T, TActivity>(
+            return new VertexGraphBuilder<T, TResourceId, TActivity>(
                 vertexGraphCopy,
                 () => minEdgeId = minEdgeId.Previous(),
                 () => minNodeId = minNodeId.Previous());

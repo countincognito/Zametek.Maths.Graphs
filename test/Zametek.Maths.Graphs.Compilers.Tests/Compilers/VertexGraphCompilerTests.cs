@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenContructor_ThenNoException()
         {
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphBuilder.EdgeIds.Any().Should().BeFalse();
             graphBuilder.NodeIds.Any().Should().BeFalse();
@@ -24,10 +24,10 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int activityId = 0;
             int activityId1 = activityId + 1;
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             var graphBuilder = graphCompiler.Builder;
 
-            var activity = new DependentActivity<int>(activityId1, 0);
+            var activity = new DependentActivity<int, int>(activityId1, 0);
             bool result = graphCompiler.AddActivity(activity);
             result.Should().BeTrue();
 
@@ -48,70 +48,72 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithCircularDependencies_ThenFindsCircularDependencies()
         {
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
-            graphCompiler.AddActivity(new DependentActivity<int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int>(2, 10, new HashSet<int>(new[] { 7 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(3, 10));
-            graphCompiler.AddActivity(new DependentActivity<int>(4, 10, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(6, 10, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(7, 10, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(9, 10, new HashSet<int>(new[] { 5 })));
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int>(new[] { 7 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int>(new[] { 4 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
 
-            GraphCompilation<int, IDependentActivity<int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Count.Should().Be(0);
+            compilation.ResourceSchedules.Count().Should().Be(0);
             compilation.Errors.Should().NotBeNull();
-            compilation.Errors.MissingDependencies.Count.Should().Be(0);
-            compilation.Errors.CircularDependencies.Count.Should().Be(2);
-            compilation.Errors.CircularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
-            compilation.Errors.CircularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
+            compilation.Errors.MissingDependencies.Count().Should().Be(0);
+            var circularDependencies = compilation.Errors.CircularDependencies.ToList();
+            circularDependencies.Count().Should().Be(2);
+            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
+            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
         }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithMissingDependencies_ThenFindsMissingDependencies()
         {
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
-            graphCompiler.AddActivity(new DependentActivity<int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int>(2, 10, new HashSet<int>(new[] { 7 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(3, 10, new HashSet<int>(new[] { 21 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(4, 10, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(6, 10, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(7, 10, new HashSet<int>(new[] { 22 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(9, 10));
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int>(new[] { 7 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int>(new[] { 21 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int>(new[] { 22 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10));
 
-            GraphCompilation<int, IDependentActivity<int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Count.Should().Be(0);
+            compilation.ResourceSchedules.Count().Should().Be(0);
             compilation.Errors.Should().NotBeNull();
-            compilation.Errors.CircularDependencies.Count.Should().Be(0);
+            compilation.Errors.CircularDependencies.Count().Should().Be(0);
             compilation.Errors.MissingDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
         }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithCircularAndMissingDependencies_ThenFindsCircularAndMissingDependencies()
         {
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
-            graphCompiler.AddActivity(new DependentActivity<int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int>(2, 10, new HashSet<int>(new[] { 7 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(3, 10, new HashSet<int>(new[] { 21 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(4, 10, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(6, 10, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(7, 10, new HashSet<int>(new[] { 4, 22 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(9, 10, new HashSet<int>(new[] { 5 })));
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int>(new[] { 7 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int>(new[] { 21 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int>(new[] { 4, 22 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
 
-            GraphCompilation<int, IDependentActivity<int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Count.Should().Be(0);
+            compilation.ResourceSchedules.Count().Should().Be(0);
             compilation.Errors.Should().NotBeNull();
-            compilation.Errors.CircularDependencies.Count.Should().Be(2);
-            compilation.Errors.CircularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
-            compilation.Errors.CircularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
+            var circularDependencies = compilation.Errors.CircularDependencies.ToList();
+            circularDependencies.Count.Should().Be(2);
+            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
+            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
             compilation.Errors.MissingDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
         }
 
@@ -127,74 +129,77 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
 
-            GraphCompilation<int, IDependentActivity<int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
             compilation.Errors.Should().BeNull();
-            compilation.ResourceSchedules.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Count.Should().Be(3);
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId3);
-            compilation.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(8);
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[1].Id.Should().Be(activityId5);
-            compilation.ResourceSchedules[0].ScheduledActivities[1].StartTime.Should().Be(8);
-            compilation.ResourceSchedules[0].ScheduledActivities[1].FinishTime.Should().Be(16);
+            scheduledActivities0[0].Id.Should().Be(activityId3);
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(8);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[2].Id.Should().Be(activityId9);
-            compilation.ResourceSchedules[0].ScheduledActivities[2].StartTime.Should().Be(16);
-            compilation.ResourceSchedules[0].ScheduledActivities[2].FinishTime.Should().Be(26);
+            scheduledActivities0[1].Id.Should().Be(activityId5);
+            scheduledActivities0[1].StartTime.Should().Be(8);
+            scheduledActivities0[1].FinishTime.Should().Be(16);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(26);
+            scheduledActivities0[2].Id.Should().Be(activityId9);
+            scheduledActivities0[2].StartTime.Should().Be(16);
+            scheduledActivities0[2].FinishTime.Should().Be(26);
 
-
-
-            compilation.ResourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
-
-            compilation.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId2);
-            compilation.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
-
-            compilation.ResourceSchedules[1].ScheduledActivities[1].Id.Should().Be(activityId4);
-            compilation.ResourceSchedules[1].ScheduledActivities[1].StartTime.Should().Be(7);
-            compilation.ResourceSchedules[1].ScheduledActivities[1].FinishTime.Should().Be(18);
-
-            compilation.ResourceSchedules[1].ScheduledActivities[2].Id.Should().Be(activityId7);
-            compilation.ResourceSchedules[1].ScheduledActivities[2].StartTime.Should().Be(18);
-            compilation.ResourceSchedules[1].ScheduledActivities[2].FinishTime.Should().Be(22);
-
-            compilation.ResourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
+            scheduledActivities0.Last().FinishTime.Should().Be(26);
 
 
+            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            scheduledActivities1.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[2].ScheduledActivities.Count.Should().Be(3);
+            scheduledActivities1[0].Id.Should().Be(activityId2);
+            scheduledActivities1[0].StartTime.Should().Be(0);
+            scheduledActivities1[0].FinishTime.Should().Be(7);
 
-            compilation.ResourceSchedules[2].ScheduledActivities[0].Id.Should().Be(activityId1);
-            compilation.ResourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);
+            scheduledActivities1[1].Id.Should().Be(activityId4);
+            scheduledActivities1[1].StartTime.Should().Be(7);
+            scheduledActivities1[1].FinishTime.Should().Be(18);
 
-            compilation.ResourceSchedules[2].ScheduledActivities[1].Id.Should().Be(activityId6);
-            compilation.ResourceSchedules[2].ScheduledActivities[1].StartTime.Should().Be(8);
-            compilation.ResourceSchedules[2].ScheduledActivities[1].FinishTime.Should().Be(15);
+            scheduledActivities1[2].Id.Should().Be(activityId7);
+            scheduledActivities1[2].StartTime.Should().Be(18);
+            scheduledActivities1[2].FinishTime.Should().Be(22);
 
-            compilation.ResourceSchedules[2].ScheduledActivities[2].Id.Should().Be(activityId8);
-            compilation.ResourceSchedules[2].ScheduledActivities[2].StartTime.Should().Be(18);
-            compilation.ResourceSchedules[2].ScheduledActivities[2].FinishTime.Should().Be(22);
+            scheduledActivities1.Last().FinishTime.Should().Be(22);
 
-            compilation.ResourceSchedules[2].ScheduledActivities.Last().FinishTime.Should().Be(22);
+
+            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            scheduledActivities2.Count.Should().Be(3);
+
+            scheduledActivities2[0].Id.Should().Be(activityId1);
+            scheduledActivities2[0].StartTime.Should().Be(0);
+            scheduledActivities2[0].FinishTime.Should().Be(6);
+
+            scheduledActivities2[1].Id.Should().Be(activityId6);
+            scheduledActivities2[1].StartTime.Should().Be(8);
+            scheduledActivities2[1].FinishTime.Should().Be(15);
+
+            scheduledActivities2[2].Id.Should().Be(activityId8);
+            scheduledActivities2[2].StartTime.Should().Be(18);
+            scheduledActivities2[2].FinishTime.Should().Be(22);
+
+            scheduledActivities2.Last().FinishTime.Should().Be(22);
 
 
 
@@ -283,74 +288,76 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })) { MinimumFreeSlack = 15 });
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })) { MinimumFreeSlack = 15 });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
 
-            GraphCompilation<int, IDependentActivity<int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
             compilation.Errors.Should().BeNull();
-            compilation.ResourceSchedules.Count.Should().Be(3);
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Count.Should().Be(4);
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(4);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId2);
-            compilation.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(7);
+            scheduledActivities0[0].Id.Should().Be(activityId2);
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(7);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[1].Id.Should().Be(activityId4);
-            compilation.ResourceSchedules[0].ScheduledActivities[1].StartTime.Should().Be(7);
-            compilation.ResourceSchedules[0].ScheduledActivities[1].FinishTime.Should().Be(18);
+            scheduledActivities0[1].Id.Should().Be(activityId4);
+            scheduledActivities0[1].StartTime.Should().Be(7);
+            scheduledActivities0[1].FinishTime.Should().Be(18);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[2].Id.Should().Be(activityId7);
-            compilation.ResourceSchedules[0].ScheduledActivities[2].StartTime.Should().Be(18);
-            compilation.ResourceSchedules[0].ScheduledActivities[2].FinishTime.Should().Be(22);
+            scheduledActivities0[2].Id.Should().Be(activityId7);
+            scheduledActivities0[2].StartTime.Should().Be(18);
+            scheduledActivities0[2].FinishTime.Should().Be(22);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[3].Id.Should().Be(activityId9);
-            compilation.ResourceSchedules[0].ScheduledActivities[3].StartTime.Should().Be(31);
-            compilation.ResourceSchedules[0].ScheduledActivities[3].FinishTime.Should().Be(41);
+            scheduledActivities0[3].Id.Should().Be(activityId9);
+            scheduledActivities0[3].StartTime.Should().Be(31);
+            scheduledActivities0[3].FinishTime.Should().Be(41);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(41);
-
-
-
-            compilation.ResourceSchedules[1].ScheduledActivities.Count.Should().Be(3);
-
-            compilation.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId3);
-            compilation.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(8);
-
-            compilation.ResourceSchedules[1].ScheduledActivities[1].Id.Should().Be(activityId6);
-            compilation.ResourceSchedules[1].ScheduledActivities[1].StartTime.Should().Be(8);
-            compilation.ResourceSchedules[1].ScheduledActivities[1].FinishTime.Should().Be(15);
-
-            compilation.ResourceSchedules[1].ScheduledActivities[2].Id.Should().Be(activityId8);
-            compilation.ResourceSchedules[1].ScheduledActivities[2].StartTime.Should().Be(18);
-            compilation.ResourceSchedules[1].ScheduledActivities[2].FinishTime.Should().Be(22);
-
-            compilation.ResourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(22);
+            scheduledActivities0.Last().FinishTime.Should().Be(41);
 
 
+            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            scheduledActivities1.Count.Should().Be(3);
 
-            compilation.ResourceSchedules[2].ScheduledActivities.Count.Should().Be(2);
+            scheduledActivities1[0].Id.Should().Be(activityId3);
+            scheduledActivities1[0].StartTime.Should().Be(0);
+            scheduledActivities1[0].FinishTime.Should().Be(8);
 
-            compilation.ResourceSchedules[2].ScheduledActivities[0].Id.Should().Be(activityId1);
-            compilation.ResourceSchedules[2].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[2].ScheduledActivities[0].FinishTime.Should().Be(6);
+            scheduledActivities1[1].Id.Should().Be(activityId6);
+            scheduledActivities1[1].StartTime.Should().Be(8);
+            scheduledActivities1[1].FinishTime.Should().Be(15);
 
-            compilation.ResourceSchedules[2].ScheduledActivities[1].Id.Should().Be(activityId5);
-            compilation.ResourceSchedules[2].ScheduledActivities[1].StartTime.Should().Be(8);
-            compilation.ResourceSchedules[2].ScheduledActivities[1].FinishTime.Should().Be(16);
+            scheduledActivities1[2].Id.Should().Be(activityId8);
+            scheduledActivities1[2].StartTime.Should().Be(18);
+            scheduledActivities1[2].FinishTime.Should().Be(22);
 
-            compilation.ResourceSchedules[2].ScheduledActivities.Last().FinishTime.Should().Be(16);
+            scheduledActivities1.Last().FinishTime.Should().Be(22);
+
+
+            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            scheduledActivities2.Count.Should().Be(2);
+
+            scheduledActivities2[0].Id.Should().Be(activityId1);
+            scheduledActivities2[0].StartTime.Should().Be(0);
+            scheduledActivities2[0].FinishTime.Should().Be(6);
+
+            scheduledActivities2[1].Id.Should().Be(activityId5);
+            scheduledActivities2[1].StartTime.Should().Be(8);
+            scheduledActivities2[1].FinishTime.Should().Be(16);
+
+            scheduledActivities2.Last().FinishTime.Should().Be(16);
 
 
 
@@ -439,21 +446,21 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
-            GraphCompilation<int, IDependentActivity<int>> compilation = graphCompiler.Compile(
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[]
                 {
                     new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.None, 1.0, 0),
@@ -461,53 +468,55 @@ namespace Zametek.Maths.Graphs.Tests
                 }));
 
             compilation.Errors.Should().BeNull();
-            compilation.ResourceSchedules.Count.Should().Be(2);
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(2);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Count.Should().Be(5);
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(5);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[0].Id.Should().Be(activityId3);
-            compilation.ResourceSchedules[0].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[0].ScheduledActivities[0].FinishTime.Should().Be(8);
+            scheduledActivities0[0].Id.Should().Be(activityId3);
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(8);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[1].Id.Should().Be(activityId4);
-            compilation.ResourceSchedules[0].ScheduledActivities[1].StartTime.Should().Be(8);
-            compilation.ResourceSchedules[0].ScheduledActivities[1].FinishTime.Should().Be(19);
+            scheduledActivities0[1].Id.Should().Be(activityId4);
+            scheduledActivities0[1].StartTime.Should().Be(8);
+            scheduledActivities0[1].FinishTime.Should().Be(19);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[2].Id.Should().Be(activityId6);
-            compilation.ResourceSchedules[0].ScheduledActivities[2].StartTime.Should().Be(19);
-            compilation.ResourceSchedules[0].ScheduledActivities[2].FinishTime.Should().Be(26);
+            scheduledActivities0[2].Id.Should().Be(activityId6);
+            scheduledActivities0[2].StartTime.Should().Be(19);
+            scheduledActivities0[2].FinishTime.Should().Be(26);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[3].Id.Should().Be(activityId7);
-            compilation.ResourceSchedules[0].ScheduledActivities[3].StartTime.Should().Be(26);
-            compilation.ResourceSchedules[0].ScheduledActivities[3].FinishTime.Should().Be(30);
+            scheduledActivities0[3].Id.Should().Be(activityId7);
+            scheduledActivities0[3].StartTime.Should().Be(26);
+            scheduledActivities0[3].FinishTime.Should().Be(30);
 
-            compilation.ResourceSchedules[0].ScheduledActivities[4].Id.Should().Be(activityId8);
-            compilation.ResourceSchedules[0].ScheduledActivities[4].StartTime.Should().Be(30);
-            compilation.ResourceSchedules[0].ScheduledActivities[4].FinishTime.Should().Be(34);
+            scheduledActivities0[4].Id.Should().Be(activityId8);
+            scheduledActivities0[4].StartTime.Should().Be(30);
+            scheduledActivities0[4].FinishTime.Should().Be(34);
 
-            compilation.ResourceSchedules[0].ScheduledActivities.Last().FinishTime.Should().Be(34);
+            scheduledActivities0.Last().FinishTime.Should().Be(34);
 
 
+            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            scheduledActivities1.Count.Should().Be(4);
 
-            compilation.ResourceSchedules[1].ScheduledActivities.Count.Should().Be(4);
+            scheduledActivities1[0].Id.Should().Be(activityId2);
+            scheduledActivities1[0].StartTime.Should().Be(0);
+            scheduledActivities1[0].FinishTime.Should().Be(7);
 
-            compilation.ResourceSchedules[1].ScheduledActivities[0].Id.Should().Be(activityId2);
-            compilation.ResourceSchedules[1].ScheduledActivities[0].StartTime.Should().Be(0);
-            compilation.ResourceSchedules[1].ScheduledActivities[0].FinishTime.Should().Be(7);
+            scheduledActivities1[1].Id.Should().Be(activityId1);
+            scheduledActivities1[1].StartTime.Should().Be(7);
+            scheduledActivities1[1].FinishTime.Should().Be(13);
 
-            compilation.ResourceSchedules[1].ScheduledActivities[1].Id.Should().Be(activityId1);
-            compilation.ResourceSchedules[1].ScheduledActivities[1].StartTime.Should().Be(7);
-            compilation.ResourceSchedules[1].ScheduledActivities[1].FinishTime.Should().Be(13);
+            scheduledActivities1[2].Id.Should().Be(activityId5);
+            scheduledActivities1[2].StartTime.Should().Be(13);
+            scheduledActivities1[2].FinishTime.Should().Be(21);
 
-            compilation.ResourceSchedules[1].ScheduledActivities[2].Id.Should().Be(activityId5);
-            compilation.ResourceSchedules[1].ScheduledActivities[2].StartTime.Should().Be(13);
-            compilation.ResourceSchedules[1].ScheduledActivities[2].FinishTime.Should().Be(21);
+            scheduledActivities1[3].Id.Should().Be(activityId9);
+            scheduledActivities1[3].StartTime.Should().Be(21);
+            scheduledActivities1[3].FinishTime.Should().Be(31);
 
-            compilation.ResourceSchedules[1].ScheduledActivities[3].Id.Should().Be(activityId9);
-            compilation.ResourceSchedules[1].ScheduledActivities[3].StartTime.Should().Be(21);
-            compilation.ResourceSchedules[1].ScheduledActivities[3].FinishTime.Should().Be(31);
-
-            compilation.ResourceSchedules[1].ScheduledActivities.Last().FinishTime.Should().Be(31);
+            scheduledActivities1.Last().FinishTime.Should().Be(31);
 
 
 
@@ -596,7 +605,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
         {
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             graphCompiler.Compile();
             graphCompiler.CyclomaticComplexity.Should().Be(0);
         }
@@ -613,16 +622,16 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { 4 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { 4, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { 5 })));
 
             graphCompiler.Compile();
 
@@ -638,13 +647,13 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int activityId6 = activityId5 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId4, 11, new HashSet<int>(new[] { 1 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId5, 8, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { 1 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { 3 })));
 
             graphCompiler.Compile();
 
@@ -658,11 +667,11 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, IDependentActivity<int>>();
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int>(activityId4, 11, new HashSet<int>(new[] { 1 })));
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { 1 })));
 
             graphCompiler.Compile();
 

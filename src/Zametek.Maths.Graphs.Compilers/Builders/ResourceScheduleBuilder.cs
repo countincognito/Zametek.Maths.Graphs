@@ -4,19 +4,20 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class ResourceScheduleBuilder<T>
+    public class ResourceScheduleBuilder<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Fields
 
-        private readonly IResource<T> m_Resource;
+        private readonly IResource<TResourceId> m_Resource;
         private readonly LinkedList<IScheduledActivity<T>> m_ScheduledActivities;
 
         #endregion
 
         #region Ctors
 
-        public ResourceScheduleBuilder(IResource<T> resource)
+        public ResourceScheduleBuilder(IResource<TResourceId> resource)
             : this()
         {
             m_Resource = resource ?? throw new ArgumentNullException(nameof(resource));
@@ -31,7 +32,7 @@ namespace Zametek.Maths.Graphs
 
         #region Properties
 
-        public T? ResourceId => m_Resource?.Id;
+        public TResourceId? ResourceId => m_Resource?.Id;
 
         public bool IsExplicitTarget => m_Resource != null ? m_Resource.IsExplicitTarget : false;
 
@@ -55,7 +56,7 @@ namespace Zametek.Maths.Graphs
 
         #region Public Methods
 
-        public void AddActivity(IActivity<T> activity, int startTime)
+        public void AddActivity(IActivity<T, TResourceId> activity, int startTime)
         {
             if (activity == null)
             {
@@ -85,9 +86,9 @@ namespace Zametek.Maths.Graphs
             return null;
         }
 
-        public IResourceSchedule<T> ToResourceSchedule(int finishTime)
+        public IResourceSchedule<T, TResourceId> ToResourceSchedule(int finishTime)
         {
-            return new ResourceSchedule<T>(m_Resource, m_ScheduledActivities, finishTime);
+            return new ResourceSchedule<T, TResourceId>(m_Resource, m_ScheduledActivities, finishTime);
         }
 
         #endregion

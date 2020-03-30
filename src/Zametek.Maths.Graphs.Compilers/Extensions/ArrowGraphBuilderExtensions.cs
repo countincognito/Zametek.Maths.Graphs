@@ -6,11 +6,12 @@ namespace Zametek.Maths.Graphs
 {
     internal static class ArrowGraphBuilderExtensions
     {
-        internal static bool CalculateEventEarliestFinishTimes<T, TActivity, TEvent>
-            (this ArrowGraphBuilderBase<T, TActivity, TEvent> arrowGraphBuilder)
-            where TActivity : IActivity<T>
+        internal static bool CalculateEventEarliestFinishTimes<T, TResourceId, TActivity, TEvent>
+            (this ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent> arrowGraphBuilder)
+            where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
+            where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
             if (arrowGraphBuilder == null)
             {
@@ -105,11 +106,12 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        internal static bool CalculateEventLatestFinishTimes<T, TActivity, TEvent>
-            (this ArrowGraphBuilderBase<T, TActivity, TEvent> arrowGraphBuilder)
-            where TActivity : IActivity<T>
+        internal static bool CalculateEventLatestFinishTimes<T, TResourceId, TActivity, TEvent>
+            (this ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent> arrowGraphBuilder)
+            where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
+            where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
             if (arrowGraphBuilder == null)
             {
@@ -197,11 +199,12 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        internal static bool CalculateCriticalPathVariables<T, TActivity, TEvent>
-            (this ArrowGraphBuilderBase<T, TActivity, TEvent> arrowGraphBuilder)
-            where TActivity : IActivity<T>
+        internal static bool CalculateCriticalPathVariables<T, TResourceId, TActivity, TEvent>
+            (this ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent> arrowGraphBuilder)
+            where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
+            where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
             if (arrowGraphBuilder == null)
             {

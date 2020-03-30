@@ -6,11 +6,12 @@ namespace Zametek.Maths.Graphs
 {
     internal static class VertexGraphBuilderExtensions
     {
-        internal static bool CalculateCriticalPathForwardFlow<T, TActivity, TEvent>
-            (this VertexGraphBuilderBase<T, TActivity, TEvent> vertexGraphBuilder)
-            where TActivity : IActivity<T>
+        internal static bool CalculateCriticalPathForwardFlow<T, TResourceId, TActivity, TEvent>
+            (this VertexGraphBuilderBase<T, TResourceId, TActivity, TEvent> vertexGraphBuilder)
+            where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
+            where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
             if (vertexGraphBuilder == null)
             {
@@ -208,11 +209,12 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        internal static bool CalculateCriticalPathBackwardFlow<T, TActivity, TEvent>
-            (this VertexGraphBuilderBase<T, TActivity, TEvent> vertexGraphBuilder)
-            where TActivity : IActivity<T>
+        internal static bool CalculateCriticalPathBackwardFlow<T, TResourceId, TActivity, TEvent>
+            (this VertexGraphBuilderBase<T, TResourceId, TActivity, TEvent> vertexGraphBuilder)
+            where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
+            where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
             if (vertexGraphBuilder == null)
             {

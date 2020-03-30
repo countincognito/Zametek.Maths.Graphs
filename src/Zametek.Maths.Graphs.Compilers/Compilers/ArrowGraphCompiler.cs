@@ -3,14 +3,15 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class ArrowGraphCompiler<T, TDependentActivity>
-        : ArrowGraphCompilerBase<T, TDependentActivity, IActivity<T>, IEvent<T>>
-        where TDependentActivity : class, IDependentActivity<T>
+    public class ArrowGraphCompiler<T, TResourceId, TDependentActivity>
+        : ArrowGraphCompilerBase<T, TResourceId, TDependentActivity, IActivity<T, TResourceId>, IEvent<T>>
+        where TDependentActivity : class, IDependentActivity<T, TResourceId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
         #region Ctors
 
-        protected ArrowGraphCompiler(ArrowGraphBuilderBase<T, TDependentActivity, IEvent<T>> arrowGraphBuilder)
+        protected ArrowGraphCompiler(ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, IEvent<T>> arrowGraphBuilder)
             : base(arrowGraphBuilder)
         {
         }
@@ -38,13 +39,13 @@ namespace Zametek.Maths.Graphs
         #region Private Types
 
         private class DependentActivityArrowGraphBuilder
-            : ArrowGraphBuilderBase<T, TDependentActivity, IEvent<T>>
+            : ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, IEvent<T>>
         {
             #region Fields
 
             private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) => new Event<T>(id);
             private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorEventWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
-            private static readonly Func<T, TDependentActivity> s_DummyActivityGenerator = (id) => new DependentActivity<T>(id, 0, canBeRemoved: true) as TDependentActivity;
+            private static readonly Func<T, TDependentActivity> s_DummyActivityGenerator = (id) => new DependentActivity<T, TResourceId>(id, 0, canBeRemoved: true) as TDependentActivity;
 
             #endregion
 
