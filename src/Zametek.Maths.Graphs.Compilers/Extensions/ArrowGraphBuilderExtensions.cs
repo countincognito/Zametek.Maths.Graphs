@@ -42,29 +42,29 @@ namespace Zametek.Maths.Graphs
             // Earliest Start Time.
             int earliestStartTime = 0;
 
-            foreach (T outgoingEdgeId in startNode.OutgoingEdges)
-            {
-                Edge<T, TActivity> outgoingEdge = arrowGraphBuilder.Edge(outgoingEdgeId);
+            //foreach (T outgoingEdgeId in startNode.OutgoingEdges)
+            //{
+            //    Edge<T, TActivity> outgoingEdge = arrowGraphBuilder.Edge(outgoingEdgeId);
 
-                //if (outgoingEdge.Content.MinimumEarliestStartTime.HasValue)
-                //{
-                //    // At this point, augment the earliest finish time artificially (if required).
-                //    int proposedEarliestStartTime = outgoingEdge.Content.MinimumEarliestStartTime.Value;
-                //    if (proposedEarliestStartTime < earliestStartTime)
-                //    {
-                //        earliestStartTime = proposedEarliestStartTime;
-                //    }
-                //}
+            //    //////if (outgoingEdge.Content.MinimumEarliestStartTime.HasValue)
+            //    //////{
+            //    //////    // At this point, augment the earliest finish time artificially (if required).
+            //    //////    int proposedEarliestStartTime = outgoingEdge.Content.MinimumEarliestStartTime.Value;
+            //    //////    if (proposedEarliestStartTime < earliestStartTime)
+            //    //////    {
+            //    //////        earliestStartTime = proposedEarliestStartTime;
+            //    //////    }
+            //    //////}
 
-                if (outgoingEdge.Content.MaximumLatestFinishTime.HasValue)
-                {
-                    int proposedLatestStartTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
-                    if (proposedLatestStartTime < earliestStartTime)
-                    {
-                        earliestStartTime = proposedLatestStartTime;
-                    }
-                }
-            }
+            //    //if (outgoingEdge.Content.MaximumLatestFinishTime.HasValue)
+            //    //{
+            //    //    int proposedLatestStartTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
+            //    //    if (proposedLatestStartTime < earliestStartTime)
+            //    //    {
+            //    //        earliestStartTime = proposedLatestStartTime;
+            //    //    }
+            //    //}
+            //}
 
             startNode.Content.EarliestFinishTime = earliestStartTime;
 

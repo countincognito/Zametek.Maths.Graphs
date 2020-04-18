@@ -755,14 +755,6 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(30);
         }
 
-
-
-
-
-
-
-
-
         [Fact]
         public void VertexGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMaximumLatestFinishTimeInStartActivity_ThenAsExpected()
         {
@@ -855,6 +847,105 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void VertexGraphBuilderExtensions_GivenCalculateCriticalPath_WhenExtremeMaximumLatestFinishTimeInStartActivity_ThenAsExpected()
+        {
+            int eventId = 0;
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            int activityId4 = activityId3 + 1;
+            int activityId5 = activityId4 + 1;
+            int activityId6 = activityId5 + 1;
+            int activityId7 = activityId6 + 1;
+            int activityId8 = activityId7 + 1;
+            int activityId9 = activityId8 + 1;
+            int dummyActivityId = 100;
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            graphBuilder.AddActivity(new Activity<int, int>(activityId1, 6) { MaximumLatestFinishTime = 5 });
+            graphBuilder.AddActivity(new Activity<int, int>(activityId2, 7));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId3, 8));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId4, 11), new HashSet<int>(new[] { 2 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId5, 8), new HashSet<int>(new[] { 1, 2, 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId6, 7), new HashSet<int>(new[] { 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId7, 4), new HashSet<int>(new[] { 4 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId8, 4), new HashSet<int>(new[] { 4, 6 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId9, 10), new HashSet<int>(new[] { 5 }));
+
+            graphBuilder.CalculateCriticalPath();
+
+            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(-1);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(5);
+            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(-1);
+            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(5);
+
+            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
+            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
+            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
+            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
+
+            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
+
+            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
+            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(4);
+            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(11);
+            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(22);
+
+            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
+            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(16);
+
+            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(3);
+            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(7);
+            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(22);
+
+            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(4);
+            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(4);
+            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(26);
+
+            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(4);
+            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(4);
+            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(22);
+            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(26);
+
+            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
+        }
+
+
+
+
+
+
+
+
+
+        [Fact]
         public void VertexGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMaximumLatestFinishTimeInNormalActivity_ThenAsExpected()
         {
             int eventId = 0;
@@ -945,8 +1036,231 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
         }
 
+
+
+        [Fact]
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenExtremeMaximumLatestFinishTimeInNormalActivity_ThenAsExpected()
+        {
+            int eventId = 0;
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            int activityId4 = activityId3 + 1;
+            int activityId5 = activityId4 + 1;
+            int activityId6 = activityId5 + 1;
+            int activityId7 = activityId6 + 1;
+            int activityId8 = activityId7 + 1;
+            int activityId9 = activityId8 + 1;
+            int dummyActivityId = 100;
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            graphBuilder.AddActivity(new Activity<int, int>(activityId1, 6));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId2, 7));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId3, 8));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId4, 11) { MaximumLatestFinishTime = 16 }, new HashSet<int>(new[] { 2 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId5, 8), new HashSet<int>(new[] { 1, 2, 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId6, 7), new HashSet<int>(new[] { 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId7, 4), new HashSet<int>(new[] { 4 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId8, 4), new HashSet<int>(new[] { 4, 6 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId9, 10), new HashSet<int>(new[] { 5 }));
+
+            graphBuilder.CalculateCriticalPath();
+
+            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(6);
+            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(2);
+            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(8);
+
+            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
+
+            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(-2);
+
+            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(-2);
+            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(-2);
+            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(5);
+
+            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
+
+
+
+
+
+
+
+
+
+            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(5);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(16);
+
+            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
+
+            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(5);
+            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(16);
+
+
+
+
+
+
+
+
+
+            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
+            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(16);
+
+            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(1);
+            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(7);
+            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(22);
+
+            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(20);
+            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(6);
+            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(6);
+            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(26);
+
+            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(20);
+            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(6);
+            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(6);
+            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(22);
+            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(26);
+
+            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         [Fact]
         public void VertexGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMaximumLatestFinishTimeInEndActivity_ThenAsExpected()
+        {
+            int eventId = 0;
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            int activityId4 = activityId3 + 1;
+            int activityId5 = activityId4 + 1;
+            int activityId6 = activityId5 + 1;
+            int activityId7 = activityId6 + 1;
+            int activityId8 = activityId7 + 1;
+            int activityId9 = activityId8 + 1;
+            int dummyActivityId = 100;
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            graphBuilder.AddActivity(new Activity<int, int>(activityId1, 6));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId2, 7));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId3, 8));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId4, 11), new HashSet<int>(new[] { 2 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId5, 8), new HashSet<int>(new[] { 1, 2, 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId6, 7), new HashSet<int>(new[] { 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId7, 4), new HashSet<int>(new[] { 4 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId8, 4) { MaximumLatestFinishTime = 22 }, new HashSet<int>(new[] { 4, 6 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId9, 10), new HashSet<int>(new[] { 5 }));
+
+            graphBuilder.CalculateCriticalPath();
+
+            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(6);
+            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(2);
+            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(8);
+
+            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
+            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(7);
+
+            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
+            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
+
+            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
+            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(7);
+            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(18);
+
+            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
+            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(16);
+
+            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
+            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(3);
+            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(3);
+            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(11);
+            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(18);
+
+            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(4);
+            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(4);
+            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(22);
+            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(26);
+
+            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
+            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(18);
+            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(22);
+
+            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(26);
+            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
+            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
+        }
+
+        [Fact]
+        public void VertexGraphBuilderExtensions_GivenCalculateCriticalPath_WhenExtremeMaximumLatestFinishTimeInEndActivity_ThenAsExpected()
         {
             int eventId = 0;
             int activityId1 = 1;
@@ -1050,13 +1364,6 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
         }
-
-
-
-
-
-
-
 
         [Fact]
         public void VertexGraphBuilderExtensions_GivenCalculateCriticalPathForwardFlow_WhenAddingAndRemovingDependencies_ThenAsExpected()
