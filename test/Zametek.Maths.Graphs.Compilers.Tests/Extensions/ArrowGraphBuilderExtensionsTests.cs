@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -1221,6 +1222,37 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
+        }
+
+        [Fact]
+        public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMinimumEarliestStartTimeAndMaximumLatestFinishTimeAreInvalid_ThenShouldThrowInvalidOperationException()
+        {
+            int eventId = 0;
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            int activityId4 = activityId3 + 1;
+            int activityId5 = activityId4 + 1;
+            int activityId6 = activityId5 + 1;
+            int activityId7 = activityId6 + 1;
+            int activityId8 = activityId7 + 1;
+            int activityId9 = activityId8 + 1;
+            int dummyActivityId = 100;
+            var graphBuilder = new ArrowGraphBuilder<int, int, IActivity<int, int>>(() => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
+            graphBuilder.AddActivity(new Activity<int, int>(activityId1, 6));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId2, 7));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId3, 8));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId4, 11) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 }, new HashSet<int>(new[] { 2 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId5, 8), new HashSet<int>(new[] { 1, 2, 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId6, 7), new HashSet<int>(new[] { 3 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId7, 4), new HashSet<int>(new[] { 4 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId8, 4), new HashSet<int>(new[] { 4, 6 }));
+            graphBuilder.AddActivity(new Activity<int, int>(activityId9, 10), new HashSet<int>(new[] { 5 }));
+
+            graphBuilder.TransitiveReduction();
+
+            Action act = () => graphBuilder.CalculateCriticalPath();
+            act.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]

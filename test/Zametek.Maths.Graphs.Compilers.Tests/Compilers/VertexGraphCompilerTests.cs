@@ -46,6 +46,30 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void VertexGraphCompiler_GivenCompileWithInvalidConstraints_ThenFindsInvalidConstraints()
+        {
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int>(new[] { 2 })) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int>(new[] { 4 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int>(new[] { 4, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+
+            compilation.ResourceSchedules.Should().BeEmpty();
+            compilation.Errors.Should().NotBeNull();
+            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
+            compilation.Errors.InvalidConstraints.Should().BeEquivalentTo(new List<int>(new int[] { 4 }));
+            compilation.Errors.MissingDependencies.Should().BeEmpty();
+            compilation.Errors.CircularDependencies.Should().BeEmpty();
+        }
+
+        [Fact]
         public void VertexGraphCompiler_GivenCompileWithCircularDependencies_ThenFindsCircularDependencies()
         {
             var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
@@ -61,9 +85,11 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Count().Should().Be(0);
+            compilation.ResourceSchedules.Should().BeEmpty();
             compilation.Errors.Should().NotBeNull();
-            compilation.Errors.MissingDependencies.Count().Should().Be(0);
+            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
+            compilation.Errors.InvalidConstraints.Should().BeEmpty();
+            compilation.Errors.MissingDependencies.Should().BeEmpty();
             var circularDependencies = compilation.Errors.CircularDependencies.ToList();
             circularDependencies.Count().Should().Be(2);
             circularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
@@ -86,20 +112,22 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Count().Should().Be(0);
+            compilation.ResourceSchedules.Should().BeEmpty();
             compilation.Errors.Should().NotBeNull();
-            compilation.Errors.CircularDependencies.Count().Should().Be(0);
+            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
+            compilation.Errors.InvalidConstraints.Should().BeEmpty();
             compilation.Errors.MissingDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
+            compilation.Errors.CircularDependencies.Should().BeEmpty();
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithCircularAndMissingDependencies_ThenFindsCircularAndMissingDependencies()
+        public void VertexGraphCompiler_GivenCompileWithInvalidConstraintsAndCircularAndMissingDependencies_ThenFindsInvalidConstraintsAndCircularAndMissingDependencies()
         {
             var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
             graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int>(new[] { 7 })));
             graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int>(new[] { 21 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 16 });
             graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
             graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int>(new[] { 3 })));
             graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int>(new[] { 4, 22 })));
@@ -108,8 +136,10 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Count().Should().Be(0);
+            compilation.ResourceSchedules.Should().BeEmpty();
             compilation.Errors.Should().NotBeNull();
+            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
+            compilation.Errors.InvalidConstraints.Should().BeEquivalentTo(new List<int>(new int[] { 4 }));
             var circularDependencies = compilation.Errors.CircularDependencies.ToList();
             circularDependencies.Count.Should().Be(2);
             circularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
