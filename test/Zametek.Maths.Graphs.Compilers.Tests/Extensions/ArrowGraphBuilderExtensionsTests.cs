@@ -830,14 +830,6 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
         }
 
-
-
-
-
-
-
-
-
         [Fact]
         public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMaximumLatestFinishTimeInNormalActivity_ThenAsExpected()
         {
@@ -930,11 +922,6 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
         }
 
-
-
-
-
-
         [Fact]
         public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenExtremeMaximumLatestFinishTimeInNormalActivity_ThenAsExpected()
         {
@@ -973,6 +960,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
 
+            // MS Project would list this as 0, but ProjectPlan calculates slack based on its
+            // downstream effect. So, in this case, the -2 total slack of activity 4 is transfered
+            // to the the free slack of activity 2 instead.
             graphBuilder.Activity(activityId2).FreeSlack.Should().Be(-2);
 
             graphBuilder.Activity(activityId2).TotalSlack.Should().Be(-2);
@@ -986,30 +976,17 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
 
-
-
-
-
-
-
-
-
             graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(5);
             graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(16);
-
             graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
+
+            // MS Project would list this as -2, but ProjectPlan calculates slack based on its
+            // downstream effect. So, in this case, the -2 total slack of activity 4 is transfered
+            // to the the free slack of activity 2 instead.
             graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
 
             graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(5);
             graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(16);
-
-
-
-
-
-
-
-
 
             graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
@@ -1046,29 +1023,6 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         [Fact]
         public void ArrowGraphBuilderExtensions_GivenCalculateCriticalPath_WhenMaximumLatestFinishTimeInEndActivity_ThenAsExpected()
@@ -1251,13 +1205,13 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(17);
             graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(21);
+            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(0);
 
             // MS Project would list this as -1, but ProjectPlan calculates slack based on its
             // downstream effect. So, in this case, the -1 total slack of activity 8 is transfered
             // to the the free slack of activities 2 and 4 instead.
-            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(0);
-
             graphBuilder.Activity(activityId8).TotalSlack.Should().Be(0);
+
             graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(17);
             graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(21);
 

@@ -637,24 +637,7 @@ namespace Zametek.Maths.Graphs
 
         public override void CalculateCriticalPath()
         {
-            bool edgesCleaned = CleanUpEdges();
-            if (!edgesCleaned)
-            {
-                throw new InvalidOperationException(Properties.Resources.CannotPerformEdgeCleanUp);
-            }
-            this.ClearCriticalPathVariables();
-            if (!this.CalculateEventEarliestFinishTimes())
-            {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateEventEarliestFinishTimes);
-            }
-            if (!this.CalculateEventLatestFinishTimes())
-            {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateEventLatestFinishTimes);
-            }
-            if (!this.CalculateCriticalPathVariables())
-            {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPath);
-            }
+            ArrowGraphBuilderExtensions.CalculateCriticalPath(this);
         }
 
         // Tarjan's strongly connected components algorithm.
