@@ -38,10 +38,11 @@ namespace Zametek.Maths.Graphs
         public DependentActivity(
             T id, string name, IEnumerable<TResourceId> targetResources, IEnumerable<T> dependencies, IEnumerable<T> resourceDependencies,
             LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, int duration,
-            int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime)
+            int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
+            int? maximumLatestFinishTime)
             : base(
                   id, name, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, duration, freeSlack,
-                  earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime)
+                  earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
         {
             if (dependencies == null)
             {
@@ -77,7 +78,8 @@ namespace Zametek.Maths.Graphs
         {
             return new DependentActivity<T, TResourceId>(
                 Id, Name, TargetResources, Dependencies, ResourceDependencies, TargetResourceOperator, AllocatedToResources,
-                CanBeRemoved, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime);
+                CanBeRemoved, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime,
+                MaximumLatestFinishTime);
         }
 
         #endregion

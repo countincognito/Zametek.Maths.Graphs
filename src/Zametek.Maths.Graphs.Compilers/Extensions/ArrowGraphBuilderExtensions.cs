@@ -21,6 +21,10 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
+            if (arrowGraphBuilder.FindInvalidConstraints().Any())
+            {
+                return false;
+            }
 
             var completedNodeIds = new HashSet<T>();
             var remainingNodeIds = new HashSet<T>(arrowGraphBuilder.NodeIds);
@@ -34,7 +38,36 @@ namespace Zametek.Maths.Graphs
             // Complete the Start node first to ensure the completed node IDs
             // contains something.
             Node<T, TEvent> startNode = arrowGraphBuilder.StartNode;
-            startNode.Content.EarliestFinishTime = 0;
+
+            // Earliest Start Time.
+            int earliestStartTime = 0;
+
+            foreach (T outgoingEdgeId in startNode.OutgoingEdges)
+            {
+                Edge<T, TActivity> outgoingEdge = arrowGraphBuilder.Edge(outgoingEdgeId);
+
+                //if (outgoingEdge.Content.MinimumEarliestStartTime.HasValue)
+                //{
+                //    // At this point, augment the earliest finish time artificially (if required).
+                //    int proposedEarliestStartTime = outgoingEdge.Content.MinimumEarliestStartTime.Value;
+                //    if (proposedEarliestStartTime < earliestStartTime)
+                //    {
+                //        earliestStartTime = proposedEarliestStartTime;
+                //    }
+                //}
+
+                if (outgoingEdge.Content.MaximumLatestFinishTime.HasValue)
+                {
+                    int proposedLatestStartTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
+                    if (proposedLatestStartTime < earliestStartTime)
+                    {
+                        earliestStartTime = proposedLatestStartTime;
+                    }
+                }
+            }
+
+            startNode.Content.EarliestFinishTime = earliestStartTime;
+
             completedNodeIds.Add(startNode.Id);
             remainingNodeIds.Remove(startNode.Id);
 
@@ -42,20 +75,21 @@ namespace Zametek.Maths.Graphs
             while (remainingNodeIds.Any())
             {
                 bool progress = false;
+
                 foreach (T nodeId in remainingNodeIds.ToList())
                 {
                     Node<T, TEvent> node = arrowGraphBuilder.Node(nodeId);
 
                     // Get the incoming edges and the dependency nodes IDs.
                     HashSet<T> incomingEdges = node.IncomingEdges;
-                    var dependencyNodeIds =
-                        new HashSet<T>(incomingEdges.Select(arrowGraphBuilder.EdgeTailNode).Select(x => x.Id));
+                    var dependencyNodeIds = new HashSet<T>(incomingEdges.Select(arrowGraphBuilder.EdgeTailNode).Select(x => x.Id));
 
                     // If calculations for all the dependency nodes have been completed, then use them
                     // to complete the calculations for this node.
                     if (dependencyNodeIds.IsSubsetOf(completedNodeIds))
                     {
                         int earliestFinishTime = 0;
+
                         foreach (T incomingEdgeId in incomingEdges)
                         {
                             Edge<T, TActivity> incomingEdge = arrowGraphBuilder.Edge(incomingEdgeId);
@@ -63,8 +97,7 @@ namespace Zametek.Maths.Graphs
 
                             if (incomingEdgeTailNode.Content.EarliestFinishTime.HasValue)
                             {
-                                int proposedEarliestFinishTime =
-                                    incomingEdgeTailNode.Content.EarliestFinishTime.Value + incomingEdge.Content.Duration;
+                                int proposedEarliestFinishTime = incomingEdgeTailNode.Content.EarliestFinishTime.Value + incomingEdge.Content.Duration;
 
                                 // At this point, augment the free slack artificially (if required).
                                 proposedEarliestFinishTime += incomingEdge.Content.MinimumFreeSlack.GetValueOrDefault();
@@ -76,13 +109,21 @@ namespace Zametek.Maths.Graphs
 
                             if (incomingEdge.Content.MinimumEarliestStartTime.HasValue)
                             {
-                                int proposedEarliestFinishTime =
-                                    incomingEdge.Content.MinimumEarliestStartTime.Value + incomingEdge.Content.Duration;
+                                int proposedEarliestFinishTime = incomingEdge.Content.MinimumEarliestStartTime.Value + incomingEdge.Content.Duration;
 
                                 // At this point, augment the earliest finish time artificially (if required).
                                 if (proposedEarliestFinishTime > earliestFinishTime)
                                 {
                                     earliestFinishTime = proposedEarliestFinishTime;
+                                }
+                            }
+
+                            if (incomingEdge.Content.MaximumLatestFinishTime.HasValue)
+                            {
+                                int proposedLatestFinishTime = incomingEdge.Content.MaximumLatestFinishTime.Value;
+                                if (proposedLatestFinishTime < earliestFinishTime)
+                                {
+                                    earliestFinishTime = proposedLatestFinishTime;
                                 }
                             }
                         }
@@ -95,6 +136,7 @@ namespace Zametek.Maths.Graphs
                         progress = true;
                     }
                 }
+
                 // If we have not made any progress then a cycle must exist in
                 // the graph and we will not be able to calculate the earliest
                 // finish times.
@@ -121,6 +163,10 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
+            if (arrowGraphBuilder.FindInvalidConstraints().Any())
+            {
+                return false;
+            }
             // Only perform if all events a have earliest finish times.
             if (!arrowGraphBuilder.Nodes.All(x => x.Content.EarliestFinishTime.HasValue))
             {
@@ -129,22 +175,67 @@ namespace Zametek.Maths.Graphs
 
             var completedNodeIds = new HashSet<T>();
             var remainingNodeIds = new HashSet<T>(arrowGraphBuilder.NodeIds);
+            Node<T, TEvent> endNode = arrowGraphBuilder.EndNode;
+
             // Make sure the remainingNodeIds contain the End node.
-            if (!remainingNodeIds.Contains(arrowGraphBuilder.EndNode.Id))
+            if (!remainingNodeIds.Contains(endNode.Id))
             {
                 return false;
             }
 
-            arrowGraphBuilder.EndNode.Content.LatestFinishTime = arrowGraphBuilder.EndNode.Content.EarliestFinishTime;
-            if (!arrowGraphBuilder.EndNode.Content.LatestFinishTime.HasValue)
+            int? endTime = endNode.Content.EarliestFinishTime;
+
+
+
+
+            //foreach (T incomingEdgeId in endNode.IncomingEdges)
+            //{
+            //    Edge<T, TActivity> incomingEdge = arrowGraphBuilder.Edge(incomingEdgeId);
+
+            //    if (incomingEdge.Content.MinimumEarliestStartTime.HasValue)
+            //    {
+            //        // At this point, augment the earliest finish time artificially (if required).
+            //        int proposedLatestFinishTime = incomingEdge.Content.MinimumEarliestStartTime.Value + incomingEdge.Content.Duration;
+            //        if (proposedLatestFinishTime < earliestStartTime)
+            //        {
+            //            endTime = proposedEarliestStartTime;
+            //        }
+            //    }
+
+            //    if (incomingEdge.Content.MaximumLatestFinishTime.HasValue)
+            //    {
+            //        int proposedLatestFinishTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
+            //        if (proposedLatestStartTime < earliestStartTime)
+            //        {
+            //            endTime = proposedLatestStartTime;
+            //        }
+            //    }
+            //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+            endNode.Content.LatestFinishTime = endTime;
+
+            if (!endNode.Content.LatestFinishTime.HasValue)
             {
                 return false;
             }
-            int endNodeLatestFinishTime = arrowGraphBuilder.EndNode.Content.LatestFinishTime.Value;
+
+            int endNodeLatestFinishTime = endNode.Content.LatestFinishTime.Value;
 
             // Complete the End node first to ensure the completed node IDs contains something.
-            Node<T, TEvent> endNode = arrowGraphBuilder.EndNode;
-            endNode.Content.LatestFinishTime = endNode.Content.EarliestFinishTime;
+            //Node<T, TEvent> endNode = arrowGraphBuilder.EndNode;
+            //endNode.Content.LatestFinishTime = endNode.Content.EarliestFinishTime;
             completedNodeIds.Add(endNode.Id);
             remainingNodeIds.Remove(endNode.Id);
 
@@ -158,12 +249,12 @@ namespace Zametek.Maths.Graphs
 
                     // Get the outgoing edges and the successor nodes IDs.
                     HashSet<T> outgoingEdges = node.OutgoingEdges;
-                    var successorNodeIds =
-                        new HashSet<T>(outgoingEdges.Select(arrowGraphBuilder.EdgeHeadNode).Select(x => x.Id));
+                    var successorNodeIds = new HashSet<T>(outgoingEdges.Select(arrowGraphBuilder.EdgeHeadNode).Select(x => x.Id));
 
                     if (successorNodeIds.IsSubsetOf(completedNodeIds))
                     {
                         int latestFinishTime = endNodeLatestFinishTime;
+
                         foreach (T outgoingEdgeId in outgoingEdges)
                         {
                             Edge<T, TActivity> outgoingEdge = arrowGraphBuilder.Edge(outgoingEdgeId);
@@ -171,15 +262,35 @@ namespace Zametek.Maths.Graphs
 
                             if (outgoingEdgeHeadnode.Content.LatestFinishTime.HasValue)
                             {
-                                int proposedLatestFinishTime =
-                                    outgoingEdgeHeadnode.Content.LatestFinishTime.Value - outgoingEdge.Content.Duration;
+                                int proposedLatestFinishTime = outgoingEdgeHeadnode.Content.LatestFinishTime.Value - outgoingEdge.Content.Duration;
 
                                 if (proposedLatestFinishTime < latestFinishTime)
                                 {
                                     latestFinishTime = proposedLatestFinishTime;
                                 }
                             }
+
+
+
+
+
+
+                            if (outgoingEdge.Content.MaximumLatestFinishTime.HasValue)
+                            {
+                                int proposedLatestFinishTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
+                                if (proposedLatestFinishTime < latestFinishTime)
+                                {
+                                    latestFinishTime = proposedLatestFinishTime;
+                                }
+                            }
+
+
+
+
+
+
                         }
+
                         node.Content.LatestFinishTime = latestFinishTime;
                         completedNodeIds.Add(nodeId);
                         remainingNodeIds.Remove(nodeId);
@@ -214,6 +325,10 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
+            if (arrowGraphBuilder.FindInvalidConstraints().Any())
+            {
+                return false;
+            }
             // Only perform if all events a have earliest finish times.
             if (!arrowGraphBuilder.Events.All(x => x.EarliestFinishTime.HasValue))
             {
@@ -225,20 +340,48 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
+            // We can assume at this point that all the activity constraints are valid.
+
             // Earliest Start Times and Latest Finish Times.
             foreach (T edgeId in arrowGraphBuilder.EdgeIds.ToList())
             {
                 Edge<T, TActivity> edge = arrowGraphBuilder.Edge(edgeId);
 
                 int? earliestStartTime = arrowGraphBuilder.EdgeTailNode(edge.Id).Content.EarliestFinishTime;
-                int? minimumEarliestStartTime = edge.Content.MinimumEarliestStartTime.GetValueOrDefault();
-                if (minimumEarliestStartTime.GetValueOrDefault() > earliestStartTime.GetValueOrDefault())
+
+                if (edge.Content.MinimumEarliestStartTime.HasValue)
                 {
-                    earliestStartTime = minimumEarliestStartTime;
+                    // At this point, augment the earliest finish time artificially (if required).
+                    int proposedEarliestStartTime = edge.Content.MinimumEarliestStartTime.Value;
+                    if (proposedEarliestStartTime > earliestStartTime)
+                    {
+                        earliestStartTime = proposedEarliestStartTime;
+                    }
                 }
+
+                if (edge.Content.MaximumLatestFinishTime.HasValue)
+                {
+                    int proposedLatestStartTime = edge.Content.MaximumLatestFinishTime.Value - edge.Content.Duration;
+                    if (proposedLatestStartTime < earliestStartTime)
+                    {
+                        earliestStartTime = proposedLatestStartTime;
+                    }
+                }
+
                 edge.Content.EarliestStartTime = earliestStartTime;
 
-                edge.Content.LatestFinishTime = arrowGraphBuilder.EdgeHeadNode(edge.Id).Content.LatestFinishTime;
+                int? latestFinishTime = arrowGraphBuilder.EdgeHeadNode(edge.Id).Content.LatestFinishTime;
+
+                if (edge.Content.MaximumLatestFinishTime.HasValue)
+                {
+                    int proposedLatestFinishTime = edge.Content.MaximumLatestFinishTime.Value;
+                    if (proposedLatestFinishTime < latestFinishTime)
+                    {
+                        latestFinishTime = proposedLatestFinishTime;
+                    }
+                }
+
+                edge.Content.LatestFinishTime = latestFinishTime;
             }
 
             // Free float/slack calculations.
@@ -246,26 +389,93 @@ namespace Zametek.Maths.Graphs
             {
                 Edge<T, TActivity> edge = arrowGraphBuilder.Edge(edgeId);
                 Node<T, TEvent> headNode = arrowGraphBuilder.EdgeHeadNode(edgeId);
+
                 if (headNode.NodeType == NodeType.End)
                 {
                     if (headNode.Content.EarliestFinishTime.HasValue
                         && edge.Content.EarliestFinishTime.HasValue)
                     {
-                        edge.Content.FreeSlack =
+                        int freeSlack =
                             headNode.Content.EarliestFinishTime.GetValueOrDefault() -
                             edge.Content.EarliestFinishTime.GetValueOrDefault();
+
+                        if (edge.Content.MaximumLatestFinishTime.HasValue)
+                        {
+                            int proposedfreeSlack = edge.Content.MaximumLatestFinishTime.Value - edge.Content.EarliestFinishTime.Value;
+                            if (proposedfreeSlack < freeSlack)
+                            {
+                                freeSlack = proposedfreeSlack;
+                            }
+                        }
+
+                        edge.Content.FreeSlack = freeSlack;
                     }
+
                     continue;
                 }
 
                 HashSet<T> outgoingEdges = headNode.OutgoingEdges;
-                int minEarliestStartTimeOfOutgoingEdges =
-                    outgoingEdges.Min(x => arrowGraphBuilder.Edge(x).Content.EarliestStartTime.GetValueOrDefault());
+
+
+
+
+
+
+                //int minEarliestStartTimeOfOutgoingEdges = outgoingEdges.Min(x => arrowGraphBuilder.Edge(x).Content.EarliestStartTime.GetValueOrDefault());
+
+
+
+
+
+
+
+
+
+
+                int minEarliestStartTimeOfOutgoingEdges = headNode.Content.LatestFinishTime.GetValueOrDefault();
+
+                foreach (T outgoingEdgeId in outgoingEdges)
+                {
+                    Edge<T, TActivity> outgoingEdge = arrowGraphBuilder.Edge(outgoingEdgeId);
+
+                    if (outgoingEdge.Content.EarliestStartTime.HasValue)
+                    {
+                        int proposedEarliestStartTime = outgoingEdge.Content.EarliestStartTime.Value;
+                        if (proposedEarliestStartTime < minEarliestStartTimeOfOutgoingEdges)
+                        {
+                            minEarliestStartTimeOfOutgoingEdges = proposedEarliestStartTime;
+                        }
+                    }
+
+                    if (outgoingEdge.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestStartTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
+                        if (proposedLatestStartTime < minEarliestStartTimeOfOutgoingEdges)
+                        {
+                            minEarliestStartTimeOfOutgoingEdges = proposedLatestStartTime;
+                        }
+                    }
+                }
+
+
+
+
                 if (edge.Content.EarliestFinishTime.HasValue)
                 {
-                    edge.Content.FreeSlack =
+                    int freeSlack =
                         minEarliestStartTimeOfOutgoingEdges -
-                        edge.Content.EarliestFinishTime.GetValueOrDefault();
+                        edge.Content.EarliestFinishTime.Value;
+
+                    if (edge.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedfreeSlack = edge.Content.MaximumLatestFinishTime.Value - edge.Content.EarliestFinishTime.Value;
+                        if (proposedfreeSlack < freeSlack)
+                        {
+                            freeSlack = proposedfreeSlack;
+                        }
+                    }
+
+                    edge.Content.FreeSlack = freeSlack;
                 }
             }
             return true;

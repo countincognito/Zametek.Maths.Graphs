@@ -11,5 +11,7 @@ namespace Zametek.Maths.Graphs
         IEnumerable<ICircularDependency<T>> CircularDependencies { get; }
 
         IEnumerable<T> MissingDependencies { get; }
+
+        IEnumerable<T> InvalidConstraints { get; }
     }
 }

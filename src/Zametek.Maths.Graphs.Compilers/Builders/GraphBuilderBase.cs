@@ -243,6 +243,30 @@ namespace Zametek.Maths.Graphs
             return FindStronglyConnectedComponents().Where(x => x.Dependencies.Count > 1).ToList();
         }
 
+        public IList<T> FindInvalidConstraints()
+        {
+            var activitiesWithInvalidConstraints = new List<T>();
+
+            foreach (IActivity<T, TResourceId> activity in Activities)
+            {
+                if (activity.MinimumFreeSlack.HasValue
+                    && activity.MaximumLatestFinishTime.HasValue)
+                {
+                    activitiesWithInvalidConstraints.Add(activity.Id);
+                    continue;
+                }
+                if (activity.MinimumEarliestStartTime.HasValue
+                    && activity.MaximumLatestFinishTime.HasValue
+                    && (activity.MinimumEarliestStartTime.Value + activity.Duration) > activity.MaximumLatestFinishTime.Value)
+                {
+                    activitiesWithInvalidConstraints.Add(activity.Id);
+                    continue;
+                }
+            }
+
+            return activitiesWithInvalidConstraints;
+        }
+
         public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
             if (!AllDependenciesSatisfied)

@@ -40,6 +40,8 @@ namespace Zametek.Maths.Graphs
 
         int? MinimumEarliestStartTime { get; set; }
 
+        int? MaximumLatestFinishTime { get; set; }
+
         void SetAsReadOnly();
 
         void SetAsRemovable();

@@ -27,7 +27,8 @@ namespace Zametek.Maths.Graphs
         public Activity(
             T id, string name, IEnumerable<TResourceId> targetResources, LogicalOperator targetLogicalOperator,
             IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, int duration, int? freeSlack,
-            int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime)
+            int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
+            int? maximumLatestFinishTime)
         {
             if (targetResources == null)
             {
@@ -45,6 +46,7 @@ namespace Zametek.Maths.Graphs
             LatestFinishTime = latestFinishTime;
             MinimumFreeSlack = minimumFreeSlack;
             MinimumEarliestStartTime = minimumEarliestStartTime;
+            MaximumLatestFinishTime = maximumLatestFinishTime;
         }
 
         #endregion
@@ -189,6 +191,12 @@ namespace Zametek.Maths.Graphs
             set;
         }
 
+        public int? MaximumLatestFinishTime
+        {
+            get;
+            set;
+        }
+
         public void SetAsReadOnly()
         {
             CanBeRemoved = false;
@@ -203,7 +211,8 @@ namespace Zametek.Maths.Graphs
         {
             return new Activity<T, TResourceId>(
                 Id, Name, TargetResources, TargetResourceOperator, AllocatedToResources, CanBeRemoved, Duration,
-                FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime);
+                FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime,
+                MaximumLatestFinishTime);
         }
 
         #endregion

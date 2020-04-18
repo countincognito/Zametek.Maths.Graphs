@@ -13,11 +13,13 @@ namespace Zametek.Maths.Graphs
         public GraphCompilationErrors(
             bool allResourcesExplicitTargetsButNotAllActivitiesTargeted,
             IEnumerable<ICircularDependency<T>> circularDependencies,
-            IEnumerable<T> missingDependencies)
+            IEnumerable<T> missingDependencies,
+            IEnumerable<T> invalidConstraints)
         {
             AllResourcesExplicitTargetsButNotAllActivitiesTargeted = allResourcesExplicitTargetsButNotAllActivitiesTargeted;
             CircularDependencies = circularDependencies.ToList();
             MissingDependencies = missingDependencies.ToList();
+            InvalidConstraints = invalidConstraints.ToList();
         }
 
         #endregion
@@ -35,6 +37,11 @@ namespace Zametek.Maths.Graphs
         }
 
         public IEnumerable<T> MissingDependencies
+        {
+            get;
+        }
+
+        public IEnumerable<T> InvalidConstraints
         {
             get;
         }

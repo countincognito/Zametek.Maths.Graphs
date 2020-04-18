@@ -233,9 +233,11 @@ namespace Zametek.Maths.Graphs
                 // Sanity check the graph data.
                 IEnumerable<CircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
                 IEnumerable<T> missingDependencies = m_VertexGraphBuilder.MissingDependencies;
+                IEnumerable<T> invalidConstraints = m_VertexGraphBuilder.FindInvalidConstraints();
 
                 if (circularDependencies.Any()
                     || missingDependencies.Any()
+                    || invalidConstraints.Any()
                     || allResourcesExplicitTargetsButNotAllActivitiesTargeted
                     || !m_VertexGraphBuilder.CleanUpEdges())
                 {
@@ -244,8 +246,9 @@ namespace Zametek.Maths.Graphs
                         Enumerable.Empty<IResourceSchedule<T, TResourceId>>(),
                         new GraphCompilationErrors<T>(
                             allResourcesExplicitTargetsButNotAllActivitiesTargeted,
-                            circularDependencies.ToList(),
-                            missingDependencies.ToList()));
+                            circularDependencies,
+                            missingDependencies,
+                            invalidConstraints));
                 }
 
                 // Perform first compilation and calculate resource schedules.

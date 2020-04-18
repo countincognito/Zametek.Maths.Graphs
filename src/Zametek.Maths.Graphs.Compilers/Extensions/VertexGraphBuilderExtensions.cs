@@ -21,6 +21,12 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
+            if (vertexGraphBuilder.FindInvalidConstraints().Any())
+            {
+                return false;
+            }
+
+            // We can assume at this point that all the activity constraints are valid.
 
             var completedEdgeIds = new HashSet<T>();
             var remainingEdgeIds = new HashSet<T>(vertexGraphBuilder.EdgeIds);
@@ -41,12 +47,29 @@ namespace Zametek.Maths.Graphs
                     }
                 }
 
+                if (node.Content.MaximumLatestFinishTime.HasValue)
+                {
+                    int proposedLatestStartTime = node.Content.MaximumLatestFinishTime.Value - node.Content.Duration;
+                    if (proposedLatestStartTime < earliestStartTime)
+                    {
+                        earliestStartTime = proposedLatestStartTime;
+                    }
+                }
+
                 node.Content.EarliestStartTime = earliestStartTime;
 
                 // Latest Finish Time.
                 int latestFinishTime = node.Content.EarliestFinishTime.Value;
 
-                if (node.Content.MinimumFreeSlack.HasValue)
+                if (node.Content.MaximumLatestFinishTime.HasValue)
+                {
+                    int proposedLatestFinishTime = node.Content.MaximumLatestFinishTime.Value;
+                    if (proposedLatestFinishTime < latestFinishTime)
+                    {
+                        latestFinishTime = proposedLatestFinishTime;
+                    }
+                }
+                else if (node.Content.MinimumFreeSlack.HasValue)
                 {
                     // At this point, augment the free slack artificially (if required).
                     int proposedLatestFinishTime = latestFinishTime + node.Content.MinimumFreeSlack.Value;
@@ -75,6 +98,15 @@ namespace Zametek.Maths.Graphs
                     }
                 }
 
+                if (node.Content.MaximumLatestFinishTime.HasValue)
+                {
+                    int proposedLatestStartTime = node.Content.MaximumLatestFinishTime.Value - node.Content.Duration;
+                    if (proposedLatestStartTime < earliestStartTime)
+                    {
+                        earliestStartTime = proposedLatestStartTime;
+                    }
+                }
+
                 node.Content.EarliestStartTime = earliestStartTime;
 
                 foreach (T outgoingEdgeId in node.OutgoingEdges)
@@ -82,7 +114,7 @@ namespace Zametek.Maths.Graphs
                     Edge<T, TEvent> outgoingEdge = vertexGraphBuilder.Edge(outgoingEdgeId);
                     int earliestFinishTime = node.Content.EarliestFinishTime.Value;
 
-                    if (node.Content.MinimumFreeSlack.HasValue)
+                    if(node.Content.MinimumFreeSlack.HasValue)
                     {
                         // At this point, augment the free slack artificially (if required).
                         int proposedEarliestFinishTime = earliestFinishTime + node.Content.MinimumFreeSlack.Value;
@@ -116,8 +148,9 @@ namespace Zametek.Maths.Graphs
                     {
                         if (!dependencyNode.Content.EarliestStartTime.HasValue)
                         {
-                            int earliestStartTime =
-                                dependencyNodeIncomingEdgeIds.Select(vertexGraphBuilder.Edge).Max(x => x.Content.EarliestFinishTime.Value);
+                            int earliestStartTime = dependencyNodeIncomingEdgeIds
+                                .Select(vertexGraphBuilder.Edge)
+                                .Max(x => x.Content.EarliestFinishTime.Value);
 
                             if (dependencyNode.Content.MinimumEarliestStartTime.HasValue)
                             {
@@ -129,12 +162,29 @@ namespace Zametek.Maths.Graphs
                                 }
                             }
 
+                            if (dependencyNode.Content.MaximumLatestFinishTime.HasValue)
+                            {
+                                int proposedLatestStartTime = dependencyNode.Content.MaximumLatestFinishTime.Value - dependencyNode.Content.Duration;
+                                if (proposedLatestStartTime < earliestStartTime)
+                                {
+                                    earliestStartTime = proposedLatestStartTime;
+                                }
+                            }
+
                             dependencyNode.Content.EarliestStartTime = earliestStartTime;
                         }
 
                         int earliestFinishTime = dependencyNode.Content.EarliestFinishTime.Value;
 
-                        if (dependencyNode.Content.MinimumFreeSlack.HasValue)
+                        if (dependencyNode.Content.MaximumLatestFinishTime.HasValue)
+                        {
+                            int proposedLatestFinishTime = dependencyNode.Content.MaximumLatestFinishTime.Value;
+                            if (proposedLatestFinishTime < earliestFinishTime)
+                            {
+                                earliestFinishTime = proposedLatestFinishTime;
+                            }
+                        }
+                        else if (dependencyNode.Content.MinimumFreeSlack.HasValue)
                         {
                             // At this point, augment the free slack artificially (if required).
                             int proposedEarliestFinishTime = earliestFinishTime + dependencyNode.Content.MinimumFreeSlack.Value;
@@ -173,8 +223,9 @@ namespace Zametek.Maths.Graphs
 
                 if (!node.Content.EarliestStartTime.HasValue)
                 {
-                    int earliestStartTime =
-                        nodeIncomingEdgeIds.Select(vertexGraphBuilder.Edge).Max(x => x.Content.EarliestFinishTime.Value);
+                    int earliestStartTime = nodeIncomingEdgeIds
+                        .Select(vertexGraphBuilder.Edge)
+                        .Max(x => x.Content.EarliestFinishTime.Value);
 
                     if (node.Content.MinimumEarliestStartTime.HasValue)
                     {
@@ -186,6 +237,15 @@ namespace Zametek.Maths.Graphs
                         }
                     }
 
+                    if (node.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestStartTime = node.Content.MaximumLatestFinishTime.Value - node.Content.Duration;
+                        if (proposedLatestStartTime < earliestStartTime)
+                        {
+                            earliestStartTime = proposedLatestStartTime;
+                        }
+                    }
+
                     node.Content.EarliestStartTime = earliestStartTime;
                 }
 
@@ -193,7 +253,15 @@ namespace Zametek.Maths.Graphs
                 {
                     int latestFinishTime = node.Content.EarliestFinishTime.Value;
 
-                    if (node.Content.MinimumFreeSlack.HasValue)
+                    if (node.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.MaximumLatestFinishTime.Value;
+                        if (proposedLatestFinishTime < latestFinishTime)
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+                    else if (node.Content.MinimumFreeSlack.HasValue)
                     {
                         // At this point, augment the free slack artificially (if required).
                         int proposedLatestFinishTime = latestFinishTime + node.Content.MinimumFreeSlack.Value;
@@ -224,6 +292,10 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
+            if (vertexGraphBuilder.FindInvalidConstraints().Any())
+            {
+                return false;
+            }
 
             // Only perform if all events a have earliest finish times.
             if (!vertexGraphBuilder.Events.All(x => x.EarliestFinishTime.HasValue))
@@ -243,6 +315,8 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
+            // We can assume at this point that all the activity constraints are valid.
+
             var completedEdgeIds = new HashSet<T>();
             var remainingEdgeIds = new HashSet<T>(vertexGraphBuilder.EdgeIds);
 
@@ -255,8 +329,21 @@ namespace Zametek.Maths.Graphs
             // contains something.
             foreach (Node<T, TActivity> node in vertexGraphBuilder.EndNodes)
             {
-                // Latest Finish Time.
-                node.Content.LatestFinishTime = endTime;
+                {
+                    // Latest Finish Time.
+                    int latestFinishTime = endTime;
+
+                    if(node.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.MaximumLatestFinishTime.Value;
+                        if (proposedLatestFinishTime < latestFinishTime)
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+
+                    node.Content.LatestFinishTime = latestFinishTime;
+                }
 
                 // Free float/slack calculations.
                 node.Content.FreeSlack = node.Content.LatestFinishTime - node.Content.EarliestFinishTime;
@@ -264,7 +351,18 @@ namespace Zametek.Maths.Graphs
                 foreach (T incomingEdgeId in node.IncomingEdges)
                 {
                     Edge<T, TEvent> incomingEdge = vertexGraphBuilder.Edge(incomingEdgeId);
-                    incomingEdge.Content.LatestFinishTime = node.Content.LatestStartTime;
+                    int? latestFinishTime = node.Content.LatestStartTime;
+
+                    if (node.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.MaximumLatestFinishTime.Value;
+                        if (proposedLatestFinishTime < latestFinishTime.GetValueOrDefault())
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+
+                    incomingEdge.Content.LatestFinishTime = latestFinishTime;
                     completedEdgeIds.Add(incomingEdgeId);
                     remainingEdgeIds.Remove(incomingEdgeId);
                 }
@@ -288,16 +386,50 @@ namespace Zametek.Maths.Graphs
                     {
                         if (!successorNode.Content.LatestFinishTime.HasValue)
                         {
-                            successorNode.Content.LatestFinishTime =
-                                successorNodeOutgoingEdgeIds.Select(vertexGraphBuilder.Edge).Min(x => x.Content.LatestFinishTime.Value);
+                            int latestFinishTime = successorNodeOutgoingEdgeIds
+                                .Select(vertexGraphBuilder.Edge)
+                                .Min(x => x.Content.LatestFinishTime.Value);
+
+                            if (successorNode.Content.MaximumLatestFinishTime.HasValue)
+                            {
+                                int proposedLatestFinishTime = successorNode.Content.MaximumLatestFinishTime.Value;
+                                if (proposedLatestFinishTime < latestFinishTime)
+                                {
+                                    latestFinishTime = proposedLatestFinishTime;
+                                }
+                            }
+
+                            successorNode.Content.LatestFinishTime = latestFinishTime;
                         }
 
                         if (!successorNode.Content.FreeSlack.HasValue)
                         {
-                            successorNode.Content.FreeSlack =
-                                successorNodeOutgoingEdgeIds.Select(vertexGraphBuilder.EdgeHeadNode).Min(x => x.Content.EarliestStartTime.Value) -
-                                successorNode.Content.EarliestStartTime -
-                                successorNode.Content.Duration;
+                            int latestFinishTime = successorNodeOutgoingEdgeIds
+                                .Select(vertexGraphBuilder.EdgeHeadNode)
+                                .Min(x => x.Content.EarliestStartTime.Value);
+
+
+                            if (successorNode.Content.LatestFinishTime.HasValue)
+                            {
+                                int proposedLatestFinishTime = successorNode.Content.LatestFinishTime.Value;
+                                if (proposedLatestFinishTime < latestFinishTime)
+                                {
+                                    latestFinishTime = proposedLatestFinishTime;
+                                }
+                            }
+
+
+
+                            if (successorNode.Content.MaximumLatestFinishTime.HasValue)
+                            {
+                                int proposedLatestFinishTime = successorNode.Content.MaximumLatestFinishTime.Value;
+                                if (proposedLatestFinishTime < latestFinishTime)
+                                {
+                                    latestFinishTime = proposedLatestFinishTime;
+                                }
+                            }
+
+                            successorNode.Content.FreeSlack = latestFinishTime - successorNode.Content.EarliestStartTime - successorNode.Content.Duration;
                         }
 
                         edge.Content.LatestFinishTime = successorNode.Content.LatestStartTime;
@@ -329,16 +461,62 @@ namespace Zametek.Maths.Graphs
 
                 if (!node.Content.LatestFinishTime.HasValue)
                 {
-                    node.Content.LatestFinishTime =
-                        nodeOutgoingEdgeIds.Select(vertexGraphBuilder.Edge).Min(x => x.Content.LatestFinishTime.Value);
+                    int latestFinishTime = nodeOutgoingEdgeIds
+                        .Select(vertexGraphBuilder.Edge)
+                        .Min(x => x.Content.LatestFinishTime.Value);
+
+
+                    if (node.Content.LatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.LatestFinishTime.Value;
+                        if (proposedLatestFinishTime < latestFinishTime)
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+
+
+
+                    if (node.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.MaximumLatestFinishTime.Value;
+                        if (proposedLatestFinishTime < latestFinishTime)
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+
+                    node.Content.LatestFinishTime = latestFinishTime;
                 }
 
                 if (!node.Content.FreeSlack.HasValue)
                 {
-                    node.Content.FreeSlack =
-                        nodeOutgoingEdgeIds.Select(vertexGraphBuilder.EdgeHeadNode).Min(x => x.Content.EarliestStartTime.Value) -
-                        node.Content.EarliestStartTime -
-                        node.Content.Duration;
+                    int latestFinishTime = nodeOutgoingEdgeIds
+                        .Select(vertexGraphBuilder.EdgeHeadNode)
+                        .Min(x => x.Content.EarliestStartTime.Value);
+
+
+                    if (node.Content.LatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.LatestFinishTime.Value;
+                        if (proposedLatestFinishTime < latestFinishTime)
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+
+
+
+                    if (node.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.MaximumLatestFinishTime.Value;
+                        if (proposedLatestFinishTime < latestFinishTime)
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+
+                    node.Content.FreeSlack = latestFinishTime - node.Content.EarliestStartTime - node.Content.Duration;
                 }
             }
             return true;
