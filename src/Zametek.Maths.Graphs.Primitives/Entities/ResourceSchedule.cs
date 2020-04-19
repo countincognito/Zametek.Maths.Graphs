@@ -61,9 +61,10 @@ namespace Zametek.Maths.Graphs
                 interActivityAllocationType = resource.InterActivityAllocationType;
             }
 
-            var distribution = Enumerable.Repeat(TimeType.None, finishTime).ToList();
+            List<TimeType> distribution = Enumerable.Repeat(TimeType.None, finishTime).ToList();
 
             // Indirect.
+            // For indirect we basically mark the entire time span as costed, from start to finish.
             if (interActivityAllocationType == InterActivityAllocationType.Indirect)
             {
                 for (int i = 0; i < distribution.Count; i++)
@@ -77,17 +78,29 @@ namespace Zametek.Maths.Graphs
                 || interActivityAllocationType == InterActivityAllocationType.Direct)
             {
                 // Default (None).
+                // Mark schedules as if they were None, then update for direct.
                 foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
                 {
-                    for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                    if (scheduledActivity.HasNoCost)
                     {
-                        distribution[timeIndex] = TimeType.Middle;
+                        for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                        {
+                            distribution[timeIndex] = TimeType.Ignored;
+                        }
                     }
-                    distribution[scheduledActivity.StartTime] = TimeType.Start;
-                    distribution[scheduledActivity.FinishTime - 1] = TimeType.Finish;
+                    else
+                    {
+                        for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                        {
+                            distribution[timeIndex] = TimeType.Middle;
+                        }
+                        distribution[scheduledActivity.StartTime] = TimeType.Start;
+                        distribution[scheduledActivity.FinishTime - 1] = TimeType.Finish;
+                    }
                 }
 
                 // Direct.
+                // Find the first Start and the last Finish, then fill in the gaps between them.
                 if (interActivityAllocationType == InterActivityAllocationType.Direct)
                 {
                     int firstStartIndex = 0;
@@ -110,7 +123,9 @@ namespace Zametek.Maths.Graphs
                     }
                     for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
                     {
-                        distribution[i] = TimeType.Middle;
+                        // If it is marked to be Ignored, then leave it as Ignored.
+                        // Else mark it as Middle.
+                        distribution[i] = distribution[i] == TimeType.Ignored ? TimeType.Ignored : TimeType.Middle;
                     }
                 }
             }
@@ -119,7 +134,7 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
-            return distribution.Select(x => x == TimeType.None ? false : true).ToList();
+            return distribution.Select(x => x == TimeType.None || x == TimeType.Ignored ? false : true).ToList();
         }
 
         #endregion
@@ -166,6 +181,7 @@ namespace Zametek.Maths.Graphs
         private enum TimeType
         {
             None,
+            Ignored,
             Start,
             Middle,
             Finish

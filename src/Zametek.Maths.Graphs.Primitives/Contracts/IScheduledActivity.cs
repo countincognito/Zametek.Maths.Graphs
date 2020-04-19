@@ -8,10 +8,12 @@ namespace Zametek.Maths.Graphs
     {
         string Name { get; }
 
+        bool HasNoCost { get; }
+
         int Duration { get; }
 
-        int StartTime { get; set; }
+        int StartTime { get; }
 
-        int FinishTime { get; set; }
+        int FinishTime { get; }
     }
 }

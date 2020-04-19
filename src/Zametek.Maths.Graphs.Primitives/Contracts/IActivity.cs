@@ -10,6 +10,8 @@ namespace Zametek.Maths.Graphs
     {
         string Name { get; set; }
 
+        string Notes { get; set; }
+
         HashSet<TResourceId> TargetResources { get; }
 
         LogicalOperator TargetResourceOperator { get; set; }
@@ -17,6 +19,8 @@ namespace Zametek.Maths.Graphs
         HashSet<TResourceId> AllocatedToResources { get; }
 
         bool IsDummy { get; }
+
+        bool HasNoCost { get; set; }
 
         int Duration { get; set; }
 

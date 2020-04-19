@@ -67,9 +67,8 @@ namespace Zametek.Maths.Graphs
                 startTime = EarliestAvailableStartTimeForNextActivity;
             }
             var scheduledActivity = new ScheduledActivity<T>(
-                activity.Id, activity.Name,
-                activity.Duration, startTime,
-                startTime + activity.Duration);
+                activity.Id, activity.Name, activity.HasNoCost,
+                activity.Duration, startTime, startTime + activity.Duration);
             m_ScheduledActivities.AddLast(scheduledActivity);
         }
 

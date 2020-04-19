@@ -25,8 +25,8 @@ namespace Zametek.Maths.Graphs
         }
 
         public Activity(
-            T id, string name, IEnumerable<TResourceId> targetResources, LogicalOperator targetLogicalOperator,
-            IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, int duration, int? freeSlack,
+            T id, string name, string notes, IEnumerable<TResourceId> targetResources, LogicalOperator targetLogicalOperator,
+            IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, int duration, int? freeSlack,
             int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
             int? maximumLatestFinishTime)
         {
@@ -36,10 +36,12 @@ namespace Zametek.Maths.Graphs
             }
             Id = id;
             Name = name;
+            Notes = notes;
             TargetResources = new HashSet<TResourceId>(targetResources);
             TargetResourceOperator = targetLogicalOperator;
             AllocatedToResources = new HashSet<TResourceId>(allocatedToResources);
             CanBeRemoved = canBeRemoved;
+            HasNoCost = hasNoCost;
             Duration = duration;
             FreeSlack = freeSlack;
             EarliestStartTime = earliestStartTime;
@@ -59,6 +61,12 @@ namespace Zametek.Maths.Graphs
         }
 
         public string Name
+        {
+            get;
+            set;
+        }
+
+        public string Notes
         {
             get;
             set;
@@ -86,7 +94,13 @@ namespace Zametek.Maths.Graphs
             private set;
         }
 
-        public bool IsDummy => Duration == 0;
+        public bool IsDummy => Duration <= 0;
+
+        public bool HasNoCost
+        {
+            get;
+            set;
+        }
 
         public int Duration
         {
@@ -135,7 +149,7 @@ namespace Zametek.Maths.Graphs
             get
             {
                 int? totalSlack = TotalSlack;
-                return totalSlack == 0;
+                return totalSlack <= 0;
             }
         }
 
@@ -210,8 +224,8 @@ namespace Zametek.Maths.Graphs
         public virtual object CloneObject()
         {
             return new Activity<T, TResourceId>(
-                Id, Name, TargetResources, TargetResourceOperator, AllocatedToResources, CanBeRemoved, Duration,
-                FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime,
+                Id, Name, Notes, TargetResources, TargetResourceOperator, AllocatedToResources, CanBeRemoved, HasNoCost,
+                Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime,
                 MaximumLatestFinishTime);
         }
 
