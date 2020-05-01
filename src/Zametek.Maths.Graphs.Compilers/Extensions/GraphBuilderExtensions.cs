@@ -239,7 +239,7 @@ namespace Zametek.Maths.Graphs
                                         continue;
                                     }
 
-                                    resourceScheduleBuilder.AddActivity(activity, timeCounter);
+                                    resourceScheduleBuilder.AppendActivity(activity, timeCounter);
                                     started.Add(activityId);
                                     keepLooking = true;
                                     ready[activityIndex] = null;
@@ -272,7 +272,7 @@ namespace Zametek.Maths.Graphs
                                     // Find just one resource that can accommodate the activity.
                                     if (activity.TargetResourceOperator == LogicalOperator.OR)
                                     {
-                                        resourceScheduleBuilder.AddActivity(activity, timeCounter);
+                                        resourceScheduleBuilder.AppendActivity(activity, timeCounter);
                                         started.Add(activityId);
                                         keepLooking = true;
                                         ready[activityIndex] = null;
@@ -288,7 +288,7 @@ namespace Zametek.Maths.Graphs
                                         {
                                             foreach (ResourceScheduleBuilder<T, TResourceId> availableResourceScheduler in availableResourceSchedulers)
                                             {
-                                                availableResourceScheduler.AddActivity(activity, timeCounter);
+                                                availableResourceScheduler.AppendActivity(activity, timeCounter);
                                                 started.Add(activityId);
                                             }
                                             keepLooking = true;

@@ -179,7 +179,21 @@ namespace Zametek.Maths.Graphs
 
         #region Public Methods
 
-        public void AddActivity(IActivity<T, TResourceId> activity, int startTime)
+        public void AppendActivity(IScheduledActivity<T> scheduledActivity)
+        {
+            if (scheduledActivity == null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivity));
+            }
+            int earliestAvailableStartTimeForNextActivity = EarliestAvailableStartTimeForNextActivity;
+            if (scheduledActivity.StartTime < earliestAvailableStartTimeForNextActivity)
+            {
+                throw new InvalidOperationException($@"Scheduled activity's start time {scheduledActivity.StartTime} is less than the earliest available start time for the next activity {earliestAvailableStartTimeForNextActivity}");
+            }
+            m_ScheduledActivities.AddLast(scheduledActivity);
+        }
+
+        public void AppendActivity(IActivity<T, TResourceId> activity, int startTime)
         {
             if (activity == null)
             {
