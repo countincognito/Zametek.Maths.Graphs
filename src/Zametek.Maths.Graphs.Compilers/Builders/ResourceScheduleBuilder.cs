@@ -54,6 +54,129 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
+        #region Private Methods
+
+        private static IList<bool> ExtractActivityAllocation(
+            IResource<TResourceId> resource,
+            IEnumerable<IScheduledActivity<T>> scheduledActivities,
+            int finishTime)
+        {
+            if (scheduledActivities == null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivities));
+            }
+            if (!scheduledActivities.Any())
+            {
+                return Enumerable.Repeat(false, finishTime).ToList();
+            }
+            int resourceFinishTime = scheduledActivities.Max(x => x.FinishTime);
+            if (resourceFinishTime > finishTime)
+            {
+                throw new InvalidOperationException($@"Requested finish time ({finishTime}) cannot be less than the actual finish time ({resourceFinishTime})");
+            }
+            var interActivityAllocationType = InterActivityAllocationType.None;
+            if (resource != null)
+            {
+                interActivityAllocationType = resource.InterActivityAllocationType;
+            }
+
+            List<TimeType> distribution = Enumerable.Repeat(TimeType.None, finishTime).ToList();
+
+            // Indirect.
+            // For indirect we basically mark the entire time span as costed, from start to finish.
+            if (interActivityAllocationType == InterActivityAllocationType.Indirect)
+            {
+                for (int i = 0; i < distribution.Count; i++)
+                {
+                    distribution[i] = TimeType.Middle;
+                }
+                distribution[0] = TimeType.Start;
+                distribution[distribution.Count - 1] = TimeType.Finish;
+            }
+            else if (interActivityAllocationType == InterActivityAllocationType.None)
+            {
+                // None.
+                // Mark schedules as normal, unless they need to be ignored.
+                foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
+                {
+                    if (scheduledActivity.HasNoCost)
+                    {
+                        for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                        {
+                            distribution[timeIndex] = TimeType.Ignored;
+                        }
+                    }
+                    else
+                    {
+                        for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                        {
+                            distribution[timeIndex] = TimeType.Middle;
+                        }
+                        distribution[scheduledActivity.StartTime] = TimeType.Start;
+                        distribution[scheduledActivity.FinishTime - 1] = TimeType.Finish;
+                    }
+                }
+            }
+            else if (interActivityAllocationType == InterActivityAllocationType.Direct)
+            {
+                // Direct.
+                // Mark schedules as normal.
+                foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
+                {
+                    for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                    {
+                        distribution[timeIndex] = TimeType.Middle;
+                    }
+                    distribution[scheduledActivity.StartTime] = TimeType.Start;
+                    distribution[scheduledActivity.FinishTime - 1] = TimeType.Finish;
+                }
+
+                // Find the first Start and the last Finish, then fill in the gaps between them.
+                int firstStartIndex = 0;
+                int lastFinishIndex = distribution.Count - 1;
+                for (int i = 0; i < distribution.Count; i++)
+                {
+                    if (distribution[i] == TimeType.Start)
+                    {
+                        firstStartIndex = i;
+                        break;
+                    }
+                }
+                for (int i = lastFinishIndex; i >= 0; i--)
+                {
+                    if (distribution[i] == TimeType.Finish)
+                    {
+                        lastFinishIndex = i;
+                        break;
+                    }
+                }
+                for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
+                {
+                    distribution[i] = TimeType.Middle;
+                }
+
+                // Now mark the uncosted areas
+                foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
+                {
+                    if (scheduledActivity.HasNoCost)
+                    {
+                        for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                        {
+                            distribution[timeIndex] = TimeType.Ignored;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
+            }
+
+            return distribution.Select(x => x == TimeType.None || x == TimeType.Ignored ? false : true).ToList();
+        }
+
+        #endregion
+
         #region Public Methods
 
         public void AddActivity(IActivity<T, TResourceId> activity, int startTime)
@@ -87,7 +210,24 @@ namespace Zametek.Maths.Graphs
 
         public IResourceSchedule<T, TResourceId> ToResourceSchedule(int finishTime)
         {
-            return new ResourceSchedule<T, TResourceId>(m_Resource, m_ScheduledActivities, finishTime);
+            return new ResourceSchedule<T, TResourceId>(
+                m_Resource,
+                m_ScheduledActivities,
+                finishTime,
+                ExtractActivityAllocation(m_Resource, m_ScheduledActivities, finishTime));
+        }
+
+        #endregion
+
+        #region Private Types
+
+        private enum TimeType
+        {
+            None,
+            Ignored,
+            Start,
+            Middle,
+            Finish
         }
 
         #endregion

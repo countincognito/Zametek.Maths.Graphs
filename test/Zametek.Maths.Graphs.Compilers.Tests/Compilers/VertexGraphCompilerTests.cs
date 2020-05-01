@@ -552,22 +552,22 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Count.Should().Be(4);
 
             scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
+            scheduledActivities1[0].HasNoCost.Should().BeTrue();
             scheduledActivities1[0].StartTime.Should().Be(0);
             scheduledActivities1[0].FinishTime.Should().Be(7);
 
             scheduledActivities1[1].Id.Should().Be(activityId1);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities1[1].HasNoCost.Should().BeFalse();
             scheduledActivities1[1].StartTime.Should().Be(7);
             scheduledActivities1[1].FinishTime.Should().Be(13);
 
             scheduledActivities1[2].Id.Should().Be(activityId5);
-            scheduledActivities0[2].HasNoCost.Should().BeTrue();
+            scheduledActivities1[2].HasNoCost.Should().BeTrue();
             scheduledActivities1[2].StartTime.Should().Be(13);
             scheduledActivities1[2].FinishTime.Should().Be(21);
 
             scheduledActivities1[3].Id.Should().Be(activityId9);
-            scheduledActivities0[3].HasNoCost.Should().BeFalse();
+            scheduledActivities1[3].HasNoCost.Should().BeFalse();
             scheduledActivities1[3].StartTime.Should().Be(21);
             scheduledActivities1[3].FinishTime.Should().Be(31);
 
@@ -745,22 +745,22 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Count.Should().Be(4);
 
             scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
+            scheduledActivities1[0].HasNoCost.Should().BeFalse();
             scheduledActivities1[0].StartTime.Should().Be(0);
             scheduledActivities1[0].FinishTime.Should().Be(7);
 
             scheduledActivities1[1].Id.Should().Be(activityId1);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities1[1].HasNoCost.Should().BeFalse();
             scheduledActivities1[1].StartTime.Should().Be(7);
             scheduledActivities1[1].FinishTime.Should().Be(13);
 
             scheduledActivities1[2].Id.Should().Be(activityId5);
-            scheduledActivities0[2].HasNoCost.Should().BeTrue();
+            scheduledActivities1[2].HasNoCost.Should().BeFalse();
             scheduledActivities1[2].StartTime.Should().Be(13);
             scheduledActivities1[2].FinishTime.Should().Be(21);
 
             scheduledActivities1[3].Id.Should().Be(activityId9);
-            scheduledActivities0[3].HasNoCost.Should().BeFalse();
+            scheduledActivities1[3].HasNoCost.Should().BeFalse();
             scheduledActivities1[3].StartTime.Should().Be(21);
             scheduledActivities1[3].FinishTime.Should().Be(31);
 
@@ -848,6 +848,876 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(34);
             graphBuilder.Activity(activityId9).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId5 }));
             graphBuilder.Activity(activityId9).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithNoUncostedActivities_ThenOutputsAsExpected()
+        {
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0);
+            var resource2 = new Resource<int>(resourceId2, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0);
+            var resource3 = new Resource<int>(resourceId3, string.Empty, false, InterActivityAllocationType.None, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId2);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId3);
+
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(3);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(1);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(5);
+
+
+            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            scheduledActivities1.Count.Should().Be(1);
+
+            scheduledActivities1[0].Id.Should().Be(activityId2);
+            scheduledActivities1[0].HasNoCost.Should().BeFalse();
+            scheduledActivities1[0].StartTime.Should().Be(0);
+            scheduledActivities1[0].FinishTime.Should().Be(3);
+
+            scheduledActivities1.Last().FinishTime.Should().Be(3);
+
+
+            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            scheduledActivities2.Count.Should().Be(1);
+
+            scheduledActivities2[0].Id.Should().Be(activityId3);
+            scheduledActivities2[0].HasNoCost.Should().BeFalse();
+            scheduledActivities2[0].StartTime.Should().Be(0);
+            scheduledActivities2[0].FinishTime.Should().Be(12);
+
+            scheduledActivities2.Last().FinishTime.Should().Be(12);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUncostedDirectActivity_ThenDirectCostsRemoved()
+        {
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0);
+            var resource2 = new Resource<int>(resourceId2, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0);
+            var resource3 = new Resource<int>(resourceId3, string.Empty, false, InterActivityAllocationType.None, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId2);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId3);
+
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(3);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    false, false, false, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(1);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeTrue();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(5);
+
+
+            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            scheduledActivities1.Count.Should().Be(1);
+
+            scheduledActivities1[0].Id.Should().Be(activityId2);
+            scheduledActivities1[0].HasNoCost.Should().BeFalse();
+            scheduledActivities1[0].StartTime.Should().Be(0);
+            scheduledActivities1[0].FinishTime.Should().Be(3);
+
+            scheduledActivities1.Last().FinishTime.Should().Be(3);
+
+
+            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            scheduledActivities2.Count.Should().Be(1);
+
+            scheduledActivities2[0].Id.Should().Be(activityId3);
+            scheduledActivities2[0].HasNoCost.Should().BeFalse();
+            scheduledActivities2[0].StartTime.Should().Be(0);
+            scheduledActivities2[0].FinishTime.Should().Be(12);
+
+            scheduledActivities2.Last().FinishTime.Should().Be(12);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUncostedIndirectActivity_ThenIndirectCostsUnaffected()
+        {
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0);
+            var resource2 = new Resource<int>(resourceId2, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0);
+            var resource3 = new Resource<int>(resourceId3, string.Empty, false, InterActivityAllocationType.None, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            activity2.TargetResources.Add(resourceId2);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId3);
+
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(3);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(1);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(5);
+
+
+            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            scheduledActivities1.Count.Should().Be(1);
+
+            scheduledActivities1[0].Id.Should().Be(activityId2);
+            scheduledActivities1[0].HasNoCost.Should().BeTrue();
+            scheduledActivities1[0].StartTime.Should().Be(0);
+            scheduledActivities1[0].FinishTime.Should().Be(3);
+
+            scheduledActivities1.Last().FinishTime.Should().Be(3);
+
+
+            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            scheduledActivities2.Count.Should().Be(1);
+
+            scheduledActivities2[0].Id.Should().Be(activityId3);
+            scheduledActivities2[0].HasNoCost.Should().BeFalse();
+            scheduledActivities2[0].StartTime.Should().Be(0);
+            scheduledActivities2[0].FinishTime.Should().Be(12);
+
+            scheduledActivities2.Last().FinishTime.Should().Be(12);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUncostedNoneActivity_ThenNoneCostsRemoved()
+        {
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0);
+            var resource2 = new Resource<int>(resourceId2, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0);
+            var resource3 = new Resource<int>(resourceId3, string.Empty, false, InterActivityAllocationType.None, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId2);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            activity3.TargetResources.Add(resourceId3);
+
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(3);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(1);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(5);
+
+
+            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            scheduledActivities1.Count.Should().Be(1);
+
+            scheduledActivities1[0].Id.Should().Be(activityId2);
+            scheduledActivities1[0].HasNoCost.Should().BeFalse();
+            scheduledActivities1[0].StartTime.Should().Be(0);
+            scheduledActivities1[0].FinishTime.Should().Be(3);
+
+            scheduledActivities1.Last().FinishTime.Should().Be(3);
+
+
+            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    false, false, false, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
+            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            scheduledActivities2.Count.Should().Be(1);
+
+            scheduledActivities2[0].Id.Should().Be(activityId3);
+            scheduledActivities2[0].HasNoCost.Should().BeTrue();
+            scheduledActivities2[0].StartTime.Should().Be(0);
+            scheduledActivities2[0].FinishTime.Should().Be(12);
+
+            scheduledActivities2.Last().FinishTime.Should().Be(12);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUncostedFirstActivity_ThenFirstCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    false, false, false, false, false, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeTrue();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeFalse();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUncostedMiddleActivity_ThenMiddleCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeTrue();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeFalse();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUncostedLastActivity_ThenLastCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, false, false,
+                    false, false, false, false, false, false, false, false, false, false,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeTrue();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUncostedFirstActivity_ThenNoCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeTrue();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeFalse();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUncostedMiddleActivity_ThenNoCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeTrue();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeFalse();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUncostedLastActivity_ThenNoCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeTrue();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUncostedFirstActivity_ThenFirstCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.None, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    false, false, false, false, false, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeTrue();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeFalse();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUncostedMiddleActivity_ThenMiddleCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.None, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeTrue();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeFalse();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUncostedLastActivity_ThenLastCostsRemoved()
+        {
+            int resourceId1 = 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+
+            var resource1 = new Resource<int>(resourceId1, string.Empty, false, InterActivityAllocationType.None, 1.0, 0);
+
+            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int>>(new[] { resource1 }));
+
+            compilation.Errors.Should().BeNull();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+
+            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, false, false,
+                    false, false, false, false, false, false, false, false, false, false,
+                });
+
+            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            scheduledActivities0.Count.Should().Be(3);
+
+            scheduledActivities0[0].Id.Should().Be(activityId1);
+            scheduledActivities0[0].HasNoCost.Should().BeFalse();
+            scheduledActivities0[0].StartTime.Should().Be(0);
+            scheduledActivities0[0].FinishTime.Should().Be(5);
+
+            scheduledActivities0[1].Id.Should().Be(activityId2);
+            scheduledActivities0[1].HasNoCost.Should().BeFalse();
+            scheduledActivities0[1].StartTime.Should().Be(5);
+            scheduledActivities0[1].FinishTime.Should().Be(8);
+
+            scheduledActivities0[2].Id.Should().Be(activityId3);
+            scheduledActivities0[2].HasNoCost.Should().BeTrue();
+            scheduledActivities0[2].StartTime.Should().Be(8);
+            scheduledActivities0[2].FinishTime.Should().Be(20);
+
+            scheduledActivities0.Last().FinishTime.Should().Be(20);
         }
 
         [Fact]
