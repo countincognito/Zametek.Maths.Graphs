@@ -36,7 +36,7 @@ namespace Zametek.Maths.Graphs
         //{
         //    lock (m_Lock)
         //    {
-        //        if (dependencies == null)
+        //        if (dependencies is null)
         //        {
         //            throw new ArgumentNullException(nameof(dependencies));
         //        }
@@ -82,7 +82,7 @@ namespace Zametek.Maths.Graphs
         //{
         //    lock (m_Lock)
         //    {
-        //        if (dependencies == null)
+        //        if (dependencies is null)
         //        {
         //            throw new ArgumentNullException(nameof(dependencies));
         //        }
@@ -128,7 +128,7 @@ namespace Zametek.Maths.Graphs
         {
             lock (m_Lock)
             {
-                if (dependencies == null)
+                if (dependencies is null)
                 {
                     throw new ArgumentNullException(nameof(dependencies));
                 }
@@ -206,7 +206,7 @@ namespace Zametek.Maths.Graphs
 
         public IGraphCompilation<T, TResourceId, TDependentActivity> Compile(IList<IResource<TResourceId>> resources)
         {
-            if (resources == null)
+            if (resources is null)
             {
                 throw new ArgumentNullException(nameof(resources));
             }
@@ -267,7 +267,7 @@ namespace Zametek.Maths.Graphs
                         foreach (IScheduledActivity<T> scheduledActivity in resourceSchedule.ScheduledActivities.OrderBy(x => x.StartTime))
                         {
                             T currentId = scheduledActivity.Id;
-                            var activity = m_VertexGraphBuilder.Activity(currentId);
+                            TDependentActivity activity = m_VertexGraphBuilder.Activity(currentId);
 
                             if (resource != null)
                             {
@@ -297,9 +297,40 @@ namespace Zametek.Maths.Graphs
                     m_VertexGraphBuilder.CalculateCriticalPath();
                 }
 
+                // Go through each resource schedule and ensure the scheduled activities
+                // align with the compiled graph.
+
+                int finishTime = m_VertexGraphBuilder.Duration;
+                var newResourceScheduleBuilders = new List<ResourceScheduleBuilder<T, TResourceId>>();
+
+                foreach (IResourceSchedule<T, TResourceId> oldResourceSchedule in resourceSchedules)
+                {
+                    ResourceScheduleBuilder<T, TResourceId> newResourceScheduleBuilder = oldResourceSchedule.Resource == null ?
+                        new ResourceScheduleBuilder<T, TResourceId>() : new ResourceScheduleBuilder<T, TResourceId>(oldResourceSchedule.Resource);
+
+                    IEnumerable<IScheduledActivity<T>> oldScheduledActivities = oldResourceSchedule.ScheduledActivities;
+
+                    foreach (IScheduledActivity<T> oldScheduledActivity in oldScheduledActivities)
+                    {
+                        T oldScheduledActivityId = oldScheduledActivity.Id;
+                        TDependentActivity activity = m_VertexGraphBuilder.Activity(oldScheduledActivityId);
+
+                        // This add needs to be without checks because the alignment may not be perfect.
+                        newResourceScheduleBuilder.AppendActivityWithoutChecks(activity, activity.EarliestStartTime.GetValueOrDefault());
+                    }
+
+                    newResourceScheduleBuilders.Add(newResourceScheduleBuilder);
+                }
+
+                IEnumerable<IResourceSchedule<T, TResourceId>> newResourceSchedules = newResourceScheduleBuilders
+                    .Select(x => x.ToResourceSchedule(finishTime))
+                    .Where(x => x.ScheduledActivities.Any());
+
+                // Return the final values.
+
                 return new GraphCompilation<T, TResourceId, TDependentActivity>(
                     m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
-                    resourceSchedules.ToList());
+                    newResourceSchedules.ToList());
             }
         }
 

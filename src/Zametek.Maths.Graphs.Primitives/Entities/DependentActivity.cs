@@ -27,7 +27,7 @@ namespace Zametek.Maths.Graphs
         public DependentActivity(T id, int duration, IEnumerable<T> dependencies)
             : base(id, duration)
         {
-            if (dependencies == null)
+            if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
@@ -44,11 +44,11 @@ namespace Zametek.Maths.Graphs
                   id, name, notes, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost, duration,
                   freeSlack, earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
         {
-            if (dependencies == null)
+            if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
-            if (resourceDependencies == null)
+            if (resourceDependencies is null)
             {
                 throw new ArgumentNullException(nameof(resourceDependencies));
             }

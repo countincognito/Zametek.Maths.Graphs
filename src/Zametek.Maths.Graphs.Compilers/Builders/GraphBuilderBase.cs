@@ -42,7 +42,7 @@ namespace Zametek.Maths.Graphs
             Func<T, TEvent> eventGenerator)
             : this(edgeIdGenerator, nodeIdGenerator, eventGenerator)
         {
-            if (arrowGraph == null)
+            if (arrowGraph is null)
             {
                 throw new ArgumentNullException(nameof(arrowGraph));
             }
@@ -164,7 +164,7 @@ namespace Zametek.Maths.Graphs
         {
             get
             {
-                return Activities.Select(x => x.LatestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
+                return Activities.Select(x => x.EarliestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
             }
         }
 
@@ -417,11 +417,11 @@ namespace Zametek.Maths.Graphs
 
         protected void GetEdgesInDecendingOrder(T nodeId, IList<Edge<T, TEdgeContent>> edgesInDecendingOrder, HashSet<T> recordedEdges)
         {
-            if (edgesInDecendingOrder == null)
+            if (edgesInDecendingOrder is null)
             {
                 throw new ArgumentNullException(nameof(edgesInDecendingOrder));
             }
-            if (recordedEdges == null)
+            if (recordedEdges is null)
             {
                 throw new ArgumentNullException(nameof(recordedEdges));
             }
@@ -455,11 +455,11 @@ namespace Zametek.Maths.Graphs
         /// <returns></returns>
         protected bool HaveDecendantOrAncestorOverlap(Node<T, TNodeContent> tailNode, Node<T, TNodeContent> headNode)
         {
-            if (tailNode == null)
+            if (tailNode is null)
             {
                 throw new ArgumentNullException(nameof(tailNode));
             }
-            if (headNode == null)
+            if (headNode is null)
             {
                 throw new ArgumentNullException(nameof(headNode));
             }
@@ -520,11 +520,11 @@ namespace Zametek.Maths.Graphs
 
         protected bool ShareMoreThanOneEdge(Node<T, TNodeContent> tailNode, Node<T, TNodeContent> headNode)
         {
-            if (tailNode == null)
+            if (tailNode is null)
             {
                 throw new ArgumentNullException(nameof(tailNode));
             }
-            if (headNode == null)
+            if (headNode is null)
             {
                 throw new ArgumentNullException(nameof(headNode));
             }
@@ -614,7 +614,7 @@ namespace Zametek.Maths.Graphs
 
         private HashSet<T> GetAncestorNodes(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
-            if (nodeIdAncestorLookup == null)
+            if (nodeIdAncestorLookup is null)
             {
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }

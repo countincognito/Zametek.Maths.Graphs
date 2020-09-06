@@ -252,7 +252,7 @@ namespace Zametek.Maths.Graphs
 
         private void RemoveParallelIncomingDummyEdges(Node<T, TEvent> node)
         {
-            if (node == null)
+            if (node is null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
@@ -357,7 +357,7 @@ namespace Zametek.Maths.Graphs
 
         private void RemoveRedundantIncomingDummyEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
-            if (nodeIdAncestorLookup == null)
+            if (nodeIdAncestorLookup is null)
             {
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }
@@ -484,7 +484,7 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(activity));
             }
-            if (dependencies == null)
+            if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
@@ -614,7 +614,7 @@ namespace Zametek.Maths.Graphs
         {
             // For Arrow Graphs only dummy edges need to be reduced.
             IDictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
-            if (ancestorNodesLookup == null)
+            if (ancestorNodesLookup is null)
             {
                 return false;
             }

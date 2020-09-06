@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Zametek.Maths.Graphs
@@ -15,7 +16,7 @@ namespace Zametek.Maths.Graphs
             where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
         {
-            if (graphBuilder == null)
+            if (graphBuilder is null)
             {
                 throw new ArgumentNullException(nameof(graphBuilder));
             }
@@ -41,7 +42,7 @@ namespace Zametek.Maths.Graphs
             where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
         {
-            if (graphBuilder == null)
+            if (graphBuilder is null)
             {
                 throw new ArgumentNullException(nameof(graphBuilder));
             }
@@ -95,11 +96,11 @@ namespace Zametek.Maths.Graphs
             where TActivity : IActivity<T, TResourceId>
             where TEvent : IEvent<T>
         {
-            if (graphBuilder == null)
+            if (graphBuilder is null)
             {
                 throw new ArgumentNullException(nameof(graphBuilder));
             }
-            if (resources == null)
+            if (resources is null)
             {
                 throw new ArgumentNullException(nameof(resources));
             }
@@ -140,6 +141,7 @@ namespace Zametek.Maths.Graphs
             }
 
             var tmpGraphBuilder = (GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.CloneObject();
+
             IList<T?> priorityList = tmpGraphBuilder
                 .CalculateCriticalPathPriorityList()
                 .Select(x => new T?(x))
@@ -239,6 +241,12 @@ namespace Zametek.Maths.Graphs
                                         continue;
                                     }
 
+                                    if (activity.MaximumLatestFinishTime.HasValue
+                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
+                                    {
+                                        continue;
+                                    }
+
                                     resourceScheduleBuilder.AppendActivity(activity, timeCounter);
                                     started.Add(activityId);
                                     keepLooking = true;
@@ -265,6 +273,12 @@ namespace Zametek.Maths.Graphs
                                     }
 
                                     if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (activity.MaximumLatestFinishTime.HasValue
+                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
                                     {
                                         continue;
                                     }
@@ -321,22 +335,6 @@ namespace Zametek.Maths.Graphs
             return resourceScheduleBuilders
                 .Select(x => x.ToResourceSchedule(finishTime))
                 .Where(x => x.ScheduledActivities.Any());
-        }
-
-        internal static IEnumerable<IResourceSchedule<T, TResourceId>> CalculateResourceSchedulesByPriorityList<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>
-            (this GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
-            where T : struct, IComparable<T>, IEquatable<T>
-            where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
-            where TEdgeContent : IHaveId<T>, ICloneObject
-            where TNodeContent : IHaveId<T>, ICloneObject
-            where TActivity : IActivity<T, TResourceId>
-            where TEvent : IEvent<T>
-        {
-            if (graphBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(graphBuilder));
-            }
-            return graphBuilder.CalculateResourceSchedulesByPriorityList(new List<IResource<TResourceId>>());
         }
     }
 }

@@ -61,7 +61,7 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int finishTime)
         {
-            if (scheduledActivities == null)
+            if (scheduledActivities is null)
             {
                 throw new ArgumentNullException(nameof(scheduledActivities));
             }
@@ -175,13 +175,23 @@ namespace Zametek.Maths.Graphs
             return distribution.Select(x => x == TimeType.None || x == TimeType.Ignored ? false : true).ToList();
         }
 
+        private void AddActivity(IScheduledActivity<T> scheduledActivity)
+        {
+            if (scheduledActivity is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivity));
+            }
+
+            m_ScheduledActivities.AddLast(scheduledActivity);
+        }
+
         #endregion
 
         #region Public Methods
 
         public void AppendActivity(IScheduledActivity<T> scheduledActivity)
         {
-            if (scheduledActivity == null)
+            if (scheduledActivity is null)
             {
                 throw new ArgumentNullException(nameof(scheduledActivity));
             }
@@ -190,12 +200,21 @@ namespace Zametek.Maths.Graphs
             {
                 throw new InvalidOperationException($@"Scheduled activity's start time {scheduledActivity.StartTime} is less than the earliest available start time for the next activity {earliestAvailableStartTimeForNextActivity}");
             }
-            m_ScheduledActivities.AddLast(scheduledActivity);
+            AppendActivityWithoutChecks(scheduledActivity);
+        }
+
+        public void AppendActivityWithoutChecks(IScheduledActivity<T> scheduledActivity)
+        {
+            if (scheduledActivity is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivity));
+            }
+            AddActivity(scheduledActivity);
         }
 
         public void AppendActivity(IActivity<T, TResourceId> activity, int startTime)
         {
-            if (activity == null)
+            if (activity is null)
             {
                 throw new ArgumentNullException(nameof(activity));
             }
@@ -203,10 +222,24 @@ namespace Zametek.Maths.Graphs
             {
                 startTime = EarliestAvailableStartTimeForNextActivity;
             }
+            AppendActivityWithoutChecks(activity, startTime);
+        }
+
+        public void AppendActivityWithoutChecks(IActivity<T, TResourceId> activity, int startTime)
+        {
+            if (activity is null)
+            {
+                throw new ArgumentNullException(nameof(activity));
+            }
             var scheduledActivity = new ScheduledActivity<T>(
                 activity.Id, activity.Name, activity.HasNoCost,
                 activity.Duration, startTime, startTime + activity.Duration);
-            m_ScheduledActivities.AddLast(scheduledActivity);
+            AddActivity(scheduledActivity);
+        }
+
+        public void ClearActivities()
+        {
+            m_ScheduledActivities.Clear();
         }
 
         public T? ActivityAt(int time)

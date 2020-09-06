@@ -113,7 +113,7 @@ namespace Zametek.Maths.Graphs
 
         public bool Equals(Node<T, TContent> other)
         {
-            if (other == null)
+            if (other is null)
             {
                 return false;
             }

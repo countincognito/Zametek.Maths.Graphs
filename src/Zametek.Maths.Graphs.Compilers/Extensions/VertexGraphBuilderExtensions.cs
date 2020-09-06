@@ -13,7 +13,7 @@ namespace Zametek.Maths.Graphs
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
-            if (vertexGraphBuilder == null)
+            if (vertexGraphBuilder is null)
             {
                 throw new ArgumentNullException(nameof(vertexGraphBuilder));
             }
@@ -44,7 +44,7 @@ namespace Zametek.Maths.Graphs
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
-            if (vertexGraphBuilder == null)
+            if (vertexGraphBuilder is null)
             {
                 throw new ArgumentNullException(nameof(vertexGraphBuilder));
             }
@@ -337,7 +337,7 @@ namespace Zametek.Maths.Graphs
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         {
-            if (vertexGraphBuilder == null)
+            if (vertexGraphBuilder is null)
             {
                 throw new ArgumentNullException(nameof(vertexGraphBuilder));
             }

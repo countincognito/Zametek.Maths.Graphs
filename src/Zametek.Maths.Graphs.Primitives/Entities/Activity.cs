@@ -30,7 +30,7 @@ namespace Zametek.Maths.Graphs
             int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
             int? maximumLatestFinishTime)
         {
-            if (targetResources == null)
+            if (targetResources is null)
             {
                 throw new ArgumentNullException(nameof(targetResources));
             }

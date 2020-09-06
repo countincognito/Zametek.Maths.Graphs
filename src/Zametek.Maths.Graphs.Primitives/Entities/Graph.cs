@@ -26,11 +26,11 @@ namespace Zametek.Maths.Graphs
 
         public Graph(IEnumerable<Edge<T, TEdgeContent>> edges, IEnumerable<Node<T, TNodeContent>> nodes)
         {
-            if (edges == null)
+            if (edges is null)
             {
                 throw new ArgumentNullException(nameof(edges));
             }
-            if (nodes == null)
+            if (nodes is null)
             {
                 throw new ArgumentNullException(nameof(nodes));
             }
@@ -78,7 +78,7 @@ namespace Zametek.Maths.Graphs
 
         public bool Equals(Graph<T, TEdgeContent, TNodeContent> other)
         {
-            if (other == null)
+            if (other is null)
             {
                 return false;
             }

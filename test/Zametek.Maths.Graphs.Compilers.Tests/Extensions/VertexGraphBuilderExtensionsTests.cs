@@ -2303,7 +2303,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(8, 4), new HashSet<int>(new[] { 4, 6 }));
             graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int>(new[] { 5 }));
 
-            IList<IResourceSchedule<int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList().ToList();
+            IList<IResourceSchedule<int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList(new List<IResource<int>>()).ToList();
             resourceSchedules.Count.Should().Be(3);
 
             var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();

@@ -17,7 +17,7 @@ namespace Zametek.Maths.Graphs
             int finishTime,
             IEnumerable<bool> activityAllocation)
         {
-            if (scheduledActivities == null)
+            if (scheduledActivities is null)
             {
                 throw new ArgumentNullException(nameof(scheduledActivities));
             }

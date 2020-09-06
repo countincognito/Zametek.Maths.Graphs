@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs
 
         //private void RemoveParallelIncomingEdges(Node<T, TActivity> node)
         //{
-        //    if (node == null)
+        //    if (node is null)
         //    {
         //        throw new ArgumentNullException(nameof(node));
         //    }
@@ -101,7 +101,7 @@ namespace Zametek.Maths.Graphs
 
         private void RemoveRedundantIncomingEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
-            if (nodeIdAncestorLookup == null)
+            if (nodeIdAncestorLookup is null)
             {
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }
@@ -211,7 +211,7 @@ namespace Zametek.Maths.Graphs
 
         private void RemoveUnsatisfiedSuccessorActivityDependencies(T activityId, HashSet<T> dependencies)
         {
-            if (dependencies == null)
+            if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
@@ -260,7 +260,7 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(activity));
             }
-            if (dependencies == null)
+            if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
@@ -327,7 +327,7 @@ namespace Zametek.Maths.Graphs
 
         public override bool AddActivityDependencies(T activityId, HashSet<T> dependencies)
         {
-            if (dependencies == null)
+            if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
@@ -515,7 +515,7 @@ namespace Zametek.Maths.Graphs
 
         public override bool RemoveActivityDependencies(T activityId, HashSet<T> dependencies)
         {
-            if (dependencies == null)
+            if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
@@ -631,7 +631,7 @@ namespace Zametek.Maths.Graphs
         public override bool TransitiveReduction()
         {
             IDictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
-            if (ancestorNodesLookup == null)
+            if (ancestorNodesLookup is null)
             {
                 return false;
             }

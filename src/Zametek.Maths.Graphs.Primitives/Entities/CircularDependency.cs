@@ -56,7 +56,7 @@ namespace Zametek.Maths.Graphs
 
         public bool Equals(CircularDependency<T> other)
         {
-            if (other == null)
+            if (other is null)
             {
                 return false;
             }
