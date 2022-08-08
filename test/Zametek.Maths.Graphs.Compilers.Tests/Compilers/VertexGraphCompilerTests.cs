@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -62,11 +63,13 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.Errors.Should().NotBeNull();
-            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
-            compilation.Errors.InvalidConstraints.Should().BeEquivalentTo(new List<int>(new int[] { 4 }));
-            compilation.Errors.MissingDependencies.Should().BeEmpty();
-            compilation.Errors.CircularDependencies.Should().BeEmpty();
+            compilation.CompilationErrors.Should().NotBeEmpty();
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+
+            compilationErrors.Count().Should().Be(1);
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0030);
+            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_InvalidConstraints} 4{Environment.NewLine}");
         }
 
         [Fact]
@@ -86,14 +89,13 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.Errors.Should().NotBeNull();
-            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
-            compilation.Errors.InvalidConstraints.Should().BeEmpty();
-            compilation.Errors.MissingDependencies.Should().BeEmpty();
-            var circularDependencies = compilation.Errors.CircularDependencies.ToList();
-            circularDependencies.Count().Should().Be(2);
-            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
-            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
+            compilation.CompilationErrors.Should().NotBeEmpty();
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+
+            compilationErrors.Count().Should().Be(1);
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0020);
+            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_CircularDependencies}{Environment.NewLine}4 -> 7 -> 2{Environment.NewLine}9 -> 8 -> 5{Environment.NewLine}");
         }
 
         [Fact]
@@ -113,11 +115,12 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.Errors.Should().NotBeNull();
-            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
-            compilation.Errors.InvalidConstraints.Should().BeEmpty();
-            compilation.Errors.MissingDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
-            compilation.Errors.CircularDependencies.Should().BeEmpty();
+            compilation.CompilationErrors.Should().NotBeEmpty();
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+            compilationErrors.Count().Should().Be(1);
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0010);
+            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_MissingDependencies}{Environment.NewLine}21 {Resources.Message_IsMissingFrom} 3{Environment.NewLine}22 {Resources.Message_IsMissingFrom} 7{Environment.NewLine}");
         }
 
         [Fact]
@@ -137,14 +140,20 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.Errors.Should().NotBeNull();
-            compilation.Errors.AllResourcesExplicitTargetsButNotAllActivitiesTargeted.Should().BeFalse();
-            compilation.Errors.InvalidConstraints.Should().BeEquivalentTo(new List<int>(new int[] { 4 }));
-            var circularDependencies = compilation.Errors.CircularDependencies.ToList();
-            circularDependencies.Count.Should().Be(2);
-            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2, 4, 7 }));
-            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new List<int>(new int[] { 5, 8, 9 }));
-            compilation.Errors.MissingDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 21, 22 }));
+            compilation.CompilationErrors.Should().NotBeEmpty();
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+
+            compilationErrors.Count().Should().Be(3);
+
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0010);
+            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_MissingDependencies}{Environment.NewLine}21 {Resources.Message_IsMissingFrom} 3{Environment.NewLine}22 {Resources.Message_IsMissingFrom} 7{Environment.NewLine}");
+
+            compilationErrors[1].ErrorCode.Should().Be(GraphCompilationErrorCode.C0020);
+            compilationErrors[1].ErrorMessage.Should().Be($@"{Resources.Message_CircularDependencies}{Environment.NewLine}4 -> 7 -> 2{Environment.NewLine}9 -> 8 -> 5{Environment.NewLine}");
+
+            compilationErrors[2].ErrorCode.Should().Be(GraphCompilationErrorCode.C0030);
+            compilationErrors[2].ErrorMessage.Should().Be($@"{Resources.Message_InvalidConstraints} 4{Environment.NewLine}");
         }
 
         [Fact]
@@ -173,7 +182,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
 
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.Should().Be(3);
@@ -332,7 +341,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.Should().Be(3);
 
@@ -497,7 +506,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int>(resourceId2, string.Empty, false, InterActivityAllocationType.Direct, 1.0, 0),
                 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(2);
 
@@ -690,7 +699,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int>(resourceId2, string.Empty, false, InterActivityAllocationType.Indirect, 1.0, 0),
                 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(2);
 
@@ -882,7 +891,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(3);
 
@@ -969,7 +978,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(3);
 
@@ -1056,7 +1065,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(3);
 
@@ -1143,7 +1152,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(3);
 
@@ -1225,7 +1234,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1283,7 +1292,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1341,7 +1350,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1399,7 +1408,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1457,7 +1466,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1515,7 +1524,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1573,7 +1582,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1631,7 +1640,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 
@@ -1689,7 +1698,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int>>(new[] { resource1 }));
 
-            compilation.Errors.Should().BeNull();
+            compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count().Should().Be(1);
 

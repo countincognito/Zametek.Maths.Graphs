@@ -297,6 +297,7 @@ namespace Zametek.Maths.Graphs
                     }
 
                     node.Content.EarliestStartTime = earliestStartTime;
+                
                 }
 
                 if (!node.Content.LatestFinishTime.HasValue)

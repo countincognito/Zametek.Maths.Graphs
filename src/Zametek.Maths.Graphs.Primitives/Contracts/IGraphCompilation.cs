@@ -8,7 +8,7 @@ namespace Zametek.Maths.Graphs
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
     {
-        IGraphCompilationErrors<T> Errors { get; }
+        IEnumerable<IGraphCompilationError> CompilationErrors { get; }
 
         IEnumerable<TDependentActivity> DependentActivities { get; }
 

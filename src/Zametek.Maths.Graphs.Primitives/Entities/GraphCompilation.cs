@@ -15,28 +15,23 @@ namespace Zametek.Maths.Graphs
         public GraphCompilation(
             IEnumerable<TDependentActivity> dependentActivities,
             IEnumerable<IResourceSchedule<T, TResourceId>> resourceSchedules)
+            : this(dependentActivities, resourceSchedules, Enumerable.Empty<IGraphCompilationError>())
         {
-            DependentActivities = dependentActivities.ToList();
-            ResourceSchedules = resourceSchedules.ToList();
         }
 
         public GraphCompilation(
             IEnumerable<TDependentActivity> dependentActivities,
             IEnumerable<IResourceSchedule<T, TResourceId>> resourceSchedules,
-            IGraphCompilationErrors<T> graphCompilationErrors)
-            : this(dependentActivities, resourceSchedules)
+            IEnumerable<IGraphCompilationError> compilationErrors)
         {
-            Errors = graphCompilationErrors ?? throw new ArgumentNullException(nameof(graphCompilationErrors));
+            DependentActivities = dependentActivities.ToList();
+            ResourceSchedules = resourceSchedules.ToList();
+            CompilationErrors = compilationErrors.ToList();
         }
 
         #endregion
 
         #region GraphCompilation<T> Members
-
-        public IGraphCompilationErrors<T> Errors
-        {
-            get;
-        }
 
         public IEnumerable<TDependentActivity> DependentActivities
         {
@@ -44,6 +39,11 @@ namespace Zametek.Maths.Graphs
         }
 
         public IEnumerable<IResourceSchedule<T, TResourceId>> ResourceSchedules
+        {
+            get;
+        }
+
+        public IEnumerable<IGraphCompilationError> CompilationErrors
         {
             get;
         }

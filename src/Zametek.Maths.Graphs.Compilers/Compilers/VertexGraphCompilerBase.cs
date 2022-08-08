@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 
 namespace Zametek.Maths.Graphs
 {
@@ -213,9 +215,11 @@ namespace Zametek.Maths.Graphs
 
             lock (m_Lock)
             {
+                IEnumerable<TDependentActivity> activities = m_VertexGraphBuilder.Activities;
+
                 // Reset activity dependencies in the graph to match only the compiled dependencies
                 // (i.e. remove any that are *only* resource dependencies).
-                foreach (TDependentActivity activity in m_VertexGraphBuilder.Activities)
+                foreach (TDependentActivity activity in activities)
                 {
                     m_VertexGraphBuilder.RemoveActivityDependencies(
                         activity.Id,
@@ -224,31 +228,72 @@ namespace Zametek.Maths.Graphs
                     activity.AllocatedToResources.Clear();
                 }
 
+                // Sanity check the graph data.
+                IEnumerable<T> missingDependencies = m_VertexGraphBuilder.MissingDependencies;
+                IEnumerable<CircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
+                IEnumerable<T> invalidConstraints = m_VertexGraphBuilder.FindInvalidConstraints();
+
                 // Sanity check the resources.
                 bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
                     resources.Any()
                     && resources.All(x => x.IsExplicitTarget)
                     && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
 
-                // Sanity check the graph data.
-                IEnumerable<CircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
-                IEnumerable<T> missingDependencies = m_VertexGraphBuilder.MissingDependencies;
-                IEnumerable<T> invalidConstraints = m_VertexGraphBuilder.FindInvalidConstraints();
+                // Collate the errors that exist (if any).
 
-                if (circularDependencies.Any()
-                    || missingDependencies.Any()
-                    || invalidConstraints.Any()
-                    || allResourcesExplicitTargetsButNotAllActivitiesTargeted
-                    || !m_VertexGraphBuilder.CleanUpEdges())
+                var compilationErrors = new List<GraphCompilationError>();
+
+                // C0010
+                if (missingDependencies.Any())
+                {
+                    compilationErrors.Add(
+                        new GraphCompilationError(
+                            GraphCompilationErrorCode.C0010,
+                            BuildMissingDependenciesErrorMessage(missingDependencies, activities)));
+                }
+
+                // C0020
+                if (circularDependencies.Any())
+                {
+                    compilationErrors.Add(
+                        new GraphCompilationError(
+                            GraphCompilationErrorCode.C0020,
+                            BuildCircularDependenciesErrorMessage(circularDependencies)));
+                }
+
+                // C0030
+                if (invalidConstraints.Any())
+                {
+                    compilationErrors.Add(
+                        new GraphCompilationError(
+                            GraphCompilationErrorCode.C0030,
+                            BuildInvalidConstraintsErrorMessage(invalidConstraints)));
+                }
+
+                // C0040
+                if (allResourcesExplicitTargetsButNotAllActivitiesTargeted)
+                {
+                    compilationErrors.Add(
+                        new GraphCompilationError(
+                            GraphCompilationErrorCode.C0040,
+                            $@"{Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
+                }
+
+                // C0050
+                if (!m_VertexGraphBuilder.CleanUpEdges())
+                {
+                    compilationErrors.Add(
+                        new GraphCompilationError(
+                            GraphCompilationErrorCode.C0050,
+                            $@"{Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
+                }
+
+                if (compilationErrors.Any())
                 {
                     return new GraphCompilation<T, TResourceId, TDependentActivity>(
                         m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
                         Enumerable.Empty<IResourceSchedule<T, TResourceId>>(),
-                        new GraphCompilationErrors<T>(
-                            allResourcesExplicitTargetsButNotAllActivitiesTargeted,
-                            circularDependencies,
-                            missingDependencies,
-                            invalidConstraints));
+                        compilationErrors);
                 }
 
                 // Perform first compilation and calculate resource schedules.
@@ -332,6 +377,56 @@ namespace Zametek.Maths.Graphs
                     m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
                     newResourceSchedules.ToList());
             }
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private static string BuildMissingDependenciesErrorMessage(
+            IEnumerable<T> missingDependencies,
+            IEnumerable<TDependentActivity> activities)
+        {
+            if (missingDependencies == null || !missingDependencies.Any()
+                || activities == null || !activities.Any())
+            {
+                return string.Empty;
+            }
+            var output = new StringBuilder();
+            output.AppendLine($@"{Resources.Message_MissingDependencies}");
+            foreach (T missingDependency in missingDependencies)
+            {
+                IList<T> actsWithMissingDeps = activities
+                    .Where(x => x.Dependencies.Contains(missingDependency))
+                    .Select(x => x.Id)
+                    .ToList();
+                output.AppendLine($@"{missingDependency} {Resources.Message_IsMissingFrom} {string.Join(@", ", actsWithMissingDeps)}");
+            }
+            return output.ToString();
+        }
+
+        private static string BuildCircularDependenciesErrorMessage(IEnumerable<ICircularDependency<T>> circularDependencies)
+        {
+            if (circularDependencies == null || !circularDependencies.Any())
+            {
+                return string.Empty;
+            }
+            var output = new StringBuilder();
+            output.AppendLine($@"{Resources.Message_CircularDependencies}");
+            foreach (CircularDependency<T> circularDependency in circularDependencies)
+            {
+                output.AppendLine(string.Join(@" -> ", circularDependency.Dependencies));
+            }
+            return output.ToString();
+        }
+
+        private static string BuildInvalidConstraintsErrorMessage(IEnumerable<T> invalidConstraints)
+        {
+            if (invalidConstraints == null || !invalidConstraints.Any())
+            {
+                return string.Empty;
+            }
+            return $@"{Resources.Message_InvalidConstraints} {string.Join(@", ", invalidConstraints)}{Environment.NewLine}";
         }
 
         #endregion
