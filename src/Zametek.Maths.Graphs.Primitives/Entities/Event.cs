@@ -5,7 +5,7 @@ namespace Zametek.Maths.Graphs
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "No better term available")]
     public class Event<T>
         : IEvent<T>
-        where T : IComparable<T>, IEquatable<T>
+        where T : struct, IComparable<T>, IEquatable<T>
     {
         #region Ctors
 

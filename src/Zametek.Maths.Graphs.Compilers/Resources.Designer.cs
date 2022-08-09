@@ -71,11 +71,38 @@ namespace Zametek.Maths.Graphs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot set MinimumFreeSlack and MaximumLatestFinishTime at the same time.
+        /// </summary>
+        internal static string Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime {
+            get {
+                return ResourceManager.GetString("Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Circular activity dependencies:.
         /// </summary>
         internal static string Message_CircularDependencies {
             get {
                 return ResourceManager.GetString("Message_CircularDependencies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EarliestFinishTime cannot be less than zero.
+        /// </summary>
+        internal static string Message_EarliestFinishTimeLessThanZero {
+            get {
+                return ResourceManager.GetString("Message_EarliestFinishTimeLessThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EarliestStartTime cannot be less than zero.
+        /// </summary>
+        internal static string Message_EarliestStartTimeLessThanZero {
+            get {
+                return ResourceManager.GetString("Message_EarliestStartTimeLessThanZero", resourceCulture);
             }
         }
         
@@ -94,6 +121,52 @@ namespace Zametek.Maths.Graphs {
         internal static string Message_IsMissingFrom {
             get {
                 return ResourceManager.GetString("Message_IsMissingFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LatestFinishTime cannot be less than EarliestFinishTime.
+        /// </summary>
+        internal static string Message_LatestFinishTimeLessThanEarliestFinishTime {
+            get {
+                return ResourceManager.GetString("Message_LatestFinishTimeLessThanEarliestFinishTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LatestFinishTime cannot be less than zero.
+        /// </summary>
+        internal static string Message_LatestFinishTimeLessThanZero {
+            get {
+                return ResourceManager.GetString("Message_LatestFinishTimeLessThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LatestStartTime cannot be less than EarliestStartTime.
+        /// </summary>
+        internal static string Message_LatestStartTimeLessThanEarliestStartTime {
+            get {
+                return ResourceManager.GetString("Message_LatestStartTimeLessThanEarliestStartTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LatestStartTime cannot be less than zero.
+        /// </summary>
+        internal static string Message_LatestStartTimeLessThanZero {
+            get {
+                return ResourceManager.GetString("Message_LatestStartTimeLessThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (MinimumEarliestStartTime + Duration) must be greater than MaximumLatestFinishTime.
+        /// </summary>
+        internal static string Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime {
+            get {
+                return ResourceManager.GetString("Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishT" +
+                        "ime", resourceCulture);
             }
         }
         

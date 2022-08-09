@@ -52,7 +52,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (vertexGraphBuilder.FindInvalidConstraints().Any())
+            if (vertexGraphBuilder.FindInvalidPreCompilationConstraints().Any())
             {
                 return false;
             }
@@ -346,7 +346,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (vertexGraphBuilder.FindInvalidConstraints().Any())
+            if (vertexGraphBuilder.FindInvalidPreCompilationConstraints().Any())
             {
                 return false;
             }

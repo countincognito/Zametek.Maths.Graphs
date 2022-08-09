@@ -6,7 +6,7 @@ namespace Zametek.Maths.Graphs
 {
     public class Node<T, TContent>
         : IHaveId<T>, IHaveContent<TContent>, IEquatable<Node<T, TContent>>, ICloneObject
-        where T : IComparable<T>, IEquatable<T>
+        where T : struct, IComparable<T>, IEquatable<T>
         where TContent : IHaveId<T>, ICloneObject
     {
         #region Fields

@@ -238,29 +238,93 @@ namespace Zametek.Maths.Graphs
 
         public abstract bool RemoveActivityDependencies(T activityId, HashSet<T> dependencies);
 
-        public IList<CircularDependency<T>> FindStrongCircularDependencies()
+        public IList<ICircularDependency<T>> FindStrongCircularDependencies()
         {
             return FindStronglyConnectedComponents().Where(x => x.Dependencies.Count > 1).ToList();
         }
 
-        public IList<T> FindInvalidConstraints()
+        public IList<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints()
         {
-            var activitiesWithInvalidConstraints = new List<T>();
+            var activitiesWithInvalidConstraints = new List<IInvalidConstraint<T>>();
 
             foreach (IActivity<T, TResourceId> activity in Activities)
             {
                 if (activity.MinimumFreeSlack.HasValue
                     && activity.MaximumLatestFinishTime.HasValue)
                 {
-                    activitiesWithInvalidConstraints.Add(activity.Id);
+                    activitiesWithInvalidConstraints.Add(
+                        new InvalidConstraint<T>(activity.Id, Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime));
                     continue;
                 }
                 if (activity.MinimumEarliestStartTime.HasValue
                     && activity.MaximumLatestFinishTime.HasValue
                     && (activity.MinimumEarliestStartTime.Value + activity.Duration) > activity.MaximumLatestFinishTime.Value)
                 {
-                    activitiesWithInvalidConstraints.Add(activity.Id);
+                    activitiesWithInvalidConstraints.Add(
+                        new InvalidConstraint<T>(activity.Id, Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime));
                     continue;
+                }
+            }
+
+            return activitiesWithInvalidConstraints;
+        }
+
+        public IList<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints()
+        {
+            var activitiesWithInvalidConstraints = new List<IInvalidConstraint<T>>();
+
+            foreach (IActivity<T, TResourceId> activity in Activities)
+            {
+                if (activity.EarliestStartTime.HasValue
+                    && activity.EarliestFinishTime.HasValue)
+                {
+                    if (activity.EarliestStartTime < 0)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Resources.Message_EarliestStartTimeLessThanZero));
+                    }
+
+                    if (activity.EarliestFinishTime < 0)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Resources.Message_EarliestFinishTimeLessThanZero));
+                    }
+                }
+
+                if (activity.LatestStartTime.HasValue
+                    && activity.LatestFinishTime.HasValue)
+                {
+                    if (activity.LatestStartTime < 0)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestStartTimeLessThanZero));
+                    }
+
+                    if (activity.LatestFinishTime < 0)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestFinishTimeLessThanZero));
+                    }
+                }
+
+                if (activity.EarliestStartTime.HasValue
+                    && activity.LatestStartTime.HasValue)
+                {
+                    if (activity.LatestStartTime < activity.EarliestStartTime)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestStartTimeLessThanEarliestStartTime));
+                    }
+                }
+
+                if (activity.EarliestFinishTime.HasValue
+                    && activity.LatestFinishTime.HasValue)
+                {
+                    if (activity.LatestFinishTime < activity.EarliestFinishTime)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestFinishTimeLessThanEarliestFinishTime));
+                    }
                 }
             }
 
@@ -273,7 +337,7 @@ namespace Zametek.Maths.Graphs
             {
                 return null;
             }
-            IList<CircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
+            IList<ICircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
             if (circularDependencies.Any())
             {
                 return null;
@@ -548,7 +612,7 @@ namespace Zametek.Maths.Graphs
             return false;
         }
 
-        protected abstract IList<CircularDependency<T>> FindStronglyConnectedComponents();
+        protected abstract IList<ICircularDependency<T>> FindStronglyConnectedComponents();
 
         #endregion
 

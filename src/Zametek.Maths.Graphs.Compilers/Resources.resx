@@ -120,14 +120,38 @@
   <data name="Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted" xml:space="preserve">
     <value>All resources are explicit targets, but not all activities have targeted resources</value>
   </data>
+  <data name="Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime" xml:space="preserve">
+    <value>Cannot set MinimumFreeSlack and MaximumLatestFinishTime at the same time</value>
+  </data>
   <data name="Message_CircularDependencies" xml:space="preserve">
     <value>Circular activity dependencies:</value>
+  </data>
+  <data name="Message_EarliestFinishTimeLessThanZero" xml:space="preserve">
+    <value>EarliestFinishTime cannot be less than zero</value>
+  </data>
+  <data name="Message_EarliestStartTimeLessThanZero" xml:space="preserve">
+    <value>EarliestStartTime cannot be less than zero</value>
   </data>
   <data name="Message_InvalidConstraints" xml:space="preserve">
     <value>Invalid activity constraints:</value>
   </data>
   <data name="Message_IsMissingFrom" xml:space="preserve">
     <value>is missing from:</value>
+  </data>
+  <data name="Message_LatestFinishTimeLessThanEarliestFinishTime" xml:space="preserve">
+    <value>LatestFinishTime cannot be less than EarliestFinishTime</value>
+  </data>
+  <data name="Message_LatestFinishTimeLessThanZero" xml:space="preserve">
+    <value>LatestFinishTime cannot be less than zero</value>
+  </data>
+  <data name="Message_LatestStartTimeLessThanEarliestStartTime" xml:space="preserve">
+    <value>LatestStartTime cannot be less than EarliestStartTime</value>
+  </data>
+  <data name="Message_LatestStartTimeLessThanZero" xml:space="preserve">
+    <value>LatestStartTime cannot be less than zero</value>
+  </data>
+  <data name="Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime" xml:space="preserve">
+    <value>(MinimumEarliestStartTime + Duration) must be greater than MaximumLatestFinishTime</value>
   </data>
   <data name="Message_MissingDependencies" xml:space="preserve">
     <value>Missing activity dependencies:</value>

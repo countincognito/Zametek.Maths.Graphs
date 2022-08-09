@@ -58,7 +58,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int>(new[] { 3 })));
             graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int>(new[] { 4 })));
             graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int>(new[] { 4, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
@@ -68,8 +68,12 @@ namespace Zametek.Maths.Graphs.Tests
             var compilationErrors = compilation.CompilationErrors.ToList();
 
             compilationErrors.Count().Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0030);
-            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_InvalidConstraints} 4{Environment.NewLine}");
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0030);
+            compilationErrors[0].ErrorMessage.Should().Be(
+                $@"{Resources.Message_InvalidConstraints}
+4 -> {Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}
+9 -> {Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime}
+");
         }
 
         [Fact]
@@ -94,8 +98,12 @@ namespace Zametek.Maths.Graphs.Tests
             var compilationErrors = compilation.CompilationErrors.ToList();
 
             compilationErrors.Count().Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0020);
-            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_CircularDependencies}{Environment.NewLine}4 -> 7 -> 2{Environment.NewLine}9 -> 8 -> 5{Environment.NewLine}");
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0020);
+            compilationErrors[0].ErrorMessage.Should().Be(
+                $@"{Resources.Message_CircularDependencies}
+4 -> 7 -> 2
+9 -> 8 -> 5
+");
         }
 
         [Fact]
@@ -119,8 +127,12 @@ namespace Zametek.Maths.Graphs.Tests
 
             var compilationErrors = compilation.CompilationErrors.ToList();
             compilationErrors.Count().Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0010);
-            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_MissingDependencies}{Environment.NewLine}21 {Resources.Message_IsMissingFrom} 3{Environment.NewLine}22 {Resources.Message_IsMissingFrom} 7{Environment.NewLine}");
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0010);
+            compilationErrors[0].ErrorMessage.Should().Be(
+                $@"{Resources.Message_MissingDependencies}
+21 {Resources.Message_IsMissingFrom} 3
+22 {Resources.Message_IsMissingFrom} 7
+");
         }
 
         [Fact]
@@ -146,14 +158,59 @@ namespace Zametek.Maths.Graphs.Tests
 
             compilationErrors.Count().Should().Be(3);
 
+            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0010);
+            compilationErrors[0].ErrorMessage.Should().Be(
+                $@"{Resources.Message_MissingDependencies}
+21 {Resources.Message_IsMissingFrom} 3
+22 {Resources.Message_IsMissingFrom} 7
+");
+
+            compilationErrors[1].ErrorCode.Should().Be(GraphCompilationErrorCode.P0020);
+            compilationErrors[1].ErrorMessage.Should().Be(
+                $@"{Resources.Message_CircularDependencies}
+4 -> 7 -> 2
+9 -> 8 -> 5
+");
+
+            compilationErrors[2].ErrorCode.Should().Be(GraphCompilationErrorCode.P0030);
+            compilationErrors[2].ErrorMessage.Should().Be(
+                $@"{Resources.Message_InvalidConstraints}
+4 -> {Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}
+");
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithPostCompilationInvalidConstraints_ThenFindsInvalidConstraints()
+        {
+            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int>(new[] { 2 })) { MaximumLatestFinishTime = 5 }  );
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int>(new[] { 3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int>(new[] { 4 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int>(new[] { 4, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
+
+            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+
+            compilation.ResourceSchedules.Should().BeEmpty();
+            compilation.CompilationErrors.Should().NotBeEmpty();
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+
+            compilationErrors.Count().Should().Be(1);
             compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0010);
-            compilationErrors[0].ErrorMessage.Should().Be($@"{Resources.Message_MissingDependencies}{Environment.NewLine}21 {Resources.Message_IsMissingFrom} 3{Environment.NewLine}22 {Resources.Message_IsMissingFrom} 7{Environment.NewLine}");
-
-            compilationErrors[1].ErrorCode.Should().Be(GraphCompilationErrorCode.C0020);
-            compilationErrors[1].ErrorMessage.Should().Be($@"{Resources.Message_CircularDependencies}{Environment.NewLine}4 -> 7 -> 2{Environment.NewLine}9 -> 8 -> 5{Environment.NewLine}");
-
-            compilationErrors[2].ErrorCode.Should().Be(GraphCompilationErrorCode.C0030);
-            compilationErrors[2].ErrorMessage.Should().Be($@"{Resources.Message_InvalidConstraints} 4{Environment.NewLine}");
+            compilationErrors[0].ErrorMessage.Should().Be(
+                $@"{Resources.Message_InvalidConstraints}
+2 -> {Resources.Message_LatestStartTimeLessThanZero}
+2 -> {Resources.Message_LatestFinishTimeLessThanZero}
+2 -> {Resources.Message_LatestStartTimeLessThanEarliestStartTime}
+2 -> {Resources.Message_LatestFinishTimeLessThanEarliestFinishTime}
+4 -> {Resources.Message_EarliestStartTimeLessThanZero}
+4 -> {Resources.Message_LatestStartTimeLessThanZero}
+");
         }
 
         [Fact]

@@ -230,8 +230,8 @@ namespace Zametek.Maths.Graphs
 
                 // Sanity check the graph data.
                 IEnumerable<T> missingDependencies = m_VertexGraphBuilder.MissingDependencies;
-                IEnumerable<CircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
-                IEnumerable<T> invalidConstraints = m_VertexGraphBuilder.FindInvalidConstraints();
+                IEnumerable<ICircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
+                IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = m_VertexGraphBuilder.FindInvalidPreCompilationConstraints();
 
                 // Sanity check the resources.
                 bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
@@ -239,52 +239,52 @@ namespace Zametek.Maths.Graphs
                     && resources.All(x => x.IsExplicitTarget)
                     && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
 
-                // Collate the errors that exist (if any).
+                // Collate pre-compilation errors, if any exist.
 
                 var compilationErrors = new List<GraphCompilationError>();
 
-                // C0010
+                // P0010
                 if (missingDependencies.Any())
                 {
                     compilationErrors.Add(
                         new GraphCompilationError(
-                            GraphCompilationErrorCode.C0010,
+                            GraphCompilationErrorCode.P0010,
                             BuildMissingDependenciesErrorMessage(missingDependencies, activities)));
                 }
 
-                // C0020
+                // P0020
                 if (circularDependencies.Any())
                 {
                     compilationErrors.Add(
                         new GraphCompilationError(
-                            GraphCompilationErrorCode.C0020,
+                            GraphCompilationErrorCode.P0020,
                             BuildCircularDependenciesErrorMessage(circularDependencies)));
                 }
 
-                // C0030
-                if (invalidConstraints.Any())
+                // P0030
+                if (invalidPrecompilationConstraints.Any())
                 {
                     compilationErrors.Add(
                         new GraphCompilationError(
-                            GraphCompilationErrorCode.C0030,
-                            BuildInvalidConstraintsErrorMessage(invalidConstraints)));
+                            GraphCompilationErrorCode.P0030,
+                            BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
                 }
 
-                // C0040
+                // P0040
                 if (allResourcesExplicitTargetsButNotAllActivitiesTargeted)
                 {
                     compilationErrors.Add(
                         new GraphCompilationError(
-                            GraphCompilationErrorCode.C0040,
+                            GraphCompilationErrorCode.P0040,
                             $@"{Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
                 }
 
-                // C0050
+                // P0050
                 if (!m_VertexGraphBuilder.CleanUpEdges())
                 {
                     compilationErrors.Add(
                         new GraphCompilationError(
-                            GraphCompilationErrorCode.C0050,
+                            GraphCompilationErrorCode.P0050,
                             $@"{Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
                 }
 
@@ -340,6 +340,27 @@ namespace Zametek.Maths.Graphs
 
                     // Rerun the compilation with the new dependencies.
                     m_VertexGraphBuilder.CalculateCriticalPath();
+                }
+
+                // Collate post-compilation errors, if any exist.
+
+                IEnumerable<IInvalidConstraint<T>> invalidPostcompilationConstraints = m_VertexGraphBuilder.FindInvalidPostCompilationConstraints();
+
+                // C0010
+                if (invalidPostcompilationConstraints.Any())
+                {
+                    compilationErrors.Add(
+                        new GraphCompilationError(
+                            GraphCompilationErrorCode.C0010,
+                            BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
+                }
+
+                if (compilationErrors.Any())
+                {
+                    return new GraphCompilation<T, TResourceId, TDependentActivity>(
+                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
+                        Enumerable.Empty<IResourceSchedule<T, TResourceId>>(),
+                        compilationErrors);
                 }
 
                 // Go through each resource schedule and ensure the scheduled activities
@@ -413,20 +434,26 @@ namespace Zametek.Maths.Graphs
             }
             var output = new StringBuilder();
             output.AppendLine($@"{Resources.Message_CircularDependencies}");
-            foreach (CircularDependency<T> circularDependency in circularDependencies)
+            foreach (ICircularDependency<T> circularDependency in circularDependencies)
             {
                 output.AppendLine(string.Join(@" -> ", circularDependency.Dependencies));
             }
             return output.ToString();
         }
 
-        private static string BuildInvalidConstraintsErrorMessage(IEnumerable<T> invalidConstraints)
+        private static string BuildInvalidConstraintsErrorMessage(IEnumerable<IInvalidConstraint<T>> invalidConstraints)
         {
             if (invalidConstraints == null || !invalidConstraints.Any())
             {
                 return string.Empty;
             }
-            return $@"{Resources.Message_InvalidConstraints} {string.Join(@", ", invalidConstraints)}{Environment.NewLine}";
+            var output = new StringBuilder();
+            output.AppendLine($@"{Resources.Message_InvalidConstraints}");
+            foreach (IInvalidConstraint<T> invalidConstraint in invalidConstraints)
+            {
+                output.AppendLine($@"{invalidConstraint.Id} -> {invalidConstraint.Message}");
+            }
+            return output.ToString();
         }
 
         #endregion

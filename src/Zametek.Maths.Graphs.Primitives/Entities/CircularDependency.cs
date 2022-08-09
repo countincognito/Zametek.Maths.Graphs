@@ -6,7 +6,7 @@ namespace Zametek.Maths.Graphs
 {
     public class CircularDependency<T>
         : ICircularDependency<T>, IEquatable<CircularDependency<T>>
-        where T : IComparable<T>, IEquatable<T>
+        where T : struct, IComparable<T>, IEquatable<T>
     {
         #region Fields
 

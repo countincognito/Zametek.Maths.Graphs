@@ -1200,7 +1200,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(7, 0), new HashSet<int>(new[] { 4 }));
             graphBuilder.AddActivity(new Activity<int, int>(8, 0), new HashSet<int>(new[] { 9, 6 }));
             graphBuilder.AddActivity(new Activity<int, int>(9, 0), new HashSet<int>(new[] { 5 }));
-            IList<CircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
+            IList<ICircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
             circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });
@@ -1222,7 +1222,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(7, 10), new HashSet<int>(new[] { 4 }));
             graphBuilder.AddActivity(new Activity<int, int>(8, 10), new HashSet<int>(new[] { 9, 6 }));
             graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int>(new[] { 5 }));
-            IList<CircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
+            IList<ICircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
             circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });

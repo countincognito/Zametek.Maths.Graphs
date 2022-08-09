@@ -56,7 +56,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (arrowGraphBuilder.FindInvalidConstraints().Any())
+            if (arrowGraphBuilder.FindInvalidPreCompilationConstraints().Any())
             {
                 return false;
             }
@@ -175,7 +175,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (arrowGraphBuilder.FindInvalidConstraints().Any())
+            if (arrowGraphBuilder.FindInvalidPreCompilationConstraints().Any())
             {
                 return false;
             }
@@ -285,7 +285,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (arrowGraphBuilder.FindInvalidConstraints().Any())
+            if (arrowGraphBuilder.FindInvalidPreCompilationConstraints().Any())
             {
                 return false;
             }

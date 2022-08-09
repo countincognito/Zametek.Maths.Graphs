@@ -661,13 +661,13 @@ namespace Zametek.Maths.Graphs
 
         // Tarjan's strongly connected components algorithm.
         // https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
-        protected override IList<CircularDependency<T>> FindStronglyConnectedComponents()
+        protected override IList<ICircularDependency<T>> FindStronglyConnectedComponents()
         {
             int index = 0;
             var stack = new Stack<T>();
             var indexLookup = new Dictionary<T, int>();
             var lowLinkLookup = new Dictionary<T, int>();
-            var circularDependencies = new List<CircularDependency<T>>();
+            var circularDependencies = new List<ICircularDependency<T>>();
 
             foreach (T id in NodeIds)
             {

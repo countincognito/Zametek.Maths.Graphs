@@ -2,10 +2,9 @@
 
 namespace Zametek.Maths.Graphs
 {
-    public class Edge<T, TContent>
-        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Edge<T, TContent>>, ICloneObject
+    public class InvalidConstraint<T>
+        : IInvalidConstraint<T>, IEquatable<InvalidConstraint<T>>
         where T : struct, IComparable<T>, IEquatable<T>
-        where TContent : IHaveId<T>, ICloneObject
     {
         #region Fields
 
@@ -16,22 +15,22 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
-        public Edge(TContent content)
+        public InvalidConstraint(T id, string message)
         {
-            if (content == null)
-            {
-                throw new ArgumentNullException(nameof(content));
-            }
-            Content = content;
+            Id = id;
+            Message = message;
         }
 
         #endregion
 
-        #region Properties
+        #region IInvalidConstraint<T> Members
 
-        public T Id => Content.Id;
+        public T Id
+        {
+            get;
+        }
 
-        public TContent Content
+        public string Message
         {
             get;
         }
@@ -42,7 +41,7 @@ namespace Zametek.Maths.Graphs
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as Edge<T, TContent>);
+            return Equals(obj as InvalidConstraint<T>);
         }
 
         public override int GetHashCode()
@@ -51,6 +50,7 @@ namespace Zametek.Maths.Graphs
             {
                 int hash = HashFactorOne;
                 hash = hash * HashFactorTwo + Id.GetHashCode();
+                hash = hash * HashFactorTwo + Message.GetHashCode();
                 return hash;
             }
         }
@@ -59,22 +59,15 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
-        public bool Equals(Edge<T, TContent> other)
+        public bool Equals(InvalidConstraint<T> other)
         {
             if (other is null)
             {
                 return false;
             }
-            return Id.Equals(other.Id);
-        }
 
-        #endregion
-
-        #region ICloneObject
-
-        public object CloneObject()
-        {
-            return new Edge<T, TContent>((TContent)Content.CloneObject());
+            return Id.Equals(other.Id)
+                && string.Equals(Message, other.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion

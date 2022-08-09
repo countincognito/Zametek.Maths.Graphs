@@ -34,7 +34,7 @@ namespace Zametek.Maths.Graphs
 
         public TResourceId? ResourceId => m_Resource?.Id;
 
-        public bool IsExplicitTarget => m_Resource != null ? m_Resource.IsExplicitTarget : false;
+        public bool IsExplicitTarget => m_Resource != null && m_Resource.IsExplicitTarget;
 
         public IEnumerable<IScheduledActivity<T>> ScheduledActivities => m_ScheduledActivities.ToList();
 
@@ -172,7 +172,7 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
-            return distribution.Select(x => x == TimeType.None || x == TimeType.Ignored ? false : true).ToList();
+            return distribution.Select(x => x != TimeType.None && x != TimeType.Ignored).ToList();
         }
 
         private void AddActivity(IScheduledActivity<T> scheduledActivity)

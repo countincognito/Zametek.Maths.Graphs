@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public interface ICircularDependency<T>
+    public interface IInvalidConstraint<T>
+        : IHaveId<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
-        HashSet<T> Dependencies { get; }
+        string Message { get; }
     }
 }
