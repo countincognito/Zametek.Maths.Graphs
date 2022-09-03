@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Zametek.Utility;
 
 namespace Zametek.Maths.Graphs
 {
@@ -80,17 +81,32 @@ namespace Zametek.Maths.Graphs
             completedNodeIds.Add(startNode.Id);
             remainingNodeIds.Remove(startNode.Id);
 
+            // For later when checking the Maximum LFT.
+            Node<T, TEvent> endNode = arrowGraphBuilder.EndNode;
+
             // Forward flow algorithm.
             while (remainingNodeIds.Any())
             {
                 bool progress = false;
+                List<T> remainingNodeIdList = remainingNodeIds.ToList();
 
-                foreach (T nodeId in remainingNodeIds.ToList())
+                if (arrowGraphBuilder.WhenTesting)
+                {
+                    remainingNodeIdList.Shuffle();
+                }
+
+                foreach (T nodeId in remainingNodeIdList)
                 {
                     Node<T, TEvent> node = arrowGraphBuilder.Node(nodeId);
 
                     // Get the incoming edges and the dependency nodes IDs.
-                    HashSet<T> incomingEdges = node.IncomingEdges;
+                    List<T> incomingEdges = new List<T>(node.IncomingEdges);
+
+                    if (arrowGraphBuilder.WhenTesting)
+                    {
+                        incomingEdges.Shuffle();
+                    }
+
                     var dependencyNodeIds = new HashSet<T>(incomingEdges.Select(arrowGraphBuilder.EdgeTailNode).Select(x => x.Id));
 
                     // If calculations for all the dependency nodes have been completed, then use them
@@ -128,14 +144,23 @@ namespace Zametek.Maths.Graphs
                                 }
                             }
 
-                            if (incomingEdge.Content.MaximumLatestFinishTime.HasValue)
+                            // It is only necessary to check the Maximum LFT if the head node is not the
+                            // EndNode, and if the tail node is not the StartNode.
+                            // Otherwise, it ends up imposing an LFT value that is unnecessarily constrained
+                            // without any good reason (i.e. there is nothing before the StartNode or after
+                            // the EndNode to be impacted by the constraint).
+                            if (node != endNode
+                                && incomingEdgeTailNode != startNode)
                             {
-                                int proposedLatestFinishTime = incomingEdge.Content.MaximumLatestFinishTime.Value;
-
-                                // Diminish the earliest finish time artificially (if required).
-                                if (proposedLatestFinishTime < earliestFinishTime)
+                                if (incomingEdge.Content.MaximumLatestFinishTime.HasValue)
                                 {
-                                    earliestFinishTime = proposedLatestFinishTime;
+                                    int proposedLatestFinishTime = incomingEdge.Content.MaximumLatestFinishTime.Value;
+
+                                    // Diminish the earliest finish time artificially (if required).
+                                    if (proposedLatestFinishTime < earliestFinishTime)
+                                    {
+                                        earliestFinishTime = proposedLatestFinishTime;
+                                    }
                                 }
                             }
                         }
@@ -212,12 +237,25 @@ namespace Zametek.Maths.Graphs
             while (remainingNodeIds.Any())
             {
                 bool progress = false;
-                foreach (T nodeId in remainingNodeIds.ToList())
+                var remainingNodeIdList = remainingNodeIds.ToList();
+
+                if (arrowGraphBuilder.WhenTesting)
+                {
+                    remainingNodeIdList.Shuffle();
+                }
+
+                foreach (T nodeId in remainingNodeIdList)
                 {
                     Node<T, TEvent> node = arrowGraphBuilder.Node(nodeId);
 
                     // Get the outgoing edges and the successor nodes IDs.
-                    HashSet<T> outgoingEdges = node.OutgoingEdges;
+                    List<T> outgoingEdges = new List<T>(node.OutgoingEdges);
+
+                    if (arrowGraphBuilder.WhenTesting)
+                    {
+                        outgoingEdges.Shuffle();
+                    }
+
                     var successorNodeIds = new HashSet<T>(outgoingEdges.Select(arrowGraphBuilder.EdgeHeadNode).Select(x => x.Id));
 
                     if (successorNodeIds.IsSubsetOf(completedNodeIds))

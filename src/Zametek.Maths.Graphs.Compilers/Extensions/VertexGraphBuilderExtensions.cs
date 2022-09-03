@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Zametek.Utility;
 
 namespace Zametek.Maths.Graphs
 {
@@ -175,7 +176,14 @@ namespace Zametek.Maths.Graphs
             while (remainingEdgeIds.Any())
             {
                 bool progress = false;
-                foreach (T edgeId in remainingEdgeIds.ToList())
+                List<T> remainingEdgeIdList = remainingEdgeIds.ToList();
+
+                if (vertexGraphBuilder.WhenTesting)
+                {
+                    remainingEdgeIdList.Shuffle();
+                }
+
+                foreach (T edgeId in remainingEdgeIdList)
                 {
                     Edge<T, TEvent> edge = vertexGraphBuilder.Edge(edgeId);
 
@@ -297,7 +305,7 @@ namespace Zametek.Maths.Graphs
                     }
 
                     node.Content.EarliestStartTime = earliestStartTime;
-                
+
                 }
 
                 if (!node.Content.LatestFinishTime.HasValue)
@@ -430,7 +438,14 @@ namespace Zametek.Maths.Graphs
             while (remainingEdgeIds.Any())
             {
                 bool progress = false;
-                foreach (T edgeId in remainingEdgeIds.ToList())
+                List<T> remainingEdgeIdList = remainingEdgeIds.ToList();
+
+                if (vertexGraphBuilder.WhenTesting)
+                {
+                    remainingEdgeIdList.Shuffle();
+                }
+
+                foreach (T edgeId in remainingEdgeIdList)
                 {
                     Edge<T, TEvent> edge = vertexGraphBuilder.Edge(edgeId);
 

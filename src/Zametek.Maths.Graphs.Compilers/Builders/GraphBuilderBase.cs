@@ -22,6 +22,7 @@ namespace Zametek.Maths.Graphs
             UnsatisfiedSuccessorsLookup = new Dictionary<T, HashSet<Node<T, TNodeContent>>>();
             EdgeHeadNodeLookup = new Dictionary<T, Node<T, TNodeContent>>();
             EdgeTailNodeLookup = new Dictionary<T, Node<T, TNodeContent>>();
+            WhenTesting = false;
         }
 
         protected GraphBuilderBase(
@@ -167,6 +168,8 @@ namespace Zametek.Maths.Graphs
                 return Activities.Select(x => x.EarliestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
             }
         }
+
+        public bool WhenTesting { get; set; }
 
         #endregion
 

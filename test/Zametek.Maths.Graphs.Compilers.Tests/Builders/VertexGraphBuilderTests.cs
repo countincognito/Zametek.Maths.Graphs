@@ -45,7 +45,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId = 0;
             int activityId1 = activityId + 1;
             int dummyActivityId = activityId1 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity = new Activity<int, int>(activityId1, 0);
             bool result = graphBuilder.AddActivity(activity);
@@ -74,7 +77,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = activityId + 1;
             int activityId2 = activityId1 + 1;
             int dummyActivityId = activityId2 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -135,7 +141,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = activityId + 1;
             int activityId2 = activityId1 + 1;
             int dummyActivityId = activityId2 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity2 = new Activity<int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int>(new[] { activityId1 }));
@@ -197,7 +206,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int dummyActivityId = activityId3 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -296,7 +308,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int dummyActivityId = activityId3 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity3 = new Activity<int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId2 }));
@@ -395,7 +410,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int dummyActivityId = activityId3 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -533,7 +551,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int dummyActivityId = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -589,7 +610,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -790,7 +814,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -829,7 +856,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -868,7 +898,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -907,7 +940,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -947,7 +983,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -986,7 +1025,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -1028,7 +1070,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -1067,7 +1112,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
             int dummyActivityId = activityId2 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -1099,7 +1147,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
@@ -1147,7 +1198,10 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
+            var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            {
+                WhenTesting = true
+            };
 
             var activity1 = new Activity<int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
