@@ -112,8 +112,19 @@ namespace Zametek.Maths.Graphs
                         {
                             distribution[timeIndex] = TimeType.Middle;
                         }
-                        distribution[scheduledActivity.StartTime] = TimeType.Start;
-                        distribution[scheduledActivity.FinishTime - 1] = TimeType.Finish;
+
+                        int startIndex = scheduledActivity.StartTime;
+                        int finishIndex = scheduledActivity.FinishTime - 1;
+
+                        if (startIndex == finishIndex)
+                        {
+                            distribution[startIndex] = TimeType.StartAndFinish;
+                        }
+                        else
+                        {
+                            distribution[startIndex] = TimeType.Start;
+                            distribution[finishIndex] = TimeType.Finish;
+                        }
                     }
                 }
             }
@@ -127,8 +138,19 @@ namespace Zametek.Maths.Graphs
                     {
                         distribution[timeIndex] = TimeType.Middle;
                     }
-                    distribution[scheduledActivity.StartTime] = TimeType.Start;
-                    distribution[scheduledActivity.FinishTime - 1] = TimeType.Finish;
+
+                    int startIndex = scheduledActivity.StartTime;
+                    int finishIndex = scheduledActivity.FinishTime - 1;
+
+                    if (startIndex == finishIndex)
+                    {
+                        distribution[startIndex] = TimeType.StartAndFinish;
+                    }
+                    else
+                    {
+                        distribution[startIndex] = TimeType.Start;
+                        distribution[finishIndex] = TimeType.Finish;
+                    }
                 }
 
                 // Find the first Start and the last Finish, then fill in the gaps between them.
@@ -136,7 +158,8 @@ namespace Zametek.Maths.Graphs
                 int lastFinishIndex = distribution.Count - 1;
                 for (int i = 0; i < distribution.Count; i++)
                 {
-                    if (distribution[i] == TimeType.Start)
+                    if (distribution[i] == TimeType.Start
+                        || distribution[i] == TimeType.StartAndFinish)
                     {
                         firstStartIndex = i;
                         break;
@@ -144,7 +167,8 @@ namespace Zametek.Maths.Graphs
                 }
                 for (int i = lastFinishIndex; i >= 0; i--)
                 {
-                    if (distribution[i] == TimeType.Finish)
+                    if (distribution[i] == TimeType.Finish
+                        || distribution[i] == TimeType.StartAndFinish)
                     {
                         lastFinishIndex = i;
                         break;
@@ -274,7 +298,8 @@ namespace Zametek.Maths.Graphs
             Ignored,
             Start,
             Middle,
-            Finish
+            Finish,
+            StartAndFinish
         }
 
         #endregion

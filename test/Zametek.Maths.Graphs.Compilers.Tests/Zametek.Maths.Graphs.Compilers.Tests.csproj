@@ -7,6 +7,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Builders\TestFiles\ResourceSchedule1.json" />
+	  <None Remove="Builders\TestFiles\ResourceSchedule2.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Builders\TestFiles\ResourceSchedule2.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Builders\TestFiles\ResourceSchedule1.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="FluentAssertions" Version="6.7.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
 		<PackageReference Include="xunit" Version="2.4.2" />

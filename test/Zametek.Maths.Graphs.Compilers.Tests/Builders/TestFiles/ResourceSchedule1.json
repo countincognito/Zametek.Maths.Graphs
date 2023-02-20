@@ -1,0 +1,155 @@
+﻿{
+  "FinishTime": 150,
+  "Resource": {
+    "ColorFormat": {
+      "A": 0,
+      "B": 0,
+      "G": 0,
+      "R": 0
+    },
+    "DisplayOrder": 0,
+    "Id": 4,
+    "InterActivityAllocationType": 1,
+    "IsExplicitTarget": true,
+    "Name": "Tom",
+    "UnitCost": 1.0
+  },
+  "ScheduledActivities": [
+    {
+      "Duration": 1,
+      "FinishTime": 74,
+      "HasNoCost": false,
+      "Id": 131,
+      "Name": "Migration Prep",
+      "StartTime": 73
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 75,
+      "HasNoCost": false,
+      "Id": 30,
+      "Name": "DB backup",
+      "StartTime": 74
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 76,
+      "HasNoCost": false,
+      "Id": 34,
+      "Name": "Install APP",
+      "StartTime": 75
+    },
+    {
+      "Duration": 2,
+      "FinishTime": 78,
+      "HasNoCost": false,
+      "Id": 72,
+      "Name": "DB backup",
+      "StartTime": 76
+    },
+    {
+      "Duration": 2,
+      "FinishTime": 80,
+      "HasNoCost": false,
+      "Id": 73,
+      "Name": "Transfer DB",
+      "StartTime": 78
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 81,
+      "HasNoCost": false,
+      "Id": 74,
+      "Name": "Import data to server",
+      "StartTime": 80
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 82,
+      "HasNoCost": false,
+      "Id": 75,
+      "Name": "Validate DBs after import",
+      "StartTime": 81
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 83,
+      "HasNoCost": false,
+      "Id": 31,
+      "Name": "Transfer DB",
+      "StartTime": 82
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 84,
+      "HasNoCost": false,
+      "Id": 35,
+      "Name": "Validate Install",
+      "StartTime": 83
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 85,
+      "HasNoCost": false,
+      "Id": 32,
+      "Name": "Import data to server",
+      "StartTime": 84
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 86,
+      "HasNoCost": false,
+      "Id": 36,
+      "Name": "Document installation",
+      "StartTime": 85
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 87,
+      "HasNoCost": false,
+      "Id": 33,
+      "Name": "Validate DBs after import",
+      "StartTime": 86
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 88,
+      "HasNoCost": false,
+      "Id": 37,
+      "Name": "Login to application",
+      "StartTime": 87
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 89,
+      "HasNoCost": false,
+      "Id": 38,
+      "Name": "Smoke tests",
+      "StartTime": 88
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 104,
+      "HasNoCost": false,
+      "Id": 147,
+      "Name": "Test application",
+      "StartTime": 103
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 112,
+      "HasNoCost": false,
+      "Id": 39,
+      "Name": "Failover",
+      "StartTime": 111
+    },
+    {
+      "Duration": 1,
+      "FinishTime": 127,
+      "HasNoCost": false,
+      "Id": 46,
+      "Name": "Change DNS",
+      "StartTime": 126
+    }
+  ]
+}
