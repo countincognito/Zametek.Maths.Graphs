@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Zametek.Maths.Graphs
 {
@@ -116,6 +117,9 @@ namespace Zametek.Maths.Graphs
             // If resources are 0, assume infinite.
             bool infiniteResources = !resources.Any();
 
+            // Filter out disabled resources.
+            IList<IResource<TResourceId>> filteredResources = resources.Where(x => !x.IsDisabled).ToList();
+
             // If resources are limited, check to make sure all activities can be accepted.
             if (!infiniteResources)
             {
@@ -123,7 +127,7 @@ namespace Zametek.Maths.Graphs
                     .Select(x => x.TargetResources)
                     .Aggregate((previous, next) => new HashSet<TResourceId>(previous.Union(next)));
 
-                bool allTargetResourcesAreSubsetOfResources = allTargetResources.IsSubsetOf(resources.Select(x => x.Id));
+                bool allTargetResourcesAreSubsetOfResources = allTargetResources.IsSubsetOf(filteredResources.Select(x => x.Id));
                 if (!allTargetResourcesAreSubsetOfResources)
                 {
                     throw new InvalidOperationException(Properties.Resources.AtLeastOneSpecifiedTargetResourcesAreNotPresentInResourcesProvided);
@@ -131,7 +135,7 @@ namespace Zametek.Maths.Graphs
 
                 // If all resources are explicit targets, check to make sure all activities
                 // targeted to at least one.
-                bool allResourcesAreExplicitTargets = resources.All(x => x.IsExplicitTarget);
+                bool allResourcesAreExplicitTargets = filteredResources.All(x => x.IsExplicitTarget);
                 bool atLeastOneActivityRequiresNonExplicitTargetResource = graphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
                 if (allResourcesAreExplicitTargets
                     && atLeastOneActivityRequiresNonExplicitTargetResource)
@@ -147,7 +151,7 @@ namespace Zametek.Maths.Graphs
                 .Select(x => new T?(x))
                 .ToList();
 
-            IList<ResourceScheduleBuilder<T, TResourceId>> resourceScheduleBuilders = resources
+            IList<ResourceScheduleBuilder<T, TResourceId>> resourceScheduleBuilders = filteredResources
                 .OrderBy(x => x.AllocationOrder)
                 .Select(x => new ResourceScheduleBuilder<T, TResourceId>(x))
                 .ToList();
@@ -187,6 +191,7 @@ namespace Zametek.Maths.Graphs
 
                     var directDependencies =
                         new HashSet<T>(tmpGraphBuilder.StrongActivityDependencyIds(activityId));
+
                     if (directDependencies.IsSubsetOf(completed)
                         && !completed.Contains(activityId)
                         && !started.Contains(activityId))

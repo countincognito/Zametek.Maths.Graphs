@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -233,10 +232,16 @@ namespace Zametek.Maths.Graphs
                 IEnumerable<ICircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
                 IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = m_VertexGraphBuilder.FindInvalidPreCompilationConstraints();
 
+                // If resources are 0, assume infinite.
+                bool infiniteResources = !resources.Any();
+
+                // Filter out disabled resources.
+                IList<IResource<TResourceId>> filteredResources = resources.Where(x => !x.IsDisabled).ToList();
+
                 // Sanity check the resources.
                 bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
-                    resources.Any()
-                    && resources.All(x => x.IsExplicitTarget)
+                    !infiniteResources
+                    && filteredResources.All(x => x.IsExplicitTarget)
                     && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
 
                 // Collate pre-compilation errors, if any exist.
@@ -298,9 +303,9 @@ namespace Zametek.Maths.Graphs
 
                 // Perform first compilation and calculate resource schedules.
                 m_VertexGraphBuilder.CalculateCriticalPath();
-                IEnumerable<IResourceSchedule<T, TResourceId>> resourceSchedules = m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(resources);
+                IEnumerable<IResourceSchedule<T, TResourceId>> resourceSchedules = m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources);
 
-                if (resources.Any())
+                if (!infiniteResources)
                 {
                     // Determine the resource dependencies and add them to the compiled dependencies.
                     foreach (IResourceSchedule<T, TResourceId> resourceSchedule in resourceSchedules)

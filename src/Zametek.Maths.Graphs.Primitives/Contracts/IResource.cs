@@ -10,6 +10,8 @@ namespace Zametek.Maths.Graphs
 
         bool IsExplicitTarget { get; }
 
+        bool IsDisabled { get; }
+
         InterActivityAllocationType InterActivityAllocationType { get; }
 
         double UnitCost { get; }
