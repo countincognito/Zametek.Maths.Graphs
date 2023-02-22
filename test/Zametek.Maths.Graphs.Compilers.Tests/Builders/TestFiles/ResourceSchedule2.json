@@ -11,7 +11,7 @@
     "Id": 5,
     "InterActivityAllocationType": 1,
     "IsExplicitTarget": true,
-    "IsDisabled": false,
+    "IsInactive": false,
     "Name": "Steve",
     "UnitCost": 1.0
   },

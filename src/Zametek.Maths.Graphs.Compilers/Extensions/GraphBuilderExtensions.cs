@@ -118,7 +118,7 @@ namespace Zametek.Maths.Graphs
             bool infiniteResources = !resources.Any();
 
             // Filter out disabled resources.
-            IList<IResource<TResourceId>> filteredResources = resources.Where(x => !x.IsDisabled).ToList();
+            IList<IResource<TResourceId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
             // If resources are limited, check to make sure all activities can be accepted.
             if (!infiniteResources)

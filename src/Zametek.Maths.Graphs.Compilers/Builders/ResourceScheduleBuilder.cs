@@ -36,7 +36,7 @@ namespace Zametek.Maths.Graphs
 
         public bool IsExplicitTarget => m_Resource != null && m_Resource.IsExplicitTarget;
 
-        public bool IsDisabled => m_Resource != null && m_Resource.IsDisabled;
+        public bool IsInactive => m_Resource != null && m_Resource.IsInactive;
 
         public IEnumerable<IScheduledActivity<T>> ScheduledActivities => m_ScheduledActivities.ToList();
 

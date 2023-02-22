@@ -9,14 +9,14 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         public Resource(
-            T id, string name, bool isExplicitTarget, bool isDisabled,
+            T id, string name, bool isExplicitTarget, bool isInactive,
             InterActivityAllocationType interActivityAllocationType,
             double unitCost, int allocationOrder)
         {
             Id = id;
             Name = name;
             IsExplicitTarget = isExplicitTarget;
-            IsDisabled = isDisabled;
+            IsInactive = isInactive;
             InterActivityAllocationType = interActivityAllocationType;
             UnitCost = unitCost;
             AllocationOrder = allocationOrder;
@@ -41,7 +41,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public bool IsDisabled
+        public bool IsInactive
         {
             get;
         }
@@ -63,7 +63,7 @@ namespace Zametek.Maths.Graphs
 
         public object CloneObject()
         {
-            return new Resource<T>(Id, Name, IsExplicitTarget, IsDisabled, InterActivityAllocationType, UnitCost, AllocationOrder);
+            return new Resource<T>(Id, Name, IsExplicitTarget, IsInactive, InterActivityAllocationType, UnitCost, AllocationOrder);
         }
 
         #endregion

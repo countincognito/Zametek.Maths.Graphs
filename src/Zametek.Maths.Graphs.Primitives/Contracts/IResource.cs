@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs
 
         bool IsExplicitTarget { get; }
 
-        bool IsDisabled { get; }
+        bool IsInactive { get; }
 
         InterActivityAllocationType InterActivityAllocationType { get; }
 
