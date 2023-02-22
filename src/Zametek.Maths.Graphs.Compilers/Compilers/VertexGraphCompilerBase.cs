@@ -244,6 +244,44 @@ namespace Zametek.Maths.Graphs
                     && filteredResources.All(x => x.IsExplicitTarget)
                     && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
 
+                // Check if any activities are obliged to use any explicit target resources
+                // that are inactive.
+
+                var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
+
+                foreach (TDependentActivity dependentActivity in activities)
+                {
+                    if (dependentActivity.TargetResources.Any())
+                    {
+                        // When all explicit target resources must be available.
+                        if (dependentActivity.TargetResourceOperator == LogicalOperator.AND)
+                        {
+                            // Ids in TargetResources that are not in filtered Resources.
+                            IEnumerable<TResourceId> unavailableResourceIds =
+                                dependentActivity.TargetResources.Except(filteredResources.Select(x => x.Id));
+
+                            if (unavailableResourceIds.Any())
+                            {
+                                unavailableResourcesSet.Add(
+                                    new UnavailableResources<T, TResourceId>(dependentActivity.Id, unavailableResourceIds));
+                            }
+                        }
+                        // When at least one explicit target resource must be available.
+                        else if (dependentActivity.TargetResourceOperator == LogicalOperator.OR)
+                        {
+                            // Check intersection of TargetResources and filtered Resources.
+                            IEnumerable<TResourceId> intersection =
+                                dependentActivity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
+
+                            if (!intersection.Any())
+                            {
+                                unavailableResourcesSet.Add(
+                                    new UnavailableResources<T, TResourceId>(dependentActivity.Id, dependentActivity.TargetResources));
+                            }
+                        }
+                    }
+                }
+
                 // Collate pre-compilation errors, if any exist.
 
                 var compilationErrors = new List<GraphCompilationError>();
@@ -281,7 +319,7 @@ namespace Zametek.Maths.Graphs
                     compilationErrors.Add(
                         new GraphCompilationError(
                             GraphCompilationErrorCode.P0040,
-                            $@"{Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
+                            $@"{Properties.Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
                 }
 
                 // P0050
@@ -290,7 +328,16 @@ namespace Zametek.Maths.Graphs
                     compilationErrors.Add(
                         new GraphCompilationError(
                             GraphCompilationErrorCode.P0050,
-                            $@"{Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
+                            $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
+                }
+
+                // P0060
+                if (unavailableResourcesSet.Any())
+                {
+                    compilationErrors.Add(
+                        new GraphCompilationError(
+                            GraphCompilationErrorCode.P0060,
+                            BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
                 }
 
                 if (compilationErrors.Any())
@@ -419,14 +466,14 @@ namespace Zametek.Maths.Graphs
                 return string.Empty;
             }
             var output = new StringBuilder();
-            output.AppendLine($@"{Resources.Message_MissingDependencies}");
+            output.AppendLine($@"{Properties.Resources.Message_MissingDependencies}");
             foreach (T missingDependency in missingDependencies)
             {
                 IList<T> actsWithMissingDeps = activities
                     .Where(x => x.Dependencies.Contains(missingDependency))
                     .Select(x => x.Id)
                     .ToList();
-                output.AppendLine($@"{missingDependency} {Resources.Message_IsMissingFrom} {string.Join(@", ", actsWithMissingDeps)}");
+                output.AppendLine($@"{missingDependency} {Properties.Resources.Message_IsMissingFrom} {string.Join(@", ", actsWithMissingDeps)}");
             }
             return output.ToString();
         }
@@ -438,7 +485,7 @@ namespace Zametek.Maths.Graphs
                 return string.Empty;
             }
             var output = new StringBuilder();
-            output.AppendLine($@"{Resources.Message_CircularDependencies}");
+            output.AppendLine($@"{Properties.Resources.Message_CircularDependencies}");
             foreach (ICircularDependency<T> circularDependency in circularDependencies)
             {
                 output.AppendLine(string.Join(@" -> ", circularDependency.Dependencies));
@@ -453,10 +500,25 @@ namespace Zametek.Maths.Graphs
                 return string.Empty;
             }
             var output = new StringBuilder();
-            output.AppendLine($@"{Resources.Message_InvalidConstraints}");
+            output.AppendLine($@"{Properties.Resources.Message_InvalidConstraints}");
             foreach (IInvalidConstraint<T> invalidConstraint in invalidConstraints)
             {
                 output.AppendLine($@"{invalidConstraint.Id} -> {invalidConstraint.Message}");
+            }
+            return output.ToString();
+        }
+
+        private static string BuildUnavailableResourcesErrorMessage(IEnumerable<IUnavailableResources<T, TResourceId>> unavailableResourceSet)
+        {
+            if (unavailableResourceSet == null || !unavailableResourceSet.Any())
+            {
+                return string.Empty;
+            }
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_UnavailableResources}");
+            foreach (IUnavailableResources<T, TResourceId> unavailableResources in unavailableResourceSet)
+            {
+                output.AppendLine($@"{unavailableResources.Id} -> {string.Join(@", ", unavailableResources.ResourceIds.OrderBy(x => x))}");
             }
             return output.ToString();
         }

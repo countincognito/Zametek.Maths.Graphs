@@ -256,7 +256,7 @@ namespace Zametek.Maths.Graphs
                     && activity.MaximumLatestFinishTime.HasValue)
                 {
                     activitiesWithInvalidConstraints.Add(
-                        new InvalidConstraint<T>(activity.Id, Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime));
+                        new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime));
                     continue;
                 }
                 if (activity.MinimumEarliestStartTime.HasValue
@@ -264,7 +264,7 @@ namespace Zametek.Maths.Graphs
                     && (activity.MinimumEarliestStartTime.Value + activity.Duration) > activity.MaximumLatestFinishTime.Value)
                 {
                     activitiesWithInvalidConstraints.Add(
-                        new InvalidConstraint<T>(activity.Id, Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime));
+                        new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime));
                     continue;
                 }
             }
@@ -284,13 +284,13 @@ namespace Zametek.Maths.Graphs
                     if (activity.EarliestStartTime < 0)
                     {
                         activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Resources.Message_EarliestStartTimeLessThanZero));
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_EarliestStartTimeLessThanZero));
                     }
 
                     if (activity.EarliestFinishTime < 0)
                     {
                         activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Resources.Message_EarliestFinishTimeLessThanZero));
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_EarliestFinishTimeLessThanZero));
                     }
                 }
 
@@ -300,13 +300,13 @@ namespace Zametek.Maths.Graphs
                     if (activity.LatestStartTime < 0)
                     {
                         activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestStartTimeLessThanZero));
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestStartTimeLessThanZero));
                     }
 
                     if (activity.LatestFinishTime < 0)
                     {
                         activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestFinishTimeLessThanZero));
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestFinishTimeLessThanZero));
                     }
                 }
 
@@ -316,7 +316,7 @@ namespace Zametek.Maths.Graphs
                     if (activity.LatestStartTime < activity.EarliestStartTime)
                     {
                         activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestStartTimeLessThanEarliestStartTime));
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestStartTimeLessThanEarliestStartTime));
                     }
                 }
 
@@ -326,7 +326,7 @@ namespace Zametek.Maths.Graphs
                     if (activity.LatestFinishTime < activity.EarliestFinishTime)
                     {
                         activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Resources.Message_LatestFinishTimeLessThanEarliestFinishTime));
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestFinishTimeLessThanEarliestFinishTime));
                     }
                 }
             }

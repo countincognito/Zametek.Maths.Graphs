@@ -117,12 +117,17 @@ namespace Zametek.Maths.Graphs
             // If resources are 0, assume infinite.
             bool infiniteResources = !resources.Any();
 
-            // Filter out disabled resources.
+            // Filter out inactive resources.
             IList<IResource<TResourceId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
             // If resources are limited, check to make sure all activities can be accepted.
             if (!infiniteResources)
             {
+                // Check if any activities are obliged to use any explicit target resources
+                // that are inactive.
+
+
+
                 HashSet<TResourceId> allTargetResources = graphBuilder.Activities
                     .Select(x => x.TargetResources)
                     .Aggregate((previous, next) => new HashSet<TResourceId>(previous.Union(next)));
@@ -132,6 +137,12 @@ namespace Zametek.Maths.Graphs
                 {
                     throw new InvalidOperationException(Properties.Resources.AtLeastOneSpecifiedTargetResourcesAreNotPresentInResourcesProvided);
                 }
+
+
+
+
+
+
 
                 // If all resources are explicit targets, check to make sure all activities
                 // targeted to at least one.
