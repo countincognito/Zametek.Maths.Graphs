@@ -52,12 +52,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int>(new[] { 2 })) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int>(new[] { 4, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int> { 1, 2, 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int> { 4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int> { 4, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
@@ -80,14 +80,14 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int>(new[] { 7 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int> { 7 }));
             graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int> { 2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int> { 4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int> { 9, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }));
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
@@ -110,13 +110,13 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int>(new[] { 7 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int>(new[] { 21 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int>(new[] { 22 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int> { 7 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int> { 21 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int> { 2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int> { 22 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int> { 9, 6 }));
             graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10));
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
@@ -139,14 +139,14 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int>(new[] { 7 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int>(new[] { 21 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int>(new[] { 2 })) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 16 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int>(new[] { 1, 2, 3, 8 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int>(new[] { 4, 22 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int>(new[] { 9, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int> { 7 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int> { 21 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 16 });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int> { 4, 22 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int> { 9, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }));
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
@@ -185,12 +185,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int>(new[] { 2 })) { MaximumLatestFinishTime = 5 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int>(new[] { 1, 2, 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int>(new[] { 3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int>(new[] { 4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int>(new[] { 4, 6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int>(new[] { 5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int> { 2 }) { MaximumLatestFinishTime = 5 });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int> { 1, 2, 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int> { 4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int> { 4, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }));
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
@@ -355,8 +355,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
 
             var activity1 = new DependentActivity<int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int>(activityId2, 7, new HashSet<int>(new[] { activityId1 }));
-            var activity3 = new DependentActivity<int, int>(activityId3, 4, new HashSet<int>(new[] { activityId2 }));
+            var activity2 = new DependentActivity<int, int>(activityId2, 7, new HashSet<int> { activityId1 });
+            var activity3 = new DependentActivity<int, int>(activityId3, 4, new HashSet<int> { activityId2 });
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -426,12 +426,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { activityId1, activityId2, activityId3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { activityId3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { activityId4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { activityId4, activityId6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { activityId5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
@@ -585,12 +585,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { activityId1, activityId2, activityId3 })) { MinimumFreeSlack = 15 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { activityId3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { activityId4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { activityId4, activityId6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { activityId5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { MinimumFreeSlack = 15 });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
 
@@ -743,12 +743,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { activityId1, activityId2, activityId3 })) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { activityId3 })) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { activityId4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { activityId4, activityId6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { activityId5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -843,7 +843,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).TotalSlack.Should().Be(3);
             graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2 }));
+            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId2 }));
             graphBuilder.Activity(activityId1).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
 
             graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
@@ -936,12 +936,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { activityId1, activityId2, activityId3 })) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { activityId3 })) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { activityId4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { activityId4, activityId6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { activityId5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -1025,7 +1025,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(15);
             graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(21);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2 }));
+            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId2 }));
             graphBuilder.Activity(activityId1).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
 
             graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(8);
@@ -1034,7 +1034,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).TotalSlack.Should().Be(0);
             graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(8);
             graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(15);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 3 }));
+            graphBuilder.Activity(activityId2).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId3 }));
             graphBuilder.Activity(activityId2).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
 
             graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
@@ -1118,12 +1118,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { activityId1, activityId2, activityId3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { activityId3 })) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { activityId4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { activityId4, activityId6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { activityId5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -1218,7 +1218,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).TotalSlack.Should().Be(3);
             graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { 2 }));
+            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId2 }));
             graphBuilder.Activity(activityId1).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
 
             graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
@@ -2188,12 +2188,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { activityId1, activityId2, activityId3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { activityId3 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int>(new[] { activityId4 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int>(new[] { activityId4, activityId6 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int>(new[] { activityId5 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             graphCompiler.Compile();
 
@@ -2213,9 +2213,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId1 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int>(new[] { activityId2 })));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int>(new[] { activityId3 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
 
             graphCompiler.Compile();
 
@@ -2233,7 +2233,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int>(new[] { activityId1 })));
+            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
 
             graphCompiler.Compile();
 

@@ -100,7 +100,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Edges.Any().Should().BeFalse();
 
             var activity2 = new Activity<int, int>(activityId2, 0);
-            bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int>(new[] { activityId1 }));
+            bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int> { activityId1 });
             result2.Should().BeTrue();
 
             graphBuilder.EdgeIds.Count().Should().Be(1);
@@ -147,7 +147,7 @@ namespace Zametek.Maths.Graphs.Tests
             };
 
             var activity2 = new Activity<int, int>(activityId2, 0);
-            bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int>(new[] { activityId1 }));
+            bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int> { activityId1 });
             result2.Should().BeTrue();
 
             graphBuilder.EdgeIds.Any().Should().BeFalse();
@@ -250,7 +250,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Edges.Any().Should().BeFalse();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId2 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2 });
             result3.Should().BeTrue();
 
             graphBuilder.EdgeIds.Count().Should().Be(2);
@@ -314,7 +314,7 @@ namespace Zametek.Maths.Graphs.Tests
             };
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId2 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2 });
             result3.Should().BeTrue();
 
             graphBuilder.EdgeIds.Count().Should().Be(0);
@@ -424,7 +424,7 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId2 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2 });
             result3.Should().BeTrue();
 
             graphBuilder.Activities.Count().Should().Be(3);
@@ -565,11 +565,11 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId2 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId2 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId1, activityId2, activityId3 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId1, activityId2, activityId3 });
             result4.Should().BeTrue();
 
             IDictionary<int, HashSet<int>> ancestorNodesLookup = graphBuilder.GetAncestorNodesLookup();
@@ -620,15 +620,15 @@ namespace Zametek.Maths.Graphs.Tests
             result1.Should().BeTrue();
 
             var activity2 = new Activity<int, int>(activityId2, 0);
-            bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int>(new[] { activityId5 }));
+            bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int> { activityId5 });
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId2, activityId5 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2, activityId5 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId1, activityId2, activityId3 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId1, activityId2, activityId3 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
@@ -828,15 +828,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var firstGraph = graphBuilder.ToGraph();
@@ -870,15 +870,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -912,15 +912,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -954,15 +954,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -997,15 +997,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -1039,15 +1039,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -1084,15 +1084,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -1161,15 +1161,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -1212,15 +1212,15 @@ namespace Zametek.Maths.Graphs.Tests
             result2.Should().BeTrue();
 
             var activity3 = new Activity<int, int>(activityId3, 0);
-            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int>(new[] { activityId1, activityId4 }));
+            bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
             result3.Should().BeTrue();
 
             var activity4 = new Activity<int, int>(activityId4, 0);
-            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int>(new[] { activityId2 }));
+            bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
             result4.Should().BeTrue();
 
             var activity5 = new Activity<int, int>(activityId5, 0);
-            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int>(new[] { activityId1 }));
+            bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
             result5.Should().BeTrue();
 
             var graph = graphBuilder.ToGraph();
@@ -1246,14 +1246,14 @@ namespace Zametek.Maths.Graphs.Tests
             int dummyActivityId = 100;
             var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
             graphBuilder.AddActivity(new Activity<int, int>(1, 0));
-            graphBuilder.AddActivity(new Activity<int, int>(2, 0), new HashSet<int>(new[] { 7 }));
+            graphBuilder.AddActivity(new Activity<int, int>(2, 0), new HashSet<int> { 7 });
             graphBuilder.AddActivity(new Activity<int, int>(3, 0));
-            graphBuilder.AddActivity(new Activity<int, int>(4, 0), new HashSet<int>(new[] { 2 }));
-            graphBuilder.AddActivity(new Activity<int, int>(5, 0), new HashSet<int>(new[] { 1, 2, 3, 8 }));
-            graphBuilder.AddActivity(new Activity<int, int>(6, 0), new HashSet<int>(new[] { 3 }));
-            graphBuilder.AddActivity(new Activity<int, int>(7, 0), new HashSet<int>(new[] { 4 }));
-            graphBuilder.AddActivity(new Activity<int, int>(8, 0), new HashSet<int>(new[] { 9, 6 }));
-            graphBuilder.AddActivity(new Activity<int, int>(9, 0), new HashSet<int>(new[] { 5 }));
+            graphBuilder.AddActivity(new Activity<int, int>(4, 0), new HashSet<int> { 2 });
+            graphBuilder.AddActivity(new Activity<int, int>(5, 0), new HashSet<int> { 1, 2, 3, 8 });
+            graphBuilder.AddActivity(new Activity<int, int>(6, 0), new HashSet<int> { 3 });
+            graphBuilder.AddActivity(new Activity<int, int>(7, 0), new HashSet<int> { 4 });
+            graphBuilder.AddActivity(new Activity<int, int>(8, 0), new HashSet<int> { 9, 6 });
+            graphBuilder.AddActivity(new Activity<int, int>(9, 0), new HashSet<int> { 5 });
             IList<ICircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
@@ -1268,14 +1268,14 @@ namespace Zametek.Maths.Graphs.Tests
             int dummyActivityId = 100;
             var graphBuilder = new VertexGraphBuilder<int, int, IActivity<int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next());
             graphBuilder.AddActivity(new Activity<int, int>(1, 10));
-            graphBuilder.AddActivity(new Activity<int, int>(2, 10), new HashSet<int>(new[] { 7 }));
+            graphBuilder.AddActivity(new Activity<int, int>(2, 10), new HashSet<int> { 7 });
             graphBuilder.AddActivity(new Activity<int, int>(3, 10));
-            graphBuilder.AddActivity(new Activity<int, int>(4, 10), new HashSet<int>(new[] { 2 }));
-            graphBuilder.AddActivity(new Activity<int, int>(5, 10), new HashSet<int>(new[] { 1, 2, 3, 8 }));
-            graphBuilder.AddActivity(new Activity<int, int>(6, 10), new HashSet<int>(new[] { 3 }));
-            graphBuilder.AddActivity(new Activity<int, int>(7, 10), new HashSet<int>(new[] { 4 }));
-            graphBuilder.AddActivity(new Activity<int, int>(8, 10), new HashSet<int>(new[] { 9, 6 }));
-            graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int>(new[] { 5 }));
+            graphBuilder.AddActivity(new Activity<int, int>(4, 10), new HashSet<int> { 2 });
+            graphBuilder.AddActivity(new Activity<int, int>(5, 10), new HashSet<int> { 1, 2, 3, 8 });
+            graphBuilder.AddActivity(new Activity<int, int>(6, 10), new HashSet<int> { 3 });
+            graphBuilder.AddActivity(new Activity<int, int>(7, 10), new HashSet<int> { 4 });
+            graphBuilder.AddActivity(new Activity<int, int>(8, 10), new HashSet<int> { 9, 6 });
+            graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int> { 5 });
             IList<ICircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
             circularDependencies.Count.Should().Be(2);
