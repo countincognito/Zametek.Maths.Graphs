@@ -117,10 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CannotRequestIncomingEdgesOfStartOrIsolatedNode" xml:space="preserve">
+  <data name="Message_CannotRequestIncomingEdgesOfStartOrIsolatedNode" xml:space="preserve">
     <value>Cannot request Incoming Edges of a Start or Isolated Node</value>
   </data>
-  <data name="CannotRequestOutgoingEdgesOfEndOrIsolatedNode" xml:space="preserve">
+  <data name="Message_CannotRequestOutgoingEdgesOfEndOrIsolatedNode" xml:space="preserve">
     <value>Cannot request Outgoing Edges of an End or Isolated Node</value>
   </data>
 </root>

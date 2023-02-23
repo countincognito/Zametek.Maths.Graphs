@@ -76,18 +76,18 @@ namespace Zametek.Maths.Graphs
             // Check all edges are used.
             if (!EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(EdgeHeadNodeLookup.Keys.OrderBy(x => x)))
             {
-                throw new ArgumentException(Properties.Resources.ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch);
+                throw new ArgumentException(Properties.Resources.Message_ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch);
             }
             if (!EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(EdgeTailNodeLookup.Keys.OrderBy(x => x)))
             {
-                throw new ArgumentException(Properties.Resources.ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch);
+                throw new ArgumentException(Properties.Resources.Message_ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch);
             }
 
             // Check all nodes are used.
             IEnumerable<T> edgeNodeLookupIds = EdgeHeadNodeLookup.Values.Select(x => x.Id).Union(EdgeTailNodeLookup.Values.Select(x => x.Id));
             if (!NodeLookup.Values.Where(x => x.NodeType != NodeType.Isolated).Select(x => x.Id).OrderBy(x => x).SequenceEqual(edgeNodeLookupIds.OrderBy(x => x)))
             {
-                throw new ArgumentException(Properties.Resources.ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch);
+                throw new ArgumentException(Properties.Resources.Message_ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch);
             }
         }
 

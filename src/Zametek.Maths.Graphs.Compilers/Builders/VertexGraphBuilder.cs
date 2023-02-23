@@ -44,11 +44,11 @@ namespace Zametek.Maths.Graphs
                 // Check Start and End nodes.
                 if (!StartNodes.Any())
                 {
-                    throw new ArgumentException(Properties.Resources.VertexGraphCannotContainNormalNodesWithoutAnyStartNodes);
+                    throw new ArgumentException(Properties.Resources.Message_VertexGraphCannotContainNormalNodesWithoutAnyStartNodes);
                 }
                 if (!EndNodes.Any())
                 {
-                    throw new ArgumentException(Properties.Resources.VertexGraphCannotContainNormalNodesWithoutAnyEndNodes);
+                    throw new ArgumentException(Properties.Resources.Message_VertexGraphCannotContainNormalNodesWithoutAnyEndNodes);
                 }
             }
         }

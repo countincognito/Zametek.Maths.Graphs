@@ -40,7 +40,7 @@ namespace Zametek.Maths.Graphs
                 IEnumerable<T> missingDependencies = m_ArrowGraphBuilder.MissingDependencies;
                 if (missingDependencies.Any())
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotConstructArrowGraphDueToMissingDependencies);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotConstructArrowGraphDueToMissingDependencies);
                 }
                 TransitiveReduction();
                 m_ArrowGraphBuilder.CalculateCriticalPath();
@@ -87,7 +87,7 @@ namespace Zametek.Maths.Graphs
                 bool transitivelyReduced = m_ArrowGraphBuilder.TransitiveReduction();
                 if (!transitivelyReduced)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotPerformTransitiveReduction);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotPerformTransitiveReduction);
                 }
             }
         }

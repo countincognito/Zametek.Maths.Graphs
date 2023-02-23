@@ -83,7 +83,7 @@ namespace Zametek.Maths.Graphs
             }
             if (tmpGraphBuilder.Activities.Any(x => !x.IsDummy))
             {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPathPriorityList);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathPriorityList);
             }
             return priorityList;
         }
@@ -107,7 +107,7 @@ namespace Zametek.Maths.Graphs
             }
             if (resources.Count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(resources), Properties.Resources.ValueCannotBeNegative);
+                throw new ArgumentOutOfRangeException(nameof(resources), Properties.Resources.Message_ValueCannotBeNegative);
             }
             if (!graphBuilder.Activities.Any())
             {
@@ -123,26 +123,47 @@ namespace Zametek.Maths.Graphs
             // If resources are limited, check to make sure all activities can be accepted.
             if (!infiniteResources)
             {
-                // Check if any activities are obliged to use any explicit target resources
-                // that are inactive.
+                // Check if any activities are obliged to use only explicit target resources
+                // that are unavailable.
+                var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
 
-
-
-                HashSet<TResourceId> allTargetResources = graphBuilder.Activities
-                    .Select(x => x.TargetResources)
-                    .Aggregate((previous, next) => new HashSet<TResourceId>(previous.Union(next)));
-
-                bool allTargetResourcesAreSubsetOfResources = allTargetResources.IsSubsetOf(filteredResources.Select(x => x.Id));
-                if (!allTargetResourcesAreSubsetOfResources)
+                foreach (TActivity activity in graphBuilder.Activities)
                 {
-                    throw new InvalidOperationException(Properties.Resources.AtLeastOneSpecifiedTargetResourcesAreNotPresentInResourcesProvided);
+                    if (activity.TargetResources.Any())
+                    {
+                        // When all explicit target resources must be available.
+                        if (activity.TargetResourceOperator == LogicalOperator.AND)
+                        {
+                            // Ids in TargetResources that are not in filtered Resources.
+                            IEnumerable<TResourceId> unavailableResourceIds =
+                                activity.TargetResources.Except(filteredResources.Select(x => x.Id));
+
+                            if (unavailableResourceIds.Any())
+                            {
+                                unavailableResourcesSet.Add(
+                                    new UnavailableResources<T, TResourceId>(activity.Id, unavailableResourceIds));
+                            }
+                        }
+                        // When at least one explicit target resource must be available.
+                        else if (activity.TargetResourceOperator == LogicalOperator.OR)
+                        {
+                            // Check intersection of TargetResources and filtered Resources.
+                            IEnumerable<TResourceId> intersection =
+                                activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
+
+                            if (!intersection.Any())
+                            {
+                                unavailableResourcesSet.Add(
+                                    new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
+                            }
+                        }
+                    }
                 }
 
-
-
-
-
-
+                if (unavailableResourcesSet.Any())
+                {
+                    throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided);
+                }
 
                 // If all resources are explicit targets, check to make sure all activities
                 // targeted to at least one.
@@ -151,7 +172,7 @@ namespace Zametek.Maths.Graphs
                 if (allResourcesAreExplicitTargets
                     && atLeastOneActivityRequiresNonExplicitTargetResource)
                 {
-                    throw new InvalidOperationException(Properties.Resources.AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
+                    throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
                 }
             }
 

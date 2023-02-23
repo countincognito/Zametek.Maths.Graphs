@@ -23,22 +23,22 @@ namespace Zametek.Maths.Graphs
 
             if (!edgesCleaned)
             {
-                throw new InvalidOperationException(Properties.Resources.CannotPerformEdgeCleanUp);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
             }
 
             arrowGraphBuilder.ClearCriticalPathVariables();
 
             if (!arrowGraphBuilder.CalculateEventEarliestFinishTimes())
             {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateEventEarliestFinishTimes);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventEarliestFinishTimes);
             }
             if (!arrowGraphBuilder.CalculateEventLatestFinishTimes())
             {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateEventLatestFinishTimes);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventLatestFinishTimes);
             }
             if (!arrowGraphBuilder.CalculateCriticalPathVariables())
             {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPath);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPath);
             }
         }
 
@@ -179,7 +179,7 @@ namespace Zametek.Maths.Graphs
                 // finish times.
                 if (!progress)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotCalculateEarliestFinishTimesDueToCyclicDependency);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency);
                 }
             }
             return true;
@@ -302,7 +302,7 @@ namespace Zametek.Maths.Graphs
                 // finish times.
                 if (!progress)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotCalculateLatestFinishTimesDueToCyclicDependency);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateLatestFinishTimesDueToCyclicDependency);
                 }
             }
             return true;

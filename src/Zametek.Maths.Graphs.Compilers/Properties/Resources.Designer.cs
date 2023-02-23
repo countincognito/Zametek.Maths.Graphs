@@ -62,174 +62,147 @@ namespace Zametek.Maths.Graphs.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All resources are explicit targets, but not all activities have targeted resources.
+        /// </summary>
+        internal static string Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted {
+            get {
+                return ResourceManager.GetString("Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Arrow graph contains more than one End node.
         /// </summary>
-        internal static string ArrowGraphContainsMoreThanOneEndNode {
+        internal static string Message_ArrowGraphContainsMoreThanOneEndNode {
             get {
-                return ResourceManager.GetString("ArrowGraphContainsMoreThanOneEndNode", resourceCulture);
+                return ResourceManager.GetString("Message_ArrowGraphContainsMoreThanOneEndNode", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Arrow graph contains more than one Start node.
         /// </summary>
-        internal static string ArrowGraphContainsMoreThanOneStartNode {
+        internal static string Message_ArrowGraphContainsMoreThanOneStartNode {
             get {
-                return ResourceManager.GetString("ArrowGraphContainsMoreThanOneStartNode", resourceCulture);
+                return ResourceManager.GetString("Message_ArrowGraphContainsMoreThanOneStartNode", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to At least one activity requires a non-explicit target resource, but all provided resources are explicit targets.
         /// </summary>
-        internal static string AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets {
+        internal static string Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets {
             get {
-                return ResourceManager.GetString("AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExpl" +
-                        "icitTargets", resourceCulture);
+                return ResourceManager.GetString("Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResource" +
+                        "sAreExplicitTargets", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to At least one specified target resources are not present in the resources provided.
+        ///   Looks up a localized string similar to At least one of specified target resources are not available in the resources provided.
         /// </summary>
-        internal static string AtLeastOneSpecifiedTargetResourcesAreNotPresentInResourcesProvided {
+        internal static string Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided {
             get {
-                return ResourceManager.GetString("AtLeastOneSpecifiedTargetResourcesAreNotPresentInResourcesProvided", resourceCulture);
+                return ResourceManager.GetString("Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate critical path.
         /// </summary>
-        internal static string CannotCalculateCriticalPath {
+        internal static string Message_CannotCalculateCriticalPath {
             get {
-                return ResourceManager.GetString("CannotCalculateCriticalPath", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateCriticalPath", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate critical path backward flow.
         /// </summary>
-        internal static string CannotCalculateCriticalPathBackwardFlow {
+        internal static string Message_CannotCalculateCriticalPathBackwardFlow {
             get {
-                return ResourceManager.GetString("CannotCalculateCriticalPathBackwardFlow", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateCriticalPathBackwardFlow", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate critical path forward flow.
         /// </summary>
-        internal static string CannotCalculateCriticalPathForwardFlow {
+        internal static string Message_CannotCalculateCriticalPathForwardFlow {
             get {
-                return ResourceManager.GetString("CannotCalculateCriticalPathForwardFlow", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateCriticalPathForwardFlow", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate critical path priority list.
         /// </summary>
-        internal static string CannotCalculateCriticalPathPriorityList {
+        internal static string Message_CannotCalculateCriticalPathPriorityList {
             get {
-                return ResourceManager.GetString("CannotCalculateCriticalPathPriorityList", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateCriticalPathPriorityList", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate earliest finish times due to cyclic dependency.
         /// </summary>
-        internal static string CannotCalculateEarliestFinishTimesDueToCyclicDependency {
+        internal static string Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency {
             get {
-                return ResourceManager.GetString("CannotCalculateEarliestFinishTimesDueToCyclicDependency", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate Event earliest finish times.
         /// </summary>
-        internal static string CannotCalculateEventEarliestFinishTimes {
+        internal static string Message_CannotCalculateEventEarliestFinishTimes {
             get {
-                return ResourceManager.GetString("CannotCalculateEventEarliestFinishTimes", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateEventEarliestFinishTimes", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate Event latest finish times.
         /// </summary>
-        internal static string CannotCalculateEventLatestFinishTimes {
+        internal static string Message_CannotCalculateEventLatestFinishTimes {
             get {
-                return ResourceManager.GetString("CannotCalculateEventLatestFinishTimes", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateEventLatestFinishTimes", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot calculate latest finish times due to cyclic dependency.
         /// </summary>
-        internal static string CannotCalculateLatestFinishTimesDueToCyclicDependency {
+        internal static string Message_CannotCalculateLatestFinishTimesDueToCyclicDependency {
             get {
-                return ResourceManager.GetString("CannotCalculateLatestFinishTimesDueToCyclicDependency", resourceCulture);
+                return ResourceManager.GetString("Message_CannotCalculateLatestFinishTimesDueToCyclicDependency", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot construct arrow graph due to missing dependencies.
         /// </summary>
-        internal static string CannotConstructArrowGraphDueToMissingDependencies {
+        internal static string Message_CannotConstructArrowGraphDueToMissingDependencies {
             get {
-                return ResourceManager.GetString("CannotConstructArrowGraphDueToMissingDependencies", resourceCulture);
+                return ResourceManager.GetString("Message_CannotConstructArrowGraphDueToMissingDependencies", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot perform edge clean up.
         /// </summary>
-        internal static string CannotPerformEdgeCleanUp {
+        internal static string Message_CannotPerformEdgeCleanUp {
             get {
-                return ResourceManager.GetString("CannotPerformEdgeCleanUp", resourceCulture);
+                return ResourceManager.GetString("Message_CannotPerformEdgeCleanUp", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot perform transitive reduction.
         /// </summary>
-        internal static string CannotPerformTransitiveReduction {
+        internal static string Message_CannotPerformTransitiveReduction {
             get {
-                return ResourceManager.GetString("CannotPerformTransitiveReduction", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by head Nodes do not match.
-        /// </summary>
-        internal static string ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch {
-            get {
-                return ResourceManager.GetString("ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by tail Nodes do not match.
-        /// </summary>
-        internal static string ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch {
-            get {
-                return ResourceManager.GetString("ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to List of Node IDs and Edges referenced by tail Nodes do not match.
-        /// </summary>
-        internal static string ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch {
-            get {
-                return ResourceManager.GetString("ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to All resources are explicit targets, but not all activities have targeted resources.
-        /// </summary>
-        internal static string Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted {
-            get {
-                return ResourceManager.GetString("Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted", resourceCulture);
+                return ResourceManager.GetString("Message_CannotPerformTransitiveReduction", resourceCulture);
             }
         }
         
@@ -324,6 +297,33 @@ namespace Zametek.Maths.Graphs.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by head Nodes do not match.
+        /// </summary>
+        internal static string Message_ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch {
+            get {
+                return ResourceManager.GetString("Message_ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List of Edge IDs and Edges referenced by tail Nodes do not match.
+        /// </summary>
+        internal static string Message_ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch {
+            get {
+                return ResourceManager.GetString("Message_ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List of Node IDs and Edges referenced by tail Nodes do not match.
+        /// </summary>
+        internal static string Message_ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch {
+            get {
+                return ResourceManager.GetString("Message_ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (MinimumEarliestStartTime + Duration) must be greater than MaximumLatestFinishTime.
         /// </summary>
         internal static string Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime {
@@ -363,27 +363,27 @@ namespace Zametek.Maths.Graphs.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Value cannot be negative.
         /// </summary>
-        internal static string ValueCannotBeNegative {
+        internal static string Message_ValueCannotBeNegative {
             get {
-                return ResourceManager.GetString("ValueCannotBeNegative", resourceCulture);
+                return ResourceManager.GetString("Message_ValueCannotBeNegative", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Vertex graph cannot contain Normal nodes without any End nodes.
         /// </summary>
-        internal static string VertexGraphCannotContainNormalNodesWithoutAnyEndNodes {
+        internal static string Message_VertexGraphCannotContainNormalNodesWithoutAnyEndNodes {
             get {
-                return ResourceManager.GetString("VertexGraphCannotContainNormalNodesWithoutAnyEndNodes", resourceCulture);
+                return ResourceManager.GetString("Message_VertexGraphCannotContainNormalNodesWithoutAnyEndNodes", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Vertex graph cannot contain Normal nodes without any Start nodes.
         /// </summary>
-        internal static string VertexGraphCannotContainNormalNodesWithoutAnyStartNodes {
+        internal static string Message_VertexGraphCannotContainNormalNodesWithoutAnyStartNodes {
             get {
-                return ResourceManager.GetString("VertexGraphCannotContainNormalNodesWithoutAnyStartNodes", resourceCulture);
+                return ResourceManager.GetString("Message_VertexGraphCannotContainNormalNodesWithoutAnyStartNodes", resourceCulture);
             }
         }
     }

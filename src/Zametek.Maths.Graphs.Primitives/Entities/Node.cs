@@ -61,7 +61,7 @@ namespace Zametek.Maths.Graphs
             {
                 if (NodeType == NodeType.Start || NodeType == NodeType.Isolated)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotRequestIncomingEdgesOfStartOrIsolatedNode);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotRequestIncomingEdgesOfStartOrIsolatedNode);
                 }
                 return m_IncomingEdges;
             }
@@ -73,7 +73,7 @@ namespace Zametek.Maths.Graphs
             {
                 if (NodeType == NodeType.End || NodeType == NodeType.Isolated)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotRequestOutgoingEdgesOfEndOrIsolatedNode);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotRequestOutgoingEdgesOfEndOrIsolatedNode);
                 }
                 return m_OutgoingEdges;
             }

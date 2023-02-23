@@ -40,7 +40,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
-                throw new ArgumentException(Properties.Resources.ArrowGraphContainsMoreThanOneStartNode);
+                throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneStartNode);
             }
             if (EndNodes.Count() == 1)
             {
@@ -48,7 +48,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
-                throw new ArgumentException(Properties.Resources.ArrowGraphContainsMoreThanOneEndNode);
+                throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneEndNode);
             }
         }
 

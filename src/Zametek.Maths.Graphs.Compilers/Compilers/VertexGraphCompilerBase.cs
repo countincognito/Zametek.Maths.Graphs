@@ -244,9 +244,8 @@ namespace Zametek.Maths.Graphs
                     && filteredResources.All(x => x.IsExplicitTarget)
                     && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
 
-                // Check if any activities are obliged to use any explicit target resources
-                // that are inactive.
-
+                // Check if any activities are obliged to use only explicit target resources
+                // that are unavailable.
                 var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
 
                 foreach (TDependentActivity dependentActivity in activities)
@@ -563,7 +562,7 @@ namespace Zametek.Maths.Graphs
                 bool transitivelyReduced = m_VertexGraphBuilder.TransitiveReduction();
                 if (!transitivelyReduced)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotPerformTransitiveReduction);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotPerformTransitiveReduction);
                 }
 
                 // Now set the compiled dependencies to match the actual remaining dependencies.

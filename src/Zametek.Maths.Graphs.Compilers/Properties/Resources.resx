@@ -117,62 +117,53 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ArrowGraphContainsMoreThanOneEndNode" xml:space="preserve">
-    <value>Arrow graph contains more than one End node</value>
-  </data>
-  <data name="ArrowGraphContainsMoreThanOneStartNode" xml:space="preserve">
-    <value>Arrow graph contains more than one Start node</value>
-  </data>
-  <data name="AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets" xml:space="preserve">
-    <value>At least one activity requires a non-explicit target resource, but all provided resources are explicit targets</value>
-  </data>
-  <data name="AtLeastOneSpecifiedTargetResourcesAreNotPresentInResourcesProvided" xml:space="preserve">
-    <value>At least one specified target resources are not present in the resources provided</value>
-  </data>
-  <data name="CannotCalculateCriticalPath" xml:space="preserve">
-    <value>Cannot calculate critical path</value>
-  </data>
-  <data name="CannotCalculateCriticalPathBackwardFlow" xml:space="preserve">
-    <value>Cannot calculate critical path backward flow</value>
-  </data>
-  <data name="CannotCalculateCriticalPathForwardFlow" xml:space="preserve">
-    <value>Cannot calculate critical path forward flow</value>
-  </data>
-  <data name="CannotCalculateCriticalPathPriorityList" xml:space="preserve">
-    <value>Cannot calculate critical path priority list</value>
-  </data>
-  <data name="CannotCalculateEarliestFinishTimesDueToCyclicDependency" xml:space="preserve">
-    <value>Cannot calculate earliest finish times due to cyclic dependency</value>
-  </data>
-  <data name="CannotCalculateEventEarliestFinishTimes" xml:space="preserve">
-    <value>Cannot calculate Event earliest finish times</value>
-  </data>
-  <data name="CannotCalculateEventLatestFinishTimes" xml:space="preserve">
-    <value>Cannot calculate Event latest finish times</value>
-  </data>
-  <data name="CannotCalculateLatestFinishTimesDueToCyclicDependency" xml:space="preserve">
-    <value>Cannot calculate latest finish times due to cyclic dependency</value>
-  </data>
-  <data name="CannotConstructArrowGraphDueToMissingDependencies" xml:space="preserve">
-    <value>Cannot construct arrow graph due to missing dependencies</value>
-  </data>
-  <data name="CannotPerformEdgeCleanUp" xml:space="preserve">
-    <value>Cannot perform edge clean up</value>
-  </data>
-  <data name="CannotPerformTransitiveReduction" xml:space="preserve">
-    <value>Cannot perform transitive reduction</value>
-  </data>
-  <data name="ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch" xml:space="preserve">
-    <value>List of Edge IDs and Edges referenced by head Nodes do not match</value>
-  </data>
-  <data name="ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch" xml:space="preserve">
-    <value>List of Edge IDs and Edges referenced by tail Nodes do not match</value>
-  </data>
-  <data name="ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch" xml:space="preserve">
-    <value>List of Node IDs and Edges referenced by tail Nodes do not match</value>
-  </data>
   <data name="Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted" xml:space="preserve">
     <value>All resources are explicit targets, but not all activities have targeted resources</value>
+  </data>
+  <data name="Message_ArrowGraphContainsMoreThanOneEndNode" xml:space="preserve">
+    <value>Arrow graph contains more than one End node</value>
+  </data>
+  <data name="Message_ArrowGraphContainsMoreThanOneStartNode" xml:space="preserve">
+    <value>Arrow graph contains more than one Start node</value>
+  </data>
+  <data name="Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets" xml:space="preserve">
+    <value>At least one activity requires a non-explicit target resource, but all provided resources are explicit targets</value>
+  </data>
+  <data name="Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided" xml:space="preserve">
+    <value>At least one of specified target resources are not available in the resources provided</value>
+  </data>
+  <data name="Message_CannotCalculateCriticalPath" xml:space="preserve">
+    <value>Cannot calculate critical path</value>
+  </data>
+  <data name="Message_CannotCalculateCriticalPathBackwardFlow" xml:space="preserve">
+    <value>Cannot calculate critical path backward flow</value>
+  </data>
+  <data name="Message_CannotCalculateCriticalPathForwardFlow" xml:space="preserve">
+    <value>Cannot calculate critical path forward flow</value>
+  </data>
+  <data name="Message_CannotCalculateCriticalPathPriorityList" xml:space="preserve">
+    <value>Cannot calculate critical path priority list</value>
+  </data>
+  <data name="Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency" xml:space="preserve">
+    <value>Cannot calculate earliest finish times due to cyclic dependency</value>
+  </data>
+  <data name="Message_CannotCalculateEventEarliestFinishTimes" xml:space="preserve">
+    <value>Cannot calculate Event earliest finish times</value>
+  </data>
+  <data name="Message_CannotCalculateEventLatestFinishTimes" xml:space="preserve">
+    <value>Cannot calculate Event latest finish times</value>
+  </data>
+  <data name="Message_CannotCalculateLatestFinishTimesDueToCyclicDependency" xml:space="preserve">
+    <value>Cannot calculate latest finish times due to cyclic dependency</value>
+  </data>
+  <data name="Message_CannotConstructArrowGraphDueToMissingDependencies" xml:space="preserve">
+    <value>Cannot construct arrow graph due to missing dependencies</value>
+  </data>
+  <data name="Message_CannotPerformEdgeCleanUp" xml:space="preserve">
+    <value>Cannot perform edge clean up</value>
+  </data>
+  <data name="Message_CannotPerformTransitiveReduction" xml:space="preserve">
+    <value>Cannot perform transitive reduction</value>
   </data>
   <data name="Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime" xml:space="preserve">
     <value>Cannot set MinimumFreeSlack and MaximumLatestFinishTime at the same time</value>
@@ -204,6 +195,15 @@
   <data name="Message_LatestStartTimeLessThanZero" xml:space="preserve">
     <value>LatestStartTime cannot be less than zero</value>
   </data>
+  <data name="Message_ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch" xml:space="preserve">
+    <value>List of Edge IDs and Edges referenced by head Nodes do not match</value>
+  </data>
+  <data name="Message_ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch" xml:space="preserve">
+    <value>List of Edge IDs and Edges referenced by tail Nodes do not match</value>
+  </data>
+  <data name="Message_ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch" xml:space="preserve">
+    <value>List of Node IDs and Edges referenced by tail Nodes do not match</value>
+  </data>
   <data name="Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime" xml:space="preserve">
     <value>(MinimumEarliestStartTime + Duration) must be greater than MaximumLatestFinishTime</value>
   </data>
@@ -216,13 +216,13 @@
   <data name="Message_UnavailableResources" xml:space="preserve">
     <value>Unavailable resources for activities:</value>
   </data>
-  <data name="ValueCannotBeNegative" xml:space="preserve">
+  <data name="Message_ValueCannotBeNegative" xml:space="preserve">
     <value>Value cannot be negative</value>
   </data>
-  <data name="VertexGraphCannotContainNormalNodesWithoutAnyEndNodes" xml:space="preserve">
+  <data name="Message_VertexGraphCannotContainNormalNodesWithoutAnyEndNodes" xml:space="preserve">
     <value>Vertex graph cannot contain Normal nodes without any End nodes</value>
   </data>
-  <data name="VertexGraphCannotContainNormalNodesWithoutAnyStartNodes" xml:space="preserve">
+  <data name="Message_VertexGraphCannotContainNormalNodesWithoutAnyStartNodes" xml:space="preserve">
     <value>Vertex graph cannot contain Normal nodes without any Start nodes</value>
   </data>
 </root>

@@ -23,18 +23,18 @@ namespace Zametek.Maths.Graphs
 
             if (!edgesCleaned)
             {
-                throw new InvalidOperationException(Properties.Resources.CannotPerformEdgeCleanUp);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
             }
 
             vertexGraphBuilder.ClearCriticalPathVariables();
 
             if (!vertexGraphBuilder.CalculateCriticalPathForwardFlow())
             {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPathForwardFlow);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathForwardFlow);
             }
             if (!vertexGraphBuilder.CalculateCriticalPathBackwardFlow())
             {
-                throw new InvalidOperationException(Properties.Resources.CannotCalculateCriticalPathBackwardFlow);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathBackwardFlow);
             }
         }
 
@@ -263,7 +263,7 @@ namespace Zametek.Maths.Graphs
                 // finish times.
                 if (!progress)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotCalculateEarliestFinishTimesDueToCyclicDependency);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency);
                 }
             }
 
@@ -522,7 +522,7 @@ namespace Zametek.Maths.Graphs
                 // finish times.
                 if (!progress)
                 {
-                    throw new InvalidOperationException(Properties.Resources.CannotCalculateLatestFinishTimesDueToCyclicDependency);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateLatestFinishTimesDueToCyclicDependency);
                 }
             }
 

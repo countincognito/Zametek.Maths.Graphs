@@ -20,7 +20,7 @@ namespace Zametek.Maths.Graphs.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -64,18 +64,18 @@ namespace Zametek.Maths.Graphs.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Cannot request Incoming Edges of a Start or Isolated Node.
         /// </summary>
-        internal static string CannotRequestIncomingEdgesOfStartOrIsolatedNode {
+        internal static string Message_CannotRequestIncomingEdgesOfStartOrIsolatedNode {
             get {
-                return ResourceManager.GetString("CannotRequestIncomingEdgesOfStartOrIsolatedNode", resourceCulture);
+                return ResourceManager.GetString("Message_CannotRequestIncomingEdgesOfStartOrIsolatedNode", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot request Outgoing Edges of an End or Isolated Node.
         /// </summary>
-        internal static string CannotRequestOutgoingEdgesOfEndOrIsolatedNode {
+        internal static string Message_CannotRequestOutgoingEdgesOfEndOrIsolatedNode {
             get {
-                return ResourceManager.GetString("CannotRequestOutgoingEdgesOfEndOrIsolatedNode", resourceCulture);
+                return ResourceManager.GetString("Message_CannotRequestOutgoingEdgesOfEndOrIsolatedNode", resourceCulture);
             }
         }
     }
