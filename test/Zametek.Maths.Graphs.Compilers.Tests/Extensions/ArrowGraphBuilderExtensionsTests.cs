@@ -1341,15 +1341,19 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(8, 4), new HashSet<int> { 4, 6 });
             graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int> { 5 });
 
+            int resourceId1 = 1;
+
             IList<IResourceSchedule<int, int>> resourceSchedules =
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int>>(new[]
                     {
-                        new Resource<int>(1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
+                        new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
                     })).ToList();
             resourceSchedules.Count.Should().Be(1);
 
-            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
             scheduledActivities0.Count.Should().Be(9);
             scheduledActivities0[0].Id.Should().Be(3);
             scheduledActivities0[0].StartTime.Should().Be(0);
@@ -1409,16 +1413,21 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(8, 4), new HashSet<int> { 4, 6 });
             graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int> { 5 });
 
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+
             IList<IResourceSchedule<int, int>> resourceSchedules =
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int>>(new[]
                     {
-                        new Resource<int>(1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                        new Resource<int>(2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
+                        new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
+                        new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
                     })).ToList();
             resourceSchedules.Count.Should().Be(2);
 
-            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
             scheduledActivities0.Count.Should().Be(5);
             scheduledActivities0[0].Id.Should().Be(3);
             scheduledActivities0[0].StartTime.Should().Be(0);
@@ -1443,7 +1452,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.Should().Be(34);
 
 
-            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
             scheduledActivities1.Count.Should().Be(4);
 
             scheduledActivities1[0].Id.Should().Be(2);
@@ -1484,17 +1495,23 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(8, 4), new HashSet<int> { 4, 6 });
             graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int> { 5 });
 
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
             IList<IResourceSchedule<int, int>> resourceSchedules =
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int>>(new[]
                     {
-                        new Resource<int>(1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                        new Resource<int>(2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                        new Resource<int>(3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
+                        new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
+                        new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
+                        new Resource<int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
                     })).ToList();
             resourceSchedules.Count.Should().Be(3);
 
-            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
             scheduledActivities0.Count.Should().Be(3);
             scheduledActivities0[0].Id.Should().Be(3);
             scheduledActivities0[0].StartTime.Should().Be(0);
@@ -1511,7 +1528,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.Should().Be(26);
 
 
-            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
             scheduledActivities1.Count.Should().Be(3);
             scheduledActivities1[0].Id.Should().Be(2);
             scheduledActivities1[0].StartTime.Should().Be(0);
@@ -1528,7 +1547,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.Should().Be(22);
 
 
-            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            var resourceSchedule2 = resourceSchedules[2];
+            resourceSchedule2.Resource.Id.Should().Be(resourceId3);
+            var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
             scheduledActivities2.Count.Should().Be(3);
             scheduledActivities2[0].Id.Should().Be(1);
             scheduledActivities2[0].StartTime.Should().Be(0);
@@ -1564,18 +1585,25 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(8, 4), new HashSet<int> { 4, 6 });
             graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int> { 5 });
 
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+            int resourceId4 = resourceId3 + 1;
+
             IList<IResourceSchedule<int, int>> resourceSchedules =
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int>>(new[]
                     {
-                        new Resource<int>(1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                        new Resource<int>(2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                        new Resource<int>(3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                        new Resource<int>(4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
+                        new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
+                        new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
+                        new Resource<int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
+                        new Resource<int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0)
                     })).ToList();
             resourceSchedules.Count.Should().Be(3);
 
-            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
             scheduledActivities0.Count.Should().Be(3);
             scheduledActivities0[0].Id.Should().Be(3);
             scheduledActivities0[0].StartTime.Should().Be(0);
@@ -1592,7 +1620,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.Should().Be(26);
 
 
-            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
             scheduledActivities1.Count.Should().Be(3);
             scheduledActivities1[0].Id.Should().Be(2);
             scheduledActivities1[0].StartTime.Should().Be(0);
@@ -1609,7 +1639,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.Should().Be(22);
 
 
-            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            var resourceSchedule2 = resourceSchedules[2];
+            resourceSchedule2.Resource.Id.Should().Be(resourceId3);
+            var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
             scheduledActivities2.Count.Should().Be(3);
             scheduledActivities2[0].Id.Should().Be(1);
             scheduledActivities2[0].StartTime.Should().Be(0);
@@ -1645,19 +1677,25 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int>(8, 4), new HashSet<int> { 4, 6 });
             graphBuilder.AddActivity(new Activity<int, int>(9, 10), new HashSet<int> { 5 });
 
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+            int resourceId4 = resourceId3 + 1;
+
             IList<IResourceSchedule<int, int>> resourceSchedules =
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int>>(new[]
                     {
-                        new Resource<int>(1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 4),
-                        new Resource<int>(2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 3),
-                        new Resource<int>(3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 2),
-                        new Resource<int>(4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1)
+                        new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 4),
+                        new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 3),
+                        new Resource<int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 2),
+                        new Resource<int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1)
                     })).ToList();
             resourceSchedules.Count.Should().Be(3);
 
-            resourceSchedules[0].Resource.Id.Should().Be(4);
-            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.Should().Be(resourceId4);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
             scheduledActivities0.Count.Should().Be(3);
             scheduledActivities0[0].Id.Should().Be(3);
             scheduledActivities0[0].StartTime.Should().Be(0);
@@ -1674,8 +1712,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.Should().Be(26);
 
 
-            resourceSchedules[1].Resource.Id.Should().Be(3);
-            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.Should().Be(resourceId3);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
             scheduledActivities1.Count.Should().Be(3);
             scheduledActivities1[0].Id.Should().Be(2);
             scheduledActivities1[0].StartTime.Should().Be(0);
@@ -1692,8 +1731,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.Should().Be(22);
 
 
-            resourceSchedules[2].Resource.Id.Should().Be(2);
-            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            var resourceSchedule2 = resourceSchedules[2];
+            resourceSchedule2.Resource.Id.Should().Be(resourceId2);
+            var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
             scheduledActivities2.Count.Should().Be(3);
             scheduledActivities2[0].Id.Should().Be(1);
             scheduledActivities2[0].StartTime.Should().Be(0);
@@ -1732,7 +1772,9 @@ namespace Zametek.Maths.Graphs.Tests
             IList<IResourceSchedule<int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList(new List<IResource<int>>()).ToList();
             resourceSchedules.Count.Should().Be(3);
 
-            var scheduledActivities0 = resourceSchedules[0].ScheduledActivities.ToList();
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Should().BeNull();
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
             scheduledActivities0.Count.Should().Be(3);
             scheduledActivities0[0].Id.Should().Be(3);
             scheduledActivities0[0].StartTime.Should().Be(0);
@@ -1749,7 +1791,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.Should().Be(26);
 
 
-            var scheduledActivities1 = resourceSchedules[1].ScheduledActivities.ToList();
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Should().BeNull();
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
             scheduledActivities1.Count.Should().Be(3);
             scheduledActivities1[0].Id.Should().Be(2);
             scheduledActivities1[0].StartTime.Should().Be(0);
@@ -1766,7 +1810,9 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.Should().Be(22);
 
 
-            var scheduledActivities2 = resourceSchedules[2].ScheduledActivities.ToList();
+            var resourceSchedule2 = resourceSchedules[2];
+            resourceSchedule2.Resource.Should().BeNull();
+            var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
             scheduledActivities2.Count.Should().Be(3);
             scheduledActivities2[0].Id.Should().Be(1);
             scheduledActivities2[0].StartTime.Should().Be(0);

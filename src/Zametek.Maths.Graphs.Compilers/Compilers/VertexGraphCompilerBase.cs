@@ -248,34 +248,37 @@ namespace Zametek.Maths.Graphs
                 // that are unavailable.
                 var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
 
-                foreach (TDependentActivity dependentActivity in activities)
+                if (!infiniteResources)
                 {
-                    if (dependentActivity.TargetResources.Any())
+                    foreach (TDependentActivity dependentActivity in activities)
                     {
-                        // When all explicit target resources must be available.
-                        if (dependentActivity.TargetResourceOperator == LogicalOperator.AND)
+                        if (dependentActivity.TargetResources.Any())
                         {
-                            // Ids in TargetResources that are not in filtered Resources.
-                            IEnumerable<TResourceId> unavailableResourceIds =
-                                dependentActivity.TargetResources.Except(filteredResources.Select(x => x.Id));
-
-                            if (unavailableResourceIds.Any())
+                            // When all explicit target resources must be available.
+                            if (dependentActivity.TargetResourceOperator == LogicalOperator.AND)
                             {
-                                unavailableResourcesSet.Add(
-                                    new UnavailableResources<T, TResourceId>(dependentActivity.Id, unavailableResourceIds));
+                                // Ids in TargetResources that are not in filtered Resources.
+                                IEnumerable<TResourceId> unavailableResourceIds =
+                                    dependentActivity.TargetResources.Except(filteredResources.Select(x => x.Id));
+
+                                if (unavailableResourceIds.Any())
+                                {
+                                    unavailableResourcesSet.Add(
+                                        new UnavailableResources<T, TResourceId>(dependentActivity.Id, unavailableResourceIds));
+                                }
                             }
-                        }
-                        // When at least one explicit target resource must be available.
-                        else if (dependentActivity.TargetResourceOperator == LogicalOperator.OR)
-                        {
-                            // Check intersection of TargetResources and filtered Resources.
-                            IEnumerable<TResourceId> intersection =
-                                dependentActivity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
-
-                            if (!intersection.Any())
+                            // When at least one explicit target resource must be available.
+                            else if (dependentActivity.TargetResourceOperator == LogicalOperator.OR)
                             {
-                                unavailableResourcesSet.Add(
-                                    new UnavailableResources<T, TResourceId>(dependentActivity.Id, dependentActivity.TargetResources));
+                                // Check intersection of TargetResources and filtered Resources.
+                                IEnumerable<TResourceId> intersection =
+                                    dependentActivity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
+
+                                if (!intersection.Any())
+                                {
+                                    unavailableResourcesSet.Add(
+                                        new UnavailableResources<T, TResourceId>(dependentActivity.Id, dependentActivity.TargetResources));
+                                }
                             }
                         }
                     }
