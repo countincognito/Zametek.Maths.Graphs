@@ -242,7 +242,7 @@ namespace Zametek.Maths.Graphs
                 bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
                     !infiniteResources
                     && filteredResources.All(x => x.IsExplicitTarget)
-                    && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
+                    && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && x.TargetResources.Count == 0);
 
                 // Check if any activities are obliged to use only explicit target resources
                 // that are unavailable.
@@ -252,7 +252,7 @@ namespace Zametek.Maths.Graphs
                 {
                     foreach (TDependentActivity dependentActivity in activities)
                     {
-                        if (dependentActivity.TargetResources.Any())
+                        if (dependentActivity.TargetResources.Count != 0)
                         {
                             // When all explicit target resources must be available.
                             if (dependentActivity.TargetResourceOperator == LogicalOperator.AND)
@@ -334,7 +334,7 @@ namespace Zametek.Maths.Graphs
                 }
 
                 // P0060
-                if (unavailableResourcesSet.Any())
+                if (unavailableResourcesSet.Count != 0)
                 {
                     compilationErrors.Add(
                         new GraphCompilationError(
@@ -342,7 +342,7 @@ namespace Zametek.Maths.Graphs
                             BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
                 }
 
-                if (compilationErrors.Any())
+                if (compilationErrors.Count != 0)
                 {
                     return new GraphCompilation<T, TResourceId, TDependentActivity>(
                         m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
@@ -409,7 +409,7 @@ namespace Zametek.Maths.Graphs
                             BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
                 }
 
-                if (compilationErrors.Any())
+                if (compilationErrors.Count != 0)
                 {
                     return new GraphCompilation<T, TResourceId, TDependentActivity>(
                         m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
