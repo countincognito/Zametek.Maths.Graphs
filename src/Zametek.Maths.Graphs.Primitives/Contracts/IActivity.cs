@@ -3,14 +3,17 @@ using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public interface IActivity<out T, TResourceId>
+    public interface IActivity<out T, TResourceId, TWorkStreamId>
         : IHaveId<T>, ICanBeRemoved, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         string Name { get; set; }
 
         string Notes { get; set; }
+
+        HashSet<TWorkStreamId> TargetWorkStreams { get; }
 
         HashSet<TResourceId> TargetResources { get; }
 

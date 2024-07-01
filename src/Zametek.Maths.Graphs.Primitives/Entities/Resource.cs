@@ -1,18 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public class Resource<T>
-        : IResource<T>
+    public class Resource<T, TWorkStreamId>
+        : IResource<T, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         #region Ctors
 
         public Resource(
             T id, string name, bool isExplicitTarget, bool isInactive,
             InterActivityAllocationType interActivityAllocationType,
-            double unitCost, int allocationOrder)
+            double unitCost, int allocationOrder, IEnumerable<TWorkStreamId> interActivityPhases)
         {
+            if (interActivityPhases is null)
+            {
+                throw new ArgumentNullException(nameof(interActivityPhases));
+            }
             Id = id;
             Name = name;
             IsExplicitTarget = isExplicitTarget;
@@ -20,6 +26,7 @@ namespace Zametek.Maths.Graphs
             InterActivityAllocationType = interActivityAllocationType;
             UnitCost = unitCost;
             AllocationOrder = allocationOrder;
+            InterActivityPhases = new HashSet<TWorkStreamId>(interActivityPhases);
         }
 
         #endregion
@@ -61,9 +68,16 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        public HashSet<TWorkStreamId> InterActivityPhases
+        {
+            get;
+        }
+
         public object CloneObject()
         {
-            return new Resource<T>(Id, Name, IsExplicitTarget, IsInactive, InterActivityAllocationType, UnitCost, AllocationOrder);
+            return new Resource<T, TWorkStreamId>(
+                Id, Name, IsExplicitTarget, IsInactive, InterActivityAllocationType,
+                UnitCost, AllocationOrder, InterActivityPhases);
         }
 
         #endregion

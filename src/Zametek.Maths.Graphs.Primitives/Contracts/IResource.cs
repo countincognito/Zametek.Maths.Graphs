@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public interface IResource<out T>
+    public interface IResource<out T, TWorkStreamId>
         : IHaveId<T>, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         string Name { get; }
 
@@ -17,5 +19,7 @@ namespace Zametek.Maths.Graphs
         double UnitCost { get; }
 
         int AllocationOrder { get; }
+
+        HashSet<TWorkStreamId> InterActivityPhases { get; }
     }
 }

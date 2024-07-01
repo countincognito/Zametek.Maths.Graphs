@@ -3,10 +3,11 @@ using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
-    public class DependentActivity<T, TResourceId>
-        : Activity<T, TResourceId>, IDependentActivity<T, TResourceId>
+    public class DependentActivity<T, TResourceId, TWorkStreamId>
+        : Activity<T, TResourceId, TWorkStreamId>, IDependentActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         #region Ctors
 
@@ -36,13 +37,13 @@ namespace Zametek.Maths.Graphs
         }
 
         public DependentActivity(
-            T id, string name, string notes, IEnumerable<TResourceId> targetResources, IEnumerable<T> dependencies,
-            IEnumerable<T> resourceDependencies, LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources,
-            bool canBeRemoved, bool hasNoCost, int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime,
-            int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
+            T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
+            IEnumerable<T> dependencies, IEnumerable<T> resourceDependencies, LogicalOperator targetLogicalOperator,
+            IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, int duration, int? freeSlack,
+            int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
             : base(
-                  id, name, notes, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost, duration,
-                  freeSlack, earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
+                  id, name, notes, targetWorkStreams, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost,
+                  duration, freeSlack, earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
         {
             if (dependencies is null)
             {
@@ -76,9 +77,9 @@ namespace Zametek.Maths.Graphs
 
         public override object CloneObject()
         {
-            return new DependentActivity<T, TResourceId>(
-                Id, Name, Notes, TargetResources, Dependencies, ResourceDependencies, TargetResourceOperator, AllocatedToResources,
-                CanBeRemoved, HasNoCost, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack,
+            return new DependentActivity<T, TResourceId, TWorkStreamId>(
+                Id, Name, Notes, TargetWorkStreams, TargetResources, Dependencies, ResourceDependencies, TargetResourceOperator,
+                AllocatedToResources, CanBeRemoved, HasNoCost, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack,
                 MinimumEarliestStartTime, MaximumLatestFinishTime);
         }
 
