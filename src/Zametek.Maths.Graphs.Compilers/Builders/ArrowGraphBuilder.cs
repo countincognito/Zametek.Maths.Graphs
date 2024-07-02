@@ -3,17 +3,18 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public sealed class ArrowGraphBuilder<T, TResourceId, TActivity>
-        : ArrowGraphBuilderBase<T, TResourceId, TActivity, IEvent<T>>
-        where TActivity : class, IActivity<T, TResourceId>
+    public sealed class ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
+        : ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>
+        where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         #region Fields
 
         private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) => new Event<T>(id);
         private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
-        private static readonly Func<T, TActivity> s_DummyActivityGenerator = (id) => new Activity<T, TResourceId>(id, 0, canBeRemoved: true) as TActivity;
+        private static readonly Func<T, TActivity> s_DummyActivityGenerator = (id) => new Activity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TActivity;
 
         #endregion
 
@@ -54,7 +55,7 @@ namespace Zametek.Maths.Graphs
             minNodeId = minNodeId.Previous();
             T minEdgeId = arrowGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
             minEdgeId = minEdgeId.Previous();
-            return new ArrowGraphBuilder<T, TResourceId, TActivity>(
+            return new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 arrowGraphCopy,
                 () => minEdgeId = minEdgeId.Previous(),
                 () => minNodeId = minNodeId.Previous());

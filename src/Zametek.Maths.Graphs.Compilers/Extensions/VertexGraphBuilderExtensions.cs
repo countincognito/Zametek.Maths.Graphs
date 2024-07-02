@@ -7,12 +7,13 @@ namespace Zametek.Maths.Graphs
 {
     internal static class VertexGraphBuilderExtensions
     {
-        internal static void CalculateCriticalPath<T, TResourceId, TActivity, TEvent>
-            (this VertexGraphBuilderBase<T, TResourceId, TActivity, TEvent> vertexGraphBuilder)
-            where TActivity : IActivity<T, TResourceId>
+        internal static void CalculateCriticalPath<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this VertexGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> vertexGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         {
             if (vertexGraphBuilder is null)
             {
@@ -38,12 +39,13 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        internal static bool CalculateCriticalPathForwardFlow<T, TResourceId, TActivity, TEvent>
-            (this VertexGraphBuilderBase<T, TResourceId, TActivity, TEvent> vertexGraphBuilder)
-            where TActivity : IActivity<T, TResourceId>
+        internal static bool CalculateCriticalPathForwardFlow<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this VertexGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> vertexGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         {
             if (vertexGraphBuilder is null)
             {
@@ -339,12 +341,13 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        internal static bool CalculateCriticalPathBackwardFlow<T, TResourceId, TActivity, TEvent>
-            (this VertexGraphBuilderBase<T, TResourceId, TActivity, TEvent> vertexGraphBuilder)
-            where TActivity : IActivity<T, TResourceId>
+        internal static bool CalculateCriticalPathBackwardFlow<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this VertexGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> vertexGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         {
             if (vertexGraphBuilder is null)
             {

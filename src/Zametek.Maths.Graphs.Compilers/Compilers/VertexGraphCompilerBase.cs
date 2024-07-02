@@ -5,24 +5,25 @@ using System.Text;
 
 namespace Zametek.Maths.Graphs
 {
-    public abstract class VertexGraphCompilerBase<T, TResourceId, TDependentActivity, TActivity, TEvent>
-        : GraphCompilerBase<T, TResourceId, TEvent, TDependentActivity, TDependentActivity, TEvent>
-        where TDependentActivity : IDependentActivity<T, TResourceId>
-        where TActivity : IActivity<T, TResourceId>
+    public abstract class VertexGraphCompilerBase<T, TResourceId, TWorkStreamId, TDependentActivity, TActivity, TEvent>
+        : GraphCompilerBase<T, TResourceId, TWorkStreamId, TEvent, TDependentActivity, TDependentActivity, TEvent>
+        where TDependentActivity : IDependentActivity<T, TResourceId, TWorkStreamId>
+        where TActivity : IActivity<T, TResourceId, TWorkStreamId>
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         #region Fields
 
         private readonly object m_Lock;
-        private readonly VertexGraphBuilderBase<T, TResourceId, TDependentActivity, TEvent> m_VertexGraphBuilder;
+        private readonly VertexGraphBuilderBase<T, TResourceId, TWorkStreamId, TDependentActivity, TEvent> m_VertexGraphBuilder;
 
         #endregion
 
         #region Ctors
 
-        protected VertexGraphCompilerBase(VertexGraphBuilderBase<T, TResourceId, TDependentActivity, TEvent> vertexGraphBuilder)
+        protected VertexGraphCompilerBase(VertexGraphBuilderBase<T, TResourceId, TWorkStreamId, TDependentActivity, TEvent> vertexGraphBuilder)
             : base(vertexGraphBuilder)
         {
             m_VertexGraphBuilder = vertexGraphBuilder ?? throw new ArgumentNullException(nameof(vertexGraphBuilder));
@@ -200,16 +201,27 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        public IGraphCompilation<T, TResourceId, TDependentActivity> Compile()
+        public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile()
         {
-            return Compile(new List<IResource<TResourceId>>());
+            return Compile(new List<IResource<TResourceId, TWorkStreamId>>());
         }
 
-        public IGraphCompilation<T, TResourceId, TDependentActivity> Compile(IList<IResource<TResourceId>> resources)
+        public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(IList<IResource<TResourceId, TWorkStreamId>> resources)
+        {
+            return Compile(resources, new List<IWorkStream<TWorkStreamId>>());
+        }
+
+        public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
+            IList<IResource<TResourceId, TWorkStreamId>> resources,
+            IList<IWorkStream<TWorkStreamId>> workStreams)
         {
             if (resources is null)
             {
                 throw new ArgumentNullException(nameof(resources));
+            }
+            if (workStreams is null)
+            {
+                throw new ArgumentNullException(nameof(workStreams));
             }
 
             lock (m_Lock)
@@ -232,11 +244,11 @@ namespace Zametek.Maths.Graphs
                 IEnumerable<ICircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
                 IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = m_VertexGraphBuilder.FindInvalidPreCompilationConstraints();
 
-                // If resources are 0, assume infinite.
-                bool infiniteResources = !resources.Any();
+                // If resources are 0, assume infinite resources.
+                bool infiniteResources = resources.Count == 0;
 
                 // Filter out disabled resources.
-                IList<IResource<TResourceId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
+                IList<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
                 // Sanity check the resources.
                 bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
@@ -344,24 +356,25 @@ namespace Zametek.Maths.Graphs
 
                 if (compilationErrors.Count != 0)
                 {
-                    return new GraphCompilation<T, TResourceId, TDependentActivity>(
+                    return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
                         m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
-                        Enumerable.Empty<IResourceSchedule<T, TResourceId>>(),
+                        Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>(),
+                        Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
                         compilationErrors);
                 }
 
                 // Perform first compilation and calculate resource schedules.
                 m_VertexGraphBuilder.CalculateCriticalPath();
-                IEnumerable<IResourceSchedule<T, TResourceId>> resourceSchedules = m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources);
+                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules = m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources);
 
                 if (!infiniteResources)
                 {
                     // Determine the resource dependencies and add them to the compiled dependencies.
-                    foreach (IResourceSchedule<T, TResourceId> resourceSchedule in resourceSchedules)
+                    foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> resourceSchedule in resourceSchedules)
                     {
                         T previousId = default;
                         bool first = true;
-                        IResource<TResourceId> resource = resourceSchedule.Resource;
+                        IResource<TResourceId, TWorkStreamId> resource = resourceSchedule.Resource;
 
                         foreach (IScheduledActivity<T> scheduledActivity in resourceSchedule.ScheduledActivities.OrderBy(x => x.StartTime))
                         {
@@ -411,9 +424,10 @@ namespace Zametek.Maths.Graphs
 
                 if (compilationErrors.Count != 0)
                 {
-                    return new GraphCompilation<T, TResourceId, TDependentActivity>(
+                    return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
                         m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
-                        Enumerable.Empty<IResourceSchedule<T, TResourceId>>(),
+                        Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>(),
+                        Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
                         compilationErrors);
                 }
 
@@ -421,12 +435,12 @@ namespace Zametek.Maths.Graphs
                 // align with the compiled graph.
 
                 int finishTime = m_VertexGraphBuilder.Duration;
-                var newResourceScheduleBuilders = new List<ResourceScheduleBuilder<T, TResourceId>>();
+                var newResourceScheduleBuilders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
 
-                foreach (IResourceSchedule<T, TResourceId> oldResourceSchedule in resourceSchedules)
+                foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> oldResourceSchedule in resourceSchedules)
                 {
-                    ResourceScheduleBuilder<T, TResourceId> newResourceScheduleBuilder = oldResourceSchedule.Resource == null ?
-                        new ResourceScheduleBuilder<T, TResourceId>() : new ResourceScheduleBuilder<T, TResourceId>(oldResourceSchedule.Resource);
+                    ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> newResourceScheduleBuilder = oldResourceSchedule.Resource == null ?
+                        new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>() : new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(oldResourceSchedule.Resource);
 
                     IEnumerable<IScheduledActivity<T>> oldScheduledActivities = oldResourceSchedule.ScheduledActivities;
 
@@ -442,15 +456,58 @@ namespace Zametek.Maths.Graphs
                     newResourceScheduleBuilders.Add(newResourceScheduleBuilder);
                 }
 
-                IEnumerable<IResourceSchedule<T, TResourceId>> newResourceSchedules = newResourceScheduleBuilders
-                    .Select(x => x.ToResourceSchedule(finishTime))
+                // We will need a copy of the final activities for the final part.
+                IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities =
+                    m_VertexGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject());
+
+                // Build the resource schedules for any resources with scheduled activities.
+
+                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> newResourceSchedules = newResourceScheduleBuilders
+                    .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
                     .Where(x => x.ScheduledActivities.Any());
+
+                // Now find any remaining resources that were indirect and create schedules for them.
+
+                HashSet<TResourceId> scheduledResourceIds = newResourceSchedules.Where(x => x.Resource != null).Select(x => x.Resource.Id).ToHashSet();
+
+                IEnumerable<IResource<TResourceId, TWorkStreamId>> remainingIndirectResources = filteredResources
+                    .Where(x => x.InterActivityAllocationType == InterActivityAllocationType.Indirect && !scheduledResourceIds.Contains(x.Id));
+
+                var indirectResourceScheduleBuilders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
+
+                foreach (IResource<TResourceId, TWorkStreamId> indirectResource in remainingIndirectResources)
+                {
+                    indirectResourceScheduleBuilders.Add(new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(indirectResource));
+                }
+
+                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectResourceSchedules = indirectResourceScheduleBuilders
+                    .Select(x => x.ToResourceSchedule(finalActivities, finishTime));
+
+
+
+
+
+                // Now calculate the used work streams.
+
+                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalResourceSchedules =
+                    newResourceSchedules.Union(indirectResourceSchedules).ToList();
+
+                HashSet<TWorkStreamId> workstreamsUsed = finalActivities.SelectMany(x => x.TargetWorkStreams).Distinct().ToHashSet();
+
+                HashSet<TWorkStreamId> resourcePhases = totalResourceSchedules
+                    .Where(x => x.Resource != null)
+                    .Select(x => x.Resource)
+                    .SelectMany(x => x.InterActivityPhases)
+                    .Distinct().ToHashSet();
+
+                HashSet<TWorkStreamId> resourcePhasesUsed = resourcePhases.Intersect(workstreamsUsed).ToHashSet();
 
                 // Return the final values.
 
-                return new GraphCompilation<T, TResourceId, TDependentActivity>(
+                return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
                     m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
-                    newResourceSchedules.ToList());
+                    totalResourceSchedules,
+                    workStreams.Where(x => resourcePhasesUsed.Contains(x.Id)));
             }
         }
 

@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Zametek.Maths.Graphs.Properties;
 
 namespace Zametek.Maths.Graphs
 {
-    public class ResourceScheduleBuilder<T, TResourceId>
+    public class ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         #region Fields
 
-        private readonly IResource<TResourceId> m_Resource;
+        private readonly IResource<TResourceId, TWorkStreamId> m_Resource;
         private readonly LinkedList<IScheduledActivity<T>> m_ScheduledActivities;
 
         #endregion
 
         #region Ctors
 
-        public ResourceScheduleBuilder(IResource<TResourceId> resource)
+        public ResourceScheduleBuilder(IResource<TResourceId, TWorkStreamId> resource)
             : this()
         {
             m_Resource = resource ?? throw new ArgumentNullException(nameof(resource));
@@ -59,19 +61,20 @@ namespace Zametek.Maths.Graphs
         #region Private Methods
 
         private static IList<bool> ExtractActivityAllocation(
-            IResource<TResourceId> resource,
+            IResource<TResourceId, TWorkStreamId> resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
             int finishTime)
         {
             if (scheduledActivities is null)
             {
                 throw new ArgumentNullException(nameof(scheduledActivities));
             }
-            if (!scheduledActivities.Any())
+            if (activities is null)
             {
-                return Enumerable.Repeat(false, finishTime).ToList();
+                throw new ArgumentNullException(nameof(activities));
             }
-            int resourceFinishTime = scheduledActivities.Max(x => x.FinishTime);
+            int resourceFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
             if (resourceFinishTime > finishTime)
             {
                 throw new InvalidOperationException($@"Requested finish time ({finishTime}) cannot be less than the actual finish time ({resourceFinishTime})");
@@ -85,15 +88,103 @@ namespace Zametek.Maths.Graphs
             List<TimeType> distribution = Enumerable.Repeat(TimeType.None, finishTime).ToList();
 
             // Indirect.
-            // For indirect we basically mark the entire time span as costed, from start to finish.
             if (interActivityAllocationType == InterActivityAllocationType.Indirect)
             {
-                for (int i = 0; i < distribution.Count; i++)
+                // If the type is Indirect, then we assume that a resource exists.
+
+                HashSet<TWorkStreamId> resourcePhases = resource.InterActivityPhases.Distinct().ToHashSet();
+
+                // If the resource has no phases then assume the default and mark the
+                // entire time span as costed, from start to finish
+                if (resourcePhases.Count == 0)
                 {
-                    distribution[i] = TimeType.Middle;
+                    for (int i = 0; i < distribution.Count; i++)
+                    {
+                        distribution[i] = TimeType.Middle;
+                    }
+                    distribution[0] = TimeType.Start;
+                    distribution[^1] = TimeType.Finish;
                 }
-                distribution[0] = TimeType.Start;
-                distribution[distribution.Count - 1] = TimeType.Finish;
+                // Otherwise, we have to go through each activity and find where the
+                // associated phases start and end.
+                else
+                {
+                    // Find the range for each resource phase (phased work stream).
+                    HashSet<TWorkStreamId> workstreamsUsed = activities.SelectMany(x => x.TargetWorkStreams).Distinct().ToHashSet();
+
+                    HashSet<TWorkStreamId> resourcePhasesUsed = resourcePhases.Intersect(workstreamsUsed).ToHashSet();
+
+                    List<IActivity<T, TResourceId, TWorkStreamId>> orderedActivities =
+                        activities.OrderBy(x => x.EarliestStartTime).ThenBy(x => x.LatestStartTime).ToList();
+
+                    var resourcePhaseStarts = new Dictionary<TWorkStreamId, int>();
+                    var resourcePhaseEnds = new Dictionary<TWorkStreamId, int>();
+
+                    foreach (IActivity<T, TResourceId, TWorkStreamId> activity in orderedActivities)
+                    {
+                        foreach (TWorkStreamId workStream in activity.TargetWorkStreams.Where(resourcePhasesUsed.Contains))
+                        {
+                            int earliestStartTime = activity.EarliestStartTime.GetValueOrDefault();
+                            int earliestEndTime = activity.EarliestFinishTime.GetValueOrDefault();
+
+                            // Gather the start times.
+                            if (resourcePhaseStarts.ContainsKey(workStream))
+                            {
+                                // We do nothing here, since the activities are ordered
+                                // then we won't be interested in any later start times.
+                            }
+                            else
+                            {
+                                resourcePhaseStarts.Add(workStream, earliestStartTime);
+                            }
+
+                            // Gather the end times.
+                            if (resourcePhaseEnds.ContainsKey(workStream))
+                            {
+                                int currentEndTime = resourcePhaseEnds[workStream];
+                                if (earliestEndTime > currentEndTime)
+                                {
+                                    resourcePhaseEnds[workStream] = earliestEndTime;
+                                }
+                            }
+                            else
+                            {
+                                resourcePhaseEnds.Add(workStream, earliestEndTime);
+                            }
+                        }
+                    }
+
+                    // Check to make sure the key collections are the same.
+                    if (resourcePhaseStarts.Keys.SequenceEqual(resourcePhaseEnds.Keys))
+                    {
+                        throw new InvalidOperationException($@"Keys for phase starting points does not match the keys for phase ending points for resouce {resource.Id}.");
+                    }
+
+                    // Now we find the earliest start and the latest end and use those
+                    // to mark out the full range.
+
+                    int startTime = resourcePhaseStarts.Values.DefaultIfEmpty().Min();
+                    int endTime = resourcePhaseEnds.Values.DefaultIfEmpty().Max();
+
+
+                    for (int timeIndex = startTime; timeIndex < endTime; timeIndex++)
+                    {
+                        distribution[timeIndex] = TimeType.Middle;
+                    }
+
+                    int startIndex = startTime;
+                    int finishIndex = endTime - 1;
+
+                    if (startIndex == finishIndex)
+                    {
+                        distribution[startIndex] = TimeType.StartAndFinish;
+                    }
+                    else
+                    {
+                        distribution[startIndex] = TimeType.Start;
+                        distribution[finishIndex] = TimeType.Finish;
+                    }
+                }
             }
             else if (interActivityAllocationType == InterActivityAllocationType.None)
             {
@@ -238,7 +329,7 @@ namespace Zametek.Maths.Graphs
             AddActivity(scheduledActivity);
         }
 
-        public void AppendActivity(IActivity<T, TResourceId> activity, int startTime)
+        public void AppendActivity(IActivity<T, TResourceId, TWorkStreamId> activity, int startTime)
         {
             if (activity is null)
             {
@@ -251,7 +342,7 @@ namespace Zametek.Maths.Graphs
             AppendActivityWithoutChecks(activity, startTime);
         }
 
-        public void AppendActivityWithoutChecks(IActivity<T, TResourceId> activity, int startTime)
+        public void AppendActivityWithoutChecks(IActivity<T, TResourceId, TWorkStreamId> activity, int startTime)
         {
             if (activity is null)
             {
@@ -281,13 +372,20 @@ namespace Zametek.Maths.Graphs
             return null;
         }
 
-        public IResourceSchedule<T, TResourceId> ToResourceSchedule(int finishTime)
+        public IResourceSchedule<T, TResourceId, TWorkStreamId> ToResourceSchedule(
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            int finishTime)
         {
-            return new ResourceSchedule<T, TResourceId>(
+            if (activities == null)
+            {
+                throw new ArgumentNullException(nameof(activities));
+            }
+
+            return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
                 m_Resource,
                 m_ScheduledActivities,
                 finishTime,
-                ExtractActivityAllocation(m_Resource, m_ScheduledActivities, finishTime));
+                ExtractActivityAllocation(m_Resource, m_ScheduledActivities, activities, finishTime));
         }
 
         #endregion

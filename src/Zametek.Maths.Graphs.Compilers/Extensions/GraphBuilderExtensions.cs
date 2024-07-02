@@ -8,13 +8,14 @@ namespace Zametek.Maths.Graphs
 {
     internal static class GraphBuilderExtensions
     {
-        internal static void ClearCriticalPathVariables<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>
-            (this GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
+        internal static void ClearCriticalPathVariables<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent>
+            (this GraphBuilderBase<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
             where TEdgeContent : IHaveId<T>, ICloneObject
             where TNodeContent : IHaveId<T>, ICloneObject
-            where TActivity : IActivity<T, TResourceId>
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
         {
             if (graphBuilder is null)
@@ -34,20 +35,21 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        internal static IList<T> CalculateCriticalPathPriorityList<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>
-            (this GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
+        internal static IList<T> CalculateCriticalPathPriorityList<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent>
+            (this GraphBuilderBase<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder)
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
             where TEdgeContent : IHaveId<T>, ICloneObject
             where TNodeContent : IHaveId<T>, ICloneObject
-            where TActivity : IActivity<T, TResourceId>
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
         {
             if (graphBuilder is null)
             {
                 throw new ArgumentNullException(nameof(graphBuilder));
             }
-            var tmpGraphBuilder = (GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.CloneObject();
+            var tmpGraphBuilder = (GraphBuilderBase<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.CloneObject();
             var priorityList = new List<T>();
             bool cont = true;
             while (cont)
@@ -88,13 +90,14 @@ namespace Zametek.Maths.Graphs
             return priorityList;
         }
 
-        internal static IEnumerable<IResourceSchedule<T, TResourceId>> CalculateResourceSchedulesByPriorityList<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>
-            (this GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder, IList<IResource<TResourceId>> resources)
+        internal static IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent>
+            (this GraphBuilderBase<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent> graphBuilder, IList<IResource<TResourceId, TWorkStreamId>> resources)
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
             where TEdgeContent : IHaveId<T>, ICloneObject
             where TNodeContent : IHaveId<T>, ICloneObject
-            where TActivity : IActivity<T, TResourceId>
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
         {
             if (graphBuilder is null)
@@ -111,14 +114,14 @@ namespace Zametek.Maths.Graphs
             }
             if (!graphBuilder.Activities.Any())
             {
-                return Enumerable.Empty<IResourceSchedule<T, TResourceId>>();
+                return Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
             }
 
             // If resources are 0, assume infinite.
             bool infiniteResources = !resources.Any();
 
             // Filter out inactive resources.
-            IList<IResource<TResourceId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
+            IList<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
             // If resources are limited, check to make sure all activities can be accepted.
             if (!infiniteResources)
@@ -176,16 +179,16 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
-            var tmpGraphBuilder = (GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.CloneObject();
+            var tmpGraphBuilder = (GraphBuilderBase<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent>)graphBuilder.CloneObject();
 
             IList<T?> priorityList = tmpGraphBuilder
                 .CalculateCriticalPathPriorityList()
                 .Select(x => new T?(x))
                 .ToList();
 
-            IList<ResourceScheduleBuilder<T, TResourceId>> resourceScheduleBuilders = filteredResources
+            IList<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> resourceScheduleBuilders = filteredResources
                 .OrderBy(x => x.AllocationOrder)
-                .Select(x => new ResourceScheduleBuilder<T, TResourceId>(x))
+                .Select(x => new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(x))
                 .ToList();
 
             var completed = new HashSet<T>();
@@ -254,7 +257,7 @@ namespace Zametek.Maths.Graphs
                             continue;
                         }
                         T activityId = nullableActivityId.GetValueOrDefault();
-                        IActivity<T, TResourceId> activity = tmpGraphBuilder.Activity(activityId);
+                        IActivity<T, TResourceId, TWorkStreamId> activity = tmpGraphBuilder.Activity(activityId);
                         activity.AllocatedToResources.Clear();
 
                         // Check to see if the activity has to be targeted to specific resources,
@@ -263,7 +266,7 @@ namespace Zametek.Maths.Graphs
 
                         if (!activityMustBeTargetedToSpecificResource)
                         {
-                            foreach (ResourceScheduleBuilder<T, TResourceId> resourceScheduleBuilder in resourceScheduleBuilders)
+                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> resourceScheduleBuilder in resourceScheduleBuilders)
                             {
                                 if (resourceScheduleBuilder.EarliestAvailableStartTimeForNextActivity <= timeCounter)
                                 {
@@ -294,9 +297,9 @@ namespace Zametek.Maths.Graphs
                         }
                         else
                         {
-                            var availableResourceSchedulers = new HashSet<ResourceScheduleBuilder<T, TResourceId>>();
+                            var availableResourceSchedulers = new HashSet<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
 
-                            foreach (ResourceScheduleBuilder<T, TResourceId> resourceScheduleBuilder in resourceScheduleBuilders)
+                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> resourceScheduleBuilder in resourceScheduleBuilders)
                             {
                                 if (resourceScheduleBuilder.EarliestAvailableStartTimeForNextActivity <= timeCounter)
                                 {
@@ -337,7 +340,7 @@ namespace Zametek.Maths.Graphs
                                         var targetResources = new HashSet<TResourceId>(activity.TargetResources);
                                         if (targetResources.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
                                         {
-                                            foreach (ResourceScheduleBuilder<T, TResourceId> availableResourceScheduler in availableResourceSchedulers)
+                                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> availableResourceScheduler in availableResourceSchedulers)
                                             {
                                                 availableResourceScheduler.AppendActivity(activity, timeCounter);
                                                 started.Add(activityId);
@@ -360,17 +363,21 @@ namespace Zametek.Maths.Graphs
                         && !availableResourceScheduleBuilderExists
                         && !keepLooking)
                     {
-                        resourceScheduleBuilders.Add(new ResourceScheduleBuilder<T, TResourceId>());
+                        resourceScheduleBuilders.Add(new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>());
                         keepLooking = true;
                     }
                 }
                 timeCounter++;
             }
 
+            // We will need a copy of the final activities for the final part.
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities =
+                graphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject());
+
             int finishTime = resourceScheduleBuilders.Select(x => x.LastActivityFinishTime).DefaultIfEmpty().Max();
 
             return resourceScheduleBuilders
-                .Select(x => x.ToResourceSchedule(finishTime))
+                .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
                 .Where(x => x.ScheduledActivities.Any());
         }
     }

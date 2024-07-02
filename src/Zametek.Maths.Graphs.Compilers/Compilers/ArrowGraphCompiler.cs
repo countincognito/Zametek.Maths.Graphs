@@ -3,15 +3,16 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public class ArrowGraphCompiler<T, TResourceId, TDependentActivity>
-        : ArrowGraphCompilerBase<T, TResourceId, TDependentActivity, IActivity<T, TResourceId>, IEvent<T>>
-        where TDependentActivity : class, IDependentActivity<T, TResourceId>
+    public class ArrowGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
+        : ArrowGraphCompilerBase<T, TResourceId, TWorkStreamId, TDependentActivity, IActivity<T, TResourceId, TWorkStreamId>, IEvent<T>>
+        where TDependentActivity : class, IDependentActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         #region Ctors
 
-        protected ArrowGraphCompiler(ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, IEvent<T>> arrowGraphBuilder)
+        protected ArrowGraphCompiler(ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TDependentActivity, IEvent<T>> arrowGraphBuilder)
             : base(arrowGraphBuilder)
         {
         }
@@ -39,13 +40,13 @@ namespace Zametek.Maths.Graphs
         #region Private Types
 
         private class DependentActivityArrowGraphBuilder
-            : ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, IEvent<T>>
+            : ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TDependentActivity, IEvent<T>>
         {
             #region Fields
 
             private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) => new Event<T>(id);
             private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorEventWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
-            private static readonly Func<T, TDependentActivity> s_DummyActivityGenerator = (id) => new DependentActivity<T, TResourceId>(id, 0, canBeRemoved: true) as TDependentActivity;
+            private static readonly Func<T, TDependentActivity> s_DummyActivityGenerator = (id) => new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TDependentActivity;
 
             #endregion
 

@@ -4,24 +4,25 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public abstract class ArrowGraphCompilerBase<T, TResourceId, TDependentActivity, TActivity, TEvent>
-        : GraphCompilerBase<T, TResourceId, TDependentActivity, TEvent, TDependentActivity, TEvent>
-        where TDependentActivity : IDependentActivity<T, TResourceId>
-        where TActivity : IActivity<T, TResourceId>
+    public abstract class ArrowGraphCompilerBase<T, TResourceId, TWorkStreamId, TDependentActivity, TActivity, TEvent>
+        : GraphCompilerBase<T, TResourceId, TWorkStreamId, TDependentActivity, TEvent, TDependentActivity, TEvent>
+        where TDependentActivity : IDependentActivity<T, TResourceId, TWorkStreamId>
+        where TActivity : IActivity<T, TResourceId, TWorkStreamId>
         where TEvent : IEvent<T>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         #region Fields
 
         private readonly object m_Lock;
-        private readonly ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, TEvent> m_ArrowGraphBuilder;
+        private readonly ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TDependentActivity, TEvent> m_ArrowGraphBuilder;
 
         #endregion
 
         #region Ctors
 
-        protected ArrowGraphCompilerBase(ArrowGraphBuilderBase<T, TResourceId, TDependentActivity, TEvent> arrowGraphBuilder)
+        protected ArrowGraphCompilerBase(ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TDependentActivity, TEvent> arrowGraphBuilder)
             : base(arrowGraphBuilder)
         {
             m_ArrowGraphBuilder = arrowGraphBuilder ?? throw new ArgumentNullException(nameof(arrowGraphBuilder));

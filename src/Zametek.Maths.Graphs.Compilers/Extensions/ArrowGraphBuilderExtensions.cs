@@ -7,12 +7,13 @@ namespace Zametek.Maths.Graphs
 {
     internal static class ArrowGraphBuilderExtensions
     {
-        internal static void CalculateCriticalPath<T, TResourceId, TActivity, TEvent>
-            (this ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent> arrowGraphBuilder)
-            where TActivity : IActivity<T, TResourceId>
+        internal static void CalculateCriticalPath<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> arrowGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         {
             if (arrowGraphBuilder is null)
             {
@@ -42,12 +43,13 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        internal static bool CalculateEventEarliestFinishTimes<T, TResourceId, TActivity, TEvent>
-            (this ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent> arrowGraphBuilder)
-            where TActivity : IActivity<T, TResourceId>
+        internal static bool CalculateEventEarliestFinishTimes<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> arrowGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         {
             if (arrowGraphBuilder is null)
             {
@@ -185,12 +187,13 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        internal static bool CalculateEventLatestFinishTimes<T, TResourceId, TActivity, TEvent>
-            (this ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent> arrowGraphBuilder)
-            where TActivity : IActivity<T, TResourceId>
+        internal static bool CalculateEventLatestFinishTimes<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> arrowGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         {
             if (arrowGraphBuilder is null)
             {
@@ -308,12 +311,13 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        internal static bool CalculateCriticalPathVariables<T, TResourceId, TActivity, TEvent>
-            (this ArrowGraphBuilderBase<T, TResourceId, TActivity, TEvent> arrowGraphBuilder)
-            where TActivity : IActivity<T, TResourceId>
+        internal static bool CalculateCriticalPathVariables<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this ArrowGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> arrowGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
             where TEvent : IEvent<T>
             where T : struct, IComparable<T>, IEquatable<T>
             where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         {
             if (arrowGraphBuilder is null)
             {

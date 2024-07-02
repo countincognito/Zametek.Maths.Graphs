@@ -4,13 +4,14 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    public abstract class GraphBuilderBase<T, TResourceId, TEdgeContent, TNodeContent, TActivity, TEvent>
+    public abstract class GraphBuilderBase<T, TResourceId, TWorkStreamId, TEdgeContent, TNodeContent, TActivity, TEvent>
         : ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TEdgeContent : IHaveId<T>, ICloneObject
         where TNodeContent : IHaveId<T>, ICloneObject
-        where TActivity : IActivity<T, TResourceId>
+        where TActivity : IActivity<T, TResourceId, TWorkStreamId>
         where TEvent : IEvent<T>
     {
         #region Ctors
@@ -250,7 +251,7 @@ namespace Zametek.Maths.Graphs
         {
             var activitiesWithInvalidConstraints = new List<IInvalidConstraint<T>>();
 
-            foreach (IActivity<T, TResourceId> activity in Activities)
+            foreach (IActivity<T, TResourceId, TWorkStreamId> activity in Activities)
             {
                 if (activity.MinimumFreeSlack.HasValue
                     && activity.MaximumLatestFinishTime.HasValue)
@@ -276,7 +277,7 @@ namespace Zametek.Maths.Graphs
         {
             var activitiesWithInvalidConstraints = new List<IInvalidConstraint<T>>();
 
-            foreach (IActivity<T, TResourceId> activity in Activities)
+            foreach (IActivity<T, TResourceId, TWorkStreamId> activity in Activities)
             {
                 if (activity.EarliestStartTime.HasValue
                     && activity.EarliestFinishTime.HasValue)
