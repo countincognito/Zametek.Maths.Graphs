@@ -13,7 +13,8 @@
     "IsExplicitTarget": true,
     "IsInactive": false,
     "Name": "Tom",
-    "UnitCost": 1.0
+    "UnitCost": 1.0,
+    "InterActivityPhases": []
   },
   "ScheduledActivities": [
     {

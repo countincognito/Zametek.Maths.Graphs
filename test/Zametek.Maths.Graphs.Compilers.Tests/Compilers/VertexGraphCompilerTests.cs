@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenContructor_ThenNoException()
         {
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphBuilder.EdgeIds.Any().Should().BeFalse();
             graphBuilder.NodeIds.Any().Should().BeFalse();
@@ -24,10 +24,10 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int activityId = 0;
             int activityId1 = activityId + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
 
-            var activity = new DependentActivity<int, int>(activityId1, 0);
+            var activity = new DependentActivity<int, int, int>(activityId1, 0);
             bool result = graphCompiler.AddActivity(activity);
             result.Should().BeTrue();
 
@@ -48,18 +48,18 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithInvalidConstraints_ThenFindsInvalidConstraints()
         {
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int> { 1, 2, 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int> { 4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int> { 4, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 11, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 8, new HashSet<int> { 1, 2, 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 7, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 4, new HashSet<int> { 4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 4, new HashSet<int> { 4, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
             compilation.CompilationErrors.Should().NotBeEmpty();
@@ -78,18 +78,18 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithCircularDependencies_ThenFindsCircularDependencies()
         {
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int> { 7 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int> { 2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int> { 4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int> { 9, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }));
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, new HashSet<int> { 7 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, new HashSet<int> { 2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, new HashSet<int> { 4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }));
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
             compilation.CompilationErrors.Should().NotBeEmpty();
@@ -108,18 +108,18 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithMissingDependencies_ThenFindsMissingDependencies()
         {
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int> { 7 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int> { 21 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int> { 2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int> { 22 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int> { 9, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10));
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, new HashSet<int> { 7 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10, new HashSet<int> { 21 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, new HashSet<int> { 2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, new HashSet<int> { 22 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10));
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
             compilation.CompilationErrors.Should().NotBeEmpty();
@@ -137,18 +137,18 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithInvalidConstraintsAndCircularAndMissingDependencies_ThenFindsInvalidConstraintsAndCircularAndMissingDependencies()
         {
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 10, new HashSet<int> { 7 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 10, new HashSet<int> { 21 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 10, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 16 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 10, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 10, new HashSet<int> { 4, 22 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 10, new HashSet<int> { 9, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }));
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, new HashSet<int> { 7 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10, new HashSet<int> { 21 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 16 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, new HashSet<int> { 4, 22 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }));
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
             compilation.CompilationErrors.Should().NotBeEmpty();
@@ -181,18 +181,18 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithPostCompilationInvalidConstraints_ThenFindsInvalidConstraints()
         {
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(4, 11, new HashSet<int> { 2 }) { MaximumLatestFinishTime = 5 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(5, 8, new HashSet<int> { 1, 2, 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(6, 7, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(7, 4, new HashSet<int> { 4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(8, 4, new HashSet<int> { 4, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(9, 10, new HashSet<int> { 5 }));
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 11, new HashSet<int> { 2 }) { MaximumLatestFinishTime = 5 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 8, new HashSet<int> { 1, 2, 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 7, new HashSet<int> { 3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 4, new HashSet<int> { 4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 4, new HashSet<int> { 4, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }));
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().BeEmpty();
             compilation.CompilationErrors.Should().NotBeEmpty();
@@ -229,22 +229,22 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId12 = activityId11 + 1;
             int activityId13 = activityId12 + 1;
             int activityId14 = activityId13 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int>(activityId2, 7);
-            var activity3 = new DependentActivity<int, int>(activityId3, 4);
-            var activity4 = new DependentActivity<int, int>(activityId4, 8);
-            var activity5 = new DependentActivity<int, int>(activityId5, 3);
-            var activity6 = new DependentActivity<int, int>(activityId6, 2);
-            var activity7 = new DependentActivity<int, int>(activityId7, 1);
-            var activity8 = new DependentActivity<int, int>(activityId8, 6);
-            var activity9 = new DependentActivity<int, int>(activityId9, 12);
-            var activity10 = new DependentActivity<int, int>(activityId10, 11);
-            var activity11 = new DependentActivity<int, int>(activityId11, 9);
-            var activity12 = new DependentActivity<int, int>(activityId12, 3);
-            var activity13 = new DependentActivity<int, int>(activityId13, 13);
-            var activity14 = new DependentActivity<int, int>(activityId14, 8);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4);
+            var activity4 = new DependentActivity<int, int, int>(activityId4, 8);
+            var activity5 = new DependentActivity<int, int, int>(activityId5, 3);
+            var activity6 = new DependentActivity<int, int, int>(activityId6, 2);
+            var activity7 = new DependentActivity<int, int, int>(activityId7, 1);
+            var activity8 = new DependentActivity<int, int, int>(activityId8, 6);
+            var activity9 = new DependentActivity<int, int, int>(activityId9, 12);
+            var activity10 = new DependentActivity<int, int, int>(activityId10, 11);
+            var activity11 = new DependentActivity<int, int, int>(activityId11, 9);
+            var activity12 = new DependentActivity<int, int, int>(activityId12, 3);
+            var activity13 = new DependentActivity<int, int, int>(activityId13, 13);
+            var activity14 = new DependentActivity<int, int, int>(activityId14, 8);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -317,12 +317,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity13);
             graphCompiler.AddActivity(activity14);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[]
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.ResourceSchedules.Should().BeEmpty();
@@ -352,11 +352,11 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int>(activityId2, 7, new HashSet<int> { activityId1 });
-            var activity3 = new DependentActivity<int, int>(activityId3, 4, new HashSet<int> { activityId2 });
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int> { activityId1 });
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 });
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -377,12 +377,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[]
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.ResourceSchedules.Should().NotBeEmpty();
@@ -423,19 +423,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.CompilationErrors.Should().BeEmpty();
 
@@ -582,11 +582,11 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int>(activityId2, 7, new HashSet<int> { activityId1 });
-            var activity3 = new DependentActivity<int, int>(activityId3, 4, new HashSet<int> { activityId2 });
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int> { activityId1 });
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 });
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -607,7 +607,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.ResourceSchedules.Should().NotBeEmpty();
             compilation.CompilationErrors.Should().BeEmpty();
@@ -647,19 +647,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { MinimumFreeSlack = 15 });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { MinimumFreeSlack = 15 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -811,25 +811,25 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[]
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
@@ -1008,28 +1008,28 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[]
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0),
-                    new Resource<int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0),
+                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
@@ -1193,25 +1193,25 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[]
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0),
-                    new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
@@ -1389,17 +1389,17 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0);
-            var resource2 = new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0);
-            var resource3 = new Resource<int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId2);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId3);
 
 
@@ -1407,8 +1407,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1482,17 +1482,17 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0);
-            var resource2 = new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0);
-            var resource3 = new Resource<int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId2);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId3);
 
 
@@ -1500,8 +1500,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1575,17 +1575,17 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0);
-            var resource2 = new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0);
-            var resource3 = new Resource<int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoCost = true };
             activity2.TargetResources.Add(resourceId2);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId3);
 
 
@@ -1593,8 +1593,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1668,17 +1668,17 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0);
-            var resource2 = new Resource<int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0);
-            var resource3 = new Resource<int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId2);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoCost = true };
             activity3.TargetResources.Add(resourceId3);
 
 
@@ -1686,8 +1686,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1, resource2, resource3 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1759,23 +1759,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1819,23 +1819,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoCost = true };
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1879,23 +1879,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoCost = true };
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1939,23 +1939,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1999,23 +1999,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoCost = true };
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -2059,23 +2059,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoCost = true };
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -2119,23 +2119,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5) { HasNoCost = true };
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -2179,23 +2179,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3) { HasNoCost = true };
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoCost = true };
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -2239,23 +2239,23 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
 
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0);
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
 
-            var activity1 = new DependentActivity<int, int>(activityId1, 5);
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
-            var activity2 = new DependentActivity<int, int>(activityId2, 3);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int>(activityId3, 12) { HasNoCost = true };
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoCost = true };
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, IDependentActivity<int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int>>(new[] { resource1 }));
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
 
             compilation.CompilationErrors.Should().BeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -2293,7 +2293,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
         {
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.Compile();
             graphCompiler.CyclomaticComplexity.Should().Be(0);
         }
@@ -2310,16 +2310,16 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
 
             graphCompiler.Compile();
 
@@ -2335,13 +2335,13 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int activityId6 = activityId5 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId5, 8, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
 
             graphCompiler.Compile();
 
@@ -2355,11 +2355,11 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
-            var graphCompiler = new VertexGraphCompiler<int, int, IDependentActivity<int, int>>();
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId1, 6));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
 
             graphCompiler.Compile();
 
