@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using Xunit;
 
@@ -83,5 +84,135 @@ namespace Zametek.Maths.Graphs.Tests
             third.Count().Should().Be(1);
             third.Single().Should().Be(false);
         }
+
+        [Theory]
+        [InlineData(3, 6, 16, 1, 1, 1)] // Res3, Phase 1, 6 -> 16
+        [InlineData(4, 8, 19, 1, 1, 1)] // Res4, Phase 2, 8 -> 19
+        [InlineData(5, 6, 19, 1, 1, 1)] // Res5, Phase 1+2, 6 -> 19
+        [InlineData(6, 0, 22, 0, 1, 0)] // Res6, Default, 0 -> 22
+        [InlineData(7, 0, 0, 0, 0, 1)] // Res7, Phase 3, 0 -> 0
+        [InlineData(8, 0, 3, 0, 1, 1)] // Res8, Phase 4 (single start), 0 -> 3
+        [InlineData(9, 10, 12, 1, 1, 1)] // Res9, Phase 5 (single middle), 10 -> 12
+        [InlineData(10, 19, 22, 1, 1, 0)] // Res10, Phase 6 (single end), 19 -> 22
+        public void ResourceScheduleBuilder_Given_ResourceSchedule2_ForIndirectResource_WithPhase_ThenFindStartAndFinish(
+            int resourceId, int start, int finish,
+            int firstCount, int secondCount, int thirdCount)
+        {
+            const int finishTime = 22;
+            JObject json = JObject.Parse(m_Fixture.ResourceSchedule3_JsonString);
+
+            var dependentActivities = JsonConvert.DeserializeObject<IList<DummyDependentActivity>>(json.GetValue(@"DependentActivities", StringComparison.OrdinalIgnoreCase).ToString());
+            var resources = JsonConvert.DeserializeObject<IList<Resource<int, int>>>(json.GetValue(@"Resources", StringComparison.OrdinalIgnoreCase).ToString());
+
+            var resource = resources.First(x => x.Id == resourceId);
+
+            var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
+
+            var rs = rsb.ToResourceSchedule(dependentActivities, finishTime);
+
+            var first = rs.ActivityAllocation.Take(start).Distinct();
+            var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
+            var third = rs.ActivityAllocation.Skip(finish).Distinct();
+
+            first.Count().Should().Be(firstCount);
+            if (firstCount > 0)
+            {
+                first.Single().Should().Be(false);
+            }
+
+            second.Count().Should().Be(secondCount);
+            if (secondCount > 0)
+            {
+                second.Single().Should().Be(true);
+            }
+
+            third.Count().Should().Be(thirdCount);
+            if (thirdCount > 0)
+            {
+                third.Single().Should().Be(false);
+            }
+        }
+
+
+
+
+
+
+        [Fact]
+        public void Temp()
+        {
+            const int finishTime = 22;
+            JObject json = JObject.Parse(m_Fixture.ResourceSchedule3_JsonString);
+
+            var dependentActivities = JsonConvert.DeserializeObject<IList<DummyDependentActivity>>(json.GetValue(@"DependentActivities", StringComparison.OrdinalIgnoreCase).ToString());
+            var resources = JsonConvert.DeserializeObject<IList<Resource<int, int>>>(json.GetValue(@"Resources", StringComparison.OrdinalIgnoreCase).ToString());
+            var resourceSchedules = JsonConvert.DeserializeObject<IList<DummyResourceSchedule>>(json.GetValue(@"ResourceSchedules", StringComparison.OrdinalIgnoreCase).ToString());
+            var workStreams = JsonConvert.DeserializeObject<IList<WorkStream<int>>>(json.GetValue(@"WorkStreams", StringComparison.OrdinalIgnoreCase).ToString());
+
+
+
+
+
+
+
+
+
+
+
+
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+
+            foreach (var activity in dependentActivities)
+            {
+
+                graphCompiler.AddActivity(activity);
+            }
+
+
+
+
+            var output = graphCompiler.Compile(
+                resources.Cast<IResource<int, int>>().ToList(),
+                workStreams.Cast<IWorkStream<int>>().ToList());
+
+
+
+
+
+
+
+
+            //var resource = resources.First(x => x.Id == resourceId);
+
+            //var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
+
+            //var rs = rsb.ToResourceSchedule(dependentActivities, finishTime);
+
+            //var first = rs.ActivityAllocation.Take(start).Distinct();
+            //var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
+            //var third = rs.ActivityAllocation.Skip(finish).Distinct();
+
+            //first.Count().Should().Be(firstCount);
+            //if (firstCount > 0)
+            //{
+            //    first.Single().Should().Be(false);
+            //}
+
+            //second.Count().Should().Be(secondCount);
+            //if (secondCount > 0)
+            //{
+            //    second.Single().Should().Be(true);
+            //}
+
+            //third.Count().Should().Be(thirdCount);
+            //if (thirdCount > 0)
+            //{
+            //    third.Single().Should().Be(false);
+            //}
+        }
+
+
+
+
     }
 }

@@ -154,7 +154,7 @@ namespace Zametek.Maths.Graphs
                     }
 
                     // Check to make sure the key collections are the same.
-                    if (resourcePhaseStarts.Keys.SequenceEqual(resourcePhaseEnds.Keys))
+                    if (!resourcePhaseStarts.Keys.SequenceEqual(resourcePhaseEnds.Keys))
                     {
                         throw new InvalidOperationException($@"Keys for phase starting points does not match the keys for phase ending points for resouce {resource.Id}.");
                     }
@@ -165,23 +165,28 @@ namespace Zametek.Maths.Graphs
                     int startTime = resourcePhaseStarts.Values.DefaultIfEmpty().Min();
                     int endTime = resourcePhaseEnds.Values.DefaultIfEmpty().Max();
 
-
-                    for (int timeIndex = startTime; timeIndex < endTime; timeIndex++)
+                    // If start and end times are both 0 then that means the
+                    // specific phase was never used, so just leave the allocations
+                    // as 'ignore'.
+                    if (startTime != 0 || endTime != 0)
                     {
-                        distribution[timeIndex] = TimeType.Middle;
-                    }
+                        for (int timeIndex = startTime; timeIndex < endTime; timeIndex++)
+                        {
+                            distribution[timeIndex] = TimeType.Middle;
+                        }
 
-                    int startIndex = startTime;
-                    int finishIndex = endTime - 1;
+                        int startIndex = startTime;
+                        int finishIndex = endTime - 1;
 
-                    if (startIndex == finishIndex)
-                    {
-                        distribution[startIndex] = TimeType.StartAndFinish;
-                    }
-                    else
-                    {
-                        distribution[startIndex] = TimeType.Start;
-                        distribution[finishIndex] = TimeType.Finish;
+                        if (startIndex == finishIndex)
+                        {
+                            distribution[startIndex] = TimeType.StartAndFinish;
+                        }
+                        else
+                        {
+                            distribution[startIndex] = TimeType.Start;
+                            distribution[finishIndex] = TimeType.Finish;
+                        }
                     }
                 }
             }

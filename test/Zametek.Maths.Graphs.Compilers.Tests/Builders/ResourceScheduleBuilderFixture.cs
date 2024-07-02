@@ -11,6 +11,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             ResourceSchedule1_JsonString = ReadJsonFile(@"Builders\TestFiles\ResourceSchedule1.json");
             ResourceSchedule2_JsonString = ReadJsonFile(@"Builders\TestFiles\ResourceSchedule2.json");
+            ResourceSchedule3_JsonString = ReadJsonFile(@"Builders\TestFiles\ResourceSchedule3.json");
 
 
             static string ReadJsonFile(string filename)
@@ -24,6 +25,7 @@ namespace Zametek.Maths.Graphs.Tests
 
         public string ResourceSchedule1_JsonString { get; init; }
         public string ResourceSchedule2_JsonString { get; init; }
+        public string ResourceSchedule3_JsonString { get; init; }
 
         public void Dispose()
         {
