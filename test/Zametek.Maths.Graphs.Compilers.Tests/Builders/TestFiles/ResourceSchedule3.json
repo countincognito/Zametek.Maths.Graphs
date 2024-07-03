@@ -179,7 +179,8 @@
             "TargetResources": [
             ],
             "TargetWorkStreams": [
-                5
+                5,
+                7
             ],
             "Trackers": [
             ]
@@ -343,17 +344,89 @@
             ],
             "Trackers": [
             ]
+        },
+        {
+            "AllocatedToResources": [
+                1
+            ],
+            "CanBeRemoved": false,
+            "Dependencies": [
+            ],
+            "Duration": 2,
+            "EarliestStartTime": 20,
+            "FreeSlack": 0,
+            "HasNoCost": false,
+            "Id": 13,
+            "LatestFinishTime": 22,
+            "Name": "Task13",
+            "Notes": "",
+            "ResourceDependencies": [
+                11
+            ],
+            "TargetResourceOperator": 0,
+            "TargetResources": [
+            ],
+            "TargetWorkStreams": [
+            ],
+            "Trackers": [
+            ]
+        },
+        {
+            "AllocatedToResources": [
+                11
+            ],
+            "CanBeRemoved": false,
+            "Dependencies": [
+            ],
+            "Duration": 3,
+            "EarliestStartTime": 0,
+            "FreeSlack": 0,
+            "HasNoCost": false,
+            "Id": 14,
+            "LatestFinishTime": 18,
+            "Name": "Task14",
+            "Notes": "",
+            "ResourceDependencies": [
+            ],
+            "TargetResourceOperator": 0,
+            "TargetResources": [
+                11
+            ],
+            "TargetWorkStreams": [
+            ],
+            "Trackers": [
+            ]
+        },
+        {
+            "AllocatedToResources": [
+                11
+            ],
+            "CanBeRemoved": false,
+            "Dependencies": [
+            ],
+            "Duration": 4,
+            "EarliestStartTime": 3,
+            "FreeSlack": 15,
+            "HasNoCost": false,
+            "Id": 15,
+            "LatestFinishTime": 22,
+            "Name": "Task15",
+            "Notes": "",
+            "ResourceDependencies": [
+                14
+            ],
+            "TargetResourceOperator": 0,
+            "TargetResources": [
+                11
+            ],
+            "TargetWorkStreams": [
+            ],
+            "Trackers": [
+            ]
         }
     ],
     "Resources": [
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 68,
-                "G": 233,
-                "R": 93
-            },
-            "DisplayOrder": 0,
             "Id": 1,
             "InterActivityAllocationType": 0,
             "InterActivityPhases": [
@@ -363,13 +436,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 148,
-                "G": 188,
-                "R": 159
-            },
-            "DisplayOrder": 0,
             "Id": 2,
             "InterActivityAllocationType": 0,
             "InterActivityPhases": [
@@ -379,13 +445,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 175,
-                "G": 19,
-                "R": 113
-            },
-            "DisplayOrder": 0,
             "Id": 3,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -396,13 +455,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 222,
-                "G": 210,
-                "R": 179
-            },
-            "DisplayOrder": 0,
             "Id": 4,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -413,13 +465,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 156,
-                "G": 56,
-                "R": 33
-            },
-            "DisplayOrder": 0,
             "Id": 5,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -431,13 +476,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 63,
-                "G": 100,
-                "R": 253
-            },
-            "DisplayOrder": 0,
             "Id": 6,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -447,13 +485,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 112,
-                "G": 201,
-                "R": 3
-            },
-            "DisplayOrder": 0,
             "Id": 7,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -464,13 +495,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 71,
-                "G": 195,
-                "R": 214
-            },
-            "DisplayOrder": 0,
             "Id": 8,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -481,13 +505,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 87,
-                "G": 4,
-                "R": 158
-            },
-            "DisplayOrder": 0,
             "Id": 9,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -498,13 +515,6 @@
             "UnitCost": 1.0
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 66,
-                "G": 192,
-                "R": 129
-            },
-            "DisplayOrder": 0,
             "Id": 10,
             "InterActivityAllocationType": 2,
             "InterActivityPhases": [
@@ -513,21 +523,46 @@
             "IsExplicitTarget": true,
             "Name": "Res10",
             "UnitCost": 1.0
+        },
+        {
+            "Id": 11,
+            "InterActivityAllocationType": 2,
+            "InterActivityPhases": [
+                7
+            ],
+            "IsExplicitTarget": true,
+            "Name": "Res11",
+            "UnitCost": 1.0
         }
     ],
     "ResourceSchedules": [
         {
             "ActivityAllocation": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
             ],
             "FinishTime": 22,
             "Resource": {
-                "ColorFormat": {
-                    "A": 0,
-                    "B": 0,
-                    "G": 0,
-                    "R": 0
-                },
-                "DisplayOrder": 0,
                 "Id": 1,
                 "InterActivityAllocationType": 0,
                 "InterActivityPhases": [
@@ -597,16 +632,31 @@
         },
         {
             "ActivityAllocation": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true
             ],
             "FinishTime": 22,
             "Resource": {
-                "ColorFormat": {
-                    "A": 0,
-                    "B": 0,
-                    "G": 0,
-                    "R": 0
-                },
-                "DisplayOrder": 0,
                 "Id": 2,
                 "InterActivityAllocationType": 0,
                 "InterActivityPhases": [
@@ -665,74 +715,98 @@
                     "StartTime": 19
                 }
             ]
+        },
+        {
+            "ActivityAllocation": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            ],
+            "FinishTime": 22,
+            "Resource": {
+                "Id": 11,
+                "InterActivityAllocationType": 2,
+                "InterActivityPhases": [
+                    7
+                ],
+                "IsExplicitTarget": true,
+                "Name": "Res11",
+                "UnitCost": 1.0
+            },
+            "ScheduledActivities": [
+                {
+                    "Duration": 3,
+                    "FinishTime": 3,
+                    "HasNoCost": false,
+                    "Id": 14,
+                    "Name": "Task14",
+                    "StartTime": 0
+                },
+                {
+                    "Duration": 4,
+                    "FinishTime": 7,
+                    "HasNoCost": false,
+                    "Id": 15,
+                    "Name": "Task15",
+                    "StartTime": 3
+                }
+            ]
         }
     ],
     "WorkStreams": [
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 200,
-                "G": 173,
-                "R": 200
-            },
             "Id": 1,
             "IsPhase": true,
             "Name": "Phase1"
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 205,
-                "G": 14,
-                "R": 32
-            },
             "Id": 2,
             "IsPhase": true,
             "Name": "Phase2"
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 108,
-                "G": 180,
-                "R": 60
-            },
             "Id": 3,
             "IsPhase": true,
             "Name": "Phase3"
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 224,
-                "G": 167,
-                "R": 35
-            },
             "Id": 4,
             "IsPhase": true,
             "Name": "Phase4"
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 123,
-                "G": 70,
-                "R": 108
-            },
             "Id": 5,
             "IsPhase": true,
             "Name": "Phase5"
         },
         {
-            "ColorFormat": {
-                "A": 255,
-                "B": 40,
-                "G": 48,
-                "R": 10
-            },
             "Id": 6,
             "IsPhase": true,
             "Name": "Phase6"
+        },
+        {
+            "Id": 7,
+            "IsPhase": true,
+            "Name": "Phase7"
         }
     ]
 }
