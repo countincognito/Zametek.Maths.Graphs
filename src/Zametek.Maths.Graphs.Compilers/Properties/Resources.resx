@@ -132,6 +132,9 @@
   <data name="Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided" xml:space="preserve">
     <value>At least one of specified target resources are not available in the resources provided</value>
   </data>
+  <data name="Message_CannotBackFillIsolatedNodes" xml:space="preserve">
+    <value>Cannot backfill Isolated nodes</value>
+  </data>
   <data name="Message_CannotCalculateCriticalPath" xml:space="preserve">
     <value>Cannot calculate critical path</value>
   </data>

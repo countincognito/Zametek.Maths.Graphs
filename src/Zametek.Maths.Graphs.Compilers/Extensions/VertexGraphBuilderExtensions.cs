@@ -542,7 +542,9 @@ namespace Zametek.Maths.Graphs
                 {
                     int latestFinishTime = nodeOutgoingEdgeIds
                         .Select(vertexGraphBuilder.Edge)
-                        .Min(x => x.Content.LatestFinishTime.Value);
+                        .Select(x => x.Content.LatestFinishTime.Value)
+                        .DefaultIfEmpty()
+                        .Min();
 
                     if (node.Content.LatestFinishTime.HasValue)
                     {
@@ -573,7 +575,9 @@ namespace Zametek.Maths.Graphs
                 {
                     int latestFinishTime = nodeOutgoingEdgeIds
                         .Select(vertexGraphBuilder.EdgeHeadNode)
-                        .Min(x => x.Content.EarliestStartTime.Value);
+                        .Select(x => x.Content.EarliestStartTime.Value)
+                        .DefaultIfEmpty()
+                        .Min();
 
                     if (node.Content.LatestFinishTime.HasValue)
                     {
@@ -600,6 +604,78 @@ namespace Zametek.Maths.Graphs
                     node.Content.FreeSlack = latestFinishTime - node.Content.EarliestStartTime - node.Content.Duration;
                 }
             }
+
+            // At this point, the Isolated Nodes will not have finish times
+            // or free slack values. That needs to be done after all critical
+            // paths have been calculated, otherwise it will screw up the
+            // priority list calculations.
+
+            return true;
+        }
+
+        internal static bool BackFillIsolatedNodes<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+            (this VertexGraphBuilderBase<T, TResourceId, TWorkStreamId, TActivity, TEvent> vertexGraphBuilder)
+            where TActivity : IActivity<T, TResourceId, TWorkStreamId>
+            where TEvent : IEvent<T>
+            where T : struct, IComparable<T>, IEquatable<T>
+            where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+            where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
+        {
+            if (vertexGraphBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(vertexGraphBuilder));
+            }
+            if (!vertexGraphBuilder.AllDependenciesSatisfied)
+            {
+                return false;
+            }
+            if (vertexGraphBuilder.FindInvalidPreCompilationConstraints().Any())
+            {
+                return false;
+            }
+
+            // Only perform if all end nodes a have latest finish times.
+            if (!vertexGraphBuilder.EndNodes.All(x => x.Content.LatestFinishTime.HasValue))
+            {
+                return false;
+            }
+
+            // We can assume at this point that all the activity constraints are valid.
+
+            //var completedEdgeIds = new HashSet<T>();
+            //var remainingEdgeIds = new HashSet<T>(vertexGraphBuilder.EdgeIds);
+
+            int endNodesEndTime = vertexGraphBuilder.EndNodes.Select(x => x.Content.LatestFinishTime.Value).DefaultIfEmpty().Max();
+            int isolatedNodesEndTime = vertexGraphBuilder.IsolatedNodes.Select(x => x.Content.LatestFinishTime.Value).DefaultIfEmpty().Max();
+
+            int endTime = Math.Max(endNodesEndTime, isolatedNodesEndTime);
+
+            // Now backfill the Isolated Nodes.
+
+            foreach (Node<T, TActivity> node in vertexGraphBuilder.IsolatedNodes)
+            {
+                {
+                    // Latest Finish Time.
+                    int latestFinishTime = endTime;
+
+                    if (node.Content.MaximumLatestFinishTime.HasValue)
+                    {
+                        int proposedLatestFinishTime = node.Content.MaximumLatestFinishTime.Value;
+
+                        // Diminish the latest finish time artificially (if required).
+                        if (proposedLatestFinishTime < latestFinishTime)
+                        {
+                            latestFinishTime = proposedLatestFinishTime;
+                        }
+                    }
+
+                    node.Content.LatestFinishTime = latestFinishTime;
+                }
+
+                // Free float/slack calculations.
+                node.Content.FreeSlack = node.Content.LatestFinishTime - node.Content.EarliestFinishTime;
+            }
+
             return true;
         }
     }

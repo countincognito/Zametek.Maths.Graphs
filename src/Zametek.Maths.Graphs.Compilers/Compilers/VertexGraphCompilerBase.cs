@@ -409,6 +409,14 @@ namespace Zametek.Maths.Graphs
                     m_VertexGraphBuilder.CalculateCriticalPath();
                 }
 
+                // At this point, all nodes should have finish times, except the
+                // Isolated nodes. So we need to fix that.
+
+                if (!m_VertexGraphBuilder.BackFillIsolatedNodes())
+                {
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
+                }
+
                 // Collate post-compilation errors, if any exist.
 
                 IEnumerable<IInvalidConstraint<T>> invalidPostcompilationConstraints = m_VertexGraphBuilder.FindInvalidPostCompilationConstraints();
@@ -482,10 +490,6 @@ namespace Zametek.Maths.Graphs
 
                 IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectResourceSchedules = indirectResourceScheduleBuilders
                     .Select(x => x.ToResourceSchedule(finalActivities, finishTime));
-
-
-
-
 
                 // Now calculate the used work streams.
 

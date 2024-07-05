@@ -46,6 +46,56 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void VertexGraphCompiler_GivenTwoActivitiesNoDependencies_ThenNodesAreIsolatedWithSameFinishTimes()
+        {
+            int activityId = 0;
+            int activityId1 = activityId + 1;
+            int activityId2 = activityId1 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 3);
+            bool result1 = graphCompiler.AddActivity(activity1);
+            result1.Should().BeTrue();
+
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 5);
+            bool result2 = graphCompiler.AddActivity(activity2);
+            result2.Should().BeTrue();
+
+            var output = graphCompiler.Compile();
+
+            graphBuilder.EdgeIds.Any().Should().BeFalse();
+            graphBuilder.NodeIds.Count().Should().Be(2);
+            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+
+            graphBuilder.StartNodes.Any().Should().BeFalse();
+            graphBuilder.EndNodes.Any().Should().BeFalse();
+
+            graphBuilder.Node(activityId1).Id.Should().Be(activityId1);
+            graphBuilder.Node(activityId1).NodeType.Should().Be(NodeType.Isolated);
+            graphBuilder.Activity(activityId1).Id.Should().Be(activityId1);
+            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(2);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(3);
+            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(5);
+            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
+            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(2);
+
+            graphBuilder.Node(activityId2).Id.Should().Be(activityId2);
+            graphBuilder.Node(activityId2).NodeType.Should().Be(NodeType.Isolated);
+            graphBuilder.Activity(activityId2).Id.Should().Be(activityId2);
+            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(5);
+            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(5);
+            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
+            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(0);
+
+            graphBuilder.Activities.Count().Should().Be(2);
+            graphBuilder.Edges.Any().Should().BeFalse();
+        }
+
+        [Fact]
         public void VertexGraphCompiler_GivenCompileWithInvalidConstraints_ThenFindsInvalidConstraints()
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
