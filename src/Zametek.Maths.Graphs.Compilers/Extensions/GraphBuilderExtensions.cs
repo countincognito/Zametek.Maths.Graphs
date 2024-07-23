@@ -372,13 +372,15 @@ namespace Zametek.Maths.Graphs
 
             // We will need a copy of the final activities for the final part.
             IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities =
-                graphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject());
+                graphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject())
+                .ToList();
 
             int finishTime = resourceScheduleBuilders.Select(x => x.LastActivityFinishTime).DefaultIfEmpty().Max();
 
             return resourceScheduleBuilders
                 .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
-                .Where(x => x.ScheduledActivities.Any());
+                .Where(x => x.ScheduledActivities.Any())
+                .ToList();
         }
     }
 }

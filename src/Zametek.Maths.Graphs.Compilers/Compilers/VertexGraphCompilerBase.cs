@@ -472,7 +472,8 @@ namespace Zametek.Maths.Graphs
 
                 IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> newResourceSchedules = newResourceScheduleBuilders
                     .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
-                    .Where(x => x.ScheduledActivities.Any());
+                    .Where(x => x.ScheduledActivities.Any())
+                    .ToList();
 
                 // Now find any remaining resources that were indirect and create schedules for them.
 
@@ -489,7 +490,8 @@ namespace Zametek.Maths.Graphs
                 }
 
                 IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectResourceSchedules = indirectResourceScheduleBuilders
-                    .Select(x => x.ToResourceSchedule(finalActivities, finishTime));
+                    .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
+                    .ToList();
 
                 // Now calculate the used work streams.
 
