@@ -19,6 +19,40 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void ResourceScheduleBuilder_Given_ResourceSchedule1_ForIndirectResource_ZeroFinishTime_Input_ThenActivityAllocationEmpty()
+        {
+            const int finishTime = 0;
+
+            int resourceId1 = 1;
+            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+
+            var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
+            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
+
+            rs.ActivityAllocation.Should().BeEmpty();
+            rs.FinishTime.Should().Be(finishTime);
+            rs.Resource.Should().Be(resource);
+            rs.ScheduledActivities.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ResourceScheduleBuilder_Given_ResourceSchedule1_ForIndirectResource_LargeFinishTime_Input_ThenActivityAllocationFull()
+        {
+            const int finishTime = 10;
+
+            int resourceId1 = 1;
+            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+
+            var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
+            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
+
+            rs.ActivityAllocation.Count().Should().Be(10);
+            rs.FinishTime.Should().Be(finishTime);
+            rs.Resource.Should().Be(resource);
+            rs.ScheduledActivities.Should().BeEmpty();
+        }
+
+        [Fact]
         public void ResourceScheduleBuilder_Given_ResourceSchedule1_ForDirectResource_Input_ThenStart73AndFinish127()
         {
             const int start = 73;

@@ -135,6 +135,11 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(distribution));
             }
 
+            if (distribution.Count == 0)
+            {
+                return;
+            }
+
             int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
             if (distribution.Count < latestActivityFinishTime)
             {

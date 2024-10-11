@@ -1047,6 +1047,24 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void VertexGraphCompiler_GivenCompileWithNoActivitiesAndOneIndirectResource_ThenResourceSchedulesCorrectOrder()
+        {
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+
+            int resourceId1 = 1;
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[]
+                {
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
+                }));
+
+            compilation.CompilationErrors.Should().BeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count().Should().Be(1);
+            resourceSchedules[0].ActivityAllocation.Should().BeEmpty();
+        }
+
+        [Fact]
         public void VertexGraphCompiler_GivenCompileWithOneActiveAndTwoInactiveResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
