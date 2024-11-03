@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Zametek.Maths.Graphs.Properties;
 
 namespace Zametek.Maths.Graphs
 {

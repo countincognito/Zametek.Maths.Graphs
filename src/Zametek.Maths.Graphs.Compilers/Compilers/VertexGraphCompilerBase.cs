@@ -365,9 +365,44 @@ namespace Zametek.Maths.Graphs
 
                 // Perform first compilation and calculate resource schedules.
                 m_VertexGraphBuilder.CalculateCriticalPath();
-                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules = m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources);
+                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules = m_VertexGraphBuilder
+                    .CalculateResourceSchedulesByPriorityList(filteredResources)
+                    .ToList();
 
-                if (!infiniteResources)
+                // If the previous calculation was performed with infinite resources, then it will not be possible
+                // to handle resource dependencies. So here we need to create fake resources for resource dependencies
+                // to work in the next step.
+                if (infiniteResources)
+                {
+                    TResourceId resourceId = default;
+
+                    var replacementResourceSchedules = new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
+
+                    foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> resourceSchedule in resourceSchedules)
+                    {
+                        resourceId = resourceId.Next();
+
+                        replacementResourceSchedules.Add(
+                            new ResourceSchedule<T, TResourceId, TWorkStreamId>(
+                                new Resource<TResourceId, TWorkStreamId>(
+                                    resourceId,
+                                    null,
+                                    false,
+                                    false,
+                                    InterActivityAllocationType.None,
+                                    0.0,
+                                    0,
+                                    Enumerable.Empty<TWorkStreamId>()),
+                                resourceSchedule.ScheduledActivities,
+                                resourceSchedule.FinishTime,
+                                resourceSchedule.ActivityAllocation)
+                            );
+                    }
+
+                    resourceSchedules.Clear();
+                    resourceSchedules.AddRange(replacementResourceSchedules);
+                }
+
                 {
                     // Determine the resource dependencies and add them to the compiled dependencies.
                     foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> resourceSchedule in resourceSchedules)
@@ -447,8 +482,11 @@ namespace Zametek.Maths.Graphs
 
                 foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> oldResourceSchedule in resourceSchedules)
                 {
-                    ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> newResourceScheduleBuilder = oldResourceSchedule.Resource == null ?
-                        new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>() : new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(oldResourceSchedule.Resource);
+                    // Remember to wipe the resources if we assume infinite resources.
+                    ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> newResourceScheduleBuilder =
+                        oldResourceSchedule.Resource == null || infiniteResources
+                        ? new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>()
+                        : new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(oldResourceSchedule.Resource);
 
                     IEnumerable<IScheduledActivity<T>> oldScheduledActivities = oldResourceSchedule.ScheduledActivities;
 
