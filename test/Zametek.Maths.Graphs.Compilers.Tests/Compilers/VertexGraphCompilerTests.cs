@@ -2403,7 +2403,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            graphCompiler.CyclomaticComplexity.Should().Be(7);
+            graphCompiler.CyclomaticComplexity.Should().Be(6);
         }
 
         [Fact]

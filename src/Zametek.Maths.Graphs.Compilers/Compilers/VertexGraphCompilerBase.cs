@@ -426,8 +426,8 @@ namespace Zametek.Maths.Graphs
                                 // Here we add the previous activity ID to the set of resource
                                 // dependencies attached to the activity itself. However, we do
                                 // not add it to the compiled dependencies set - instead we make
-                                // the change directly to graph data (which we reverse at the start
-                                // of each compilation - see the top of this method).
+                                // the change directly to graph data (which we reverse below - see
+                                // just before post-compilation error collation).
 
                                 activity.ResourceDependencies.Add(previousId);
                                 m_VertexGraphBuilder.AddActivityDependencies(
@@ -450,6 +450,15 @@ namespace Zametek.Maths.Graphs
                 if (!m_VertexGraphBuilder.BackFillIsolatedNodes())
                 {
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
+                }
+
+                // Clear up activity dependencies in the graph to match only the compiled dependencies
+                // (i.e. remove any that are *only* resource dependencies).
+                foreach (TDependentActivity activity in activities)
+                {
+                    m_VertexGraphBuilder.RemoveActivityDependencies(
+                        activity.Id,
+                        new HashSet<T>(activity.ResourceDependencies.Except(activity.Dependencies)));
                 }
 
                 // Collate post-compilation errors, if any exist.
