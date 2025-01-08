@@ -1,812 +1,884 @@
 ﻿{
-    "DependentActivities": [
+  "DependentActivities": [
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 2,
+      "EarliestStartTime": 0,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 1,
+      "LatestFinishTime": 2,
+      "Name": "Task1",
+      "Notes": "",
+      "ResourceDependencies": [
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        2
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 3,
+      "EarliestStartTime": 0,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 2,
+      "LatestFinishTime": 3,
+      "Name": "Task2",
+      "Notes": "",
+      "ResourceDependencies": [
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        4
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 4,
+      "EarliestStartTime": 2,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 3,
+      "LatestFinishTime": 6,
+      "Name": "Task3",
+      "Notes": "",
+      "ResourceDependencies": [
+        1
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        2
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 5,
+      "EarliestStartTime": 3,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 4,
+      "LatestFinishTime": 8,
+      "Name": "Task4",
+      "Notes": "",
+      "ResourceDependencies": [
+        2
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 4,
+      "EarliestStartTime": 6,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 5,
+      "LatestFinishTime": 10,
+      "Name": "Task5",
+      "Notes": "",
+      "ResourceDependencies": [
+        3
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        1
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        2
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 3,
+      "EarliestStartTime": 8,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 6,
+      "LatestFinishTime": 11,
+      "Name": "Task6",
+      "Notes": "",
+      "ResourceDependencies": [
+        4
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        2
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 2,
+      "EarliestStartTime": 10,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 7,
+      "LatestFinishTime": 12,
+      "Name": "Task7",
+      "Notes": "",
+      "ResourceDependencies": [
+        5
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        5,
+        7
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        2
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 3,
+      "EarliestStartTime": 11,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 8,
+      "LatestFinishTime": 14,
+      "Name": "Task8",
+      "Notes": "",
+      "ResourceDependencies": [
+        6
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        2
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 4,
+      "EarliestStartTime": 12,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 9,
+      "LatestFinishTime": 16,
+      "Name": "Task9",
+      "Notes": "",
+      "ResourceDependencies": [
+        7
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        1
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        2
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 5,
+      "EarliestStartTime": 14,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 10,
+      "LatestFinishTime": 19,
+      "Name": "Task10",
+      "Notes": "",
+      "ResourceDependencies": [
+        8
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        2
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 4,
+      "EarliestStartTime": 16,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 11,
+      "LatestFinishTime": 20,
+      "Name": "Task11",
+      "Notes": "",
+      "ResourceDependencies": [
+        9
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        2
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 3,
+      "EarliestStartTime": 19,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 12,
+      "LatestFinishTime": 22,
+      "Name": "Task12",
+      "Notes": "",
+      "ResourceDependencies": [
+        10
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+        6
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 2,
+      "EarliestStartTime": 20,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 13,
+      "LatestFinishTime": 22,
+      "Name": "Task13",
+      "Notes": "",
+      "ResourceDependencies": [
+        11
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        1
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 2,
+      "EarliestStartTime": 20,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 13,
+      "LatestFinishTime": 22,
+      "Name": "Task13",
+      "Notes": "",
+      "ResourceDependencies": [
+        11
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        11
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 3,
+      "EarliestStartTime": 0,
+      "FreeSlack": 0,
+      "HasNoCost": false,
+      "Id": 14,
+      "LatestFinishTime": 18,
+      "Name": "Task14",
+      "Notes": "",
+      "ResourceDependencies": [
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+        11
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    },
+    {
+      "AllocatedToResources": [
+        11
+      ],
+      "CanBeRemoved": false,
+      "Dependencies": [
+      ],
+      "Duration": 4,
+      "EarliestStartTime": 3,
+      "FreeSlack": 15,
+      "HasNoCost": false,
+      "Id": 15,
+      "LatestFinishTime": 22,
+      "Name": "Task15",
+      "Notes": "",
+      "ResourceDependencies": [
+        14
+      ],
+      "TargetResourceOperator": 0,
+      "TargetResources": [
+        11
+      ],
+      "TargetWorkStreams": [
+      ],
+      "Trackers": [
+      ]
+    }
+  ],
+  "Resources": [
+    {
+      "Id": 1,
+      "InterActivityAllocationType": 0,
+      "InterActivityPhases": [
+      ],
+      "IsExplicitTarget": false,
+      "Name": "Res1",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 2,
+      "InterActivityAllocationType": 0,
+      "InterActivityPhases": [
+      ],
+      "IsExplicitTarget": false,
+      "Name": "Res2",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 3,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        1
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res3",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 4,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        2
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res4",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 5,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        1,
+        2
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res5",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 6,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res6",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 7,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        3
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res7",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 8,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        4
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res8",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 9,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        5
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res9",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 10,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        6
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res10",
+      "UnitCost": 1.0
+    },
+    {
+      "Id": 11,
+      "InterActivityAllocationType": 2,
+      "InterActivityPhases": [
+        7
+      ],
+      "IsExplicitTarget": true,
+      "Name": "Res11",
+      "UnitCost": 1.0
+    }
+  ],
+  "ResourceSchedules": [
+    {
+      "ActivityAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "CostAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "FinishTime": 22,
+      "Resource": {
+        "Id": 1,
+        "InterActivityAllocationType": 0,
+        "InterActivityPhases": [
+        ],
+        "IsExplicitTarget": false,
+        "Name": "Res1",
+        "UnitCost": 1.0
+      },
+      "ScheduledActivities": [
         {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 2,
-            "EarliestStartTime": 0,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 1,
-            "LatestFinishTime": 2,
-            "Name": "Task1",
-            "Notes": "",
-            "ResourceDependencies": [
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
+          "Duration": 2,
+          "FinishTime": 2,
+          "HasNoCost": false,
+          "Id": 1,
+          "Name": "Task1",
+          "StartTime": 0
         },
         {
-            "AllocatedToResources": [
-                2
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 3,
-            "EarliestStartTime": 0,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 2,
-            "LatestFinishTime": 3,
-            "Name": "Task2",
-            "Notes": "",
-            "ResourceDependencies": [
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                4
-            ],
-            "Trackers": [
-            ]
+          "Duration": 4,
+          "FinishTime": 6,
+          "HasNoCost": false,
+          "Id": 3,
+          "Name": "Task3",
+          "StartTime": 2
         },
         {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 4,
-            "EarliestStartTime": 2,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 3,
-            "LatestFinishTime": 6,
-            "Name": "Task3",
-            "Notes": "",
-            "ResourceDependencies": [
-                1
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
+          "Duration": 4,
+          "FinishTime": 10,
+          "HasNoCost": false,
+          "Id": 5,
+          "Name": "Task5",
+          "StartTime": 6
         },
         {
-            "AllocatedToResources": [
-                2
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 5,
-            "EarliestStartTime": 3,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 4,
-            "LatestFinishTime": 8,
-            "Name": "Task4",
-            "Notes": "",
-            "ResourceDependencies": [
-                2
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
+          "Duration": 2,
+          "FinishTime": 12,
+          "HasNoCost": false,
+          "Id": 7,
+          "Name": "Task7",
+          "StartTime": 10
         },
         {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 4,
-            "EarliestStartTime": 6,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 5,
-            "LatestFinishTime": 10,
-            "Name": "Task5",
-            "Notes": "",
-            "ResourceDependencies": [
-                3
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                1
-            ],
-            "Trackers": [
-            ]
+          "Duration": 4,
+          "FinishTime": 16,
+          "HasNoCost": false,
+          "Id": 9,
+          "Name": "Task9",
+          "StartTime": 12
         },
         {
-            "AllocatedToResources": [
-                2
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 3,
-            "EarliestStartTime": 8,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 6,
-            "LatestFinishTime": 11,
-            "Name": "Task6",
-            "Notes": "",
-            "ResourceDependencies": [
-                4
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                2
-            ],
-            "Trackers": [
-            ]
+          "Duration": 4,
+          "FinishTime": 20,
+          "HasNoCost": false,
+          "Id": 11,
+          "Name": "Task11",
+          "StartTime": 16
         },
         {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 2,
-            "EarliestStartTime": 10,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 7,
-            "LatestFinishTime": 12,
-            "Name": "Task7",
-            "Notes": "",
-            "ResourceDependencies": [
-                5
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                5,
-                7
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                2
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 3,
-            "EarliestStartTime": 11,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 8,
-            "LatestFinishTime": 14,
-            "Name": "Task8",
-            "Notes": "",
-            "ResourceDependencies": [
-                6
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                2
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 4,
-            "EarliestStartTime": 12,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 9,
-            "LatestFinishTime": 16,
-            "Name": "Task9",
-            "Notes": "",
-            "ResourceDependencies": [
-                7
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                1
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                2
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 5,
-            "EarliestStartTime": 14,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 10,
-            "LatestFinishTime": 19,
-            "Name": "Task10",
-            "Notes": "",
-            "ResourceDependencies": [
-                8
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                2
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 4,
-            "EarliestStartTime": 16,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 11,
-            "LatestFinishTime": 20,
-            "Name": "Task11",
-            "Notes": "",
-            "ResourceDependencies": [
-                9
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                2
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 3,
-            "EarliestStartTime": 19,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 12,
-            "LatestFinishTime": 22,
-            "Name": "Task12",
-            "Notes": "",
-            "ResourceDependencies": [
-                10
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-                6
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 2,
-            "EarliestStartTime": 20,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 13,
-            "LatestFinishTime": 22,
-            "Name": "Task13",
-            "Notes": "",
-            "ResourceDependencies": [
-                11
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                1
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 2,
-            "EarliestStartTime": 20,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 13,
-            "LatestFinishTime": 22,
-            "Name": "Task13",
-            "Notes": "",
-            "ResourceDependencies": [
-                11
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                11
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 3,
-            "EarliestStartTime": 0,
-            "FreeSlack": 0,
-            "HasNoCost": false,
-            "Id": 14,
-            "LatestFinishTime": 18,
-            "Name": "Task14",
-            "Notes": "",
-            "ResourceDependencies": [
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-                11
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
-        },
-        {
-            "AllocatedToResources": [
-                11
-            ],
-            "CanBeRemoved": false,
-            "Dependencies": [
-            ],
-            "Duration": 4,
-            "EarliestStartTime": 3,
-            "FreeSlack": 15,
-            "HasNoCost": false,
-            "Id": 15,
-            "LatestFinishTime": 22,
-            "Name": "Task15",
-            "Notes": "",
-            "ResourceDependencies": [
-                14
-            ],
-            "TargetResourceOperator": 0,
-            "TargetResources": [
-                11
-            ],
-            "TargetWorkStreams": [
-            ],
-            "Trackers": [
-            ]
+          "Duration": 2,
+          "FinishTime": 22,
+          "HasNoCost": false,
+          "Id": 13,
+          "Name": "Task13",
+          "StartTime": 20
         }
-    ],
-    "Resources": [
+      ]
+    },
+    {
+      "ActivityAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "CostAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "FinishTime": 22,
+      "Resource": {
+        "Id": 2,
+        "InterActivityAllocationType": 0,
+        "InterActivityPhases": [
+        ],
+        "IsExplicitTarget": false,
+        "Name": "Res2",
+        "UnitCost": 1.0
+      },
+      "ScheduledActivities": [
         {
-            "Id": 1,
-            "InterActivityAllocationType": 0,
-            "InterActivityPhases": [
-            ],
-            "IsExplicitTarget": false,
-            "Name": "Res1",
-            "UnitCost": 1.0
+          "Duration": 3,
+          "FinishTime": 3,
+          "HasNoCost": false,
+          "Id": 2,
+          "Name": "Task2",
+          "StartTime": 0
         },
         {
-            "Id": 2,
-            "InterActivityAllocationType": 0,
-            "InterActivityPhases": [
-            ],
-            "IsExplicitTarget": false,
-            "Name": "Res2",
-            "UnitCost": 1.0
+          "Duration": 5,
+          "FinishTime": 8,
+          "HasNoCost": false,
+          "Id": 4,
+          "Name": "Task4",
+          "StartTime": 3
         },
         {
-            "Id": 3,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                1
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res3",
-            "UnitCost": 1.0
+          "Duration": 3,
+          "FinishTime": 11,
+          "HasNoCost": false,
+          "Id": 6,
+          "Name": "Task6",
+          "StartTime": 8
         },
         {
-            "Id": 4,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                2
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res4",
-            "UnitCost": 1.0
+          "Duration": 3,
+          "FinishTime": 14,
+          "HasNoCost": false,
+          "Id": 8,
+          "Name": "Task8",
+          "StartTime": 11
         },
         {
-            "Id": 5,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                1,
-                2
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res5",
-            "UnitCost": 1.0
+          "Duration": 5,
+          "FinishTime": 19,
+          "HasNoCost": false,
+          "Id": 10,
+          "Name": "Task10",
+          "StartTime": 14
         },
         {
-            "Id": 6,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res6",
-            "UnitCost": 1.0
-        },
-        {
-            "Id": 7,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                3
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res7",
-            "UnitCost": 1.0
-        },
-        {
-            "Id": 8,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                4
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res8",
-            "UnitCost": 1.0
-        },
-        {
-            "Id": 9,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                5
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res9",
-            "UnitCost": 1.0
-        },
-        {
-            "Id": 10,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                6
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res10",
-            "UnitCost": 1.0
-        },
-        {
-            "Id": 11,
-            "InterActivityAllocationType": 2,
-            "InterActivityPhases": [
-                7
-            ],
-            "IsExplicitTarget": true,
-            "Name": "Res11",
-            "UnitCost": 1.0
+          "Duration": 3,
+          "FinishTime": 22,
+          "HasNoCost": false,
+          "Id": 12,
+          "Name": "Task12",
+          "StartTime": 19
         }
-    ],
-    "ResourceSchedules": [
+      ]
+    },
+    {
+      "ActivityAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "CostAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "FinishTime": 22,
+      "Resource": {
+        "Id": 11,
+        "InterActivityAllocationType": 2,
+        "InterActivityPhases": [
+          7
+        ],
+        "IsExplicitTarget": true,
+        "Name": "Res11",
+        "UnitCost": 1.0
+      },
+      "ScheduledActivities": [
         {
-            "ActivityAllocation": [
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true
-            ],
-            "FinishTime": 22,
-            "Resource": {
-                "Id": 1,
-                "InterActivityAllocationType": 0,
-                "InterActivityPhases": [
-                ],
-                "IsExplicitTarget": false,
-                "Name": "Res1",
-                "UnitCost": 1.0
-            },
-            "ScheduledActivities": [
-                {
-                    "Duration": 2,
-                    "FinishTime": 2,
-                    "HasNoCost": false,
-                    "Id": 1,
-                    "Name": "Task1",
-                    "StartTime": 0
-                },
-                {
-                    "Duration": 4,
-                    "FinishTime": 6,
-                    "HasNoCost": false,
-                    "Id": 3,
-                    "Name": "Task3",
-                    "StartTime": 2
-                },
-                {
-                    "Duration": 4,
-                    "FinishTime": 10,
-                    "HasNoCost": false,
-                    "Id": 5,
-                    "Name": "Task5",
-                    "StartTime": 6
-                },
-                {
-                    "Duration": 2,
-                    "FinishTime": 12,
-                    "HasNoCost": false,
-                    "Id": 7,
-                    "Name": "Task7",
-                    "StartTime": 10
-                },
-                {
-                    "Duration": 4,
-                    "FinishTime": 16,
-                    "HasNoCost": false,
-                    "Id": 9,
-                    "Name": "Task9",
-                    "StartTime": 12
-                },
-                {
-                    "Duration": 4,
-                    "FinishTime": 20,
-                    "HasNoCost": false,
-                    "Id": 11,
-                    "Name": "Task11",
-                    "StartTime": 16
-                },
-                {
-                    "Duration": 2,
-                    "FinishTime": 22,
-                    "HasNoCost": false,
-                    "Id": 13,
-                    "Name": "Task13",
-                    "StartTime": 20
-                }
-            ]
+          "Duration": 3,
+          "FinishTime": 3,
+          "HasNoCost": false,
+          "Id": 14,
+          "Name": "Task14",
+          "StartTime": 0
         },
         {
-            "ActivityAllocation": [
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true
-            ],
-            "FinishTime": 22,
-            "Resource": {
-                "Id": 2,
-                "InterActivityAllocationType": 0,
-                "InterActivityPhases": [
-                ],
-                "IsExplicitTarget": false,
-                "Name": "Res2",
-                "UnitCost": 1.0
-            },
-            "ScheduledActivities": [
-                {
-                    "Duration": 3,
-                    "FinishTime": 3,
-                    "HasNoCost": false,
-                    "Id": 2,
-                    "Name": "Task2",
-                    "StartTime": 0
-                },
-                {
-                    "Duration": 5,
-                    "FinishTime": 8,
-                    "HasNoCost": false,
-                    "Id": 4,
-                    "Name": "Task4",
-                    "StartTime": 3
-                },
-                {
-                    "Duration": 3,
-                    "FinishTime": 11,
-                    "HasNoCost": false,
-                    "Id": 6,
-                    "Name": "Task6",
-                    "StartTime": 8
-                },
-                {
-                    "Duration": 3,
-                    "FinishTime": 14,
-                    "HasNoCost": false,
-                    "Id": 8,
-                    "Name": "Task8",
-                    "StartTime": 11
-                },
-                {
-                    "Duration": 5,
-                    "FinishTime": 19,
-                    "HasNoCost": false,
-                    "Id": 10,
-                    "Name": "Task10",
-                    "StartTime": 14
-                },
-                {
-                    "Duration": 3,
-                    "FinishTime": 22,
-                    "HasNoCost": false,
-                    "Id": 12,
-                    "Name": "Task12",
-                    "StartTime": 19
-                }
-            ]
-        },
-        {
-            "ActivityAllocation": [
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false
-            ],
-            "FinishTime": 22,
-            "Resource": {
-                "Id": 11,
-                "InterActivityAllocationType": 2,
-                "InterActivityPhases": [
-                    7
-                ],
-                "IsExplicitTarget": true,
-                "Name": "Res11",
-                "UnitCost": 1.0
-            },
-            "ScheduledActivities": [
-                {
-                    "Duration": 3,
-                    "FinishTime": 3,
-                    "HasNoCost": false,
-                    "Id": 14,
-                    "Name": "Task14",
-                    "StartTime": 0
-                },
-                {
-                    "Duration": 4,
-                    "FinishTime": 7,
-                    "HasNoCost": false,
-                    "Id": 15,
-                    "Name": "Task15",
-                    "StartTime": 3
-                }
-            ]
+          "Duration": 4,
+          "FinishTime": 7,
+          "HasNoCost": false,
+          "Id": 15,
+          "Name": "Task15",
+          "StartTime": 3
         }
-    ],
-    "WorkStreams": [
-        {
-            "Id": 1,
-            "IsPhase": true,
-            "Name": "Phase1"
-        },
-        {
-            "Id": 2,
-            "IsPhase": true,
-            "Name": "Phase2"
-        },
-        {
-            "Id": 3,
-            "IsPhase": true,
-            "Name": "Phase3"
-        },
-        {
-            "Id": 4,
-            "IsPhase": true,
-            "Name": "Phase4"
-        },
-        {
-            "Id": 5,
-            "IsPhase": true,
-            "Name": "Phase5"
-        },
-        {
-            "Id": 6,
-            "IsPhase": true,
-            "Name": "Phase6"
-        },
-        {
-            "Id": 7,
-            "IsPhase": true,
-            "Name": "Phase7"
-        }
-    ]
+      ]
+    }
+  ],
+  "WorkStreams": [
+    {
+      "Id": 1,
+      "IsPhase": true,
+      "Name": "Phase1"
+    },
+    {
+      "Id": 2,
+      "IsPhase": true,
+      "Name": "Phase2"
+    },
+    {
+      "Id": 3,
+      "IsPhase": true,
+      "Name": "Phase3"
+    },
+    {
+      "Id": 4,
+      "IsPhase": true,
+      "Name": "Phase4"
+    },
+    {
+      "Id": 5,
+      "IsPhase": true,
+      "Name": "Phase5"
+    },
+    {
+      "Id": 6,
+      "IsPhase": true,
+      "Name": "Phase6"
+    },
+    {
+      "Id": 7,
+      "IsPhase": true,
+      "Name": "Phase7"
+    }
+  ]
 }

@@ -45,7 +45,7 @@ namespace Zametek.Maths.Graphs
         {
             get
             {
-                if (!m_ScheduledActivities.Any())
+                if (m_ScheduledActivities.Count == 0)
                 {
                     return 0;
                 }
@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private static IList<bool> ExtractActivityAllocation(
+        private static (IList<bool> activityAllocation, IList<bool> costAllocation) ExtractAllocations(
             IResource<TResourceId, TWorkStreamId> resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
@@ -96,6 +96,7 @@ namespace Zametek.Maths.Graphs
             else if (interActivityAllocationType == InterActivityAllocationType.None)
             {
                 AllocationForNoneType(scheduledActivities, distribution);
+                AllocationForNoCostActivities(scheduledActivities, distribution);
             }
             // Direct.
             else if (interActivityAllocationType == InterActivityAllocationType.Direct)
@@ -108,7 +109,10 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
-            return distribution.Select(x => x != TimeType.None && x != TimeType.Ignored).ToList();
+            var activityAllocation = distribution.Select(x => x != TimeType.None).ToList();
+            var costAllocation = distribution.Select(x => x != TimeType.None && x != TimeType.Ignored).ToList();
+
+            return (activityAllocation, costAllocation);
         }
 
         private static void AllocationForIndirectType(
@@ -345,35 +349,25 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
             }
 
-            // Mark schedules as normal, unless they need to be ignored.
+            // Mark schedules as normal.
             foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
             {
-                if (scheduledActivity.HasNoCost)
+                for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
                 {
-                    for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
-                    {
-                        distribution[timeIndex] = TimeType.Ignored;
-                    }
+                    distribution[timeIndex] = TimeType.Middle;
+                }
+
+                int startIndex = scheduledActivity.StartTime;
+                int finishIndex = scheduledActivity.FinishTime - 1;
+
+                if (startIndex == finishIndex)
+                {
+                    distribution[startIndex] = TimeType.StartAndFinish;
                 }
                 else
                 {
-                    for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
-                    {
-                        distribution[timeIndex] = TimeType.Middle;
-                    }
-
-                    int startIndex = scheduledActivity.StartTime;
-                    int finishIndex = scheduledActivity.FinishTime - 1;
-
-                    if (startIndex == finishIndex)
-                    {
-                        distribution[startIndex] = TimeType.StartAndFinish;
-                    }
-                    else
-                    {
-                        distribution[startIndex] = TimeType.Start;
-                        distribution[finishIndex] = TimeType.Finish;
-                    }
+                    distribution[startIndex] = TimeType.Start;
+                    distribution[finishIndex] = TimeType.Finish;
                 }
             }
         }
@@ -499,11 +493,15 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(activities));
             }
 
+            (IList<bool> activityAllocation, IList<bool> costAllocation) =
+                ExtractAllocations(m_Resource, m_ScheduledActivities, activities, finishTime);
+
             return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
                 m_Resource,
                 m_ScheduledActivities,
                 finishTime,
-                ExtractActivityAllocation(m_Resource, m_ScheduledActivities, activities, finishTime));
+                activityAllocation,
+                costAllocation);
         }
 
         #endregion

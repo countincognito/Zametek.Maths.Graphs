@@ -395,7 +395,8 @@ namespace Zametek.Maths.Graphs
                                     Enumerable.Empty<TWorkStreamId>()),
                                 resourceSchedule.ScheduledActivities,
                                 resourceSchedule.FinishTime,
-                                resourceSchedule.ActivityAllocation)
+                                resourceSchedule.ActivityAllocation,
+                                resourceSchedule.CostAllocation)
                             );
                     }
 
