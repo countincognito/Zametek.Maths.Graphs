@@ -9,5 +9,10 @@ namespace Zametek.Maths.Graphs.Tests
             : base(resource, scheduledActivities, finishTime, activityAllocation, costAllocation)
         {
         }
+
+        public ResourceSchedule<int, int, int> AsBase()
+        {
+            return CloneObject() as ResourceSchedule<int, int, int>;
+        }
     }
 }

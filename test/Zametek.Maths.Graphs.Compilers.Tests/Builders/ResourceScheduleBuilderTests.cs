@@ -187,9 +187,9 @@ namespace Zametek.Maths.Graphs.Tests
                 resources.Cast<IResource<int, int>>().ToList(),
                 workStreams.Cast<IWorkStream<int>>().ToList());
 
-            var rs1 = resourceSchedules.First(x => x.Resource.Id == 1);
-            var rs2 = resourceSchedules.First(x => x.Resource.Id == 2);
-            var rs11 = resourceSchedules.First(x => x.Resource.Id == 11);
+            var rs1 = resourceSchedules.First(x => x.Resource.Id == 1).AsBase();
+            var rs2 = resourceSchedules.First(x => x.Resource.Id == 2).AsBase();
+            var rs11 = resourceSchedules.First(x => x.Resource.Id == 11).AsBase();
 
             var outputRs1 = output.ResourceSchedules.First(x => x.Resource.Id == 1);
             var outputRs2 = output.ResourceSchedules.First(x => x.Resource.Id == 2);
