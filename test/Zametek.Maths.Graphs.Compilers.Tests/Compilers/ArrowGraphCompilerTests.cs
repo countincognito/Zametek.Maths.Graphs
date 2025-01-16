@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Shouldly;
 using System.Collections.Generic;
 using Xunit;
 
@@ -11,7 +11,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new ArrowGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.Compile();
-            graphCompiler.CyclomaticComplexity.Should().Be(0);
+            graphCompiler.CyclomaticComplexity.ShouldBe(0);
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            graphCompiler.CyclomaticComplexity.Should().Be(6);
+            graphCompiler.CyclomaticComplexity.ShouldBe(6);
         }
 
         [Fact]
@@ -61,7 +61,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            graphCompiler.CyclomaticComplexity.Should().Be(3);
+            graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            graphCompiler.CyclomaticComplexity.Should().Be(3);
+            graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }
     }
 }

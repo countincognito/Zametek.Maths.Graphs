@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Shouldly;
 using System;
 using Xunit;
 
@@ -11,7 +11,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int first = new Random().Next();
             int second = KeyExtensions.NextInt(first);
-            second.Should().Be(first + 1);
+            second.ShouldBe(first + 1);
         }
 
         [Fact]
@@ -19,7 +19,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int first = new Random().Next();
             int second = first.Next();
-            second.Should().Be(first + 1);
+            second.ShouldBe(first + 1);
         }
 
         [Fact]
@@ -27,7 +27,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             Guid first = Guid.NewGuid();
             Guid second = KeyExtensions.NextGuid();
-            second.Should().NotBe(first);
+            second.ShouldNotBe(first);
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             Guid first = Guid.NewGuid();
             Guid second = first.Next();
-            second.Should().NotBe(first);
+            second.ShouldNotBe(first);
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int first = new Random().Next();
             int second = KeyExtensions.PreviousInt(first);
-            second.Should().Be(first - 1);
+            second.ShouldBe(first - 1);
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int first = new Random().Next();
             int second = first.Previous();
-            second.Should().Be(first - 1);
+            second.ShouldBe(first - 1);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             Guid first = Guid.NewGuid();
             Guid second = KeyExtensions.PreviousGuid();
-            second.Should().NotBe(first);
+            second.ShouldNotBe(first);
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             Guid first = Guid.NewGuid();
             Guid second = first.Previous();
-            second.Should().NotBe(first);
+            second.ShouldNotBe(first);
         }
     }
 }

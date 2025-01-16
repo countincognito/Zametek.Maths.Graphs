@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Shouldly;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -12,11 +12,11 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
-            graphBuilder.EdgeIds.Any().Should().BeFalse();
-            graphBuilder.NodeIds.Any().Should().BeFalse();
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
-            graphBuilder.StartNodes.Any().Should().BeFalse();
-            graphBuilder.EndNodes.Any().Should().BeFalse();
+            graphBuilder.EdgeIds.Any().ShouldBeFalse();
+            graphBuilder.NodeIds.Any().ShouldBeFalse();
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
+            graphBuilder.StartNodes.Any().ShouldBeFalse();
+            graphBuilder.EndNodes.Any().ShouldBeFalse();
         }
 
         [Fact]
@@ -29,20 +29,20 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity = new DependentActivity<int, int, int>(activityId1, 0);
             bool result = graphCompiler.AddActivity(activity);
-            result.Should().BeTrue();
+            result.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Any().Should().BeFalse();
-            graphBuilder.NodeIds.Count().Should().Be(1);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Any().ShouldBeFalse();
+            graphBuilder.NodeIds.Count().ShouldBe(1);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
-            graphBuilder.StartNodes.Any().Should().BeFalse();
-            graphBuilder.EndNodes.Any().Should().BeFalse();
+            graphBuilder.StartNodes.Any().ShouldBeFalse();
+            graphBuilder.EndNodes.Any().ShouldBeFalse();
 
-            graphBuilder.Node(activityId1).Id.Should().Be(activityId1);
-            graphBuilder.Node(activityId1).NodeType.Should().Be(NodeType.Isolated);
-            graphBuilder.Activity(activityId1).Id.Should().Be(activityId1);
-            graphBuilder.Activities.Count().Should().Be(1);
-            graphBuilder.Edges.Any().Should().BeFalse();
+            graphBuilder.Node(activityId1).Id.ShouldBe(activityId1);
+            graphBuilder.Node(activityId1).NodeType.ShouldBe(NodeType.Isolated);
+            graphBuilder.Activity(activityId1).Id.ShouldBe(activityId1);
+            graphBuilder.Activities.Count().ShouldBe(1);
+            graphBuilder.Edges.Any().ShouldBeFalse();
         }
 
         [Fact]
@@ -56,43 +56,43 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 3);
             bool result1 = graphCompiler.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new DependentActivity<int, int, int>(activityId2, 5);
             bool result2 = graphCompiler.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var output = graphCompiler.Compile();
 
-            graphBuilder.EdgeIds.Any().Should().BeFalse();
-            graphBuilder.NodeIds.Count().Should().Be(2);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Any().ShouldBeFalse();
+            graphBuilder.NodeIds.Count().ShouldBe(2);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
-            graphBuilder.StartNodes.Any().Should().BeFalse();
-            graphBuilder.EndNodes.Any().Should().BeFalse();
+            graphBuilder.StartNodes.Any().ShouldBeFalse();
+            graphBuilder.EndNodes.Any().ShouldBeFalse();
 
-            graphBuilder.Node(activityId1).Id.Should().Be(activityId1);
-            graphBuilder.Node(activityId1).NodeType.Should().Be(NodeType.Isolated);
-            graphBuilder.Activity(activityId1).Id.Should().Be(activityId1);
-            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(2);
-            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(3);
-            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(5);
-            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
-            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(2);
+            graphBuilder.Node(activityId1).Id.ShouldBe(activityId1);
+            graphBuilder.Node(activityId1).NodeType.ShouldBe(NodeType.Isolated);
+            graphBuilder.Activity(activityId1).Id.ShouldBe(activityId1);
+            graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(2);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(3);
+            graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(5);
+            graphBuilder.Activity(activityId1).FreeSlack.ShouldBe(2);
+            graphBuilder.Activity(activityId1).TotalSlack.ShouldBe(2);
 
-            graphBuilder.Node(activityId2).Id.Should().Be(activityId2);
-            graphBuilder.Node(activityId2).NodeType.Should().Be(NodeType.Isolated);
-            graphBuilder.Activity(activityId2).Id.Should().Be(activityId2);
-            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(5);
-            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(5);
-            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(0);
+            graphBuilder.Node(activityId2).Id.ShouldBe(activityId2);
+            graphBuilder.Node(activityId2).NodeType.ShouldBe(NodeType.Isolated);
+            graphBuilder.Activity(activityId2).Id.ShouldBe(activityId2);
+            graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(5);
+            graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(5);
+            graphBuilder.Activity(activityId2).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).TotalSlack.ShouldBe(0);
 
-            graphBuilder.Activities.Count().Should().Be(2);
-            graphBuilder.Edges.Any().Should().BeFalse();
+            graphBuilder.Activities.Count().ShouldBe(2);
+            graphBuilder.Edges.Any().ShouldBeFalse();
         }
 
         [Fact]
@@ -111,14 +111,14 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.CompilationErrors.Should().NotBeEmpty();
+            compilation.ResourceSchedules.ShouldBeEmpty();
+            compilation.CompilationErrors.ShouldNotBeEmpty();
 
             var compilationErrors = compilation.CompilationErrors.ToList();
 
-            compilationErrors.Count.Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0030);
-            compilationErrors[0].ErrorMessage.Should().Be(
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0030);
+            compilationErrors[0].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_InvalidConstraints}
 4 -> {Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}
 9 -> {Properties.Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime}
@@ -141,14 +141,14 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.CompilationErrors.Should().NotBeEmpty();
+            compilation.ResourceSchedules.ShouldBeEmpty();
+            compilation.CompilationErrors.ShouldNotBeEmpty();
 
             var compilationErrors = compilation.CompilationErrors.ToList();
 
-            compilationErrors.Count.Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0020);
-            compilationErrors[0].ErrorMessage.Should().Be(
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0020);
+            compilationErrors[0].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_CircularDependencies}
 4 -> 7 -> 2
 9 -> 8 -> 5
@@ -171,13 +171,13 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.CompilationErrors.Should().NotBeEmpty();
+            compilation.ResourceSchedules.ShouldBeEmpty();
+            compilation.CompilationErrors.ShouldNotBeEmpty();
 
             var compilationErrors = compilation.CompilationErrors.ToList();
-            compilationErrors.Count.Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0010);
-            compilationErrors[0].ErrorMessage.Should().Be(
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0010);
+            compilationErrors[0].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_MissingDependencies}
 21 {Properties.Resources.Message_IsMissingFrom} 3
 22 {Properties.Resources.Message_IsMissingFrom} 7
@@ -200,29 +200,29 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.CompilationErrors.Should().NotBeEmpty();
+            compilation.ResourceSchedules.ShouldBeEmpty();
+            compilation.CompilationErrors.ShouldNotBeEmpty();
 
             var compilationErrors = compilation.CompilationErrors.ToList();
 
-            compilationErrors.Count.Should().Be(3);
+            compilationErrors.Count.ShouldBe(3);
 
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0010);
-            compilationErrors[0].ErrorMessage.Should().Be(
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0010);
+            compilationErrors[0].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_MissingDependencies}
 21 {Properties.Resources.Message_IsMissingFrom} 3
 22 {Properties.Resources.Message_IsMissingFrom} 7
 ");
 
-            compilationErrors[1].ErrorCode.Should().Be(GraphCompilationErrorCode.P0020);
-            compilationErrors[1].ErrorMessage.Should().Be(
+            compilationErrors[1].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0020);
+            compilationErrors[1].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_CircularDependencies}
 4 -> 7 -> 2
 9 -> 8 -> 5
 ");
 
-            compilationErrors[2].ErrorCode.Should().Be(GraphCompilationErrorCode.P0030);
-            compilationErrors[2].ErrorMessage.Should().Be(
+            compilationErrors[2].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0030);
+            compilationErrors[2].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_InvalidConstraints}
 4 -> {Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}
 ");
@@ -244,14 +244,14 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.CompilationErrors.Should().NotBeEmpty();
+            compilation.ResourceSchedules.ShouldBeEmpty();
+            compilation.CompilationErrors.ShouldNotBeEmpty();
 
             var compilationErrors = compilation.CompilationErrors.ToList();
 
-            compilationErrors.Count.Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.C0010);
-            compilationErrors[0].ErrorMessage.Should().Be(
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.C0010);
+            compilationErrors[0].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_InvalidConstraints}
 2 -> {Properties.Resources.Message_LatestStartTimeLessThanZero}
 2 -> {Properties.Resources.Message_LatestFinishTimeLessThanZero}
@@ -375,14 +375,14 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
-            compilation.ResourceSchedules.Should().BeEmpty();
-            compilation.CompilationErrors.Should().NotBeEmpty();
+            compilation.ResourceSchedules.ShouldBeEmpty();
+            compilation.CompilationErrors.ShouldNotBeEmpty();
 
             var compilationErrors = compilation.CompilationErrors.ToList();
 
-            compilationErrors.Count.Should().Be(1);
-            compilationErrors[0].ErrorCode.Should().Be(GraphCompilationErrorCode.P0060);
-            compilationErrors[0].ErrorMessage.Should().Be(
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0060);
+            compilationErrors[0].ErrorMessage.ShouldBe(
                 $@"{Properties.Resources.Message_UnavailableResources}
 {activityId2} -> {resourceId2}
 {activityId3} -> {resourceId3}
@@ -435,30 +435,30 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
-            compilation.ResourceSchedules.Should().NotBeEmpty();
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.ResourceSchedules.ShouldNotBeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
 
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(6);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(6);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].StartTime.Should().Be(6);
-            scheduledActivities0[1].FinishTime.Should().Be(13);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].StartTime.ShouldBe(6);
+            scheduledActivities0[1].FinishTime.ShouldBe(13);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].StartTime.Should().Be(13);
-            scheduledActivities0[2].FinishTime.Should().Be(17);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].StartTime.ShouldBe(13);
+            scheduledActivities0[2].FinishTime.ShouldBe(17);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(17);
+            scheduledActivities0.Last().FinishTime.ShouldBe(17);
         }
 
         [Fact]
@@ -487,149 +487,149 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
 
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(3);
+            resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Should().BeNull();
+            resourceSchedule0.Resource.ShouldBeNull();
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId3);
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(8);
+            scheduledActivities0[0].Id.ShouldBe(activityId3);
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[1].Id.Should().Be(activityId5);
-            scheduledActivities0[1].StartTime.Should().Be(8);
-            scheduledActivities0[1].FinishTime.Should().Be(16);
+            scheduledActivities0[1].Id.ShouldBe(activityId5);
+            scheduledActivities0[1].StartTime.ShouldBe(8);
+            scheduledActivities0[1].FinishTime.ShouldBe(16);
 
-            scheduledActivities0[2].Id.Should().Be(activityId9);
-            scheduledActivities0[2].StartTime.Should().Be(16);
-            scheduledActivities0[2].FinishTime.Should().Be(26);
+            scheduledActivities0[2].Id.ShouldBe(activityId9);
+            scheduledActivities0[2].StartTime.ShouldBe(16);
+            scheduledActivities0[2].FinishTime.ShouldBe(26);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(26);
+            scheduledActivities0.Last().FinishTime.ShouldBe(26);
 
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Should().BeNull();
+            resourceSchedule1.Resource.ShouldBeNull();
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(3);
+            scheduledActivities1.Count.ShouldBe(3);
 
-            scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(7);
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(7);
 
-            scheduledActivities1[1].Id.Should().Be(activityId4);
-            scheduledActivities1[1].StartTime.Should().Be(7);
-            scheduledActivities1[1].FinishTime.Should().Be(18);
+            scheduledActivities1[1].Id.ShouldBe(activityId4);
+            scheduledActivities1[1].StartTime.ShouldBe(7);
+            scheduledActivities1[1].FinishTime.ShouldBe(18);
 
-            scheduledActivities1[2].Id.Should().Be(activityId7);
-            scheduledActivities1[2].StartTime.Should().Be(18);
-            scheduledActivities1[2].FinishTime.Should().Be(22);
+            scheduledActivities1[2].Id.ShouldBe(activityId7);
+            scheduledActivities1[2].StartTime.ShouldBe(18);
+            scheduledActivities1[2].FinishTime.ShouldBe(22);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(22);
+            scheduledActivities1.Last().FinishTime.ShouldBe(22);
 
 
             var resourceSchedule2 = resourceSchedules[2];
-            resourceSchedule2.Resource.Should().BeNull();
+            resourceSchedule2.Resource.ShouldBeNull();
             var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
-            scheduledActivities2.Count.Should().Be(3);
+            scheduledActivities2.Count.ShouldBe(3);
 
-            scheduledActivities2[0].Id.Should().Be(activityId1);
-            scheduledActivities2[0].StartTime.Should().Be(0);
-            scheduledActivities2[0].FinishTime.Should().Be(6);
+            scheduledActivities2[0].Id.ShouldBe(activityId1);
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(6);
 
-            scheduledActivities2[1].Id.Should().Be(activityId6);
-            scheduledActivities2[1].StartTime.Should().Be(8);
-            scheduledActivities2[1].FinishTime.Should().Be(15);
+            scheduledActivities2[1].Id.ShouldBe(activityId6);
+            scheduledActivities2[1].StartTime.ShouldBe(8);
+            scheduledActivities2[1].FinishTime.ShouldBe(15);
 
-            scheduledActivities2[2].Id.Should().Be(activityId8);
-            scheduledActivities2[2].StartTime.Should().Be(18);
-            scheduledActivities2[2].FinishTime.Should().Be(22);
+            scheduledActivities2[2].Id.ShouldBe(activityId8);
+            scheduledActivities2[2].StartTime.ShouldBe(18);
+            scheduledActivities2[2].FinishTime.ShouldBe(22);
 
-            scheduledActivities2.Last().FinishTime.Should().Be(22);
+            scheduledActivities2.Last().FinishTime.ShouldBe(22);
 
 
 
-            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(6);
-            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
-            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(2);
-            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(2);
-            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
+            graphBuilder.Activity(activityId1).FreeSlack.ShouldBe(2);
+            graphBuilder.Activity(activityId1).TotalSlack.ShouldBe(2);
+            graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(2);
+            graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
 
-            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
-            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
-            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
-            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(7);
+            graphBuilder.Activity(activityId2).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).TotalSlack.ShouldBe(1);
+            graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
+            graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
 
-            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
 
-            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
-            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
-            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(4);
-            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(11);
-            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).Should().BeTrue();
+            graphBuilder.Activity(activityId4).EarliestStartTime.ShouldBe(7);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.ShouldBe(18);
+            graphBuilder.Activity(activityId4).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).TotalSlack.ShouldBe(4);
+            graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(11);
+            graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(22);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId3).Should().BeTrue();
+            graphBuilder.Activity(activityId5).EarliestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.ShouldBe(16);
+            graphBuilder.Activity(activityId5).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId5).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(16);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
-            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(3);
-            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(7);
-            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(15);
-            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId1).Should().BeTrue();
+            graphBuilder.Activity(activityId6).EarliestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.ShouldBe(15);
+            graphBuilder.Activity(activityId6).FreeSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId6).TotalSlack.ShouldBe(7);
+            graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(15);
+            graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(22);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
-            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(4);
-            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(4);
-            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(22);
-            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).Should().BeTrue();
+            graphBuilder.Activity(activityId7).EarliestStartTime.ShouldBe(18);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.ShouldBe(22);
+            graphBuilder.Activity(activityId7).FreeSlack.ShouldBe(4);
+            graphBuilder.Activity(activityId7).TotalSlack.ShouldBe(4);
+            graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(22);
+            graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
-            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(4);
-            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(4);
-            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(22);
-            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).Should().BeTrue();
+            graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(18);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.ShouldBe(22);
+            graphBuilder.Activity(activityId8).FreeSlack.ShouldBe(4);
+            graphBuilder.Activity(activityId8).TotalSlack.ShouldBe(4);
+            graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(22);
+            graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(16);
-            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(16);
-            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId5).Should().BeTrue();
+            graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(16);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId9).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId9).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(16);
+            graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId5).ShouldBeTrue();
         }
 
         [Fact]
@@ -665,30 +665,30 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.ResourceSchedules.Should().NotBeEmpty();
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.ResourceSchedules.ShouldNotBeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
 
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Should().BeNull();
+            resourceSchedule0.Resource.ShouldBeNull();
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(6);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(6);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].StartTime.Should().Be(6);
-            scheduledActivities0[1].FinishTime.Should().Be(13);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].StartTime.ShouldBe(6);
+            scheduledActivities0[1].FinishTime.ShouldBe(13);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].StartTime.Should().Be(13);
-            scheduledActivities0[2].FinishTime.Should().Be(17);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].StartTime.ShouldBe(13);
+            scheduledActivities0[2].FinishTime.ShouldBe(17);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(17);
+            scheduledActivities0.Last().FinishTime.ShouldBe(17);
         }
 
         [Fact]
@@ -717,148 +717,148 @@ namespace Zametek.Maths.Graphs.Tests
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(3);
+            resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Should().BeNull();
+            resourceSchedule0.Resource.ShouldBeNull();
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(4);
+            scheduledActivities0.Count.ShouldBe(4);
 
-            scheduledActivities0[0].Id.Should().Be(activityId2);
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(7);
+            scheduledActivities0[0].Id.ShouldBe(activityId2);
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(7);
 
-            scheduledActivities0[1].Id.Should().Be(activityId4);
-            scheduledActivities0[1].StartTime.Should().Be(7);
-            scheduledActivities0[1].FinishTime.Should().Be(18);
+            scheduledActivities0[1].Id.ShouldBe(activityId4);
+            scheduledActivities0[1].StartTime.ShouldBe(7);
+            scheduledActivities0[1].FinishTime.ShouldBe(18);
 
-            scheduledActivities0[2].Id.Should().Be(activityId7);
-            scheduledActivities0[2].StartTime.Should().Be(18);
-            scheduledActivities0[2].FinishTime.Should().Be(22);
+            scheduledActivities0[2].Id.ShouldBe(activityId7);
+            scheduledActivities0[2].StartTime.ShouldBe(18);
+            scheduledActivities0[2].FinishTime.ShouldBe(22);
 
-            scheduledActivities0[3].Id.Should().Be(activityId9);
-            scheduledActivities0[3].StartTime.Should().Be(31);
-            scheduledActivities0[3].FinishTime.Should().Be(41);
+            scheduledActivities0[3].Id.ShouldBe(activityId9);
+            scheduledActivities0[3].StartTime.ShouldBe(31);
+            scheduledActivities0[3].FinishTime.ShouldBe(41);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(41);
+            scheduledActivities0.Last().FinishTime.ShouldBe(41);
 
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Should().BeNull();
+            resourceSchedule1.Resource.ShouldBeNull();
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(3);
+            scheduledActivities1.Count.ShouldBe(3);
 
-            scheduledActivities1[0].Id.Should().Be(activityId3);
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(8);
+            scheduledActivities1[0].Id.ShouldBe(activityId3);
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(8);
 
-            scheduledActivities1[1].Id.Should().Be(activityId6);
-            scheduledActivities1[1].StartTime.Should().Be(8);
-            scheduledActivities1[1].FinishTime.Should().Be(15);
+            scheduledActivities1[1].Id.ShouldBe(activityId6);
+            scheduledActivities1[1].StartTime.ShouldBe(8);
+            scheduledActivities1[1].FinishTime.ShouldBe(15);
 
-            scheduledActivities1[2].Id.Should().Be(activityId8);
-            scheduledActivities1[2].StartTime.Should().Be(18);
-            scheduledActivities1[2].FinishTime.Should().Be(22);
+            scheduledActivities1[2].Id.ShouldBe(activityId8);
+            scheduledActivities1[2].StartTime.ShouldBe(18);
+            scheduledActivities1[2].FinishTime.ShouldBe(22);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(22);
+            scheduledActivities1.Last().FinishTime.ShouldBe(22);
 
 
             var resourceSchedule2 = resourceSchedules[2];
-            resourceSchedule2.Resource.Should().BeNull();
+            resourceSchedule2.Resource.ShouldBeNull();
             var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
-            scheduledActivities2.Count.Should().Be(2);
+            scheduledActivities2.Count.ShouldBe(2);
 
-            scheduledActivities2[0].Id.Should().Be(activityId1);
-            scheduledActivities2[0].StartTime.Should().Be(0);
-            scheduledActivities2[0].FinishTime.Should().Be(6);
+            scheduledActivities2[0].Id.ShouldBe(activityId1);
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(6);
 
-            scheduledActivities2[1].Id.Should().Be(activityId5);
-            scheduledActivities2[1].StartTime.Should().Be(8);
-            scheduledActivities2[1].FinishTime.Should().Be(16);
+            scheduledActivities2[1].Id.ShouldBe(activityId5);
+            scheduledActivities2[1].StartTime.ShouldBe(8);
+            scheduledActivities2[1].FinishTime.ShouldBe(16);
 
-            scheduledActivities2.Last().FinishTime.Should().Be(16);
+            scheduledActivities2.Last().FinishTime.ShouldBe(16);
 
 
 
-            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(6);
-            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(2);
-            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(17);
-            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(17);
-            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(23);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
+            graphBuilder.Activity(activityId1).FreeSlack.ShouldBe(2);
+            graphBuilder.Activity(activityId1).TotalSlack.ShouldBe(17);
+            graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(17);
+            graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(23);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
 
-            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
-            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(9);
-            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(9);
-            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(7);
+            graphBuilder.Activity(activityId2).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).TotalSlack.ShouldBe(9);
+            graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(9);
+            graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(16);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
 
-            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(15);
-            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(15);
-            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(23);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
+            graphBuilder.Activity(activityId3).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).TotalSlack.ShouldBe(15);
+            graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(15);
+            graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(23);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
 
-            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(7);
-            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(18);
-            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(9);
-            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(16);
-            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(27);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).Should().BeTrue();
+            graphBuilder.Activity(activityId4).EarliestStartTime.ShouldBe(7);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.ShouldBe(18);
+            graphBuilder.Activity(activityId4).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).TotalSlack.ShouldBe(9);
+            graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(16);
+            graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(27);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(15);
-            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(15);
-            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(23);
-            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(31);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId1).Should().BeTrue();
+            graphBuilder.Activity(activityId5).EarliestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.ShouldBe(16);
+            graphBuilder.Activity(activityId5).FreeSlack.ShouldBe(15);
+            graphBuilder.Activity(activityId5).TotalSlack.ShouldBe(15);
+            graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(23);
+            graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(31);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(15);
-            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(3);
-            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(22);
-            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(30);
-            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(37);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId3).Should().BeTrue();
+            graphBuilder.Activity(activityId6).EarliestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.ShouldBe(15);
+            graphBuilder.Activity(activityId6).FreeSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId6).TotalSlack.ShouldBe(22);
+            graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(30);
+            graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(37);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(18);
-            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(9);
-            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(9);
-            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(27);
-            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(31);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).Should().BeTrue();
+            graphBuilder.Activity(activityId7).EarliestStartTime.ShouldBe(18);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.ShouldBe(22);
+            graphBuilder.Activity(activityId7).FreeSlack.ShouldBe(9);
+            graphBuilder.Activity(activityId7).TotalSlack.ShouldBe(9);
+            graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(27);
+            graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(31);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(18);
-            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(22);
-            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(19);
-            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(19);
-            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(37);
-            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(41);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).Should().BeTrue();
+            graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(18);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.ShouldBe(22);
+            graphBuilder.Activity(activityId8).FreeSlack.ShouldBe(19);
+            graphBuilder.Activity(activityId8).TotalSlack.ShouldBe(19);
+            graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(37);
+            graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(41);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
 
-            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(31);
-            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(41);
-            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(31);
-            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(41);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Count.Should().Be(1);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId7).Should().BeTrue();
+            graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(31);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.ShouldBe(41);
+            graphBuilder.Activity(activityId9).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId9).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(31);
+            graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(41);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId7).ShouldBeTrue();
         }
 
         [Fact]
@@ -894,11 +894,11 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(2);
+            resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -906,7 +906,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, false,
@@ -915,39 +915,39 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(5);
+            scheduledActivities0.Count.ShouldBe(5);
 
-            scheduledActivities0[0].Id.Should().Be(activityId3);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(8);
+            scheduledActivities0[0].Id.ShouldBe(activityId3);
+            scheduledActivities0[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[1].Id.Should().Be(activityId4);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(8);
-            scheduledActivities0[1].FinishTime.Should().Be(19);
+            scheduledActivities0[1].Id.ShouldBe(activityId4);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(8);
+            scheduledActivities0[1].FinishTime.ShouldBe(19);
 
-            scheduledActivities0[2].Id.Should().Be(activityId6);
-            scheduledActivities0[2].HasNoCost.Should().BeTrue();
-            scheduledActivities0[2].StartTime.Should().Be(19);
-            scheduledActivities0[2].FinishTime.Should().Be(26);
+            scheduledActivities0[2].Id.ShouldBe(activityId6);
+            scheduledActivities0[2].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[2].StartTime.ShouldBe(19);
+            scheduledActivities0[2].FinishTime.ShouldBe(26);
 
-            scheduledActivities0[3].Id.Should().Be(activityId7);
-            scheduledActivities0[3].HasNoCost.Should().BeFalse();
-            scheduledActivities0[3].StartTime.Should().Be(26);
-            scheduledActivities0[3].FinishTime.Should().Be(30);
+            scheduledActivities0[3].Id.ShouldBe(activityId7);
+            scheduledActivities0[3].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[3].StartTime.ShouldBe(26);
+            scheduledActivities0[3].FinishTime.ShouldBe(30);
 
-            scheduledActivities0[4].Id.Should().Be(activityId8);
-            scheduledActivities0[4].HasNoCost.Should().BeFalse();
-            scheduledActivities0[4].StartTime.Should().Be(30);
-            scheduledActivities0[4].FinishTime.Should().Be(34);
+            scheduledActivities0[4].Id.ShouldBe(activityId8);
+            scheduledActivities0[4].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[4].StartTime.ShouldBe(30);
+            scheduledActivities0[4].FinishTime.ShouldBe(34);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(34);
+            scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -955,7 +955,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, false, false, false,
                 });
 
-            resourceSchedules[1].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].CostAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, false, false, true, true, true,
                     true, true, true, false, false, false, false, false, false, false,
@@ -964,114 +964,114 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(4);
+            scheduledActivities1.Count.ShouldBe(4);
 
-            scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities1[0].HasNoCost.Should().BeTrue();
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(7);
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(7);
 
-            scheduledActivities1[1].Id.Should().Be(activityId1);
-            scheduledActivities1[1].HasNoCost.Should().BeFalse();
-            scheduledActivities1[1].StartTime.Should().Be(7);
-            scheduledActivities1[1].FinishTime.Should().Be(13);
+            scheduledActivities1[1].Id.ShouldBe(activityId1);
+            scheduledActivities1[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[1].StartTime.ShouldBe(7);
+            scheduledActivities1[1].FinishTime.ShouldBe(13);
 
-            scheduledActivities1[2].Id.Should().Be(activityId5);
-            scheduledActivities1[2].HasNoCost.Should().BeTrue();
-            scheduledActivities1[2].StartTime.Should().Be(13);
-            scheduledActivities1[2].FinishTime.Should().Be(21);
+            scheduledActivities1[2].Id.ShouldBe(activityId5);
+            scheduledActivities1[2].HasNoCost.ShouldBeTrue();
+            scheduledActivities1[2].StartTime.ShouldBe(13);
+            scheduledActivities1[2].FinishTime.ShouldBe(21);
 
-            scheduledActivities1[3].Id.Should().Be(activityId9);
-            scheduledActivities1[3].HasNoCost.Should().BeFalse();
-            scheduledActivities1[3].StartTime.Should().Be(21);
-            scheduledActivities1[3].FinishTime.Should().Be(31);
+            scheduledActivities1[3].Id.ShouldBe(activityId9);
+            scheduledActivities1[3].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[3].StartTime.ShouldBe(21);
+            scheduledActivities1[3].FinishTime.ShouldBe(31);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(31);
+            scheduledActivities1.Last().FinishTime.ShouldBe(31);
 
 
 
-            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(7);
-            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(13);
-            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(3);
-            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(10);
-            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId2 }));
-            graphBuilder.Activity(activityId1).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(7);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(13);
+            graphBuilder.Activity(activityId1).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId1).TotalSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
+            graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
-            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
-            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
-            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Count.Should().Be(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(7);
+            graphBuilder.Activity(activityId2).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).TotalSlack.ShouldBe(1);
+            graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
+            graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId3).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(19);
-            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(19);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId3 }));
-            graphBuilder.Activity(activityId4).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId4).EarliestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.ShouldBe(19);
+            graphBuilder.Activity(activityId4).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(13);
-            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(21);
-            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(3);
-            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(16);
-            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(24);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId1 }));
-            graphBuilder.Activity(activityId5).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId5).EarliestStartTime.ShouldBe(13);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.ShouldBe(21);
+            graphBuilder.Activity(activityId5).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId5).TotalSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(16);
+            graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(24);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(19);
-            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(19);
-            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId4 }));
-            graphBuilder.Activity(activityId6).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId6).EarliestStartTime.ShouldBe(19);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId6).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId6).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(19);
+            graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(26);
-            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(30);
-            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(26);
-            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(30);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId6 }));
-            graphBuilder.Activity(activityId7).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId7).EarliestStartTime.ShouldBe(26);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.ShouldBe(30);
+            graphBuilder.Activity(activityId7).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId7).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(26);
+            graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(30);
-            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(30);
-            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId7 }));
-            graphBuilder.Activity(activityId8).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.ShouldBe(34);
+            graphBuilder.Activity(activityId8).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId8).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(30);
+            graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(34);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(21);
-            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(31);
-            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(3);
-            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(3);
-            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(24);
-            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId5 }));
-            graphBuilder.Activity(activityId9).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.ShouldBe(31);
+            graphBuilder.Activity(activityId9).FreeSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId9).TotalSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(24);
+            graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
         }
 
         [Fact]
@@ -1086,11 +1086,11 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
-            resourceSchedules[0].ActivityAllocation.Should().BeEmpty();
-            resourceSchedules[0].CostAllocation.Should().BeEmpty();
+            resourceSchedules.Count.ShouldBe(1);
+            resourceSchedules[0].ActivityAllocation.ShouldBeEmpty();
+            resourceSchedules[0].CostAllocation.ShouldBeEmpty();
         }
 
         [Fact]
@@ -1129,11 +1129,11 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1144,7 +1144,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, true, true, true, true, true,
@@ -1155,137 +1155,137 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true,
                 });
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId2);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(9);
+            scheduledActivities0.Count.ShouldBe(9);
 
-            scheduledActivities0[0].Id.Should().Be(activityId3);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(8);
+            scheduledActivities0[0].Id.ShouldBe(activityId3);
+            scheduledActivities0[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeTrue();
-            scheduledActivities0[1].StartTime.Should().Be(8);
-            scheduledActivities0[1].FinishTime.Should().Be(15);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[1].StartTime.ShouldBe(8);
+            scheduledActivities0[1].FinishTime.ShouldBe(15);
 
-            scheduledActivities0[2].Id.Should().Be(activityId1);
-            scheduledActivities0[2].HasNoCost.Should().BeFalse();
-            scheduledActivities0[2].StartTime.Should().Be(15);
-            scheduledActivities0[2].FinishTime.Should().Be(21);
+            scheduledActivities0[2].Id.ShouldBe(activityId1);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(15);
+            scheduledActivities0[2].FinishTime.ShouldBe(21);
 
-            scheduledActivities0[3].Id.Should().Be(activityId5);
-            scheduledActivities0[3].HasNoCost.Should().BeTrue();
-            scheduledActivities0[3].StartTime.Should().Be(21);
-            scheduledActivities0[3].FinishTime.Should().Be(29);
+            scheduledActivities0[3].Id.ShouldBe(activityId5);
+            scheduledActivities0[3].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[3].StartTime.ShouldBe(21);
+            scheduledActivities0[3].FinishTime.ShouldBe(29);
 
-            scheduledActivities0[4].Id.Should().Be(activityId4);
-            scheduledActivities0[4].HasNoCost.Should().BeFalse();
-            scheduledActivities0[4].StartTime.Should().Be(29);
-            scheduledActivities0[4].FinishTime.Should().Be(40);
+            scheduledActivities0[4].Id.ShouldBe(activityId4);
+            scheduledActivities0[4].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[4].StartTime.ShouldBe(29);
+            scheduledActivities0[4].FinishTime.ShouldBe(40);
 
-            scheduledActivities0[5].Id.Should().Be(activityId6);
-            scheduledActivities0[5].HasNoCost.Should().BeTrue();
-            scheduledActivities0[5].StartTime.Should().Be(40);
-            scheduledActivities0[5].FinishTime.Should().Be(47);
+            scheduledActivities0[5].Id.ShouldBe(activityId6);
+            scheduledActivities0[5].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[5].StartTime.ShouldBe(40);
+            scheduledActivities0[5].FinishTime.ShouldBe(47);
 
-            scheduledActivities0[6].Id.Should().Be(activityId9);
-            scheduledActivities0[6].HasNoCost.Should().BeFalse();
-            scheduledActivities0[6].StartTime.Should().Be(47);
-            scheduledActivities0[6].FinishTime.Should().Be(57);
+            scheduledActivities0[6].Id.ShouldBe(activityId9);
+            scheduledActivities0[6].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[6].StartTime.ShouldBe(47);
+            scheduledActivities0[6].FinishTime.ShouldBe(57);
 
-            scheduledActivities0[7].Id.Should().Be(activityId7);
-            scheduledActivities0[7].HasNoCost.Should().BeFalse();
-            scheduledActivities0[7].StartTime.Should().Be(57);
-            scheduledActivities0[7].FinishTime.Should().Be(61);
+            scheduledActivities0[7].Id.ShouldBe(activityId7);
+            scheduledActivities0[7].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[7].StartTime.ShouldBe(57);
+            scheduledActivities0[7].FinishTime.ShouldBe(61);
 
-            scheduledActivities0[8].Id.Should().Be(activityId8);
-            scheduledActivities0[8].HasNoCost.Should().BeFalse();
-            scheduledActivities0[8].StartTime.Should().Be(61);
-            scheduledActivities0[8].FinishTime.Should().Be(65);
+            scheduledActivities0[8].Id.ShouldBe(activityId8);
+            scheduledActivities0[8].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[8].StartTime.ShouldBe(61);
+            scheduledActivities0[8].FinishTime.ShouldBe(65);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(65);
+            scheduledActivities0.Last().FinishTime.ShouldBe(65);
 
-            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(15);
-            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(21);
-            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(15);
-            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(21);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId2 }));
-            graphBuilder.Activity(activityId1).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(15);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(21);
+            graphBuilder.Activity(activityId1).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId1).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(15);
+            graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(21);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(15);
-            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(15);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId3 }));
-            graphBuilder.Activity(activityId2).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(15);
+            graphBuilder.Activity(activityId2).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(15);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId3).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(29);
-            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(40);
-            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(29);
-            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(40);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId5 }));
-            graphBuilder.Activity(activityId4).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId4).EarliestStartTime.ShouldBe(29);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.ShouldBe(40);
+            graphBuilder.Activity(activityId4).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(29);
+            graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(40);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(21);
-            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(29);
-            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(21);
-            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(29);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId1 }));
-            graphBuilder.Activity(activityId5).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId5).EarliestStartTime.ShouldBe(21);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.ShouldBe(29);
+            graphBuilder.Activity(activityId5).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId5).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(21);
+            graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(29);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(40);
-            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(47);
-            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(40);
-            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(47);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId4 }));
-            graphBuilder.Activity(activityId6).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId6).EarliestStartTime.ShouldBe(40);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.ShouldBe(47);
+            graphBuilder.Activity(activityId6).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId6).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(40);
+            graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(47);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(57);
-            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(61);
-            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(57);
-            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(61);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId9 }));
-            graphBuilder.Activity(activityId7).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId7).EarliestStartTime.ShouldBe(57);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.ShouldBe(61);
+            graphBuilder.Activity(activityId7).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId7).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(57);
+            graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(61);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId9 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(61);
-            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(65);
-            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(61);
-            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(65);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId7 }));
-            graphBuilder.Activity(activityId8).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(61);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.ShouldBe(65);
+            graphBuilder.Activity(activityId8).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId8).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(61);
+            graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(65);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(47);
-            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(57);
-            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(47);
-            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(57);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId6 }));
-            graphBuilder.Activity(activityId9).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(47);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.ShouldBe(57);
+            graphBuilder.Activity(activityId9).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId9).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(47);
+            graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(57);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
         }
 
         [Fact]
@@ -1321,11 +1321,11 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(2);
+            resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1333,7 +1333,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1342,39 +1342,39 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(5);
+            scheduledActivities0.Count.ShouldBe(5);
 
-            scheduledActivities0[0].Id.Should().Be(activityId3);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(8);
+            scheduledActivities0[0].Id.ShouldBe(activityId3);
+            scheduledActivities0[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[1].Id.Should().Be(activityId4);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(8);
-            scheduledActivities0[1].FinishTime.Should().Be(19);
+            scheduledActivities0[1].Id.ShouldBe(activityId4);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(8);
+            scheduledActivities0[1].FinishTime.ShouldBe(19);
 
-            scheduledActivities0[2].Id.Should().Be(activityId6);
-            scheduledActivities0[2].HasNoCost.Should().BeTrue();
-            scheduledActivities0[2].StartTime.Should().Be(19);
-            scheduledActivities0[2].FinishTime.Should().Be(26);
+            scheduledActivities0[2].Id.ShouldBe(activityId6);
+            scheduledActivities0[2].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[2].StartTime.ShouldBe(19);
+            scheduledActivities0[2].FinishTime.ShouldBe(26);
 
-            scheduledActivities0[3].Id.Should().Be(activityId7);
-            scheduledActivities0[3].HasNoCost.Should().BeFalse();
-            scheduledActivities0[3].StartTime.Should().Be(26);
-            scheduledActivities0[3].FinishTime.Should().Be(30);
+            scheduledActivities0[3].Id.ShouldBe(activityId7);
+            scheduledActivities0[3].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[3].StartTime.ShouldBe(26);
+            scheduledActivities0[3].FinishTime.ShouldBe(30);
 
-            scheduledActivities0[4].Id.Should().Be(activityId8);
-            scheduledActivities0[4].HasNoCost.Should().BeFalse();
-            scheduledActivities0[4].StartTime.Should().Be(30);
-            scheduledActivities0[4].FinishTime.Should().Be(34);
+            scheduledActivities0[4].Id.ShouldBe(activityId8);
+            scheduledActivities0[4].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[4].StartTime.ShouldBe(30);
+            scheduledActivities0[4].FinishTime.ShouldBe(34);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(34);
+            scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1382,7 +1382,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true,
                 });
 
-            resourceSchedules[1].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1391,114 +1391,114 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(4);
+            scheduledActivities1.Count.ShouldBe(4);
 
-            scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities1[0].HasNoCost.Should().BeFalse();
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(7);
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(7);
 
-            scheduledActivities1[1].Id.Should().Be(activityId1);
-            scheduledActivities1[1].HasNoCost.Should().BeFalse();
-            scheduledActivities1[1].StartTime.Should().Be(7);
-            scheduledActivities1[1].FinishTime.Should().Be(13);
+            scheduledActivities1[1].Id.ShouldBe(activityId1);
+            scheduledActivities1[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[1].StartTime.ShouldBe(7);
+            scheduledActivities1[1].FinishTime.ShouldBe(13);
 
-            scheduledActivities1[2].Id.Should().Be(activityId5);
-            scheduledActivities1[2].HasNoCost.Should().BeFalse();
-            scheduledActivities1[2].StartTime.Should().Be(13);
-            scheduledActivities1[2].FinishTime.Should().Be(21);
+            scheduledActivities1[2].Id.ShouldBe(activityId5);
+            scheduledActivities1[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[2].StartTime.ShouldBe(13);
+            scheduledActivities1[2].FinishTime.ShouldBe(21);
 
-            scheduledActivities1[3].Id.Should().Be(activityId9);
-            scheduledActivities1[3].HasNoCost.Should().BeFalse();
-            scheduledActivities1[3].StartTime.Should().Be(21);
-            scheduledActivities1[3].FinishTime.Should().Be(31);
+            scheduledActivities1[3].Id.ShouldBe(activityId9);
+            scheduledActivities1[3].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[3].StartTime.ShouldBe(21);
+            scheduledActivities1[3].FinishTime.ShouldBe(31);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(31);
+            scheduledActivities1.Last().FinishTime.ShouldBe(31);
 
 
 
-            graphBuilder.Activity(activityId1).EarliestStartTime.Should().Be(7);
-            graphBuilder.Activity(activityId1).EarliestFinishTime.Should().Be(13);
-            graphBuilder.Activity(activityId1).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId1).TotalSlack.Should().Be(3);
-            graphBuilder.Activity(activityId1).LatestStartTime.Should().Be(10);
-            graphBuilder.Activity(activityId1).LatestFinishTime.Should().Be(16);
-            graphBuilder.Activity(activityId1).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId2 }));
-            graphBuilder.Activity(activityId1).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(7);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(13);
+            graphBuilder.Activity(activityId1).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId1).TotalSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
+            graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId2).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId2).EarliestFinishTime.Should().Be(7);
-            graphBuilder.Activity(activityId2).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId2).TotalSlack.Should().Be(1);
-            graphBuilder.Activity(activityId2).LatestStartTime.Should().Be(1);
-            graphBuilder.Activity(activityId2).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId2).ResourceDependencies.Count.Should().Be(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(7);
+            graphBuilder.Activity(activityId2).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).TotalSlack.ShouldBe(1);
+            graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
+            graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId3).EarliestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).EarliestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestStartTime.Should().Be(0);
-            graphBuilder.Activity(activityId3).LatestFinishTime.Should().Be(8);
-            graphBuilder.Activity(activityId3).ResourceDependencies.Count.Should().Be(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId3).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).EarliestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId4).EarliestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId4).EarliestFinishTime.Should().Be(19);
-            graphBuilder.Activity(activityId4).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId4).LatestStartTime.Should().Be(8);
-            graphBuilder.Activity(activityId4).LatestFinishTime.Should().Be(19);
-            graphBuilder.Activity(activityId4).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId3 }));
-            graphBuilder.Activity(activityId4).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId4).EarliestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId4).EarliestFinishTime.ShouldBe(19);
+            graphBuilder.Activity(activityId4).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(8);
+            graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId5).EarliestStartTime.Should().Be(13);
-            graphBuilder.Activity(activityId5).EarliestFinishTime.Should().Be(21);
-            graphBuilder.Activity(activityId5).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId5).TotalSlack.Should().Be(3);
-            graphBuilder.Activity(activityId5).LatestStartTime.Should().Be(16);
-            graphBuilder.Activity(activityId5).LatestFinishTime.Should().Be(24);
-            graphBuilder.Activity(activityId5).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId1 }));
-            graphBuilder.Activity(activityId5).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId5).EarliestStartTime.ShouldBe(13);
+            graphBuilder.Activity(activityId5).EarliestFinishTime.ShouldBe(21);
+            graphBuilder.Activity(activityId5).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId5).TotalSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(16);
+            graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(24);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId6).EarliestStartTime.Should().Be(19);
-            graphBuilder.Activity(activityId6).EarliestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId6).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId6).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId6).LatestStartTime.Should().Be(19);
-            graphBuilder.Activity(activityId6).LatestFinishTime.Should().Be(26);
-            graphBuilder.Activity(activityId6).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId4 }));
-            graphBuilder.Activity(activityId6).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId6).EarliestStartTime.ShouldBe(19);
+            graphBuilder.Activity(activityId6).EarliestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId6).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId6).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(19);
+            graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId7).EarliestStartTime.Should().Be(26);
-            graphBuilder.Activity(activityId7).EarliestFinishTime.Should().Be(30);
-            graphBuilder.Activity(activityId7).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId7).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId7).LatestStartTime.Should().Be(26);
-            graphBuilder.Activity(activityId7).LatestFinishTime.Should().Be(30);
-            graphBuilder.Activity(activityId7).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId6 }));
-            graphBuilder.Activity(activityId7).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId7).EarliestStartTime.ShouldBe(26);
+            graphBuilder.Activity(activityId7).EarliestFinishTime.ShouldBe(30);
+            graphBuilder.Activity(activityId7).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId7).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(26);
+            graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId8).EarliestStartTime.Should().Be(30);
-            graphBuilder.Activity(activityId8).EarliestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId8).FreeSlack.Should().Be(0);
-            graphBuilder.Activity(activityId8).TotalSlack.Should().Be(0);
-            graphBuilder.Activity(activityId8).LatestStartTime.Should().Be(30);
-            graphBuilder.Activity(activityId8).LatestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId8).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId7 }));
-            graphBuilder.Activity(activityId8).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId1 }));
+            graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
+            graphBuilder.Activity(activityId8).EarliestFinishTime.ShouldBe(34);
+            graphBuilder.Activity(activityId8).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId8).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(30);
+            graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(34);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
 
-            graphBuilder.Activity(activityId9).EarliestStartTime.Should().Be(21);
-            graphBuilder.Activity(activityId9).EarliestFinishTime.Should().Be(31);
-            graphBuilder.Activity(activityId9).FreeSlack.Should().Be(3);
-            graphBuilder.Activity(activityId9).TotalSlack.Should().Be(3);
-            graphBuilder.Activity(activityId9).LatestStartTime.Should().Be(24);
-            graphBuilder.Activity(activityId9).LatestFinishTime.Should().Be(34);
-            graphBuilder.Activity(activityId9).ResourceDependencies.Should().BeEquivalentTo(new List<int>(new int[] { activityId5 }));
-            graphBuilder.Activity(activityId9).AllocatedToResources.Should().BeEquivalentTo(new List<int>(new int[] { resourceId2 }));
+            graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
+            graphBuilder.Activity(activityId9).EarliestFinishTime.ShouldBe(31);
+            graphBuilder.Activity(activityId9).FreeSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId9).TotalSlack.ShouldBe(3);
+            graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(24);
+            graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
         }
 
         [Fact]
@@ -1533,83 +1533,83 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(3);
+            resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(1);
+            scheduledActivities0.Count.ShouldBe(1);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(5);
+            scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[1].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(1);
+            scheduledActivities1.Count.ShouldBe(1);
 
-            scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities1[0].HasNoCost.Should().BeFalse();
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(3);
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(3);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(3);
+            scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[2].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
             var resourceSchedule2 = resourceSchedules[2];
-            resourceSchedule2.Resource.Id.Should().Be(resourceId3);
+            resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
             var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
-            scheduledActivities2.Count.Should().Be(1);
+            scheduledActivities2.Count.ShouldBe(1);
 
-            scheduledActivities2[0].Id.Should().Be(activityId3);
-            scheduledActivities2[0].HasNoCost.Should().BeFalse();
-            scheduledActivities2[0].StartTime.Should().Be(0);
-            scheduledActivities2[0].FinishTime.Should().Be(12);
+            scheduledActivities2[0].Id.ShouldBe(activityId3);
+            scheduledActivities2[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(12);
 
-            scheduledActivities2.Last().FinishTime.Should().Be(12);
+            scheduledActivities2.Last().FinishTime.ShouldBe(12);
         }
 
         [Fact]
@@ -1644,83 +1644,83 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(3);
+            resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(1);
+            scheduledActivities0.Count.ShouldBe(1);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(5);
+            scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[1].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(1);
+            scheduledActivities1.Count.ShouldBe(1);
 
-            scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities1[0].HasNoCost.Should().BeFalse();
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(3);
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(3);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(3);
+            scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[2].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
             var resourceSchedule2 = resourceSchedules[2];
-            resourceSchedule2.Resource.Id.Should().Be(resourceId3);
+            resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
             var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
-            scheduledActivities2.Count.Should().Be(1);
+            scheduledActivities2.Count.ShouldBe(1);
 
-            scheduledActivities2[0].Id.Should().Be(activityId3);
-            scheduledActivities2[0].HasNoCost.Should().BeFalse();
-            scheduledActivities2[0].StartTime.Should().Be(0);
-            scheduledActivities2[0].FinishTime.Should().Be(12);
+            scheduledActivities2[0].Id.ShouldBe(activityId3);
+            scheduledActivities2[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(12);
 
-            scheduledActivities2.Last().FinishTime.Should().Be(12);
+            scheduledActivities2.Last().FinishTime.ShouldBe(12);
         }
 
         [Fact]
@@ -1755,83 +1755,83 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(3);
+            resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(1);
+            scheduledActivities0.Count.ShouldBe(1);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(5);
+            scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[1].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(1);
+            scheduledActivities1.Count.ShouldBe(1);
 
-            scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities1[0].HasNoCost.Should().BeTrue();
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(3);
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(3);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(3);
+            scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[2].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
             var resourceSchedule2 = resourceSchedules[2];
-            resourceSchedule2.Resource.Id.Should().Be(resourceId3);
+            resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
             var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
-            scheduledActivities2.Count.Should().Be(1);
+            scheduledActivities2.Count.ShouldBe(1);
 
-            scheduledActivities2[0].Id.Should().Be(activityId3);
-            scheduledActivities2[0].HasNoCost.Should().BeFalse();
-            scheduledActivities2[0].StartTime.Should().Be(0);
-            scheduledActivities2[0].FinishTime.Should().Be(12);
+            scheduledActivities2[0].Id.ShouldBe(activityId3);
+            scheduledActivities2[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(12);
 
-            scheduledActivities2.Last().FinishTime.Should().Be(12);
+            scheduledActivities2.Last().FinishTime.ShouldBe(12);
         }
 
         [Fact]
@@ -1866,83 +1866,83 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(3);
+            resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(1);
+            scheduledActivities0.Count.ShouldBe(1);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(5);
+            scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[1].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[1].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
-            resourceSchedule1.Resource.Id.Should().Be(resourceId2);
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.Should().Be(1);
+            scheduledActivities1.Count.ShouldBe(1);
 
-            scheduledActivities1[0].Id.Should().Be(activityId2);
-            scheduledActivities1[0].HasNoCost.Should().BeFalse();
-            scheduledActivities1[0].StartTime.Should().Be(0);
-            scheduledActivities1[0].FinishTime.Should().Be(3);
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(3);
 
-            scheduledActivities1.Last().FinishTime.Should().Be(3);
+            scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
                 });
 
-            resourceSchedules[2].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[2].CostAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
                 });
 
             var resourceSchedule2 = resourceSchedules[2];
-            resourceSchedule2.Resource.Id.Should().Be(resourceId3);
+            resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
             var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
-            scheduledActivities2.Count.Should().Be(1);
+            scheduledActivities2.Count.ShouldBe(1);
 
-            scheduledActivities2[0].Id.Should().Be(activityId3);
-            scheduledActivities2[0].HasNoCost.Should().BeTrue();
-            scheduledActivities2[0].StartTime.Should().Be(0);
-            scheduledActivities2[0].FinishTime.Should().Be(12);
+            scheduledActivities2[0].Id.ShouldBe(activityId3);
+            scheduledActivities2[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(12);
 
-            scheduledActivities2.Last().FinishTime.Should().Be(12);
+            scheduledActivities2.Last().FinishTime.ShouldBe(12);
         }
 
         [Fact]
@@ -1972,43 +1972,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeFalse();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2038,43 +2038,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeTrue();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeFalse();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2104,43 +2104,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeTrue();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2170,43 +2170,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeFalse();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2236,43 +2236,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeTrue();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeFalse();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2302,43 +2302,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeTrue();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2368,43 +2368,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeTrue();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeFalse();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2434,43 +2434,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeTrue();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeFalse();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2500,43 +2500,43 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[] { resource1 }));
 
-            compilation.CompilationErrors.Should().BeEmpty();
+            compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.Should().Be(1);
+            resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
-            resourceSchedules[0].CostAllocation.Should().BeEquivalentTo(
+            resourceSchedules[0].CostAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
-            resourceSchedule0.Resource.Id.Should().Be(resourceId1);
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.Should().Be(3);
+            scheduledActivities0.Count.ShouldBe(3);
 
-            scheduledActivities0[0].Id.Should().Be(activityId1);
-            scheduledActivities0[0].HasNoCost.Should().BeFalse();
-            scheduledActivities0[0].StartTime.Should().Be(0);
-            scheduledActivities0[0].FinishTime.Should().Be(5);
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
 
-            scheduledActivities0[1].Id.Should().Be(activityId2);
-            scheduledActivities0[1].HasNoCost.Should().BeFalse();
-            scheduledActivities0[1].StartTime.Should().Be(5);
-            scheduledActivities0[1].FinishTime.Should().Be(8);
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
 
-            scheduledActivities0[2].Id.Should().Be(activityId3);
-            scheduledActivities0[2].HasNoCost.Should().BeTrue();
-            scheduledActivities0[2].StartTime.Should().Be(8);
-            scheduledActivities0[2].FinishTime.Should().Be(20);
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
 
-            scheduledActivities0.Last().FinishTime.Should().Be(20);
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
         [Fact]
@@ -2544,7 +2544,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.Compile();
-            graphCompiler.CyclomaticComplexity.Should().Be(0);
+            graphCompiler.CyclomaticComplexity.ShouldBe(0);
         }
 
         [Fact]
@@ -2572,7 +2572,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            graphCompiler.CyclomaticComplexity.Should().Be(6);
+            graphCompiler.CyclomaticComplexity.ShouldBe(6);
         }
 
         [Fact]
@@ -2594,7 +2594,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            graphCompiler.CyclomaticComplexity.Should().Be(3);
+            graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }
 
         [Fact]
@@ -2612,7 +2612,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphCompiler.Compile();
 
-            graphCompiler.CyclomaticComplexity.Should().Be(3);
+            graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }
     }
 }

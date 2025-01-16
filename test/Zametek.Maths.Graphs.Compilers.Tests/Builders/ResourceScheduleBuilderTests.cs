@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,10 +29,10 @@ namespace Zametek.Maths.Graphs.Tests
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
 
-            rs.ActivityAllocation.Should().BeEmpty();
-            rs.FinishTime.Should().Be(finishTime);
-            rs.Resource.Should().Be(resource);
-            rs.ScheduledActivities.Should().BeEmpty();
+            rs.ActivityAllocation.ShouldBeEmpty();
+            rs.FinishTime.ShouldBe(finishTime);
+            rs.Resource.ShouldBe(resource);
+            rs.ScheduledActivities.ShouldBeEmpty();
         }
 
         [Fact]
@@ -46,10 +46,10 @@ namespace Zametek.Maths.Graphs.Tests
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
 
-            rs.ActivityAllocation.Count().Should().Be(10);
-            rs.FinishTime.Should().Be(finishTime);
-            rs.Resource.Should().Be(resource);
-            rs.ScheduledActivities.Should().BeEmpty();
+            rs.ActivityAllocation.Count().ShouldBe(10);
+            rs.FinishTime.ShouldBe(finishTime);
+            rs.Resource.ShouldBe(resource);
+            rs.ScheduledActivities.ShouldBeEmpty();
         }
 
         [Fact]
@@ -77,12 +77,12 @@ namespace Zametek.Maths.Graphs.Tests
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
             var third = rs.ActivityAllocation.Skip(finish).Distinct();
 
-            first.Count().Should().Be(1);
-            first.Single().Should().Be(false);
-            second.Count().Should().Be(1);
-            second.Single().Should().Be(true);
-            third.Count().Should().Be(1);
-            third.Single().Should().Be(false);
+            first.Count().ShouldBe(1);
+            first.Single().ShouldBe(false);
+            second.Count().ShouldBe(1);
+            second.Single().ShouldBe(true);
+            third.Count().ShouldBe(1);
+            third.Single().ShouldBe(false);
         }
 
         [Fact]
@@ -110,12 +110,12 @@ namespace Zametek.Maths.Graphs.Tests
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
             var third = rs.ActivityAllocation.Skip(finish).Distinct();
 
-            first.Count().Should().Be(1);
-            first.Single().Should().Be(false);
-            second.Count().Should().Be(1);
-            second.Single().Should().Be(true);
-            third.Count().Should().Be(1);
-            third.Single().Should().Be(false);
+            first.Count().ShouldBe(1);
+            first.Single().ShouldBe(false);
+            second.Count().ShouldBe(1);
+            second.Single().ShouldBe(true);
+            third.Count().ShouldBe(1);
+            third.Single().ShouldBe(false);
         }
 
         [Theory]
@@ -147,22 +147,22 @@ namespace Zametek.Maths.Graphs.Tests
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
             var third = rs.ActivityAllocation.Skip(finish).Distinct();
 
-            first.Count().Should().Be(firstCount);
+            first.Count().ShouldBe(firstCount);
             if (firstCount > 0)
             {
-                first.Single().Should().Be(false);
+                first.Single().ShouldBe(false);
             }
 
-            second.Count().Should().Be(secondCount);
+            second.Count().ShouldBe(secondCount);
             if (secondCount > 0)
             {
-                second.Single().Should().Be(true);
+                second.Single().ShouldBe(true);
             }
 
-            third.Count().Should().Be(thirdCount);
+            third.Count().ShouldBe(thirdCount);
             if (thirdCount > 0)
             {
-                third.Single().Should().Be(false);
+                third.Single().ShouldBe(false);
             }
         }
 
@@ -195,9 +195,9 @@ namespace Zametek.Maths.Graphs.Tests
             var outputRs2 = output.ResourceSchedules.First(x => x.Resource.Id == 2);
             var outputRs11 = output.ResourceSchedules.First(x => x.Resource.Id == 11);
 
-            rs1.Should().BeEquivalentTo(outputRs1);
-            rs2.Should().BeEquivalentTo(outputRs2);
-            rs11.Should().BeEquivalentTo(outputRs11);
+            rs1.ShouldBeEquivalentTo(outputRs1);
+            rs2.ShouldBeEquivalentTo(outputRs2);
+            rs11.ShouldBeEquivalentTo(outputRs11);
         }
     }
 }

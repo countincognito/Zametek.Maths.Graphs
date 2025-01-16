@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +15,11 @@ namespace Zametek.Maths.Graphs.Tests
             int dummyActivityId = 0;
             var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(() => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
 
-            graphBuilder.EdgeIds.Any().Should().BeFalse();
-            graphBuilder.NodeIds.Count().Should().Be(2);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(0);
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(0);
+            graphBuilder.EdgeIds.Any().ShouldBeFalse();
+            graphBuilder.NodeIds.Count().ShouldBe(2);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(0);
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(0);
         }
 
         [Fact]
@@ -27,7 +27,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(null, () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentNullException>();
+            act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int dummyActivityId = 0;
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(() => dummyActivityId = dummyActivityId.Next(), null);
-            act.Should().Throw<ArgumentNullException>();
+            act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace Zametek.Maths.Graphs.Tests
             int dummyActivityId = 0;
             var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(() => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
             Action act = () => graphBuilder.EndNode.OutgoingEdges.Any();
-            act.Should().Throw<InvalidOperationException>();
+            act.ShouldThrow<InvalidOperationException>();
         }
 
         [Fact]
@@ -63,18 +63,18 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity = new Activity<int, int, int>(activityId, 0);
             bool result = graphBuilder.AddActivity(activity);
-            result.Should().BeTrue();
+            result.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(2);
-            graphBuilder.NodeIds.Count().Should().Be(3);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId).Id);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId).Should().BeTrue();
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(2);
+            graphBuilder.NodeIds.Count().ShouldBe(3);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId).Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId).ShouldBeTrue();
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
         }
 
         [Fact]
@@ -94,95 +94,95 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(2);
-            graphBuilder.NodeIds.Count().Should().Be(3);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(2);
+            graphBuilder.NodeIds.Count().ShouldBe(3);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int> { activityId1 });
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(5);
-            graphBuilder.NodeIds.Count().Should().Be(5);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(5);
+            graphBuilder.NodeIds.Count().ShouldBe(5);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
             // Dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
             // Dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).Id.ShouldBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
         }
 
         [Fact]
@@ -201,91 +201,91 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2, new HashSet<int> { activityId1 });
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(2);
-            graphBuilder.NodeIds.Count().Should().Be(4);
-            graphBuilder.AllDependenciesSatisfied.Should().BeFalse();
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(0);
+            graphBuilder.EdgeIds.Count().ShouldBe(2);
+            graphBuilder.NodeIds.Count().ShouldBe(4);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeFalse();
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(0);
 
-            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Count.Should().Be(0);
+            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Count.ShouldBe(0);
 
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(4);
-            graphBuilder.NodeIds.Count().Should().Be(5);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(4);
+            graphBuilder.NodeIds.Count().ShouldBe(5);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
             // Dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().Be(graphBuilder.EdgeTailNode(dummyActivityId1).Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldBe(graphBuilder.EdgeTailNode(dummyActivityId1).Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
             // Dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().Be(graphBuilder.EdgeTailNode(dummyActivityId1).Id);
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldBe(graphBuilder.EdgeTailNode(dummyActivityId1).Id);
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
         }
 
         [Fact]
@@ -308,205 +308,205 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(2);
-            graphBuilder.NodeIds.Count().Should().Be(3);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(2);
+            graphBuilder.NodeIds.Count().ShouldBe(3);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(4);
-            graphBuilder.NodeIds.Count().Should().Be(4);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(4);
+            graphBuilder.NodeIds.Count().ShouldBe(4);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).Id.Should().Be(graphBuilder.EndNode.Id);
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EndNode.Id);
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
             // Dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().Be(graphBuilder.EdgeTailNode(dummyActivityId1).Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldBe(graphBuilder.EdgeTailNode(dummyActivityId1).Id);
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(8);
-            graphBuilder.NodeIds.Count().Should().Be(6);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(8);
+            graphBuilder.NodeIds.Count().ShouldBe(6);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // First dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
 
             // Second dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EndNode.Id);
 
             // Third dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
             // Forth dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId4).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId4).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
             // Fifth dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId5).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId5).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId5).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId5).Id.ShouldBe(graphBuilder.EndNode.Id);
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
         }
 
         [Fact]
@@ -527,183 +527,183 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(2);
-            graphBuilder.NodeIds.Count().Should().Be(4);
-            graphBuilder.AllDependenciesSatisfied.Should().BeFalse();
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(0);
+            graphBuilder.EdgeIds.Count().ShouldBe(2);
+            graphBuilder.NodeIds.Count().ShouldBe(4);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeFalse();
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(0);
 
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(0);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(0);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(4);
-            graphBuilder.NodeIds.Count().Should().Be(5);
-            graphBuilder.AllDependenciesSatisfied.Should().BeFalse();
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeIds.Count().ShouldBe(4);
+            graphBuilder.NodeIds.Count().ShouldBe(5);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeFalse();
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // Second dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).Id.Should().NotBe(graphBuilder.EndNode.Id);
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId3).Id.ShouldNotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(6);
-            graphBuilder.NodeIds.Count().Should().Be(6);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(6);
+            graphBuilder.NodeIds.Count().ShouldBe(6);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // First dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
             // Second dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
 
             // Third dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId3).Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId3).Id);
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
         }
 
         [Fact]
@@ -726,188 +726,188 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0, canBeRemoved: true);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0, canBeRemoved: true);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0, canBeRemoved: true);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(8);
-            graphBuilder.NodeIds.Count().Should().Be(6);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(8);
+            graphBuilder.NodeIds.Count().ShouldBe(6);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             bool result4 = graphBuilder.RemoveDummyActivity(dummyActivityId1);
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             bool result5 = graphBuilder.RemoveDummyActivity(dummyActivityId2);
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             bool result6 = graphBuilder.RemoveDummyActivity(dummyActivityId3);
-            result6.Should().BeTrue();
+            result6.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(5);
-            graphBuilder.NodeIds.Count().Should().Be(5);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(5);
+            graphBuilder.NodeIds.Count().ShouldBe(5);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId4).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId4).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).Id.Should().NotBe(graphBuilder.EndNode.Id);
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId3).Id.ShouldNotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
 
 
 
             bool result7 = graphBuilder.RemoveDummyActivity(activityId3);
-            result7.Should().BeTrue();
+            result7.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(4);
-            graphBuilder.NodeIds.Count().Should().Be(4);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(4);
+            graphBuilder.NodeIds.Count().ShouldBe(4);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId4).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId4).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // Third activity.
-            graphBuilder.EdgeIds.Contains(activityId3).Should().BeFalse();
+            graphBuilder.EdgeIds.Contains(activityId3).ShouldBeFalse();
 
 
 
             bool result8 = graphBuilder.RemoveDummyActivity(dummyActivityId5);
-            result8.Should().BeTrue();
+            result8.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(3);
-            graphBuilder.NodeIds.Count().Should().Be(3);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(3);
+            graphBuilder.NodeIds.Count().ShouldBe(3);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId4).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId4).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // Third activity.
-            graphBuilder.EdgeIds.Contains(activityId3).Should().BeFalse();
+            graphBuilder.EdgeIds.Contains(activityId3).ShouldBeFalse();
 
 
 
             bool result9 = graphBuilder.RemoveDummyActivity(activityId1);
-            result9.Should().BeFalse();
+            result9.ShouldBeFalse();
             bool result10 = graphBuilder.RemoveDummyActivity(activityId2);
-            result10.Should().BeFalse();
+            result10.ShouldBeFalse();
             bool result11 = graphBuilder.RemoveDummyActivity(dummyActivityId4);
-            result11.Should().BeFalse();
+            result11.ShouldBeFalse();
         }
 
         [Fact]
@@ -930,156 +930,156 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(8);
-            graphBuilder.NodeIds.Count().Should().Be(6);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(8);
+            graphBuilder.NodeIds.Count().ShouldBe(6);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             bool result4 = graphBuilder.RedirectEdges();
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(7);
-            graphBuilder.NodeIds.Count().Should().Be(6);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(7);
+            graphBuilder.NodeIds.Count().ShouldBe(6);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(2);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(2);
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
-            graphBuilder.EdgeTailNode(dummyActivityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // First dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId5).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId5).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId1).Id);
 
             // Second dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
-            graphBuilder.EdgeTailNode(dummyActivityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId5).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId3).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId5).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId3).Id);
 
             // Third dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId3).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId3).Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId3).Id);
 
             // Fourth dummy activity.
-            graphBuilder.EdgeIds.Contains(dummyActivityId4).Should().BeFalse();
+            graphBuilder.EdgeIds.Contains(dummyActivityId4).ShouldBeFalse();
 
             // Fifth dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Contains(activityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId5).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId5).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId5).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId5).IncomingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId5).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId5).Id.ShouldBe(graphBuilder.EndNode.Id);
         }
 
         [Fact]
@@ -1105,206 +1105,206 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3);
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId1, activityId2, activityId3 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             bool result5 = graphBuilder.RedirectEdges();
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(9);
-            graphBuilder.NodeIds.Count().Should().Be(7);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(9);
+            graphBuilder.NodeIds.Count().ShouldBe(7);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
-            graphBuilder.EdgeTailNode(dummyActivityId4).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId4).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId3).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId3).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId3).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId3).Id);
 
             // Fourth activity.
-            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Contains(activityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
             // First dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(activityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(activityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId7).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId7).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId1).Id);
 
             // Second dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId2).Id);
 
             // Third dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId2).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId3).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId3).Id);
 
             // Fourth dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId4).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId4).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId4).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId4).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId4).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId4).OutgoingEdges.Contains(activityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId4).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId4).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId4).Id.Should().Be(graphBuilder.EdgeHeadNode(dummyActivityId4).Id);
+            graphBuilder.EdgeTailNode(activityId4).Id.ShouldBe(graphBuilder.EdgeHeadNode(dummyActivityId4).Id);
 
             // Fifth dummy activity.
-            graphBuilder.EdgeIds.Contains(dummyActivityId5).Should().BeFalse();
+            graphBuilder.EdgeIds.Contains(dummyActivityId5).ShouldBeFalse();
 
             // Sixth dummy activity.
-            graphBuilder.EdgeIds.Contains(dummyActivityId6).Should().BeFalse();
+            graphBuilder.EdgeIds.Contains(dummyActivityId6).ShouldBeFalse();
 
             // Seventh dummy activity.
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId7).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId7).IncomingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId7).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId7).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId7).IncomingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId7).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId7).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId7).OutgoingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId7).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId7).OutgoingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId7).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId7).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId7).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId7).IncomingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId7).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId7).IncomingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId7).Id.Should().Be(graphBuilder.EndNode.Id);
-            graphBuilder.EdgeTailNode(dummyActivityId7).Id.Should().NotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId7).Id.ShouldBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId7).Id.ShouldNotBe(graphBuilder.StartNode.Id);
         }
 
         [Fact]
@@ -1333,66 +1333,66 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3);
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId1, activityId2, activityId3 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             IDictionary<int, HashSet<int>> ancestorNodesLookup = graphBuilder.GetAncestorNodesLookup();
 
             // Start node (event 1).
-            ancestorNodesLookup[eventId1].Count.Should().Be(0);
+            ancestorNodesLookup[eventId1].Count.ShouldBe(0);
 
             // End node (event 2).
             HashSet<int> endNodeAncestors = ancestorNodesLookup[eventId2];
-            endNodeAncestors.Count.Should().Be(6);
-            endNodeAncestors.Contains(eventId1).Should().BeTrue();
-            endNodeAncestors.Contains(eventId3).Should().BeTrue();
-            endNodeAncestors.Contains(eventId4).Should().BeTrue();
-            endNodeAncestors.Contains(eventId5).Should().BeTrue();
-            endNodeAncestors.Contains(eventId6).Should().BeTrue();
-            endNodeAncestors.Contains(eventId7).Should().BeTrue();
+            endNodeAncestors.Count.ShouldBe(6);
+            endNodeAncestors.Contains(eventId1).ShouldBeTrue();
+            endNodeAncestors.Contains(eventId3).ShouldBeTrue();
+            endNodeAncestors.Contains(eventId4).ShouldBeTrue();
+            endNodeAncestors.Contains(eventId5).ShouldBeTrue();
+            endNodeAncestors.Contains(eventId6).ShouldBeTrue();
+            endNodeAncestors.Contains(eventId7).ShouldBeTrue();
 
             // Event 3.
             HashSet<int> event2NodeAncestors = ancestorNodesLookup[eventId3];
-            event2NodeAncestors.Count.Should().Be(1);
-            event2NodeAncestors.Contains(eventId1).Should().BeTrue();
+            event2NodeAncestors.Count.ShouldBe(1);
+            event2NodeAncestors.Contains(eventId1).ShouldBeTrue();
 
             // Event 4.
             HashSet<int> event4NodeAncestors = ancestorNodesLookup[eventId4];
-            event4NodeAncestors.Count.Should().Be(1);
-            event4NodeAncestors.Contains(eventId1).Should().BeTrue();
+            event4NodeAncestors.Count.ShouldBe(1);
+            event4NodeAncestors.Contains(eventId1).ShouldBeTrue();
 
             // Event 5.
             HashSet<int> event5NodeAncestors = ancestorNodesLookup[eventId5];
-            event5NodeAncestors.Count.Should().Be(1);
-            event5NodeAncestors.Contains(eventId1).Should().BeTrue();
+            event5NodeAncestors.Count.ShouldBe(1);
+            event5NodeAncestors.Contains(eventId1).ShouldBeTrue();
 
             // Event 6.
             HashSet<int> event6NodeAncestors = ancestorNodesLookup[eventId6];
-            event6NodeAncestors.Count.Should().Be(4);
-            event6NodeAncestors.Contains(eventId1).Should().BeTrue();
-            event6NodeAncestors.Contains(eventId3).Should().BeTrue();
-            event6NodeAncestors.Contains(eventId4).Should().BeTrue();
-            event6NodeAncestors.Contains(eventId5).Should().BeTrue();
+            event6NodeAncestors.Count.ShouldBe(4);
+            event6NodeAncestors.Contains(eventId1).ShouldBeTrue();
+            event6NodeAncestors.Contains(eventId3).ShouldBeTrue();
+            event6NodeAncestors.Contains(eventId4).ShouldBeTrue();
+            event6NodeAncestors.Contains(eventId5).ShouldBeTrue();
 
             // Event 7.
             HashSet<int> event7NodeAncestors = ancestorNodesLookup[eventId7];
-            event7NodeAncestors.Count.Should().Be(5);
-            event7NodeAncestors.Contains(eventId1).Should().BeTrue();
-            event7NodeAncestors.Contains(eventId3).Should().BeTrue();
-            event7NodeAncestors.Contains(eventId4).Should().BeTrue();
-            event7NodeAncestors.Contains(eventId5).Should().BeTrue();
-            event7NodeAncestors.Contains(eventId6).Should().BeTrue();
+            event7NodeAncestors.Count.ShouldBe(5);
+            event7NodeAncestors.Contains(eventId1).ShouldBeTrue();
+            event7NodeAncestors.Contains(eventId3).ShouldBeTrue();
+            event7NodeAncestors.Contains(eventId4).ShouldBeTrue();
+            event7NodeAncestors.Contains(eventId5).ShouldBeTrue();
+            event7NodeAncestors.Contains(eventId6).ShouldBeTrue();
         }
 
         [Fact]
@@ -1422,244 +1422,244 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId2, activityId6 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0, canBeRemoved: true);
             bool result4 = graphBuilder.AddActivity(activity4);
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0, canBeRemoved: true);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var activity6 = new Activity<int, int, int>(activityId6, 0, canBeRemoved: true);
             bool result6 = graphBuilder.AddActivity(activity6);
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(15);
-            graphBuilder.NodeIds.Count().Should().Be(10);
+            graphBuilder.EdgeIds.Count().ShouldBe(15);
+            graphBuilder.NodeIds.Count().ShouldBe(10);
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId6).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId6).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId6).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId6).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId3).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId3).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId9).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId9).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
             // First dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(5);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId5).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId6).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId8).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(5);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId5).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId6).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId8).ShouldBeTrue();
 
             // Second dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId2).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).Id.Should().Be(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId2).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).Id.ShouldBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.Should().Be(5);
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId5).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId6).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId8).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Count.ShouldBe(5);
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId5).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId6).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId2).IncomingEdges.Contains(dummyActivityId8).ShouldBeTrue();
 
             // Third dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId9).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId9).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
             // Transitive Reduction.
             bool result10 = graphBuilder.TransitiveReduction();
-            result10.Should().BeTrue();
+            result10.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(13);
-            graphBuilder.NodeIds.Count().Should().Be(10);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(13);
+            graphBuilder.NodeIds.Count().ShouldBe(10);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId6).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId6).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(4);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId6).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(4);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId6).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId4).ShouldBeTrue();
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId3).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId3).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId9).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId9).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId3).OutgoingEdges.Contains(dummyActivityId5).ShouldBeTrue();
 
             // First dummy activity.
-            graphBuilder.EdgeIds.Contains(dummyActivityId1).Should().BeFalse();
+            graphBuilder.EdgeIds.Contains(dummyActivityId1).ShouldBeFalse();
 
             // Second dummy activity.
-            graphBuilder.EdgeIds.Contains(dummyActivityId2).Should().BeFalse();
+            graphBuilder.EdgeIds.Contains(dummyActivityId2).ShouldBeFalse();
 
             // Third dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId3).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId7).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId3).OutgoingEdges.Contains(dummyActivityId7).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId4).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId9).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId4).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).IncomingEdges.Contains(dummyActivityId9).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(dummyActivityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
         }
 
         [Fact]
@@ -1687,148 +1687,148 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(13);
-            graphBuilder.NodeIds.Count().Should().Be(10);
+            graphBuilder.EdgeIds.Count().ShouldBe(13);
+            graphBuilder.NodeIds.Count().ShouldBe(10);
 
             // RemoveRedundantEdges.
             bool result6 = graphBuilder.RemoveRedundantEdges();
-            result6.Should().BeTrue();
+            result6.ShouldBeTrue();
 
-            graphBuilder.EdgeIds.Count().Should().Be(9);
-            graphBuilder.NodeIds.Count().Should().Be(6);
-            graphBuilder.AllDependenciesSatisfied.Should().BeTrue();
+            graphBuilder.EdgeIds.Count().ShouldBe(9);
+            graphBuilder.NodeIds.Count().ShouldBe(6);
+            graphBuilder.AllDependenciesSatisfied.ShouldBeTrue();
 
             // First activity.
-            graphBuilder.EdgeTailNode(activityId1).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId1).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId1).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId1).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId1).OutgoingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.Should().Be(3);
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Count.ShouldBe(3);
 
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(activityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId1).OutgoingEdges.Contains(activityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId1).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId1).Id);
 
             // Second activity.
-            graphBuilder.EdgeTailNode(activityId2).Id.Should().Be(graphBuilder.StartNode.Id);
-            graphBuilder.EdgeHeadNode(activityId2).Id.Should().NotBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId2).Id.ShouldBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId2).Id.ShouldNotBe(graphBuilder.EndNode.Id);
 
-            graphBuilder.StartNode.OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.StartNode.OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.StartNode.OutgoingEdges.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId2).OutgoingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId2).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId2).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId4).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId2).Id);
+            graphBuilder.EdgeTailNode(activityId4).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId2).Id);
 
             // Fourth activity.
-            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Contains(activityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId4).IncomingEdges.Contains(activityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Contains(dummyActivityId2).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId4).OutgoingEdges.Contains(dummyActivityId2).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(activityId4).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId4).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId4).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId4).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId4).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId4).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId4).Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId4).Id);
 
             // First dummy activity.
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(dummyActivityId1).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(activityId5).Should().BeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(dummyActivityId1).OutgoingEdges.Contains(activityId5).ShouldBeTrue();
 
-            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.Should().BeTrue();
+            graphBuilder.Edge(dummyActivityId1).Content.IsDummy.ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.Should().Be(4);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId8).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Count.ShouldBe(4);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId8).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.Should().Be(graphBuilder.EndNode.Id);
-            graphBuilder.EdgeTailNode(dummyActivityId1).Id.Should().NotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).Id.ShouldBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(dummyActivityId1).Id.ShouldNotBe(graphBuilder.StartNode.Id);
 
             // Third activity.
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.Should().Be(2);
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(activityId4).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Count.ShouldBe(2);
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(dummyActivityId3).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId3).IncomingEdges.Contains(activityId4).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId3).OutgoingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.Should().Be(4);
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId8).Should().BeTrue();
-            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).Should().BeTrue();
-            graphBuilder.EndNode.IncomingEdges.Count.Should().Be(4);
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId2).Should().BeTrue();
-            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId8).Should().BeTrue();
-            graphBuilder.EndNode.IncomingEdges.Contains(activityId3).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Count.ShouldBe(4);
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(dummyActivityId1).IncomingEdges.Contains(dummyActivityId8).ShouldBeTrue();
+            graphBuilder.EdgeHeadNode(activityId3).IncomingEdges.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.EndNode.IncomingEdges.Count.ShouldBe(4);
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId2).ShouldBeTrue();
+            graphBuilder.EndNode.IncomingEdges.Contains(dummyActivityId8).ShouldBeTrue();
+            graphBuilder.EndNode.IncomingEdges.Contains(activityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId3).Id.Should().Be(graphBuilder.EndNode.Id);
-            graphBuilder.EdgeTailNode(activityId3).Id.Should().NotBe(graphBuilder.StartNode.Id);
+            graphBuilder.EdgeHeadNode(activityId3).Id.ShouldBe(graphBuilder.EndNode.Id);
+            graphBuilder.EdgeTailNode(activityId3).Id.ShouldNotBe(graphBuilder.StartNode.Id);
 
             // Fifth activity.
-            graphBuilder.EdgeTailNode(activityId5).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeTailNode(activityId5).IncomingEdges.Contains(activityId1).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId5).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeTailNode(activityId5).IncomingEdges.Contains(activityId1).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Count.Should().Be(3);
-            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Contains(activityId5).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Contains(dummyActivityId1).Should().BeTrue();
-            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Contains(dummyActivityId3).Should().BeTrue();
+            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Count.ShouldBe(3);
+            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Contains(dummyActivityId1).ShouldBeTrue();
+            graphBuilder.EdgeTailNode(activityId5).OutgoingEdges.Contains(dummyActivityId3).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId5).IncomingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId5).IncomingEdges.Contains(activityId5).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId5).IncomingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId5).IncomingEdges.Contains(activityId5).ShouldBeTrue();
 
-            graphBuilder.EdgeHeadNode(activityId5).OutgoingEdges.Count.Should().Be(1);
-            graphBuilder.EdgeHeadNode(activityId5).OutgoingEdges.Contains(dummyActivityId8).Should().BeTrue();
+            graphBuilder.EdgeHeadNode(activityId5).OutgoingEdges.Count.ShouldBe(1);
+            graphBuilder.EdgeHeadNode(activityId5).OutgoingEdges.Contains(dummyActivityId8).ShouldBeTrue();
 
-            graphBuilder.EdgeTailNode(dummyActivityId8).Id.Should().Be(graphBuilder.EdgeHeadNode(activityId5).Id);
+            graphBuilder.EdgeTailNode(dummyActivityId8).Id.ShouldBe(graphBuilder.EdgeHeadNode(activityId5).Id);
         }
 
         [Fact]
@@ -1837,7 +1837,7 @@ namespace Zametek.Maths.Graphs.Tests
             int eventId = 0;
             int activityId1 = 1;
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(null, () => activityId1++, () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentNullException>();
+            act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
@@ -1857,29 +1857,29 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var firstGraph = graphBuilder.ToGraph();
 
             var graphBuilder2 = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(firstGraph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
             var secondGraph = graphBuilder2.ToGraph();
-            secondGraph.Should().Be(firstGraph);
+            secondGraph.ShouldBe(firstGraph);
         }
 
         [Fact]
@@ -1899,29 +1899,29 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
             graph.Edges.RemoveAt(0);
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -1941,29 +1941,29 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
             graph.Edges.Add(new Edge<int, IActivity<int, int, int>>(new Activity<int, int, int>(dummyActivityId = dummyActivityId.Next(), 0)));
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -1983,30 +1983,30 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
             Node<int, IEvent<int>> node = graph.Nodes.First(x => x.NodeType == NodeType.Normal);
             graph.Nodes.Remove(node);
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -2026,29 +2026,29 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
             graph.Nodes.Add(new Node<int, IEvent<int>>(new Event<int>(dummyActivityId = dummyActivityId.Next())));
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -2068,30 +2068,30 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
             Node<int, IEvent<int>> node = graph.Nodes.First(x => x.NodeType == NodeType.Start);
             node.SetNodeType(NodeType.Normal);
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -2111,30 +2111,30 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
             Node<int, IEvent<int>> node = graph.Nodes.First(x => x.NodeType == NodeType.End);
             node.SetNodeType(NodeType.Normal);
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -2154,23 +2154,23 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
 
@@ -2185,7 +2185,7 @@ namespace Zametek.Maths.Graphs.Tests
             graph.Nodes.Add(newNode);
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -2205,23 +2205,23 @@ namespace Zametek.Maths.Graphs.Tests
 
             var activity1 = new Activity<int, int, int>(activityId1, 0);
             bool result1 = graphBuilder.AddActivity(activity1);
-            result1.Should().BeTrue();
+            result1.ShouldBeTrue();
 
             var activity2 = new Activity<int, int, int>(activityId2, 0);
             bool result2 = graphBuilder.AddActivity(activity2);
-            result2.Should().BeTrue();
+            result2.ShouldBeTrue();
 
             var activity3 = new Activity<int, int, int>(activityId3, 0);
             bool result3 = graphBuilder.AddActivity(activity3, new HashSet<int> { activityId1, activityId4 });
-            result3.Should().BeTrue();
+            result3.ShouldBeTrue();
 
             var activity4 = new Activity<int, int, int>(activityId4, 0);
             bool result4 = graphBuilder.AddActivity(activity4, new HashSet<int> { activityId2 });
-            result4.Should().BeTrue();
+            result4.ShouldBeTrue();
 
             var activity5 = new Activity<int, int, int>(activityId5, 0);
             bool result5 = graphBuilder.AddActivity(activity5, new HashSet<int> { activityId1 });
-            result5.Should().BeTrue();
+            result5.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
 
@@ -2236,7 +2236,7 @@ namespace Zametek.Maths.Graphs.Tests
             graph.Nodes.Add(newNode);
 
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, () => dummyActivityId = dummyActivityId.Next(), () => eventId = eventId.Next());
-            act.Should().Throw<ArgumentException>();
+            act.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -2256,9 +2256,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(9, 0), new HashSet<int> { 5 });
             IList<ICircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
-            circularDependencies.Count.Should().Be(2);
-            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });
-            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new int[] { 5, 8, 9 });
+            circularDependencies.Count.ShouldBe(2);
+            circularDependencies[0].Dependencies.ShouldBe(new int[] { 2, 4, 7 }, ignoreOrder: true);
+            circularDependencies[1].Dependencies.ShouldBe(new int[] { 5, 8, 9 }, ignoreOrder: true);
         }
 
         [Fact]
@@ -2278,9 +2278,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
             IList<ICircularDependency<int>> circularDependencies = graphBuilder.FindStrongCircularDependencies();
 
-            circularDependencies.Count.Should().Be(2);
-            circularDependencies[0].Dependencies.Should().BeEquivalentTo(new int[] { 2, 4, 7 });
-            circularDependencies[1].Dependencies.Should().BeEquivalentTo(new int[] { 5, 8, 9 });
+            circularDependencies.Count.ShouldBe(2);
+            circularDependencies[0].Dependencies.ShouldBe(new int[] { 2, 4, 7 }, ignoreOrder: true);
+            circularDependencies[1].Dependencies.ShouldBe(new int[] { 5, 8, 9 }, ignoreOrder: true);
         }
     }
 }
