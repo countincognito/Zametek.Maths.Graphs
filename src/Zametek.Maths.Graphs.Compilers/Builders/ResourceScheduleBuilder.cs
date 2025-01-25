@@ -109,14 +109,14 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
-            var activityAllocation = distribution.Select(
-                x => x != TimeType.None)
+            List<bool> activityAllocation = distribution.Select(
+                x => (x & TimeType.Allocated) != 0)
                 .ToList();
-            var costAllocation = distribution.Select(
-                x => x != TimeType.None && !x.HasFlag(TimeType.CostIgnored))
+            List<bool> costAllocation = distribution.Select(
+                x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.CostIgnored))
                 .ToList();
-            var effortAllocation = distribution.Select(
-                x => x != TimeType.None && !x.HasFlag(TimeType.EffortIgnored))
+            List<bool> effortAllocation = distribution.Select(
+                x => (x & TimeType.Active) != 0 && !x.HasFlag(TimeType.EffortIgnored))
                 .ToList();
 
             return (activityAllocation, costAllocation, effortAllocation);
@@ -164,12 +164,16 @@ namespace Zametek.Maths.Graphs
             // entire time span as costed, from start to finish
             if (resourcePhases.Count == 0)
             {
-                for (int i = 0; i < distribution.Count; i++)
-                {
-                    distribution[i] |= TimeType.Middle;
-                }
                 distribution[0] |= TimeType.Start;
                 distribution[^1] |= TimeType.Finish;
+
+                for (int i = 0; i < distribution.Count; i++)
+                {
+                    if ((distribution[i] & TimeType.Allocated) == 0)
+                    {
+                        distribution[i] |= TimeType.Middle;
+                    }
+                }
             }
             // Otherwise, we have to go through each activity and find where the
             // associated phases start and end.
@@ -237,11 +241,6 @@ namespace Zametek.Maths.Graphs
                 // as 'ignore'.
                 if (startTime != 0 || endTime != 0)
                 {
-                    for (int timeIndex = startTime; timeIndex < endTime; timeIndex++)
-                    {
-                        distribution[timeIndex] |= TimeType.Middle;
-                    }
-
                     int startIndex = startTime;
                     int finishIndex = endTime - 1;
 
@@ -253,6 +252,14 @@ namespace Zametek.Maths.Graphs
                     {
                         distribution[startIndex] |= TimeType.Start;
                         distribution[finishIndex] |= TimeType.Finish;
+                    }
+
+                    for (int timeIndex = startTime; timeIndex < endTime; timeIndex++)
+                    {
+                        if ((distribution[timeIndex] & TimeType.Allocated) == 0)
+                        {
+                            distribution[timeIndex] |= TimeType.Middle;
+                        }
                     }
                 }
             }
@@ -280,11 +287,6 @@ namespace Zametek.Maths.Graphs
             // Mark schedules as normal.
             foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
             {
-                for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
-                {
-                    distribution[timeIndex] |= TimeType.Middle;
-                }
-
                 int startIndex = scheduledActivity.StartTime;
                 int finishIndex = scheduledActivity.FinishTime - 1;
 
@@ -296,6 +298,14 @@ namespace Zametek.Maths.Graphs
                 {
                     distribution[startIndex] |= TimeType.Start;
                     distribution[finishIndex] |= TimeType.Finish;
+                }
+
+                for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                {
+                    if ((distribution[timeIndex] & TimeType.Allocated) == 0)
+                    {
+                        distribution[timeIndex] |= TimeType.Middle;
+                    }
                 }
             }
 
@@ -332,7 +342,10 @@ namespace Zametek.Maths.Graphs
             {
                 for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
                 {
-                    distribution[i] |= TimeType.Middle;
+                    if ((distribution[i] & TimeType.Allocated) == 0)
+                    {
+                        distribution[i] |= TimeType.Between;
+                    }
                 }
             }
         }
@@ -359,11 +372,6 @@ namespace Zametek.Maths.Graphs
             // Mark schedules as normal.
             foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
             {
-                for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
-                {
-                    distribution[timeIndex] |= TimeType.Middle;
-                }
-
                 int startIndex = scheduledActivity.StartTime;
                 int finishIndex = scheduledActivity.FinishTime - 1;
 
@@ -375,6 +383,14 @@ namespace Zametek.Maths.Graphs
                 {
                     distribution[startIndex] |= TimeType.Start;
                     distribution[finishIndex] |= TimeType.Finish;
+                }
+
+                for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                {
+                    if ((distribution[timeIndex] & TimeType.Allocated) == 0)
+                    {
+                        distribution[timeIndex] |= TimeType.Middle;
+                    }
                 }
             }
         }
@@ -531,7 +547,10 @@ namespace Zametek.Maths.Graphs
             EffortIgnored = 1 << 1,
             Start = 1 << 2,
             Middle = 1 << 3,
-            Finish = 1 << 4,
+            Between = 1 << 4,
+            Finish = 1 << 5,
+            Active = Start | Middle | Finish,
+            Allocated = Start | Middle | Between | Finish,
         }
 
         #endregion
