@@ -396,7 +396,8 @@ namespace Zametek.Maths.Graphs
                                 resourceSchedule.ScheduledActivities,
                                 resourceSchedule.FinishTime,
                                 resourceSchedule.ActivityAllocation,
-                                resourceSchedule.CostAllocation)
+                                resourceSchedule.CostAllocation,
+                                resourceSchedule.EffortAllocation)
                             );
                     }
 

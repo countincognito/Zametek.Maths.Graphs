@@ -39,10 +39,10 @@ namespace Zametek.Maths.Graphs
         public DependentActivity(
             T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
             IEnumerable<T> dependencies, IEnumerable<T> resourceDependencies, LogicalOperator targetLogicalOperator,
-            IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, int duration, int? freeSlack,
+            IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoEffort, int duration, int? freeSlack,
             int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
             : base(
-                  id, name, notes, targetWorkStreams, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost,
+                  id, name, notes, targetWorkStreams, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost, hasNoEffort,
                   duration, freeSlack, earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
         {
             if (dependencies is null)
@@ -79,8 +79,8 @@ namespace Zametek.Maths.Graphs
         {
             return new DependentActivity<T, TResourceId, TWorkStreamId>(
                 Id, Name, Notes, TargetWorkStreams, TargetResources, Dependencies, ResourceDependencies, TargetResourceOperator,
-                AllocatedToResources, CanBeRemoved, HasNoCost, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack,
-                MinimumEarliestStartTime, MaximumLatestFinishTime);
+                AllocatedToResources, CanBeRemoved, HasNoCost, HasNoEffort, Duration, FreeSlack, EarliestStartTime, LatestFinishTime,
+                MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
         }
 
         #endregion

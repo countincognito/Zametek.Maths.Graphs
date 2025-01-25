@@ -25,6 +25,8 @@ namespace Zametek.Maths.Graphs
 
         bool HasNoCost { get; set; }
 
+        bool HasNoEffort { get; set; }
+
         int Duration { get; set; }
 
         int? TotalSlack { get; }

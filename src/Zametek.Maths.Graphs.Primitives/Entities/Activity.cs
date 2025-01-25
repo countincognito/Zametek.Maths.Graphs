@@ -28,7 +28,7 @@ namespace Zametek.Maths.Graphs
 
         public Activity(
             T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
-            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost,
+            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoEffort,
             int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
             int? maximumLatestFinishTime)
         {
@@ -49,6 +49,7 @@ namespace Zametek.Maths.Graphs
             AllocatedToResources = new HashSet<TResourceId>(allocatedToResources);
             CanBeRemoved = canBeRemoved;
             HasNoCost = hasNoCost;
+            HasNoEffort = hasNoEffort;
             Duration = duration;
             FreeSlack = freeSlack;
             EarliestStartTime = earliestStartTime;
@@ -109,6 +110,12 @@ namespace Zametek.Maths.Graphs
         public bool IsDummy => Duration <= 0;
 
         public bool HasNoCost
+        {
+            get;
+            set;
+        }
+
+        public bool HasNoEffort
         {
             get;
             set;
@@ -237,8 +244,8 @@ namespace Zametek.Maths.Graphs
         {
             return new Activity<T, TResourceId, TWorkStreamId>(
                 Id, Name, Notes, TargetWorkStreams, TargetResources, TargetResourceOperator, AllocatedToResources,
-                CanBeRemoved, HasNoCost, Duration, FreeSlack, EarliestStartTime, LatestFinishTime, MinimumFreeSlack,
-                MinimumEarliestStartTime, MaximumLatestFinishTime);
+                CanBeRemoved, HasNoCost, HasNoEffort, Duration, FreeSlack, EarliestStartTime, LatestFinishTime,
+                MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
         }
 
         #endregion

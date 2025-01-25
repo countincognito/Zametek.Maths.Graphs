@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private static (IList<bool> activityAllocation, IList<bool> costAllocation) ExtractAllocations(
+        private static (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> effortAllocation) ExtractAllocations(
             IResource<TResourceId, TWorkStreamId> resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
@@ -96,23 +96,30 @@ namespace Zametek.Maths.Graphs
             else if (interActivityAllocationType == InterActivityAllocationType.None)
             {
                 AllocationForNoneType(scheduledActivities, distribution);
-                AllocationForNoCostActivities(scheduledActivities, distribution);
+                AllocationForNoCostOrEffortActivities(scheduledActivities, distribution);
             }
             // Direct.
             else if (interActivityAllocationType == InterActivityAllocationType.Direct)
             {
                 AllocationForScheduledActivitiesType(scheduledActivities, distribution);
-                AllocationForNoCostActivities(scheduledActivities, distribution);
+                AllocationForNoCostOrEffortActivities(scheduledActivities, distribution);
             }
             else
             {
                 throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
-            var activityAllocation = distribution.Select(x => x != TimeType.None).ToList();
-            var costAllocation = distribution.Select(x => x != TimeType.None && x != TimeType.Ignored).ToList();
+            var activityAllocation = distribution.Select(
+                x => x != TimeType.None)
+                .ToList();
+            var costAllocation = distribution.Select(
+                x => x != TimeType.None && !x.HasFlag(TimeType.CostIgnored))
+                .ToList();
+            var effortAllocation = distribution.Select(
+                x => x != TimeType.None && !x.HasFlag(TimeType.EffortIgnored))
+                .ToList();
 
-            return (activityAllocation, costAllocation);
+            return (activityAllocation, costAllocation, effortAllocation);
         }
 
         private static void AllocationForIndirectType(
@@ -159,10 +166,10 @@ namespace Zametek.Maths.Graphs
             {
                 for (int i = 0; i < distribution.Count; i++)
                 {
-                    distribution[i] = TimeType.Middle;
+                    distribution[i] |= TimeType.Middle;
                 }
-                distribution[0] = TimeType.Start;
-                distribution[^1] = TimeType.Finish;
+                distribution[0] |= TimeType.Start;
+                distribution[^1] |= TimeType.Finish;
             }
             // Otherwise, we have to go through each activity and find where the
             // associated phases start and end.
@@ -232,7 +239,7 @@ namespace Zametek.Maths.Graphs
                 {
                     for (int timeIndex = startTime; timeIndex < endTime; timeIndex++)
                     {
-                        distribution[timeIndex] = TimeType.Middle;
+                        distribution[timeIndex] |= TimeType.Middle;
                     }
 
                     int startIndex = startTime;
@@ -240,12 +247,12 @@ namespace Zametek.Maths.Graphs
 
                     if (startIndex == finishIndex)
                     {
-                        distribution[startIndex] = TimeType.StartAndFinish;
+                        distribution[startIndex] |= TimeType.Start | TimeType.Finish;
                     }
                     else
                     {
-                        distribution[startIndex] = TimeType.Start;
-                        distribution[finishIndex] = TimeType.Finish;
+                        distribution[startIndex] |= TimeType.Start;
+                        distribution[finishIndex] |= TimeType.Finish;
                     }
                 }
             }
@@ -275,7 +282,7 @@ namespace Zametek.Maths.Graphs
             {
                 for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
                 {
-                    distribution[timeIndex] = TimeType.Middle;
+                    distribution[timeIndex] |= TimeType.Middle;
                 }
 
                 int startIndex = scheduledActivity.StartTime;
@@ -283,12 +290,12 @@ namespace Zametek.Maths.Graphs
 
                 if (startIndex == finishIndex)
                 {
-                    distribution[startIndex] = TimeType.StartAndFinish;
+                    distribution[startIndex] |= TimeType.Start | TimeType.Finish;
                 }
                 else
                 {
-                    distribution[startIndex] = TimeType.Start;
-                    distribution[finishIndex] = TimeType.Finish;
+                    distribution[startIndex] |= TimeType.Start;
+                    distribution[finishIndex] |= TimeType.Finish;
                 }
             }
 
@@ -299,8 +306,8 @@ namespace Zametek.Maths.Graphs
             bool startFound = false;
             for (int i = 0; i < distribution.Count; i++)
             {
-                if (distribution[i] == TimeType.Start
-                    || distribution[i] == TimeType.StartAndFinish)
+                if (distribution[i].HasFlag(TimeType.Start)
+                    || distribution[i].HasFlag(TimeType.Finish))
                 {
                     firstStartIndex = i;
                     startFound = true;
@@ -311,8 +318,8 @@ namespace Zametek.Maths.Graphs
             bool endFound = false;
             for (int i = lastFinishIndex; i >= 0; i--)
             {
-                if (distribution[i] == TimeType.Finish
-                    || distribution[i] == TimeType.StartAndFinish)
+                if (distribution[i].HasFlag(TimeType.Start)
+                    || distribution[i].HasFlag(TimeType.Finish))
                 {
                     lastFinishIndex = i;
                     endFound = true;
@@ -325,7 +332,7 @@ namespace Zametek.Maths.Graphs
             {
                 for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
                 {
-                    distribution[i] = TimeType.Middle;
+                    distribution[i] |= TimeType.Middle;
                 }
             }
         }
@@ -354,7 +361,7 @@ namespace Zametek.Maths.Graphs
             {
                 for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
                 {
-                    distribution[timeIndex] = TimeType.Middle;
+                    distribution[timeIndex] |= TimeType.Middle;
                 }
 
                 int startIndex = scheduledActivity.StartTime;
@@ -362,17 +369,17 @@ namespace Zametek.Maths.Graphs
 
                 if (startIndex == finishIndex)
                 {
-                    distribution[startIndex] = TimeType.StartAndFinish;
+                    distribution[startIndex] |= TimeType.Start | TimeType.Finish;
                 }
                 else
                 {
-                    distribution[startIndex] = TimeType.Start;
-                    distribution[finishIndex] = TimeType.Finish;
+                    distribution[startIndex] |= TimeType.Start;
+                    distribution[finishIndex] |= TimeType.Finish;
                 }
             }
         }
 
-        private static void AllocationForNoCostActivities(
+        private static void AllocationForNoCostOrEffortActivities(
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             IList<TimeType> distribution)
         {
@@ -398,7 +405,14 @@ namespace Zametek.Maths.Graphs
                 {
                     for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
                     {
-                        distribution[timeIndex] = TimeType.Ignored;
+                        distribution[timeIndex] |= TimeType.CostIgnored;
+                    }
+                }
+                if (scheduledActivity.HasNoEffort)
+                {
+                    for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                    {
+                        distribution[timeIndex] |= TimeType.EffortIgnored;
                     }
                 }
             }
@@ -461,7 +475,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(activity));
             }
             var scheduledActivity = new ScheduledActivity<T>(
-                activity.Id, activity.Name, activity.HasNoCost,
+                activity.Id, activity.Name, activity.HasNoCost, activity.HasNoEffort,
                 activity.Duration, startTime, startTime + activity.Duration);
             AddActivity(scheduledActivity);
         }
@@ -493,7 +507,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(activities));
             }
 
-            (IList<bool> activityAllocation, IList<bool> costAllocation) =
+            (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> effortAllocation) =
                 ExtractAllocations(m_Resource, m_ScheduledActivities, activities, finishTime);
 
             return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
@@ -501,21 +515,23 @@ namespace Zametek.Maths.Graphs
                 m_ScheduledActivities,
                 finishTime,
                 activityAllocation,
-                costAllocation);
+                costAllocation,
+                effortAllocation);
         }
 
         #endregion
 
         #region Private Types
 
+        [Flags]
         private enum TimeType
         {
-            None,
-            Ignored,
-            Start,
-            Middle,
-            Finish,
-            StartAndFinish
+            None = 0,
+            CostIgnored = 1 << 0,
+            EffortIgnored = 1 << 1,
+            Start = 1 << 2,
+            Middle = 1 << 3,
+            Finish = 1 << 4,
         }
 
         #endregion
