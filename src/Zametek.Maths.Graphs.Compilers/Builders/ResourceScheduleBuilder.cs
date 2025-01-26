@@ -109,14 +109,14 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
-            List<bool> activityAllocation = distribution.Select(
-                x => (x & TimeType.Allocated) != 0)
+            List<bool> activityAllocation = distribution
+                .Select(x => (x & TimeType.Allocated) != 0)
                 .ToList();
-            List<bool> costAllocation = distribution.Select(
-                x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.CostIgnored))
+            List<bool> costAllocation = distribution
+                .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.CostIgnored))
                 .ToList();
-            List<bool> effortAllocation = distribution.Select(
-                x => (x & TimeType.Active) != 0 && !x.HasFlag(TimeType.EffortIgnored))
+            List<bool> effortAllocation = distribution
+                .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.EffortIgnored))
                 .ToList();
 
             return (activityAllocation, costAllocation, effortAllocation);
@@ -549,7 +549,6 @@ namespace Zametek.Maths.Graphs
             Middle = 1 << 3,
             Between = 1 << 4,
             Finish = 1 << 5,
-            Active = Start | Middle | Finish,
             Allocated = Start | Middle | Between | Finish,
         }
 
