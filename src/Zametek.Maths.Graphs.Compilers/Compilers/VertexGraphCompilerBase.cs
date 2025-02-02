@@ -240,7 +240,7 @@ namespace Zametek.Maths.Graphs
                 }
 
                 // Sanity check the graph data.
-                IEnumerable<T> missingDependencies = m_VertexGraphBuilder.MissingDependencies;
+                IEnumerable<T> invalidDependencies = m_VertexGraphBuilder.InvalidDependencies;
                 IEnumerable<ICircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
                 IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = m_VertexGraphBuilder.FindInvalidPreCompilationConstraints();
 
@@ -301,12 +301,12 @@ namespace Zametek.Maths.Graphs
                 var compilationErrors = new List<GraphCompilationError>();
 
                 // P0010
-                if (missingDependencies.Any())
+                if (invalidDependencies.Any())
                 {
                     compilationErrors.Add(
                         new GraphCompilationError(
                             GraphCompilationErrorCode.P0010,
-                            BuildMissingDependenciesErrorMessage(missingDependencies, activities)));
+                            BuildInvalidDependenciesErrorMessage(invalidDependencies, activities)));
                 }
 
                 // P0020
@@ -570,24 +570,24 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private static string BuildMissingDependenciesErrorMessage(
-            IEnumerable<T> missingDependencies,
+        private static string BuildInvalidDependenciesErrorMessage(
+            IEnumerable<T> invalidDependencies,
             IEnumerable<TDependentActivity> activities)
         {
-            if (missingDependencies == null || !missingDependencies.Any()
+            if (invalidDependencies == null || !invalidDependencies.Any()
                 || activities == null || !activities.Any())
             {
                 return string.Empty;
             }
             var output = new StringBuilder();
-            output.AppendLine($@"{Properties.Resources.Message_MissingDependencies}");
-            foreach (T missingDependency in missingDependencies)
+            output.AppendLine($@"{Properties.Resources.Message_InvalidDependencies}");
+            foreach (T invalidDependency in invalidDependencies)
             {
                 IList<T> actsWithMissingDeps = activities
-                    .Where(x => x.Dependencies.Contains(missingDependency))
+                    .Where(x => x.Dependencies.Contains(invalidDependency))
                     .Select(x => x.Id)
                     .ToList();
-                output.AppendLine($@"{missingDependency} {Properties.Resources.Message_IsMissingFrom} {string.Join(@", ", actsWithMissingDeps)}");
+                output.AppendLine($@"{invalidDependency} {Properties.Resources.Message_IsInvalidButReferencedBy} {string.Join(@", ", actsWithMissingDeps)}");
             }
             return output.ToString();
         }

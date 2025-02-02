@@ -158,7 +158,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public IEnumerable<T> MissingDependencies => UnsatisfiedSuccessorsLookup.Keys;
+        public IEnumerable<T> InvalidDependencies => UnsatisfiedSuccessorsLookup.Keys;
 
         public bool AllDependenciesSatisfied => !UnsatisfiedSuccessorsLookup.Any();
 

@@ -38,10 +38,10 @@ namespace Zametek.Maths.Graphs
             lock (m_Lock)
             {
                 // Sanity check the graph data.
-                IEnumerable<T> missingDependencies = m_ArrowGraphBuilder.MissingDependencies;
-                if (missingDependencies.Any())
+                IEnumerable<T> invalidDependencies = m_ArrowGraphBuilder.InvalidDependencies;
+                if (invalidDependencies.Any())
                 {
-                    throw new InvalidOperationException(Properties.Resources.Message_CannotConstructArrowGraphDueToMissingDependencies);
+                    throw new InvalidOperationException(Properties.Resources.Message_CannotConstructArrowGraphDueToInvalidDependencies);
                 }
                 TransitiveReduction();
                 m_ArrowGraphBuilder.CalculateCriticalPath();

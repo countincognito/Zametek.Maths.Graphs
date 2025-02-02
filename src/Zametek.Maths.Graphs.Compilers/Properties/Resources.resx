@@ -159,8 +159,8 @@
   <data name="Message_CannotCalculateLatestFinishTimesDueToCyclicDependency" xml:space="preserve">
     <value>Cannot calculate latest finish times due to cyclic dependency</value>
   </data>
-  <data name="Message_CannotConstructArrowGraphDueToMissingDependencies" xml:space="preserve">
-    <value>Cannot construct arrow graph due to missing dependencies</value>
+  <data name="Message_CannotConstructArrowGraphDueToInvalidDependencies" xml:space="preserve">
+    <value>Cannot construct arrow graph due to invalid dependencies</value>
   </data>
   <data name="Message_CannotPerformEdgeCleanUp" xml:space="preserve">
     <value>Cannot perform edge clean up</value>
@@ -183,8 +183,8 @@
   <data name="Message_InvalidConstraints" xml:space="preserve">
     <value>Invalid activity constraints:</value>
   </data>
-  <data name="Message_IsMissingFrom" xml:space="preserve">
-    <value>is missing from:</value>
+  <data name="Message_IsInvalidButReferencedBy" xml:space="preserve">
+    <value>is invalid but referenced by:</value>
   </data>
   <data name="Message_LatestFinishTimeLessThanEarliestFinishTime" xml:space="preserve">
     <value>LatestFinishTime cannot be less than EarliestFinishTime</value>
@@ -210,8 +210,8 @@
   <data name="Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime" xml:space="preserve">
     <value>(MinimumEarliestStartTime + Duration) must be greater than MaximumLatestFinishTime</value>
   </data>
-  <data name="Message_MissingDependencies" xml:space="preserve">
-    <value>Missing activity dependencies:</value>
+  <data name="Message_InvalidDependencies" xml:space="preserve">
+    <value>Invalid activity dependencies:</value>
   </data>
   <data name="Message_UnableToRemoveUnnecessaryEdges" xml:space="preserve">
     <value>Unable to remove unnecessary edges</value>

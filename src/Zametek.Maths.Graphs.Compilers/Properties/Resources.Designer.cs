@@ -188,11 +188,11 @@ namespace Zametek.Maths.Graphs.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot construct arrow graph due to missing dependencies.
+        ///   Looks up a localized string similar to Cannot construct arrow graph due to invalid dependencies.
         /// </summary>
-        internal static string Message_CannotConstructArrowGraphDueToMissingDependencies {
+        internal static string Message_CannotConstructArrowGraphDueToInvalidDependencies {
             get {
-                return ResourceManager.GetString("Message_CannotConstructArrowGraphDueToMissingDependencies", resourceCulture);
+                return ResourceManager.GetString("Message_CannotConstructArrowGraphDueToInvalidDependencies", resourceCulture);
             }
         }
         
@@ -260,11 +260,20 @@ namespace Zametek.Maths.Graphs.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is missing from:.
+        ///   Looks up a localized string similar to Invalid activity dependencies:.
         /// </summary>
-        internal static string Message_IsMissingFrom {
+        internal static string Message_InvalidDependencies {
             get {
-                return ResourceManager.GetString("Message_IsMissingFrom", resourceCulture);
+                return ResourceManager.GetString("Message_InvalidDependencies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is invalid but referenced by:.
+        /// </summary>
+        internal static string Message_IsInvalidButReferencedBy {
+            get {
+                return ResourceManager.GetString("Message_IsInvalidButReferencedBy", resourceCulture);
             }
         }
         
@@ -338,15 +347,6 @@ namespace Zametek.Maths.Graphs.Properties {
             get {
                 return ResourceManager.GetString("Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishT" +
                         "ime", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing activity dependencies:.
-        /// </summary>
-        internal static string Message_MissingDependencies {
-            get {
-                return ResourceManager.GetString("Message_MissingDependencies", resourceCulture);
             }
         }
         

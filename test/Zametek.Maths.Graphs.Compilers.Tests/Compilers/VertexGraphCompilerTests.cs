@@ -156,7 +156,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithMissingDependencies_ThenFindsMissingDependencies()
+        public void VertexGraphCompiler_GivenCompileWithInvalidDependencies_ThenFindsInvalidDependencies()
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
@@ -178,14 +178,14 @@ namespace Zametek.Maths.Graphs.Tests
             compilationErrors.Count.ShouldBe(1);
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0010);
             compilationErrors[0].ErrorMessage.ShouldBe(
-                $@"{Properties.Resources.Message_MissingDependencies}
-21 {Properties.Resources.Message_IsMissingFrom} 3
-22 {Properties.Resources.Message_IsMissingFrom} 7
+                $@"{Properties.Resources.Message_InvalidDependencies}
+21 {Properties.Resources.Message_IsInvalidButReferencedBy} 3
+22 {Properties.Resources.Message_IsInvalidButReferencedBy} 7
 ");
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithInvalidConstraintsAndCircularAndMissingDependencies_ThenFindsInvalidConstraintsAndCircularAndMissingDependencies()
+        public void VertexGraphCompiler_GivenCompileWithInvalidConstraintsAndCircularAndInvalidDependencies_ThenFindsInvalidConstraintsAndCircularAndInvalidDependencies()
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
@@ -195,7 +195,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, new HashSet<int> { 3 }));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, new HashSet<int> { 4, 22 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6, 22 }));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -209,9 +209,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0010);
             compilationErrors[0].ErrorMessage.ShouldBe(
-                $@"{Properties.Resources.Message_MissingDependencies}
-21 {Properties.Resources.Message_IsMissingFrom} 3
-22 {Properties.Resources.Message_IsMissingFrom} 7
+                $@"{Properties.Resources.Message_InvalidDependencies}
+21 {Properties.Resources.Message_IsInvalidButReferencedBy} 3
+22 {Properties.Resources.Message_IsInvalidButReferencedBy} 7, 8
 ");
 
             compilationErrors[1].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0020);
