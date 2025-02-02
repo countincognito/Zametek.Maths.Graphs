@@ -583,11 +583,11 @@ namespace Zametek.Maths.Graphs
             output.AppendLine($@"{Properties.Resources.Message_InvalidDependencies}");
             foreach (T invalidDependency in invalidDependencies)
             {
-                IList<T> actsWithMissingDeps = activities
+                IList<T> actsWithInvalidDeps = activities
                     .Where(x => x.Dependencies.Contains(invalidDependency))
                     .Select(x => x.Id)
                     .ToList();
-                output.AppendLine($@"{invalidDependency} {Properties.Resources.Message_IsInvalidButReferencedBy} {string.Join(@", ", actsWithMissingDeps)}");
+                output.AppendLine($@"{invalidDependency} {Properties.Resources.Message_IsInvalidButReferencedBy} {string.Join(@", ", actsWithInvalidDeps)}");
             }
             return output.ToString();
         }
