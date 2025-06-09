@@ -144,7 +144,7 @@ namespace Zametek.Maths.Graphs
                 }
 
                 TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
-                var coreDependencies = new HashSet<T>(activity.Dependencies.Union(manualDependencies));
+                var coreDependencies = new HashSet<T>(activity.Dependencies.Union(activity.ManualDependencies));
 
                 var resourceAndCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.Dependencies));
                 var resourceAndManualDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.ManualDependencies));
@@ -152,13 +152,11 @@ namespace Zametek.Maths.Graphs
                 var resourceOrCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.Dependencies));
                 var resourceOrManualDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.ManualDependencies));
 
-                var onlyCompiledDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
-                var onlyManualDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndManualDependencies));
+                var compiledNotResourceDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
+                var manualNotResourceDependencies = new HashSet<T>(activity.ManualDependencies.Except(resourceAndManualDependencies));
 
-                var onlyResourceDependencies = new HashSet<T>(
-                    activity.ResourceDependencies
-                    .Except(resourceAndCompiledDependencies)
-                    .Except(resourceAndManualDependencies));
+                var resourceNotCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndCompiledDependencies));
+                var resourceNotManualDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndManualDependencies));
 
                 // Resource: 1
                 //     Core: 0
@@ -210,7 +208,7 @@ namespace Zametek.Maths.Graphs
                 // dependencies.
 
                 {
-                    var toBeAddedToCompiledDependencies = new HashSet<T>(onlyResourceDependencies.Intersect(dependencies));
+                    var toBeAddedToCompiledDependencies = new HashSet<T>(resourceNotCompiledDependencies.Intersect(dependencies));
 
                     foreach (T dependencyId in toBeAddedToCompiledDependencies)
                     {
@@ -218,7 +216,7 @@ namespace Zametek.Maths.Graphs
                     }
                 }
                 {
-                    var toBeAddedToManualDependencies = new HashSet<T>(onlyResourceDependencies.Intersect(manualDependencies));
+                    var toBeAddedToManualDependencies = new HashSet<T>(resourceNotManualDependencies.Intersect(manualDependencies));
 
                     foreach (T dependencyId in toBeAddedToManualDependencies)
                     {
@@ -235,7 +233,7 @@ namespace Zametek.Maths.Graphs
                 bool successfullyRemoved = true;
 
                 {
-                    var toBeRemovedFromCompiledDependencies = new HashSet<T>(onlyCompiledDependencies.Except(dependencies));
+                    var toBeRemovedFromCompiledDependencies = new HashSet<T>(compiledNotResourceDependencies.Except(dependencies));
 
                     foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
                     {
@@ -245,7 +243,7 @@ namespace Zametek.Maths.Graphs
                     successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromCompiledDependencies);
                 }
                 {
-                    var toBeRemovedFromManualDependencies = new HashSet<T>(onlyManualDependencies.Except(manualDependencies));
+                    var toBeRemovedFromManualDependencies = new HashSet<T>(manualNotResourceDependencies.Except(manualDependencies));
 
                     foreach (T dependencyId in toBeRemovedFromManualDependencies)
                     {
