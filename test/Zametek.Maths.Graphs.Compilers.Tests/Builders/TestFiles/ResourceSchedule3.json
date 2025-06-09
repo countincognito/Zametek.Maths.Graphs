@@ -7,6 +7,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 2,
       "EarliestStartTime": 0,
       "FreeSlack": 0,
@@ -32,6 +34,8 @@
       ],
       "CanBeRemoved": false,
       "Dependencies": [
+      ],
+      "ManualDependencies": [
       ],
       "Duration": 3,
       "EarliestStartTime": 0,
@@ -60,6 +64,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 4,
       "EarliestStartTime": 2,
       "FreeSlack": 0,
@@ -87,6 +93,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 5,
       "EarliestStartTime": 3,
       "FreeSlack": 0,
@@ -113,6 +121,8 @@
       ],
       "CanBeRemoved": false,
       "Dependencies": [
+      ],
+      "ManualDependencies": [
       ],
       "Duration": 4,
       "EarliestStartTime": 6,
@@ -142,6 +152,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 3,
       "EarliestStartTime": 8,
       "FreeSlack": 0,
@@ -169,6 +181,8 @@
       ],
       "CanBeRemoved": false,
       "Dependencies": [
+      ],
+      "ManualDependencies": [
       ],
       "Duration": 2,
       "EarliestStartTime": 10,
@@ -199,6 +213,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 3,
       "EarliestStartTime": 11,
       "FreeSlack": 0,
@@ -226,6 +242,8 @@
       ],
       "CanBeRemoved": false,
       "Dependencies": [
+      ],
+      "ManualDependencies": [
       ],
       "Duration": 4,
       "EarliestStartTime": 12,
@@ -255,6 +273,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 5,
       "EarliestStartTime": 14,
       "FreeSlack": 0,
@@ -283,6 +303,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 4,
       "EarliestStartTime": 16,
       "FreeSlack": 0,
@@ -309,6 +331,8 @@
       ],
       "CanBeRemoved": false,
       "Dependencies": [
+      ],
+      "ManualDependencies": [
       ],
       "Duration": 3,
       "EarliestStartTime": 19,
@@ -338,6 +362,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 2,
       "EarliestStartTime": 20,
       "FreeSlack": 0,
@@ -365,6 +391,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 2,
       "EarliestStartTime": 20,
       "FreeSlack": 0,
@@ -392,6 +420,8 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
+      "ManualDependencies": [
+      ],
       "Duration": 3,
       "EarliestStartTime": 0,
       "FreeSlack": 0,
@@ -418,6 +448,8 @@
       ],
       "CanBeRemoved": false,
       "Dependencies": [
+      ],
+      "ManualDependencies": [
       ],
       "Duration": 4,
       "EarliestStartTime": 3,

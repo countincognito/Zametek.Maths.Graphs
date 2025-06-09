@@ -56,7 +56,9 @@ namespace Zametek.Maths.Graphs
         {
             lock (m_Lock)
             {
-                return m_ArrowGraphBuilder.AddActivity(activity, activity.Dependencies);
+                return m_ArrowGraphBuilder.AddActivity(
+                    activity,
+                    new HashSet<T>(activity.Dependencies.Union(activity.ManualDependencies)));
             }
         }
 
@@ -64,16 +66,31 @@ namespace Zametek.Maths.Graphs
         {
             lock (m_Lock)
             {
-                // Clear out the activity from compiled dependencies first.
-                IEnumerable<T> dependentActivityIds = m_ArrowGraphBuilder
-                    .Activities
-                    .Where(x => x.Dependencies.Contains(activityId))
-                    .Select(x => x.Id);
-
-                foreach (T dependentActivityId in dependentActivityIds)
                 {
-                    var dependentActivity = m_ArrowGraphBuilder.Activity(dependentActivityId);
-                    dependentActivity.Dependencies.Remove(activityId);
+                    // Clear out the activity from compiled dependencies.
+                    IEnumerable<T> dependentActivityIds = m_ArrowGraphBuilder
+                        .Activities
+                        .Where(x => x.Dependencies.Contains(activityId))
+                        .Select(x => x.Id);
+
+                    foreach (T dependentActivityId in dependentActivityIds)
+                    {
+                        var dependentActivity = m_ArrowGraphBuilder.Activity(dependentActivityId);
+                        dependentActivity.Dependencies.Remove(activityId);
+                    }
+                }
+                {
+                    // Clear out the activity from manual dependencies.
+                    IEnumerable<T> dependentActivityIds = m_ArrowGraphBuilder
+                        .Activities
+                        .Where(x => x.ManualDependencies.Contains(activityId))
+                        .Select(x => x.Id);
+
+                    foreach (T dependentActivityId in dependentActivityIds)
+                    {
+                        var dependentActivity = m_ArrowGraphBuilder.Activity(dependentActivityId);
+                        dependentActivity.ManualDependencies.Remove(activityId);
+                    }
                 }
 
                 m_ArrowGraphBuilder.Activity(activityId)?.SetAsRemovable();

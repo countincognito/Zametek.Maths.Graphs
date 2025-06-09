@@ -11,6 +11,8 @@ namespace Zametek.Maths.Graphs
     {
         HashSet<T> Dependencies { get; }
 
+        HashSet<T> ManualDependencies { get; }
+
         HashSet<T> ResourceDependencies { get; }
     }
 }

@@ -126,7 +126,7 @@ namespace Zametek.Maths.Graphs
         //    }
         //}
 
-        public bool SetActivityDependencies(T activityId, HashSet<T> dependencies)
+        public bool SetActivityDependencies(T activityId, HashSet<T> dependencies, HashSet<T> manualDependencies)
         {
             lock (m_Lock)
             {
@@ -134,67 +134,155 @@ namespace Zametek.Maths.Graphs
                 {
                     throw new ArgumentNullException(nameof(dependencies));
                 }
+                if (manualDependencies is null)
+                {
+                    throw new ArgumentNullException(nameof(manualDependencies));
+                }
                 if (!m_VertexGraphBuilder.ActivityIds.Contains(activityId))
                 {
                     return false;
                 }
 
                 TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
-                var resourceAndCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.Dependencies));
-                var resourceOrCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.Dependencies));
-                var onlyCompiledDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
-                var onlyResourceDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndCompiledDependencies));
+                var coreDependencies = new HashSet<T>(activity.Dependencies.Union(manualDependencies));
 
-                // If an existing dependency is a resource dependency, but not a compiled
+                var resourceAndCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.Dependencies));
+                var resourceAndManualDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.ManualDependencies));
+
+                var resourceOrCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.Dependencies));
+                var resourceOrManualDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.ManualDependencies));
+
+                var onlyCompiledDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
+                var onlyManualDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndManualDependencies));
+
+                var onlyResourceDependencies = new HashSet<T>(
+                    activity.ResourceDependencies
+                    .Except(resourceAndCompiledDependencies)
+                    .Except(resourceAndManualDependencies));
+
+                // Resource: 1
+                //     Core: 0
+                //      New: 0
+                // If an existing dependency is a resource dependency, but not a core
                 // dependency, and is not in the new dependencies, then do nothing.
 
-                // If an existing dependency is a resource dependency, and also a compiled
+                // Resource: 0
+                //     Core: 1
+                //      New: 1
+                // If an existing dependency is not a resource dependency, but is a core
                 // dependency, and is in the new dependencies, then do nothing.
 
-                // If an existing dependency is a compiled dependency, but not a resource
+                // Resource: 1
+                //     Core: 1
+                //      New: 1
+                // If an existing dependency is a resource dependency, and also a core
                 // dependency, and is in the new dependencies, then do nothing.
 
-                // If an existing dependency is a resource dependency, and also a compiled
+                // Resource: 1
+                //     Core: 1
+                //      New: 0
+                // If an existing dependency is a resource dependency, and also a core
                 // dependency, and is not in the new dependencies, then remove it from the
-                // compiled dependencies.
-                var toBeRemovedFromCompiledDependencies = new HashSet<T>(resourceAndCompiledDependencies.Except(dependencies));
+                // compiled and manual dependencies.
 
-                foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
                 {
-                    activity.Dependencies.Remove(dependencyId);
+                    var toBeRemovedFromCompiledDependencies = new HashSet<T>(resourceAndCompiledDependencies.Except(dependencies));
+
+                    foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
+                    {
+                        activity.Dependencies.Remove(dependencyId);
+                    }
+                }
+                {
+                    var toBeRemovedFromManualDependencies = new HashSet<T>(resourceAndManualDependencies.Except(manualDependencies));
+
+                    foreach (T dependencyId in toBeRemovedFromManualDependencies)
+                    {
+                        activity.ManualDependencies.Remove(dependencyId);
+                    }
                 }
 
-                // If an existing dependency is a resource dependency, but not a compiled
-                // dependency, and is in the new dependencies, then add it to the compiled
+                // Resource: 1
+                //     Core: 0
+                //      New: 1
+                // If an existing dependency is a resource dependency, but not a core
+                // dependency, and is in the new dependencies, then add it to the core
                 // dependencies.
-                var toBeAddedToCompiledDependencies = new HashSet<T>(onlyResourceDependencies.Intersect(dependencies));
 
-                foreach (T dependencyId in toBeAddedToCompiledDependencies)
                 {
-                    activity.Dependencies.Add(dependencyId);
+                    var toBeAddedToCompiledDependencies = new HashSet<T>(onlyResourceDependencies.Intersect(dependencies));
+
+                    foreach (T dependencyId in toBeAddedToCompiledDependencies)
+                    {
+                        activity.Dependencies.Add(dependencyId);
+                    }
+                }
+                {
+                    var toBeAddedToManualDependencies = new HashSet<T>(onlyResourceDependencies.Intersect(manualDependencies));
+
+                    foreach (T dependencyId in toBeAddedToManualDependencies)
+                    {
+                        activity.ManualDependencies.Add(dependencyId);
+                    }
                 }
 
-                // If an existing dependency is a compiled dependency, but not a resource
+                // Resource: 0
+                //     Core: 1
+                //      New: 0
+                // If an existing dependency is not a resource dependency, but is a core
                 // dependency, and is not in the new dependencies, then remove it from everything.
-                var toBeRemovedFromEverything = new HashSet<T>(onlyCompiledDependencies.Except(dependencies));
 
-                foreach (T dependencyId in toBeRemovedFromEverything)
+                bool successfullyRemoved = true;
+
                 {
-                    activity.Dependencies.Remove(dependencyId);
+                    var toBeRemovedFromCompiledDependencies = new HashSet<T>(onlyCompiledDependencies.Except(dependencies));
+
+                    foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
+                    {
+                        activity.Dependencies.Remove(dependencyId);
+                    }
+
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromCompiledDependencies);
+                }
+                {
+                    var toBeRemovedFromManualDependencies = new HashSet<T>(onlyManualDependencies.Except(manualDependencies));
+
+                    foreach (T dependencyId in toBeRemovedFromManualDependencies)
+                    {
+                        activity.ManualDependencies.Remove(dependencyId);
+                    }
+
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromManualDependencies);
                 }
 
-                bool successfullyRemoved = m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromEverything);
-
-                // If a new dependency is neither a compiled dependency, nor a resource
+                // Resource: 0
+                //     Core: 0
+                //      New: X
+                // If a new dependency is neither a resource dependency, nor a core
                 // dependency, then add it to everything.
-                var toBeAddedToEverything = new HashSet<T>(dependencies.Except(resourceOrCompiledDependencies));
 
-                foreach (T dependencyId in toBeAddedToEverything)
+                bool successfullyAdded = true;
+
                 {
-                    activity.Dependencies.Add(dependencyId);
-                }
+                    var toBeAddedToCompiledDependencies = new HashSet<T>(dependencies.Except(resourceOrCompiledDependencies));
 
-                bool successfullyAdded = m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToEverything);
+                    foreach (T dependencyId in toBeAddedToCompiledDependencies)
+                    {
+                        activity.Dependencies.Add(dependencyId);
+                    }
+
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToCompiledDependencies);
+                }
+                {
+                    var toBeAddedToManualDependencies = new HashSet<T>(manualDependencies.Except(resourceOrManualDependencies));
+
+                    foreach (T dependencyId in toBeAddedToManualDependencies)
+                    {
+                        activity.ManualDependencies.Add(dependencyId);
+                    }
+
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToManualDependencies);
+                }
 
                 // Final return.
                 return successfullyRemoved && successfullyAdded;
@@ -228,13 +316,14 @@ namespace Zametek.Maths.Graphs
             {
                 IEnumerable<TDependentActivity> activities = m_VertexGraphBuilder.Activities;
 
-                // Reset activity dependencies in the graph to match only the compiled dependencies
+                // Reset activity dependencies in the graph to match only the compiled and manual dependencies
                 // (i.e. remove any that are *only* resource dependencies).
                 foreach (TDependentActivity activity in activities)
                 {
+                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
                     m_VertexGraphBuilder.RemoveActivityDependencies(
                         activity.Id,
-                        new HashSet<T>(activity.ResourceDependencies.Except(activity.Dependencies)));
+                        new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
                     activity.ResourceDependencies.Clear();
                     activity.AllocatedToResources.Clear();
                 }
@@ -427,14 +516,15 @@ namespace Zametek.Maths.Graphs
                             {
                                 // Here we add the previous activity ID to the set of resource
                                 // dependencies attached to the activity itself. However, we do
-                                // not add it to the compiled dependencies set - instead we make
-                                // the change directly to graph data (which we reverse below - see
-                                // just before post-compilation error collation).
+                                // not add it to the compiled and manual dependencies sets.
+                                // Instead we make the change directly to graph data (which we
+                                // reverse below - see just before post-compilation error collation).
 
                                 activity.ResourceDependencies.Add(previousId);
+                                IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
                                 m_VertexGraphBuilder.AddActivityDependencies(
                                     currentId,
-                                    new HashSet<T>(activity.ResourceDependencies.Except(activity.Dependencies)));
+                                    new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
                             }
 
                             first = false;
@@ -454,13 +544,14 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
                 }
 
-                // Clear up activity dependencies in the graph to match only the compiled dependencies
+                // Clear up activity dependencies in the graph to match only the compiled and manual dependencies
                 // (i.e. remove any that are *only* resource dependencies).
                 foreach (TDependentActivity activity in activities)
                 {
+                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
                     m_VertexGraphBuilder.RemoveActivityDependencies(
                         activity.Id,
-                        new HashSet<T>(activity.ResourceDependencies.Except(activity.Dependencies)));
+                        new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
                 }
 
                 // Collate post-compilation errors, if any exist.
@@ -584,8 +675,9 @@ namespace Zametek.Maths.Graphs
             foreach (T invalidDependency in invalidDependencies)
             {
                 IList<T> actsWithInvalidDeps = activities
-                    .Where(x => x.Dependencies.Contains(invalidDependency))
+                    .Where(x => x.Dependencies.Union(x.ManualDependencies).Contains(invalidDependency))
                     .Select(x => x.Id)
+                    .OrderBy(x => x)
                     .ToList();
                 output.AppendLine($@"{invalidDependency} {Properties.Resources.Message_IsInvalidButReferencedBy} {string.Join(@", ", actsWithInvalidDeps)}");
             }
@@ -645,7 +737,9 @@ namespace Zametek.Maths.Graphs
         {
             lock (m_Lock)
             {
-                return m_VertexGraphBuilder.AddActivity(activity, activity.Dependencies);
+                return m_VertexGraphBuilder.AddActivity(
+                    activity,
+                    new HashSet<T>(activity.Dependencies.Union(activity.ManualDependencies)));
             }
         }
 
@@ -653,16 +747,31 @@ namespace Zametek.Maths.Graphs
         {
             lock (m_Lock)
             {
-                // Clear out the activity from compiled dependencies first.
-                IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
-                    .Activities
-                    .Where(x => x.Dependencies.Contains(activityId))
-                    .Select(x => x.Id);
-
-                foreach (T dependentActivityId in dependentActivityIds)
                 {
-                    var dependentActivity = m_VertexGraphBuilder.Activity(dependentActivityId);
-                    dependentActivity.Dependencies.Remove(activityId);
+                    // Clear out the activity from compiled dependencies.
+                    IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
+                        .Activities
+                        .Where(x => x.Dependencies.Contains(activityId))
+                        .Select(x => x.Id);
+
+                    foreach (T dependentActivityId in dependentActivityIds)
+                    {
+                        var dependentActivity = m_VertexGraphBuilder.Activity(dependentActivityId);
+                        dependentActivity.Dependencies.Remove(activityId);
+                    }
+                }
+                {
+                    // Clear out the activity from manual dependencies.
+                    IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
+                        .Activities
+                        .Where(x => x.ManualDependencies.Contains(activityId))
+                        .Select(x => x.Id);
+
+                    foreach (T dependentActivityId in dependentActivityIds)
+                    {
+                        var dependentActivity = m_VertexGraphBuilder.Activity(dependentActivityId);
+                        dependentActivity.ManualDependencies.Remove(activityId);
+                    }
                 }
 
                 m_VertexGraphBuilder.Activity(activityId)?.SetAsRemovable();
@@ -680,13 +789,14 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotPerformTransitiveReduction);
                 }
 
-                // Now set the compiled dependencies to match the actual remaining dependencies.
+                // Now set the compiled and manual dependencies to match the actual remaining dependencies.
                 foreach (T activityId in m_VertexGraphBuilder.ActivityIds)
                 {
                     TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
-                    IList<T> allDependencyIds = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
-                    var remainingCompiledDependencies = new HashSet<T>(activity.Dependencies.Intersect(allDependencyIds));
-                    SetActivityDependencies(activityId, remainingCompiledDependencies);
+                    IList<T> actualDependencyIds = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
+                    var remainingCompiledDependencies = new HashSet<T>(activity.Dependencies.Intersect(actualDependencyIds));
+                    var remainingManualDependencies = new HashSet<T>(activity.ManualDependencies.Intersect(actualDependencyIds));
+                    SetActivityDependencies(activityId, remainingCompiledDependencies, remainingManualDependencies);
                 }
             }
         }
