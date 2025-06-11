@@ -158,6 +158,9 @@ namespace Zametek.Maths.Graphs
                 var resourceNotCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndCompiledDependencies));
                 var resourceNotManualDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndManualDependencies));
 
+                bool successfullyRemoved = true;
+                bool successfullyAdded = true;
+
                 // Resource: 1
                 //     Core: 0
                 //      New: 0
@@ -181,7 +184,7 @@ namespace Zametek.Maths.Graphs
                 //      New: 0
                 // If an existing dependency is a resource dependency, and also a core
                 // dependency, and is not in the new dependencies, then remove it from the
-                // compiled and manual dependencies.
+                // core dependencies.
 
                 {
                     var toBeRemovedFromCompiledDependencies = new HashSet<T>(resourceAndCompiledDependencies.Except(dependencies));
@@ -190,6 +193,8 @@ namespace Zametek.Maths.Graphs
                     {
                         activity.Dependencies.Remove(dependencyId);
                     }
+
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromCompiledDependencies);
                 }
                 {
                     var toBeRemovedFromManualDependencies = new HashSet<T>(resourceAndManualDependencies.Except(manualDependencies));
@@ -198,6 +203,8 @@ namespace Zametek.Maths.Graphs
                     {
                         activity.ManualDependencies.Remove(dependencyId);
                     }
+
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromManualDependencies);
                 }
 
                 // Resource: 1
@@ -214,6 +221,8 @@ namespace Zametek.Maths.Graphs
                     {
                         activity.Dependencies.Add(dependencyId);
                     }
+
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToCompiledDependencies);
                 }
                 {
                     var toBeAddedToManualDependencies = new HashSet<T>(resourceNotManualDependencies.Intersect(manualDependencies));
@@ -222,15 +231,16 @@ namespace Zametek.Maths.Graphs
                     {
                         activity.ManualDependencies.Add(dependencyId);
                     }
+
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToManualDependencies);
                 }
 
                 // Resource: 0
                 //     Core: 1
                 //      New: 0
                 // If an existing dependency is not a resource dependency, but is a core
-                // dependency, and is not in the new dependencies, then remove it from everything.
-
-                bool successfullyRemoved = true;
+                // dependency, and is not in the new dependencies, then remove it from the
+                // core dependencies.
 
                 {
                     var toBeRemovedFromCompiledDependencies = new HashSet<T>(compiledNotResourceDependencies.Except(dependencies));
@@ -257,9 +267,7 @@ namespace Zametek.Maths.Graphs
                 //     Core: 0
                 //      New: X
                 // If a new dependency is neither a resource dependency, nor a core
-                // dependency, then add it to everything.
-
-                bool successfullyAdded = true;
+                // dependency, then add it to the core dependencies.
 
                 {
                     var toBeAddedToCompiledDependencies = new HashSet<T>(dependencies.Except(resourceOrCompiledDependencies));
@@ -573,6 +581,26 @@ namespace Zametek.Maths.Graphs
                         Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
                         compilationErrors);
                 }
+
+
+
+
+
+
+                // TODO set successor values for 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 // Go through each resource schedule and ensure the scheduled activities
                 // align with the compiled graph.

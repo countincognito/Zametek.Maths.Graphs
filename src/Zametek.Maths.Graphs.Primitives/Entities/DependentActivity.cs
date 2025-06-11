@@ -17,6 +17,7 @@ namespace Zametek.Maths.Graphs
             Dependencies = new HashSet<T>();
             ManualDependencies = new HashSet<T>();
             ResourceDependencies = new HashSet<T>();
+            Successors = new HashSet<T>();
         }
 
         public DependentActivity(T id, int duration, bool canBeRemoved)
@@ -25,6 +26,7 @@ namespace Zametek.Maths.Graphs
             Dependencies = new HashSet<T>();
             ManualDependencies = new HashSet<T>();
             ResourceDependencies = new HashSet<T>();
+            Successors = new HashSet<T>();
         }
 
         public DependentActivity(T id, int duration, IEnumerable<T> dependencies)
@@ -37,6 +39,7 @@ namespace Zametek.Maths.Graphs
             Dependencies = new HashSet<T>(dependencies);
             ManualDependencies = new HashSet<T>();
             ResourceDependencies = new HashSet<T>();
+            Successors = new HashSet<T>();
         }
 
         public DependentActivity(T id, int duration, IEnumerable<T> dependencies, IEnumerable<T> manualDependencies)
@@ -53,13 +56,14 @@ namespace Zametek.Maths.Graphs
             Dependencies = new HashSet<T>(dependencies);
             ManualDependencies = new HashSet<T>(manualDependencies);
             ResourceDependencies = new HashSet<T>();
+            Successors = new HashSet<T>();
         }
 
         public DependentActivity(
             T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
-            IEnumerable<T> dependencies, IEnumerable<T> manualDependencies, IEnumerable<T> resourceDependencies, LogicalOperator targetLogicalOperator,
-            IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoEffort, int duration, int? freeSlack,
-            int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
+            IEnumerable<T> dependencies, IEnumerable<T> manualDependencies, IEnumerable<T> resourceDependencies, IEnumerable<T> successors,
+            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoEffort, int duration,
+            int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
             : base(
                   id, name, notes, targetWorkStreams, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost, hasNoEffort,
                   duration, freeSlack, earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
@@ -76,9 +80,14 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(resourceDependencies));
             }
+            if (successors is null)
+            {
+                throw new ArgumentNullException(nameof(successors));
+            }
             Dependencies = new HashSet<T>(dependencies);
             ManualDependencies = new HashSet<T>(manualDependencies);
             ResourceDependencies = new HashSet<T>(resourceDependencies);
+            Successors = new HashSet<T>(successors);
         }
 
         #endregion
@@ -100,6 +109,11 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        public HashSet<T> Successors
+        {
+            get;
+        }
+
         #endregion
 
         #region Overrides
@@ -107,9 +121,9 @@ namespace Zametek.Maths.Graphs
         public override object CloneObject()
         {
             return new DependentActivity<T, TResourceId, TWorkStreamId>(
-                Id, Name, Notes, TargetWorkStreams, TargetResources, Dependencies, ManualDependencies, ResourceDependencies, TargetResourceOperator,
-                AllocatedToResources, CanBeRemoved, HasNoCost, HasNoEffort, Duration, FreeSlack, EarliestStartTime, LatestFinishTime,
-                MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
+                Id, Name, Notes, TargetWorkStreams, TargetResources, Dependencies, ManualDependencies, ResourceDependencies, Successors,
+                TargetResourceOperator, AllocatedToResources, CanBeRemoved, HasNoCost, HasNoEffort, Duration, FreeSlack, EarliestStartTime,
+                LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
         }
 
         #endregion

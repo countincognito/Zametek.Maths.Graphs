@@ -9,6 +9,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 2,
       "EarliestStartTime": 0,
       "FreeSlack": 0,
@@ -36,6 +38,8 @@
       "Dependencies": [
       ],
       "ManualDependencies": [
+      ],
+      "Successors": [
       ],
       "Duration": 3,
       "EarliestStartTime": 0,
@@ -66,6 +70,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 4,
       "EarliestStartTime": 2,
       "FreeSlack": 0,
@@ -95,6 +101,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 5,
       "EarliestStartTime": 3,
       "FreeSlack": 0,
@@ -123,6 +131,8 @@
       "Dependencies": [
       ],
       "ManualDependencies": [
+      ],
+      "Successors": [
       ],
       "Duration": 4,
       "EarliestStartTime": 6,
@@ -154,6 +164,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 3,
       "EarliestStartTime": 8,
       "FreeSlack": 0,
@@ -183,6 +195,8 @@
       "Dependencies": [
       ],
       "ManualDependencies": [
+      ],
+      "Successors": [
       ],
       "Duration": 2,
       "EarliestStartTime": 10,
@@ -215,6 +229,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 3,
       "EarliestStartTime": 11,
       "FreeSlack": 0,
@@ -244,6 +260,8 @@
       "Dependencies": [
       ],
       "ManualDependencies": [
+      ],
+      "Successors": [
       ],
       "Duration": 4,
       "EarliestStartTime": 12,
@@ -275,6 +293,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 5,
       "EarliestStartTime": 14,
       "FreeSlack": 0,
@@ -305,6 +325,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 4,
       "EarliestStartTime": 16,
       "FreeSlack": 0,
@@ -333,6 +355,8 @@
       "Dependencies": [
       ],
       "ManualDependencies": [
+      ],
+      "Successors": [
       ],
       "Duration": 3,
       "EarliestStartTime": 19,
@@ -364,6 +388,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 2,
       "EarliestStartTime": 20,
       "FreeSlack": 0,
@@ -393,6 +419,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 2,
       "EarliestStartTime": 20,
       "FreeSlack": 0,
@@ -422,6 +450,8 @@
       ],
       "ManualDependencies": [
       ],
+      "Successors": [
+      ],
       "Duration": 3,
       "EarliestStartTime": 0,
       "FreeSlack": 0,
@@ -450,6 +480,8 @@
       "Dependencies": [
       ],
       "ManualDependencies": [
+      ],
+      "Successors": [
       ],
       "Duration": 4,
       "EarliestStartTime": 3,
