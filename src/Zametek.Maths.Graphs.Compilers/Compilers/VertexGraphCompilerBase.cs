@@ -582,25 +582,34 @@ namespace Zametek.Maths.Graphs
                         compilationErrors);
                 }
 
+                // Go through each activity and update the upstream successors.
 
+                var successorLookup = activities.ToDictionary(x => x.Id, x => new HashSet<T>());
 
+                foreach (TDependentActivity activity in activities)
+                {
+                    T activityId = activity.Id;
+                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
 
+                    foreach (T coreDependencyId in coreDependencies)
+                    {
+                        if (!successorLookup.TryGetValue(coreDependencyId, out HashSet<T> successors))
+                        {
+                            successors = new HashSet<T>();
+                        }
+                        successors.Add(activityId);
+                    }
+                }
 
-
-                // TODO set successor values for 
-
-
-
-
-
-
-
-
-
-
-
-
-
+                foreach (TDependentActivity activity in activities)
+                {
+                    T activityId = activity.Id;
+                    activity.Successors.Clear();
+                    if (successorLookup.TryGetValue(activityId, out HashSet<T> successors))
+                    {
+                        activity.Successors.UnionWith(successors);
+                    }
+                }
 
                 // Go through each resource schedule and ensure the scheduled activities
                 // align with the compiled graph.
