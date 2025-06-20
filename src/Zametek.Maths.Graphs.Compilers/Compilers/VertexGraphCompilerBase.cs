@@ -584,30 +584,22 @@ namespace Zametek.Maths.Graphs
 
                 // Go through each activity and update the upstream successors.
 
-                var successorLookup = activities.ToDictionary(x => x.Id, x => new HashSet<T>());
-
-                foreach (TDependentActivity activity in activities)
-                {
-                    T activityId = activity.Id;
-                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
-
-                    foreach (T coreDependencyId in coreDependencies)
-                    {
-                        if (!successorLookup.TryGetValue(coreDependencyId, out HashSet<T> successors))
-                        {
-                            successors = new HashSet<T>();
-                        }
-                        successors.Add(activityId);
-                    }
-                }
-
                 foreach (TDependentActivity activity in activities)
                 {
                     T activityId = activity.Id;
                     activity.Successors.Clear();
-                    if (successorLookup.TryGetValue(activityId, out HashSet<T> successors))
+
+                    Node<T, TDependentActivity> node = m_VertexGraphBuilder.Node(activityId);
+
+                    if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Normal)
                     {
-                        activity.Successors.UnionWith(successors);
+                        // Get the outgoing edges and the successor nodes IDs.
+                        IEnumerable<T> successorNodeIds = node.OutgoingEdges
+                            .Select(m_VertexGraphBuilder.EdgeHeadNode)
+                            .Select(x => x.Id)
+                            .ToList();
+
+                        activity.Successors.UnionWith(successorNodeIds);
                     }
                 }
 
