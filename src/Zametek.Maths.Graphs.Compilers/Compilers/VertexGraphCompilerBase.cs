@@ -573,14 +573,14 @@ namespace Zametek.Maths.Graphs
                             BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
                 }
 
-                if (compilationErrors.Count != 0)
-                {
-                    return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
-                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
-                        Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>(),
-                        Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
-                        compilationErrors);
-                }
+                //if (compilationErrors.Count != 0)
+                //{
+                //    return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
+                //        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
+                //        Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>(),
+                //        Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
+                //        compilationErrors);
+                //}
 
                 // Go through each activity and update the upstream successors.
 
@@ -680,7 +680,8 @@ namespace Zametek.Maths.Graphs
                 return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
                     m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
                     totalResourceSchedules,
-                    workStreams.Where(x => resourcePhasesUsed.Contains(x.Id)));
+                    workStreams.Where(x => resourcePhasesUsed.Contains(x.Id)),
+                    compilationErrors);
             }
         }
 

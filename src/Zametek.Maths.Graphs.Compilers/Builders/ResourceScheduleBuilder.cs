@@ -244,6 +244,15 @@ namespace Zametek.Maths.Graphs
                     int startIndex = startTime;
                     int finishIndex = endTime - 1;
 
+                    if (startIndex < 0)
+                    {
+                        startIndex = 0;
+                    }
+                    if (finishIndex < 0)
+                    {
+                        finishIndex = 0;
+                    }
+
                     if (startIndex == finishIndex)
                     {
                         distribution[startIndex] |= TimeType.Start | TimeType.Finish;
@@ -254,7 +263,7 @@ namespace Zametek.Maths.Graphs
                         distribution[finishIndex] |= TimeType.Finish;
                     }
 
-                    for (int timeIndex = startTime; timeIndex < endTime; timeIndex++)
+                    for (int timeIndex = startTime; timeIndex <= finishIndex; timeIndex++)
                     {
                         if ((distribution[timeIndex] & TimeType.Allocated) == 0)
                         {
@@ -290,6 +299,15 @@ namespace Zametek.Maths.Graphs
                 int startIndex = scheduledActivity.StartTime;
                 int finishIndex = scheduledActivity.FinishTime - 1;
 
+                if (startIndex < 0)
+                {
+                    startIndex = 0;
+                }
+                if (finishIndex < 0)
+                {
+                    finishIndex = 0;
+                }
+
                 if (startIndex == finishIndex)
                 {
                     distribution[startIndex] |= TimeType.Start | TimeType.Finish;
@@ -300,7 +318,7 @@ namespace Zametek.Maths.Graphs
                     distribution[finishIndex] |= TimeType.Finish;
                 }
 
-                for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                 {
                     if ((distribution[timeIndex] & TimeType.Allocated) == 0)
                     {
@@ -375,6 +393,15 @@ namespace Zametek.Maths.Graphs
                 int startIndex = scheduledActivity.StartTime;
                 int finishIndex = scheduledActivity.FinishTime - 1;
 
+                if (startIndex < 0)
+                {
+                    startIndex = 0;
+                }
+                if (finishIndex < 0)
+                {
+                    finishIndex = 0;
+                }
+
                 if (startIndex == finishIndex)
                 {
                     distribution[startIndex] |= TimeType.Start | TimeType.Finish;
@@ -385,7 +412,7 @@ namespace Zametek.Maths.Graphs
                     distribution[finishIndex] |= TimeType.Finish;
                 }
 
-                for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                 {
                     if ((distribution[timeIndex] & TimeType.Allocated) == 0)
                     {
@@ -417,16 +444,28 @@ namespace Zametek.Maths.Graphs
             // Now mark the uncosted areas
             foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
             {
+                int startIndex = scheduledActivity.StartTime;
+                int finishIndex = scheduledActivity.FinishTime - 1;
+
+                if (startIndex < 0)
+                {
+                    startIndex = 0;
+                }
+                if (finishIndex < 0)
+                {
+                    finishIndex = 0;
+                }
+
                 if (scheduledActivity.HasNoCost)
                 {
-                    for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                     {
                         distribution[timeIndex] |= TimeType.CostIgnored;
                     }
                 }
                 if (scheduledActivity.HasNoEffort)
                 {
-                    for (int timeIndex = scheduledActivity.StartTime; timeIndex < scheduledActivity.FinishTime; timeIndex++)
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                     {
                         distribution[timeIndex] |= TimeType.EffortIgnored;
                     }
