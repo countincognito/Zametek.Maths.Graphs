@@ -489,6 +489,7 @@ namespace Zametek.Maths.Graphs
                                     0,
                                     Enumerable.Empty<TWorkStreamId>()),
                                 resourceSchedule.ScheduledActivities,
+                                resourceSchedule.StartTime,
                                 resourceSchedule.FinishTime,
                                 resourceSchedule.ActivityAllocation,
                                 resourceSchedule.CostAllocation,
@@ -606,7 +607,8 @@ namespace Zametek.Maths.Graphs
                 // Go through each resource schedule and ensure the scheduled activities
                 // align with the compiled graph.
 
-                int finishTime = m_VertexGraphBuilder.Duration;
+                int startTime = m_VertexGraphBuilder.StartTime;
+                int finishTime = m_VertexGraphBuilder.FinishTime;
                 var newResourceScheduleBuilders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
 
                 foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> oldResourceSchedule in resourceSchedules)
@@ -638,7 +640,7 @@ namespace Zametek.Maths.Graphs
                 // Build the resource schedules for any resources with scheduled activities.
 
                 IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> newResourceSchedules = newResourceScheduleBuilders
-                    .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
+                    .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
                     .Where(x => x.ScheduledActivities.Any())
                     .ToList();
 
@@ -657,7 +659,7 @@ namespace Zametek.Maths.Graphs
                 }
 
                 IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectResourceSchedules = indirectResourceScheduleBuilders
-                    .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
+                    .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
                     .ToList();
 
                 // Now calculate the used work streams.

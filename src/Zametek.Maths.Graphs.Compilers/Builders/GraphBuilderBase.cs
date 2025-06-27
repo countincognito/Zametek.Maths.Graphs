@@ -162,7 +162,15 @@ namespace Zametek.Maths.Graphs
 
         public bool AllDependenciesSatisfied => !UnsatisfiedSuccessorsLookup.Any();
 
-        public int Duration
+        public int StartTime
+        {
+            get
+            {
+                return Activities.Select(x => x.EarliestStartTime.GetValueOrDefault()).DefaultIfEmpty().Min();
+            }
+        }
+
+        public int FinishTime
         {
             get
             {

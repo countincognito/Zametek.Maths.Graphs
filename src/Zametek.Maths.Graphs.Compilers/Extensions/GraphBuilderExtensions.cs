@@ -375,10 +375,18 @@ namespace Zametek.Maths.Graphs
                 graphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject())
                 .ToList();
 
-            int finishTime = resourceScheduleBuilders.Select(x => x.LastActivityFinishTime).DefaultIfEmpty().Max();
+            int startTime = resourceScheduleBuilders
+                .Select(x => x.ScheduledActivities
+                    .Select(y => y.StartTime)
+                    .DefaultIfEmpty().Min())
+                .DefaultIfEmpty().Min();
+
+            int finishTime = resourceScheduleBuilders
+                .Select(x => x.LastActivityFinishTime)
+                .DefaultIfEmpty().Max();
 
             return resourceScheduleBuilders
-                .Select(x => x.ToResourceSchedule(finalActivities, finishTime))
+                .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
                 .Where(x => x.ScheduledActivities.Any())
                 .ToList();
         }

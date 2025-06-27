@@ -34,13 +34,24 @@ namespace Zametek.Maths.Graphs
 
         #region Properties
 
-        public int Duration
+        public int StartTime
         {
             get
             {
                 lock (m_Lock)
                 {
-                    return m_GraphBuilder.Duration;
+                    return m_GraphBuilder.StartTime;
+                }
+            }
+        }
+
+        public int FinishTime
+        {
+            get
+            {
+                lock (m_Lock)
+                {
+                    return m_GraphBuilder.FinishTime;
                 }
             }
         }

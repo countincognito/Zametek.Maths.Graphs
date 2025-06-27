@@ -555,6 +555,7 @@ namespace Zametek.Maths.Graphs
 
         public IResourceSchedule<T, TResourceId, TWorkStreamId> ToResourceSchedule(
             IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            int startTime,
             int finishTime)
         {
             if (activities == null)
@@ -568,6 +569,7 @@ namespace Zametek.Maths.Graphs
             return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
                 m_Resource,
                 m_ScheduledActivities,
+                startTime,
                 finishTime,
                 activityAllocation,
                 costAllocation,

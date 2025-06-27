@@ -21,13 +21,14 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void ResourceScheduleBuilder_Given_ResourceSchedule1_ForIndirectResource_ZeroFinishTime_Input_ThenActivityAllocationEmpty()
         {
+            const int startTime = 0;
             const int finishTime = 0;
 
             int resourceId1 = 1;
             var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
+            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
 
             rs.ActivityAllocation.ShouldBeEmpty();
             rs.FinishTime.ShouldBe(finishTime);
@@ -38,13 +39,14 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void ResourceScheduleBuilder_Given_ResourceSchedule1_ForIndirectResource_LargeFinishTime_Input_ThenActivityAllocationFull()
         {
+            const int startTime = 0;
             const int finishTime = 10;
 
             int resourceId1 = 1;
             var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
+            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
 
             rs.ActivityAllocation.Count().ShouldBe(10);
             rs.FinishTime.ShouldBe(finishTime);
@@ -60,6 +62,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             JObject json = JObject.Parse(m_Fixture.ResourceSchedule1_JsonString);
 
+            int startTime = int.Parse(json.GetValue(@"StartTime", StringComparison.OrdinalIgnoreCase).ToString());
             int finishTime = int.Parse(json.GetValue(@"FinishTime", StringComparison.OrdinalIgnoreCase).ToString());
             Resource<int, int> resource = JsonConvert.DeserializeObject<Resource<int, int>>(json.GetValue(@"Resource", StringComparison.OrdinalIgnoreCase).ToString());
             IList<ScheduledActivity<int>> scheduledActivities = JsonConvert.DeserializeObject<IList<ScheduledActivity<int>>>(json.GetValue(@"ScheduledActivities", StringComparison.OrdinalIgnoreCase).ToString());
@@ -71,7 +74,7 @@ namespace Zametek.Maths.Graphs.Tests
                 rsb.AppendActivity(scheduledActivity);
             }
 
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
+            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
 
             var first = rs.ActivityAllocation.Take(start).Distinct();
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
@@ -93,6 +96,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             JObject json = JObject.Parse(m_Fixture.ResourceSchedule2_JsonString);
 
+            int startTime = int.Parse(json.GetValue(@"StartTime", StringComparison.OrdinalIgnoreCase).ToString());
             int finishTime = int.Parse(json.GetValue(@"FinishTime", StringComparison.OrdinalIgnoreCase).ToString());
             Resource<int, int> resource = JsonConvert.DeserializeObject<Resource<int, int>>(json.GetValue(@"Resource", StringComparison.OrdinalIgnoreCase).ToString());
             IList<ScheduledActivity<int>> scheduledActivities = JsonConvert.DeserializeObject<IList<ScheduledActivity<int>>>(json.GetValue(@"ScheduledActivities", StringComparison.OrdinalIgnoreCase).ToString());
@@ -104,7 +108,7 @@ namespace Zametek.Maths.Graphs.Tests
                 rsb.AppendActivity(scheduledActivity);
             }
 
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), finishTime);
+            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
 
             var first = rs.ActivityAllocation.Take(start).Distinct();
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
@@ -131,6 +135,7 @@ namespace Zametek.Maths.Graphs.Tests
             int resourceId, int start, int finish,
             int firstCount, int secondCount, int thirdCount)
         {
+            const int startTime = 0;
             const int finishTime = 22;
             JObject json = JObject.Parse(m_Fixture.ResourceSchedule3_JsonString);
 
@@ -141,7 +146,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
 
-            var rs = rsb.ToResourceSchedule(dependentActivities, finishTime);
+            var rs = rsb.ToResourceSchedule(dependentActivities, startTime, finishTime);
 
             var first = rs.ActivityAllocation.Take(start).Distinct();
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();

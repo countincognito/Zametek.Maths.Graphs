@@ -15,6 +15,7 @@ namespace Zametek.Maths.Graphs
         public ResourceSchedule(
             IResource<TResourceId, TWorkStreamId> resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
+            int startTime,
             int finishTime,
             IEnumerable<bool> activityAllocation,
             IEnumerable<bool> costAllocation,
@@ -26,6 +27,7 @@ namespace Zametek.Maths.Graphs
             }
             Resource = resource;
             ScheduledActivities = scheduledActivities.ToList();
+            StartTime = startTime;
             FinishTime = finishTime;
             ActivityAllocation = activityAllocation.ToList();
             CostAllocation = costAllocation.ToList();
@@ -34,11 +36,12 @@ namespace Zametek.Maths.Graphs
 
         public ResourceSchedule(
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
+            int startTime,
             int finishTime,
             IEnumerable<bool> activityAllocation,
             IEnumerable<bool> costAllocation,
             IEnumerable<bool> effortAllocation)
-            : this(null, scheduledActivities, finishTime, activityAllocation, costAllocation, effortAllocation)
+            : this(null, scheduledActivities, startTime, finishTime, activityAllocation, costAllocation, effortAllocation)
         {
         }
 
@@ -71,6 +74,11 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        public int StartTime
+        {
+            get;
+        }
+
         public int FinishTime
         {
             get;
@@ -86,6 +94,7 @@ namespace Zametek.Maths.Graphs
             return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
                 resource,
                 ScheduledActivities.Select(x => (IScheduledActivity<T>)x.CloneObject()),
+                StartTime,
                 FinishTime,
                 ActivityAllocation,
                 CostAllocation,
