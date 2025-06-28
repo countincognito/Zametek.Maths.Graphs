@@ -342,7 +342,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(2);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
@@ -355,7 +355,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(-13);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(-6);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
@@ -368,7 +368,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
@@ -382,7 +382,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(5);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -399,7 +399,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
@@ -414,7 +414,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(22);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -428,7 +428,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -442,7 +442,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -455,7 +455,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
@@ -759,7 +759,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(2);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
@@ -772,7 +772,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
@@ -785,7 +785,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
@@ -799,7 +799,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(22);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -816,7 +816,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
@@ -831,7 +831,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(22);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -845,7 +845,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -859,7 +859,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -872,7 +872,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
@@ -1035,7 +1035,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(17);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(23);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
@@ -1047,7 +1047,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(9);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
@@ -1060,7 +1060,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(23);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
@@ -1074,7 +1074,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(27);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -1091,7 +1091,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -1105,7 +1105,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(37);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -1119,7 +1119,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(31);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -1133,7 +1133,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -1146,7 +1146,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(41);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
@@ -1315,7 +1315,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -1328,7 +1328,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -1342,7 +1342,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -1357,7 +1357,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -1374,7 +1374,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -1388,7 +1388,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -1402,7 +1402,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -1416,7 +1416,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -1429,7 +1429,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
@@ -1576,7 +1576,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(21);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -1589,7 +1589,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(15);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -1603,7 +1603,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -1618,7 +1618,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(40);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -1635,7 +1635,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -1649,7 +1649,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(47);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -1663,7 +1663,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(61);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId9 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -1677,7 +1677,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -1690,7 +1690,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(57);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
@@ -1859,7 +1859,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -1872,7 +1872,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -1886,7 +1886,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -1901,7 +1901,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -1918,7 +1918,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -1932,7 +1932,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -1946,7 +1946,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -1960,7 +1960,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -1973,14 +1973,14 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithManualDependenciesAndUnlimitedResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithPlanningDependenciesAndUnlimitedResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -2078,7 +2078,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(2);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
@@ -2090,7 +2090,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
@@ -2103,7 +2103,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
@@ -2116,8 +2116,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(11);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(22);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -2131,10 +2131,10 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(3);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId1).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(3);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -2147,8 +2147,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(22);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -2161,8 +2161,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(22);
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId7).ManualDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -2174,9 +2174,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(22);
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(2);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -2188,15 +2188,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(16);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithManualDependenciesAndUnlimitedResourcesAndTargetResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithPlanningDependenciesAndUnlimitedResourcesAndTargetResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -2255,7 +2255,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithManualDependenciesAndFreeSlackUnlimitedResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithPlanningDependenciesAndFreeSlackUnlimitedResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -2352,7 +2352,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(17);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(23);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
@@ -2364,7 +2364,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(9);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
@@ -2377,7 +2377,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(23);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
@@ -2390,8 +2390,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(16);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(27);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -2405,10 +2405,10 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(23);
             graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(31);
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(3);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId1).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(3);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -2421,8 +2421,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(30);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(37);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -2435,8 +2435,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(27);
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(31);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId7).ManualDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -2448,9 +2448,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(37);
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(41);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(2);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -2462,15 +2462,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(31);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(41);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithManualDependenciesAndTwoNoneAndDirectResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithPlanningDependenciesAndTwoNoneAndDirectResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -2632,7 +2632,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -2645,7 +2645,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -2659,7 +2659,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -2673,8 +2673,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -2688,10 +2688,10 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(16);
             graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(24);
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(3);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId1).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(3);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -2704,8 +2704,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(19);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -2718,8 +2718,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(26);
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId7).ManualDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -2731,9 +2731,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(30);
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(2);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -2745,15 +2745,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(24);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithManualDependenciesAndOneActiveAndTwoInactiveResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithPlanningDependenciesAndOneActiveAndTwoInactiveResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -2893,7 +2893,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(21);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -2906,7 +2906,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(15);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -2920,7 +2920,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -2934,8 +2934,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(29);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(40);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -2949,10 +2949,10 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(21);
             graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(29);
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(3);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId1).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(3);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -2965,8 +2965,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(40);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(47);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -2979,8 +2979,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(57);
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(61);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId7).ManualDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId9 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -2992,9 +2992,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(61);
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(65);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(2);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -3006,15 +3006,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(47);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(57);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithManualDependenciesAndTwoIndirectResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithPlanningDependenciesAndTwoIndirectResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -3176,7 +3176,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -3189,7 +3189,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -3203,7 +3203,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -3217,8 +3217,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -3232,10 +3232,10 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).LatestStartTime.ShouldBe(16);
             graphBuilder.Activity(activityId5).LatestFinishTime.ShouldBe(24);
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(3);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId1).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(3);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -3248,8 +3248,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(19);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -3262,8 +3262,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestStartTime.ShouldBe(26);
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId7).ManualDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -3275,9 +3275,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestStartTime.ShouldBe(30);
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(2);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -3289,15 +3289,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(24);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithCompiledAndManualDependenciesAndUnlimitedResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithCompiledAndPlanningDependenciesAndUnlimitedResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -3395,7 +3395,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(2);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
@@ -3407,7 +3407,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
@@ -3420,7 +3420,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
@@ -3433,8 +3433,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(11);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(22);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -3450,8 +3450,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -3464,8 +3464,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(22);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -3479,7 +3479,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -3492,8 +3492,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -3505,15 +3505,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(16);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithCompiledAndManualDependenciesAndUnlimitedResourcesAndTargetResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithCompiledAndPlanningDependenciesAndUnlimitedResourcesAndTargetResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -3572,7 +3572,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithCompiledAndManualDependenciesAndFreeSlackUnlimitedResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithCompiledAndPlanningDependenciesAndFreeSlackUnlimitedResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -3669,7 +3669,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(17);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(23);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
@@ -3681,7 +3681,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(9);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
@@ -3694,7 +3694,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(23);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
@@ -3707,8 +3707,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(16);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(27);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).ResourceDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -3724,8 +3724,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).ResourceDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -3738,8 +3738,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(30);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(37);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).ResourceDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -3753,7 +3753,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(31);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).ResourceDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -3766,8 +3766,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(41);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).ResourceDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -3779,8 +3779,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(31);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(41);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).ResourceDependencies.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
@@ -3788,7 +3788,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithCompiledAndManualDependenciesAndTwoNoneAndDirectResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithCompiledAndPlanningDependenciesAndTwoNoneAndDirectResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -3950,7 +3950,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -3963,7 +3963,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -3977,7 +3977,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -3991,8 +3991,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -4008,8 +4008,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -4022,8 +4022,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(19);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -4037,7 +4037,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -4050,8 +4050,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -4063,15 +4063,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(24);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithCompiledAndManualDependenciesAndOneActiveAndTwoInactiveResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithCompiledAndPlanningDependenciesAndOneActiveAndTwoInactiveResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -4211,7 +4211,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(15);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(21);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -4224,7 +4224,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(15);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -4238,7 +4238,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -4252,8 +4252,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(29);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(40);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -4269,8 +4269,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -4283,8 +4283,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(40);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(47);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -4298,7 +4298,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(61);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId9 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -4311,8 +4311,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(65);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -4324,15 +4324,15 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(47);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(57);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
         [Fact]
-        public void VertexGraphCompiler_GivenCompileWithCompiledAndManualDependenciesAndTwoIndirectResources_ThenResourceSchedulesCorrectOrder()
+        public void VertexGraphCompiler_GivenCompileWithCompiledAndPlanningDependenciesAndTwoIndirectResources_ThenResourceSchedulesCorrectOrder()
         {
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
@@ -4494,7 +4494,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(10);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
@@ -4507,7 +4507,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(1);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
@@ -4521,7 +4521,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(8);
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
@@ -4535,8 +4535,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(8);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(19);
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId4).ManualDependencies.Contains(activityId2).ShouldBeTrue();
+            graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
@@ -4552,8 +4552,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId5).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
@@ -4566,8 +4566,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).LatestStartTime.ShouldBe(19);
             graphBuilder.Activity(activityId6).LatestFinishTime.ShouldBe(26);
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId6).ManualDependencies.Contains(activityId3).ShouldBeTrue();
+            graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
@@ -4581,7 +4581,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).LatestFinishTime.ShouldBe(30);
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ManualDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
@@ -4594,8 +4594,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId8).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId8).ManualDependencies.Contains(activityId6).ShouldBeTrue();
+            graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
@@ -4607,8 +4607,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).LatestStartTime.ShouldBe(24);
             graphBuilder.Activity(activityId9).LatestFinishTime.ShouldBe(34);
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ManualDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId9).ManualDependencies.Contains(activityId5).ShouldBeTrue();
+            graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);

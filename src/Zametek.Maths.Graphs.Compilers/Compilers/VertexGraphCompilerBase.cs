@@ -126,7 +126,7 @@ namespace Zametek.Maths.Graphs
         //    }
         //}
 
-        public bool SetActivityDependencies(T activityId, HashSet<T> dependencies, HashSet<T> manualDependencies)
+        public bool SetActivityDependencies(T activityId, HashSet<T> dependencies, HashSet<T> planningDependencies)
         {
             lock (m_Lock)
             {
@@ -134,9 +134,9 @@ namespace Zametek.Maths.Graphs
                 {
                     throw new ArgumentNullException(nameof(dependencies));
                 }
-                if (manualDependencies is null)
+                if (planningDependencies is null)
                 {
-                    throw new ArgumentNullException(nameof(manualDependencies));
+                    throw new ArgumentNullException(nameof(planningDependencies));
                 }
                 if (!m_VertexGraphBuilder.ActivityIds.Contains(activityId))
                 {
@@ -144,19 +144,19 @@ namespace Zametek.Maths.Graphs
                 }
 
                 TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
-                var coreDependencies = new HashSet<T>(activity.Dependencies.Union(activity.ManualDependencies));
+                var coreDependencies = new HashSet<T>(activity.Dependencies.Union(activity.PlanningDependencies));
 
                 var resourceAndCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.Dependencies));
-                var resourceAndManualDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.ManualDependencies));
+                var resourceAndPlanningDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.PlanningDependencies));
 
                 var resourceOrCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.Dependencies));
-                var resourceOrManualDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.ManualDependencies));
+                var resourceOrPlanningDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.PlanningDependencies));
 
                 var compiledNotResourceDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
-                var manualNotResourceDependencies = new HashSet<T>(activity.ManualDependencies.Except(resourceAndManualDependencies));
+                var planningNotResourceDependencies = new HashSet<T>(activity.PlanningDependencies.Except(resourceAndPlanningDependencies));
 
                 var resourceNotCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndCompiledDependencies));
-                var resourceNotManualDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndManualDependencies));
+                var resourceNotPlanningDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndPlanningDependencies));
 
                 bool successfullyRemoved = true;
                 bool successfullyAdded = true;
@@ -197,14 +197,14 @@ namespace Zametek.Maths.Graphs
                     successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromCompiledDependencies);
                 }
                 {
-                    var toBeRemovedFromManualDependencies = new HashSet<T>(resourceAndManualDependencies.Except(manualDependencies));
+                    var toBeRemovedFromPlanningDependencies = new HashSet<T>(resourceAndPlanningDependencies.Except(planningDependencies));
 
-                    foreach (T dependencyId in toBeRemovedFromManualDependencies)
+                    foreach (T dependencyId in toBeRemovedFromPlanningDependencies)
                     {
-                        activity.ManualDependencies.Remove(dependencyId);
+                        activity.PlanningDependencies.Remove(dependencyId);
                     }
 
-                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromManualDependencies);
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromPlanningDependencies);
                 }
 
                 // Resource: 1
@@ -225,14 +225,14 @@ namespace Zametek.Maths.Graphs
                     successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToCompiledDependencies);
                 }
                 {
-                    var toBeAddedToManualDependencies = new HashSet<T>(resourceNotManualDependencies.Intersect(manualDependencies));
+                    var toBeAddedToPlanningDependencies = new HashSet<T>(resourceNotPlanningDependencies.Intersect(planningDependencies));
 
-                    foreach (T dependencyId in toBeAddedToManualDependencies)
+                    foreach (T dependencyId in toBeAddedToPlanningDependencies)
                     {
-                        activity.ManualDependencies.Add(dependencyId);
+                        activity.PlanningDependencies.Add(dependencyId);
                     }
 
-                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToManualDependencies);
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToPlanningDependencies);
                 }
 
                 // Resource: 0
@@ -253,14 +253,14 @@ namespace Zametek.Maths.Graphs
                     successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromCompiledDependencies);
                 }
                 {
-                    var toBeRemovedFromManualDependencies = new HashSet<T>(manualNotResourceDependencies.Except(manualDependencies));
+                    var toBeRemovedFromPlanningDependencies = new HashSet<T>(planningNotResourceDependencies.Except(planningDependencies));
 
-                    foreach (T dependencyId in toBeRemovedFromManualDependencies)
+                    foreach (T dependencyId in toBeRemovedFromPlanningDependencies)
                     {
-                        activity.ManualDependencies.Remove(dependencyId);
+                        activity.PlanningDependencies.Remove(dependencyId);
                     }
 
-                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromManualDependencies);
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromPlanningDependencies);
                 }
 
                 // Resource: 0
@@ -280,14 +280,14 @@ namespace Zametek.Maths.Graphs
                     successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToCompiledDependencies);
                 }
                 {
-                    var toBeAddedToManualDependencies = new HashSet<T>(manualDependencies.Except(resourceOrManualDependencies));
+                    var toBeAddedToPlanningDependencies = new HashSet<T>(planningDependencies.Except(resourceOrPlanningDependencies));
 
-                    foreach (T dependencyId in toBeAddedToManualDependencies)
+                    foreach (T dependencyId in toBeAddedToPlanningDependencies)
                     {
-                        activity.ManualDependencies.Add(dependencyId);
+                        activity.PlanningDependencies.Add(dependencyId);
                     }
 
-                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToManualDependencies);
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToPlanningDependencies);
                 }
 
                 // Final return.
@@ -322,11 +322,11 @@ namespace Zametek.Maths.Graphs
             {
                 IEnumerable<TDependentActivity> activities = m_VertexGraphBuilder.Activities;
 
-                // Reset activity dependencies in the graph to match only the compiled and manual dependencies
+                // Reset activity dependencies in the graph to match only the compiled and planning dependencies
                 // (i.e. remove any that are *only* resource dependencies).
                 foreach (TDependentActivity activity in activities)
                 {
-                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
+                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
                     m_VertexGraphBuilder.RemoveActivityDependencies(
                         activity.Id,
                         new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
@@ -523,12 +523,12 @@ namespace Zametek.Maths.Graphs
                             {
                                 // Here we add the previous activity ID to the set of resource
                                 // dependencies attached to the activity itself. However, we do
-                                // not add it to the compiled and manual dependencies sets.
+                                // not add it to the compiled and planning dependencies sets.
                                 // Instead we make the change directly to graph data (which we
                                 // reverse below - see just before post-compilation error collation).
 
                                 activity.ResourceDependencies.Add(previousId);
-                                IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
+                                IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
                                 m_VertexGraphBuilder.AddActivityDependencies(
                                     currentId,
                                     new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
@@ -551,11 +551,11 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
                 }
 
-                // Clear up activity dependencies in the graph to match only the compiled and manual dependencies
+                // Clear up activity dependencies in the graph to match only the compiled and planning dependencies
                 // (i.e. remove any that are *only* resource dependencies).
                 foreach (TDependentActivity activity in activities)
                 {
-                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.ManualDependencies);
+                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
                     m_VertexGraphBuilder.RemoveActivityDependencies(
                         activity.Id,
                         new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
@@ -705,7 +705,7 @@ namespace Zametek.Maths.Graphs
             foreach (T invalidDependency in invalidDependencies)
             {
                 IList<T> actsWithInvalidDeps = activities
-                    .Where(x => x.Dependencies.Union(x.ManualDependencies).Contains(invalidDependency))
+                    .Where(x => x.Dependencies.Union(x.PlanningDependencies).Contains(invalidDependency))
                     .Select(x => x.Id)
                     .OrderBy(x => x)
                     .ToList();
@@ -769,7 +769,7 @@ namespace Zametek.Maths.Graphs
             {
                 return m_VertexGraphBuilder.AddActivity(
                     activity,
-                    new HashSet<T>(activity.Dependencies.Union(activity.ManualDependencies)));
+                    new HashSet<T>(activity.Dependencies.Union(activity.PlanningDependencies)));
             }
         }
 
@@ -791,16 +791,16 @@ namespace Zametek.Maths.Graphs
                     }
                 }
                 {
-                    // Clear out the activity from manual dependencies.
+                    // Clear out the activity from planning dependencies.
                     IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
                         .Activities
-                        .Where(x => x.ManualDependencies.Contains(activityId))
+                        .Where(x => x.PlanningDependencies.Contains(activityId))
                         .Select(x => x.Id);
 
                     foreach (T dependentActivityId in dependentActivityIds)
                     {
                         var dependentActivity = m_VertexGraphBuilder.Activity(dependentActivityId);
-                        dependentActivity.ManualDependencies.Remove(activityId);
+                        dependentActivity.PlanningDependencies.Remove(activityId);
                     }
                 }
 
@@ -819,14 +819,14 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotPerformTransitiveReduction);
                 }
 
-                // Now set the compiled and manual dependencies to match the actual remaining dependencies.
+                // Now set the compiled and planning dependencies to match the actual remaining dependencies.
                 foreach (T activityId in m_VertexGraphBuilder.ActivityIds)
                 {
                     TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
                     IList<T> actualDependencyIds = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
                     var remainingCompiledDependencies = new HashSet<T>(activity.Dependencies.Intersect(actualDependencyIds));
-                    var remainingManualDependencies = new HashSet<T>(activity.ManualDependencies.Intersect(actualDependencyIds));
-                    SetActivityDependencies(activityId, remainingCompiledDependencies, remainingManualDependencies);
+                    var remainingPlanningDependencies = new HashSet<T>(activity.PlanningDependencies.Intersect(actualDependencyIds));
+                    SetActivityDependencies(activityId, remainingCompiledDependencies, remainingPlanningDependencies);
                 }
             }
         }

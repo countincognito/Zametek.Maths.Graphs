@@ -7,7 +7,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -37,7 +37,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -68,7 +68,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -99,7 +99,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -130,7 +130,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -162,7 +162,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -194,7 +194,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -227,7 +227,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -259,7 +259,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -291,7 +291,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -323,7 +323,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -354,7 +354,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -386,7 +386,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -417,7 +417,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -448,7 +448,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],
@@ -479,7 +479,7 @@
       "CanBeRemoved": false,
       "Dependencies": [
       ],
-      "ManualDependencies": [
+      "PlanningDependencies": [
       ],
       "Successors": [
       ],

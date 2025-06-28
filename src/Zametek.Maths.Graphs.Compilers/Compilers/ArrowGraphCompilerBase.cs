@@ -58,7 +58,7 @@ namespace Zametek.Maths.Graphs
             {
                 return m_ArrowGraphBuilder.AddActivity(
                     activity,
-                    new HashSet<T>(activity.Dependencies.Union(activity.ManualDependencies)));
+                    new HashSet<T>(activity.Dependencies.Union(activity.PlanningDependencies)));
             }
         }
 
@@ -80,16 +80,16 @@ namespace Zametek.Maths.Graphs
                     }
                 }
                 {
-                    // Clear out the activity from manual dependencies.
+                    // Clear out the activity from planning dependencies.
                     IEnumerable<T> dependentActivityIds = m_ArrowGraphBuilder
                         .Activities
-                        .Where(x => x.ManualDependencies.Contains(activityId))
+                        .Where(x => x.PlanningDependencies.Contains(activityId))
                         .Select(x => x.Id);
 
                     foreach (T dependentActivityId in dependentActivityIds)
                     {
                         var dependentActivity = m_ArrowGraphBuilder.Activity(dependentActivityId);
-                        dependentActivity.ManualDependencies.Remove(activityId);
+                        dependentActivity.PlanningDependencies.Remove(activityId);
                     }
                 }
 

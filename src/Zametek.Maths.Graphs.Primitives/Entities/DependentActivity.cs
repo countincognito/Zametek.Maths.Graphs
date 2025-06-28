@@ -15,7 +15,7 @@ namespace Zametek.Maths.Graphs
             : base(id, duration)
         {
             Dependencies = new HashSet<T>();
-            ManualDependencies = new HashSet<T>();
+            PlanningDependencies = new HashSet<T>();
             ResourceDependencies = new HashSet<T>();
             Successors = new HashSet<T>();
         }
@@ -24,7 +24,7 @@ namespace Zametek.Maths.Graphs
             : base(id, duration, canBeRemoved)
         {
             Dependencies = new HashSet<T>();
-            ManualDependencies = new HashSet<T>();
+            PlanningDependencies = new HashSet<T>();
             ResourceDependencies = new HashSet<T>();
             Successors = new HashSet<T>();
         }
@@ -37,31 +37,31 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(dependencies));
             }
             Dependencies = new HashSet<T>(dependencies);
-            ManualDependencies = new HashSet<T>();
+            PlanningDependencies = new HashSet<T>();
             ResourceDependencies = new HashSet<T>();
             Successors = new HashSet<T>();
         }
 
-        public DependentActivity(T id, int duration, IEnumerable<T> dependencies, IEnumerable<T> manualDependencies)
+        public DependentActivity(T id, int duration, IEnumerable<T> dependencies, IEnumerable<T> planningDependencies)
             : base(id, duration)
         {
             if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
-            if (manualDependencies is null)
+            if (planningDependencies is null)
             {
-                throw new ArgumentNullException(nameof(manualDependencies));
+                throw new ArgumentNullException(nameof(planningDependencies));
             }
             Dependencies = new HashSet<T>(dependencies);
-            ManualDependencies = new HashSet<T>(manualDependencies);
+            PlanningDependencies = new HashSet<T>(planningDependencies);
             ResourceDependencies = new HashSet<T>();
             Successors = new HashSet<T>();
         }
 
         public DependentActivity(
             T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
-            IEnumerable<T> dependencies, IEnumerable<T> manualDependencies, IEnumerable<T> resourceDependencies, IEnumerable<T> successors,
+            IEnumerable<T> dependencies, IEnumerable<T> planningDependencies, IEnumerable<T> resourceDependencies, IEnumerable<T> successors,
             LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoEffort, int duration,
             int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
             : base(
@@ -72,9 +72,9 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(dependencies));
             }
-            if (manualDependencies is null)
+            if (planningDependencies is null)
             {
-                throw new ArgumentNullException(nameof(manualDependencies));
+                throw new ArgumentNullException(nameof(planningDependencies));
             }
             if (resourceDependencies is null)
             {
@@ -85,7 +85,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(successors));
             }
             Dependencies = new HashSet<T>(dependencies);
-            ManualDependencies = new HashSet<T>(manualDependencies);
+            PlanningDependencies = new HashSet<T>(planningDependencies);
             ResourceDependencies = new HashSet<T>(resourceDependencies);
             Successors = new HashSet<T>(successors);
         }
@@ -99,7 +99,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public HashSet<T> ManualDependencies
+        public HashSet<T> PlanningDependencies
         {
             get;
         }
@@ -121,7 +121,7 @@ namespace Zametek.Maths.Graphs
         public override object CloneObject()
         {
             return new DependentActivity<T, TResourceId, TWorkStreamId>(
-                Id, Name, Notes, TargetWorkStreams, TargetResources, Dependencies, ManualDependencies, ResourceDependencies, Successors,
+                Id, Name, Notes, TargetWorkStreams, TargetResources, Dependencies, PlanningDependencies, ResourceDependencies, Successors,
                 TargetResourceOperator, AllocatedToResources, CanBeRemoved, HasNoCost, HasNoEffort, Duration, FreeSlack, EarliestStartTime,
                 LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
         }
