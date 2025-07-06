@@ -462,6 +462,55 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void VertexGraphCompiler_GivenCompileWithMinimumFreeSlackPostCompilationInvalidConstraints_ThenFindsInvalidConstraints()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 10) { MinimumFreeSlack = 10 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 10, new HashSet<int> { activityId1 }) { MaximumLatestFinishTime = 20 });
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+
+            compilation.ResourceSchedules.ShouldNotBeEmpty();
+            compilation.CompilationErrors.ShouldNotBeEmpty();
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.C0010);
+            compilationErrors[0].ErrorMessage.ShouldBe(
+                $@"{Properties.Resources.Message_InvalidConstraints}
+1 -> {Properties.Resources.Message_FreeSlackLessThanMinimumFreeSlack}
+");
+
+            graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(10);
+            graphBuilder.Activity(activityId1).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId1).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(0);
+            graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(10);
+            graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId1).Successors.Contains(activityId2).ShouldBeTrue();
+
+
+            graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(10);
+            graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(20);
+            graphBuilder.Activity(activityId2).FreeSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).TotalSlack.ShouldBe(0);
+            graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(10);
+            graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(20);
+            graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(0);
+        }
+
+        [Fact]
         public void VertexGraphCompiler_GivenCompileWithUnavailableResources_ThenFindsUnavailableResources()
         {
             int activityId1 = 1;
@@ -7167,21 +7216,6 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         [Fact]
         public void VertexGraphCompiler_GivenTransitiveReduction_WhenRedundantDependencies_ThenRedundantDependenciesRemoved()

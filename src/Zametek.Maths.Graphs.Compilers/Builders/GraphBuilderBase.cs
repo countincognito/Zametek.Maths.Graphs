@@ -338,6 +338,36 @@ namespace Zametek.Maths.Graphs
                             new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestFinishTimeLessThanEarliestFinishTime));
                     }
                 }
+
+                if (activity.EarliestStartTime.HasValue
+                    && activity.MinimumEarliestStartTime.HasValue)
+                {
+                    if (activity.EarliestStartTime < activity.MinimumEarliestStartTime)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_EarliestStartTimeLessThanMinimumEarliestStartTime));
+                    }
+                }
+
+                if (activity.LatestFinishTime.HasValue
+                    && activity.MaximumLatestFinishTime.HasValue)
+                {
+                    if (activity.LatestFinishTime > activity.MaximumLatestFinishTime)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestFinishTimeMoreThanMaximumLatestFinishTime));
+                    }
+                }
+
+                if (activity.FreeSlack.HasValue
+                    && activity.MinimumFreeSlack.HasValue)
+                {
+                    if (activity.FreeSlack < activity.MinimumFreeSlack)
+                    {
+                        activitiesWithInvalidConstraints.Add(
+                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_FreeSlackLessThanMinimumFreeSlack));
+                    }
+                }
             }
 
             return activitiesWithInvalidConstraints;

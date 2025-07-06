@@ -228,4 +228,13 @@
   <data name="Message_VertexGraphCannotContainNormalNodesWithoutAnyStartNodes" xml:space="preserve">
     <value>Vertex graph cannot contain Normal nodes without any Start nodes</value>
   </data>
+  <data name="Message_EarliestStartTimeLessThanMinimumEarliestStartTime" xml:space="preserve">
+    <value>EarliestStartTime cannot be less than MinimumEarliestStartTime</value>
+  </data>
+  <data name="Message_FreeSlackLessThanMinimumFreeSlack" xml:space="preserve">
+    <value>FreeSlack cannot be less than MinimumFreeSlack</value>
+  </data>
+  <data name="Message_LatestFinishTimeMoreThanMaximumLatestFinishTime" xml:space="preserve">
+    <value>LatestFinishTime cannot be more than MaximumLatestFinishTime</value>
+  </data>
 </root>
