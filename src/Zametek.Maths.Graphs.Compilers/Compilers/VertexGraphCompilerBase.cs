@@ -857,8 +857,7 @@ namespace Zametek.Maths.Graphs
                     TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
                     IList<T> actualDependencyIds = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
                     var remainingCompiledDependencies = new HashSet<T>(activity.Dependencies.Intersect(actualDependencyIds));
-                    //var remainingPlanningDependencies = new HashSet<T>(activity.PlanningDependencies.Intersect(actualDependencyIds));
-                    var remainingPlanningDependencies = new HashSet<T>(activity.PlanningDependencies);
+                    var remainingPlanningDependencies = new HashSet<T>(activity.PlanningDependencies.Intersect(actualDependencyIds));
                     SetActivityDependencies(activityId, remainingCompiledDependencies, remainingPlanningDependencies);
                 }
             }

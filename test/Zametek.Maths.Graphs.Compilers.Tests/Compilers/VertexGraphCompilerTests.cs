@@ -7167,5 +7167,254 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
             graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        [Fact]
+        public void VertexGraphCompiler_GivenTransitiveReduction_WhenRedundantDependencies_ThenRedundantDependenciesRemoved()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }));
+
+            graphCompiler.TransitiveReduction();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+
+            graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Dependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenTransitiveReduction_WhenRedundantPlanningDependencies_ThenRedundantPlanningDependenciesRemoved()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), new HashSet<int> { activityId1, activityId2 }));
+
+            graphCompiler.TransitiveReduction();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+
+            graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenTransitiveReduction_WhenDependenciesAreRedundantAcrossPlanningDependencies_ThenDependenciesRemoved()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }));
+
+            graphCompiler.TransitiveReduction();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+
+            graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenTransitiveReduction_WhenPlanningDependenciesAreRedundantAcrossDependencies_ThenPlanningDependenciesRemoved()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), new HashSet<int> { activityId1, activityId2 }));
+
+            graphCompiler.TransitiveReduction();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+
+            graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Dependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenTransitiveReduction_WhenDependenciesAndPlanningDependenciesAreRedundantAcrossPlanningDependencies_ThenBothDependenciesRemoved()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId1, activityId2 }));
+
+            graphCompiler.TransitiveReduction();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+
+            graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenTransitiveReduction_WhenDependenciesAndPlanningDependenciesAreRedundantAcrossDependencies_ThenBothDependenciesRemoved()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var graphBuilder = graphCompiler.Builder;
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId1, activityId2 }));
+
+            graphCompiler.TransitiveReduction();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+
+            graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Dependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
+            graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+
+            graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
+        }
     }
 }
