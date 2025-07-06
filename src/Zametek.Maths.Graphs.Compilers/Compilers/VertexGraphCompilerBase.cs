@@ -152,11 +152,11 @@ namespace Zametek.Maths.Graphs
                 var resourceOrCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.Dependencies));
                 var resourceOrPlanningDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.PlanningDependencies));
 
-                var compiledNotResourceDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
-                var planningNotResourceDependencies = new HashSet<T>(activity.PlanningDependencies.Except(resourceAndPlanningDependencies));
+                var compiledNotResourceDependencies = new HashSet<T>(activity.Dependencies.Except(activity.ResourceDependencies));
+                var planningNotResourceDependencies = new HashSet<T>(activity.PlanningDependencies.Except(activity.ResourceDependencies));
 
-                var resourceNotCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndCompiledDependencies));
-                var resourceNotPlanningDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndPlanningDependencies));
+                var resourceNotCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Except(activity.Dependencies));
+                var resourceNotPlanningDependencies = new HashSet<T>(activity.ResourceDependencies.Except(activity.PlanningDependencies));
 
                 bool successfullyRemoved = true;
                 bool successfullyAdded = true;
@@ -187,24 +187,32 @@ namespace Zametek.Maths.Graphs
                 // core dependencies.
 
                 {
-                    var toBeRemovedFromCompiledDependencies = new HashSet<T>(resourceAndCompiledDependencies.Except(dependencies));
+                    IList<T> toBeRemovedFromCompiledDependencies = resourceAndCompiledDependencies.Except(dependencies).ToList();
 
                     foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
                     {
                         activity.Dependencies.Remove(dependencyId);
                     }
 
-                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromCompiledDependencies);
-                }
-                {
-                    var toBeRemovedFromPlanningDependencies = new HashSet<T>(resourceAndPlanningDependencies.Except(planningDependencies));
+                    IList<T> toBeRemovedFromPlanningDependencies = resourceAndPlanningDependencies.Except(planningDependencies).ToList();
 
                     foreach (T dependencyId in toBeRemovedFromPlanningDependencies)
                     {
                         activity.PlanningDependencies.Remove(dependencyId);
                     }
 
-                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromPlanningDependencies);
+                    List<T> updatedDependencies = activity.Dependencies
+                        .Union(activity.PlanningDependencies)
+                        .Union(activity.ResourceDependencies)
+                        .ToList();
+                    IList<T> currentDependencies = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
+
+                    var toBeRemoved = new HashSet<T>(currentDependencies
+                        .Except(updatedDependencies)
+                        .Union(toBeRemovedFromCompiledDependencies)
+                        .Union(toBeRemovedFromPlanningDependencies));
+
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemoved);
                 }
 
                 // Resource: 1
@@ -215,24 +223,32 @@ namespace Zametek.Maths.Graphs
                 // dependencies.
 
                 {
-                    var toBeAddedToCompiledDependencies = new HashSet<T>(resourceNotCompiledDependencies.Intersect(dependencies));
+                    var toBeAddedToCompiledDependencies = resourceNotCompiledDependencies.Intersect(dependencies);
 
                     foreach (T dependencyId in toBeAddedToCompiledDependencies)
                     {
                         activity.Dependencies.Add(dependencyId);
                     }
 
-                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToCompiledDependencies);
-                }
-                {
-                    var toBeAddedToPlanningDependencies = new HashSet<T>(resourceNotPlanningDependencies.Intersect(planningDependencies));
+                    var toBeAddedToPlanningDependencies = resourceNotPlanningDependencies.Intersect(planningDependencies);
 
                     foreach (T dependencyId in toBeAddedToPlanningDependencies)
                     {
                         activity.PlanningDependencies.Add(dependencyId);
                     }
 
-                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToPlanningDependencies);
+                    List<T> updatedDependencies = activity.Dependencies
+                        .Union(activity.PlanningDependencies)
+                        .Union(activity.ResourceDependencies)
+                        .ToList();
+                    IList<T> currentDependencies = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
+
+                    var toBeAdded = new HashSet<T>(updatedDependencies
+                        .Except(currentDependencies)
+                        .Union(toBeAddedToCompiledDependencies)
+                        .Union(toBeAddedToPlanningDependencies));
+
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAdded);
                 }
 
                 // Resource: 0
@@ -243,24 +259,32 @@ namespace Zametek.Maths.Graphs
                 // core dependencies.
 
                 {
-                    var toBeRemovedFromCompiledDependencies = new HashSet<T>(compiledNotResourceDependencies.Except(dependencies));
+                    var toBeRemovedFromCompiledDependencies = compiledNotResourceDependencies.Except(dependencies);
 
                     foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
                     {
                         activity.Dependencies.Remove(dependencyId);
                     }
 
-                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromCompiledDependencies);
-                }
-                {
-                    var toBeRemovedFromPlanningDependencies = new HashSet<T>(planningNotResourceDependencies.Except(planningDependencies));
+                    var toBeRemovedFromPlanningDependencies = planningNotResourceDependencies.Except(planningDependencies);
 
                     foreach (T dependencyId in toBeRemovedFromPlanningDependencies)
                     {
                         activity.PlanningDependencies.Remove(dependencyId);
                     }
 
-                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromPlanningDependencies);
+                    List<T> updatedDependencies = activity.Dependencies
+                        .Union(activity.PlanningDependencies)
+                        .Union(activity.ResourceDependencies)
+                        .ToList();
+                    IList<T> currentDependencies = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
+
+                    var toBeRemoved = new HashSet<T>(currentDependencies
+                        .Except(updatedDependencies)
+                        .Union(toBeRemovedFromCompiledDependencies)
+                        .Union(toBeRemovedFromPlanningDependencies));
+
+                    successfullyRemoved &= m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemoved);
                 }
 
                 // Resource: 0
@@ -270,24 +294,32 @@ namespace Zametek.Maths.Graphs
                 // dependency, then add it to the core dependencies.
 
                 {
-                    var toBeAddedToCompiledDependencies = new HashSet<T>(dependencies.Except(resourceOrCompiledDependencies));
+                    var toBeAddedToCompiledDependencies = dependencies.Except(resourceOrCompiledDependencies);
 
                     foreach (T dependencyId in toBeAddedToCompiledDependencies)
                     {
                         activity.Dependencies.Add(dependencyId);
                     }
 
-                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToCompiledDependencies);
-                }
-                {
-                    var toBeAddedToPlanningDependencies = new HashSet<T>(planningDependencies.Except(resourceOrPlanningDependencies));
+                    var toBeAddedToPlanningDependencies = planningDependencies.Except(resourceOrPlanningDependencies);
 
                     foreach (T dependencyId in toBeAddedToPlanningDependencies)
                     {
                         activity.PlanningDependencies.Add(dependencyId);
                     }
 
-                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToPlanningDependencies);
+                    List<T> updatedDependencies = activity.Dependencies
+                        .Union(activity.PlanningDependencies)
+                        .Union(activity.ResourceDependencies)
+                        .ToList();
+                    IList<T> currentDependencies = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
+
+                    var toBeAdded = new HashSet<T>(updatedDependencies
+                        .Except(currentDependencies)
+                        .Union(toBeAddedToCompiledDependencies)
+                        .Union(toBeAddedToPlanningDependencies));
+
+                    successfullyAdded &= m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAdded);
                 }
 
                 // Final return.
@@ -825,7 +857,8 @@ namespace Zametek.Maths.Graphs
                     TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
                     IList<T> actualDependencyIds = m_VertexGraphBuilder.ActivityDependencyIds(activityId);
                     var remainingCompiledDependencies = new HashSet<T>(activity.Dependencies.Intersect(actualDependencyIds));
-                    var remainingPlanningDependencies = new HashSet<T>(activity.PlanningDependencies.Intersect(actualDependencyIds));
+                    //var remainingPlanningDependencies = new HashSet<T>(activity.PlanningDependencies.Intersect(actualDependencyIds));
+                    var remainingPlanningDependencies = new HashSet<T>(activity.PlanningDependencies);
                     SetActivityDependencies(activityId, remainingCompiledDependencies, remainingPlanningDependencies);
                 }
             }
