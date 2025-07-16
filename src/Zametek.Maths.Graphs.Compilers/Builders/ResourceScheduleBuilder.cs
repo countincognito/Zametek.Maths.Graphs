@@ -263,7 +263,7 @@ namespace Zametek.Maths.Graphs
                         distribution[finishIndex] |= TimeType.Finish;
                     }
 
-                    for (int timeIndex = startTime; timeIndex <= finishIndex; timeIndex++)
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                     {
                         if ((distribution[timeIndex] & TimeType.Allocated) == 0)
                         {
