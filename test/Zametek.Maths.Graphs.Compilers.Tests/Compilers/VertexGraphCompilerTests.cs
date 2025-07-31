@@ -618,9 +618,9 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.ResourceSchedules.ShouldBeEmpty();
@@ -678,9 +678,9 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
@@ -1230,8 +1230,8 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -1515,9 +1515,9 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -1774,8 +1774,8 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -2547,8 +2547,8 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -2832,9 +2832,9 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -3091,8 +3091,8 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -3865,8 +3865,8 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -4150,9 +4150,9 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -4409,8 +4409,8 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -4672,7 +4672,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -4696,9 +4696,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -4828,9 +4828,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -4960,9 +4960,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -5092,9 +5092,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5224,9 +5224,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5356,9 +5356,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5488,9 +5488,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5618,7 +5618,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -5693,7 +5693,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -5768,7 +5768,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5843,7 +5843,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5918,7 +5918,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5993,7 +5993,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6068,7 +6068,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -6143,7 +6143,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -6218,7 +6218,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6293,7 +6293,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6368,7 +6368,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6443,7 +6443,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6518,7 +6518,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -6593,7 +6593,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -6668,7 +6668,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6743,7 +6743,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6788,18 +6788,21 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId1);
             scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(5);
 
             scheduledActivities0[1].Id.ShouldBe(activityId2);
             scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[1].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[1].StartTime.ShouldBe(5);
             scheduledActivities0[1].FinishTime.ShouldBe(8);
 
             scheduledActivities0[2].Id.ShouldBe(activityId3);
             scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[2].StartTime.ShouldBe(8);
             scheduledActivities0[2].FinishTime.ShouldBe(20);
@@ -6818,13 +6821,13 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
             var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
             activity2.TargetResources.Add(resourceId1);
-            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoCost = true };
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoCost = true, HasNoBilling = true };
             activity3.TargetResources.Add(resourceId1);
 
             graphCompiler.AddActivity(activity1);
@@ -6863,18 +6866,21 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId1);
             scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(5);
 
             scheduledActivities0[1].Id.ShouldBe(activityId2);
             scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[1].StartTime.ShouldBe(5);
             scheduledActivities0[1].FinishTime.ShouldBe(8);
 
             scheduledActivities0[2].Id.ShouldBe(activityId3);
             scheduledActivities0[2].HasNoCost.ShouldBeTrue();
+            scheduledActivities0[2].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[2].StartTime.ShouldBe(8);
             scheduledActivities0[2].FinishTime.ShouldBe(20);
@@ -6893,7 +6899,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6938,18 +6944,21 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId1);
             scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(5);
 
             scheduledActivities0[1].Id.ShouldBe(activityId2);
             scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[1].StartTime.ShouldBe(5);
             scheduledActivities0[1].FinishTime.ShouldBe(8);
 
             scheduledActivities0[2].Id.ShouldBe(activityId3);
             scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[2].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[2].StartTime.ShouldBe(8);
             scheduledActivities0[2].FinishTime.ShouldBe(20);
@@ -7047,7 +7056,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 10));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 15, new HashSet<int> { activityId1 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 10, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 10) { HasNoEffort = true, HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 10) { HasNoEffort = true, HasNoCost = true, HasNoBilling = true });
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -7055,9 +7064,9 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
                 {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -7092,18 +7101,21 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId1);
             scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(5);
 
             scheduledActivities0[1].Id.ShouldBe(activityId3);
             scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[1].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[1].StartTime.ShouldBe(5);
             scheduledActivities0[1].FinishTime.ShouldBe(20);
 
             scheduledActivities0[2].Id.ShouldBe(activityId4);
             scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
             scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
             scheduledActivities0[2].StartTime.ShouldBe(20);
             scheduledActivities0[2].FinishTime.ShouldBe(30);
@@ -7138,6 +7150,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities1[0].Id.ShouldBe(activityId2);
             scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].HasNoBilling.ShouldBeFalse();
             scheduledActivities1[0].HasNoEffort.ShouldBeFalse();
             scheduledActivities1[0].StartTime.ShouldBe(0);
             scheduledActivities1[0].FinishTime.ShouldBe(10);
@@ -7158,6 +7171,13 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
+            resourceSchedules[2].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
             resourceSchedules[2].EffortAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
@@ -7172,6 +7192,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities2[0].Id.ShouldBe(activityId5);
             scheduledActivities2[0].HasNoCost.ShouldBeTrue();
+            scheduledActivities2[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities2[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities2[0].StartTime.ShouldBe(0);
             scheduledActivities2[0].FinishTime.ShouldBe(10);

@@ -8,11 +8,12 @@ namespace Zametek.Maths.Graphs
     {
         #region Ctors
 
-        public ScheduledActivity(T id, string name, bool hasNoCost, bool hasNoEffort, int duration, int startTime, int finishTime)
+        public ScheduledActivity(T id, string name, bool hasNoCost, bool hasNoBilling, bool hasNoEffort, int duration, int startTime, int finishTime)
         {
             Id = id;
             Name = name;
             HasNoCost = hasNoCost;
+            HasNoBilling = hasNoBilling;
             HasNoEffort = hasNoEffort;
             Duration = duration;
             StartTime = startTime;
@@ -34,6 +35,11 @@ namespace Zametek.Maths.Graphs
         }
 
         public bool HasNoCost
+        {
+            get;
+        }
+
+        public bool HasNoBilling
         {
             get;
         }
@@ -60,7 +66,7 @@ namespace Zametek.Maths.Graphs
 
         public object CloneObject()
         {
-            return new ScheduledActivity<T>(Id, Name, HasNoCost, HasNoEffort, Duration, StartTime, FinishTime);
+            return new ScheduledActivity<T>(Id, Name, HasNoCost, HasNoBilling, HasNoEffort, Duration, StartTime, FinishTime);
         }
 
         #endregion

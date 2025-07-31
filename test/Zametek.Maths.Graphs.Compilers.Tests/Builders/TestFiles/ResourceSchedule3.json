@@ -15,6 +15,7 @@
       "EarliestStartTime": 0,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 1,
       "LatestFinishTime": 2,
@@ -45,6 +46,7 @@
       "EarliestStartTime": 0,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 2,
       "LatestFinishTime": 3,
@@ -76,6 +78,7 @@
       "EarliestStartTime": 2,
       "FreeSlack": 0,
       "HasNoCost": true,
+      "HasNoBilling": true,
       "HasNoEffort": false,
       "Id": 3,
       "LatestFinishTime": 6,
@@ -107,6 +110,7 @@
       "EarliestStartTime": 3,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": true,
       "Id": 4,
       "LatestFinishTime": 8,
@@ -138,6 +142,7 @@
       "EarliestStartTime": 6,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 5,
       "LatestFinishTime": 10,
@@ -170,6 +175,7 @@
       "EarliestStartTime": 8,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 6,
       "LatestFinishTime": 11,
@@ -202,6 +208,7 @@
       "EarliestStartTime": 10,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 7,
       "LatestFinishTime": 12,
@@ -235,6 +242,7 @@
       "EarliestStartTime": 11,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 8,
       "LatestFinishTime": 14,
@@ -267,6 +275,7 @@
       "EarliestStartTime": 12,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 9,
       "LatestFinishTime": 16,
@@ -299,6 +308,7 @@
       "EarliestStartTime": 14,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 10,
       "LatestFinishTime": 19,
@@ -331,6 +341,7 @@
       "EarliestStartTime": 16,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 11,
       "LatestFinishTime": 20,
@@ -362,6 +373,7 @@
       "EarliestStartTime": 19,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 12,
       "LatestFinishTime": 22,
@@ -394,6 +406,7 @@
       "EarliestStartTime": 20,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 13,
       "LatestFinishTime": 22,
@@ -425,6 +438,7 @@
       "EarliestStartTime": 20,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 13,
       "LatestFinishTime": 22,
@@ -456,6 +470,7 @@
       "EarliestStartTime": 0,
       "FreeSlack": 0,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 14,
       "LatestFinishTime": 18,
@@ -487,6 +502,7 @@
       "EarliestStartTime": 3,
       "FreeSlack": 15,
       "HasNoCost": false,
+      "HasNoBilling": false,
       "HasNoEffort": false,
       "Id": 15,
       "LatestFinishTime": 22,
@@ -513,7 +529,8 @@
       ],
       "IsExplicitTarget": false,
       "Name": "Res1",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 2,
@@ -522,7 +539,8 @@
       ],
       "IsExplicitTarget": false,
       "Name": "Res2",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 3,
@@ -532,7 +550,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res3",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 4,
@@ -542,7 +561,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res4",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 5,
@@ -553,7 +573,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res5",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 6,
@@ -562,7 +583,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res6",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 7,
@@ -572,7 +594,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res7",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 8,
@@ -582,7 +605,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res8",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 9,
@@ -592,7 +616,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res9",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 10,
@@ -602,7 +627,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res10",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     },
     {
       "Id": 11,
@@ -612,7 +638,8 @@
       ],
       "IsExplicitTarget": true,
       "Name": "Res11",
-      "UnitCost": 1.0
+      "UnitCost": 1.0,
+      "UnitBilling": 1.0
     }
   ],
   "ResourceSchedules": [
@@ -642,6 +669,30 @@
         true
       ],
       "CostAllocation": [
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "BillingAllocation": [
         true,
         true,
         false,
@@ -697,13 +748,15 @@
         ],
         "IsExplicitTarget": false,
         "Name": "Res1",
-        "UnitCost": 1.0
+        "UnitCost": 1.0,
+        "UnitBilling": 1.0
       },
       "ScheduledActivities": [
         {
           "Duration": 2,
           "FinishTime": 2,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 1,
           "Name": "Task1",
@@ -713,6 +766,7 @@
           "Duration": 4,
           "FinishTime": 6,
           "HasNoCost": true,
+          "HasNoBilling": true,
           "HasNoEffort": false,
           "Id": 3,
           "Name": "Task3",
@@ -722,6 +776,7 @@
           "Duration": 4,
           "FinishTime": 10,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 5,
           "Name": "Task5",
@@ -731,6 +786,7 @@
           "Duration": 2,
           "FinishTime": 12,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 7,
           "Name": "Task7",
@@ -740,6 +796,7 @@
           "Duration": 4,
           "FinishTime": 16,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 9,
           "Name": "Task9",
@@ -749,6 +806,7 @@
           "Duration": 4,
           "FinishTime": 20,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 11,
           "Name": "Task11",
@@ -758,6 +816,7 @@
           "Duration": 2,
           "FinishTime": 22,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 13,
           "Name": "Task13",
@@ -814,6 +873,30 @@
         true,
         true
       ],
+      "BillingAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
       "EffortAllocation": [
         true,
         true,
@@ -846,13 +929,15 @@
         ],
         "IsExplicitTarget": false,
         "Name": "Res2",
-        "UnitCost": 1.0
+        "UnitCost": 1.0,
+        "UnitBilling": 1.0
       },
       "ScheduledActivities": [
         {
           "Duration": 3,
           "FinishTime": 3,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 2,
           "Name": "Task2",
@@ -862,6 +947,7 @@
           "Duration": 5,
           "FinishTime": 8,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": true,
           "Id": 4,
           "Name": "Task4",
@@ -871,6 +957,7 @@
           "Duration": 3,
           "FinishTime": 11,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 6,
           "Name": "Task6",
@@ -880,6 +967,7 @@
           "Duration": 3,
           "FinishTime": 14,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 8,
           "Name": "Task8",
@@ -889,6 +977,7 @@
           "Duration": 5,
           "FinishTime": 19,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 10,
           "Name": "Task10",
@@ -898,6 +987,7 @@
           "Duration": 3,
           "FinishTime": 22,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 12,
           "Name": "Task12",
@@ -954,6 +1044,30 @@
         false,
         false
       ],
+      "BillingAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
       "EffortAllocation": [
         true,
         true,
@@ -987,13 +1101,15 @@
         ],
         "IsExplicitTarget": true,
         "Name": "Res11",
-        "UnitCost": 1.0
+        "UnitCost": 1.0,
+        "UnitBilling": 1.0
       },
       "ScheduledActivities": [
         {
           "Duration": 3,
           "FinishTime": 3,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 14,
           "Name": "Task14",
@@ -1003,6 +1119,7 @@
           "Duration": 4,
           "FinishTime": 7,
           "HasNoCost": false,
+          "HasNoBilling": false,
           "HasNoEffort": false,
           "Id": 15,
           "Name": "Task15",

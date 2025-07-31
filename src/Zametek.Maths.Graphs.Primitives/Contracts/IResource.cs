@@ -18,6 +18,8 @@ namespace Zametek.Maths.Graphs
 
         double UnitCost { get; }
 
+        double UnitBilling { get; }
+
         int AllocationOrder { get; }
 
         HashSet<TWorkStreamId> InterActivityPhases { get; }

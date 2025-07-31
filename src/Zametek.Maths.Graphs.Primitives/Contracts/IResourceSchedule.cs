@@ -17,6 +17,8 @@ namespace Zametek.Maths.Graphs
 
         IEnumerable<bool> CostAllocation { get; }
 
+        IEnumerable<bool> BillingAllocation { get; }
+
         IEnumerable<bool> EffortAllocation { get; }
 
         int StartTime { get; }

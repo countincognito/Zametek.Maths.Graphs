@@ -1999,7 +1999,7 @@ namespace Zametek.Maths.Graphs.Tests
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int, int>>(new[]
                     {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>())
+                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
                     })).ToList();
             resourceSchedules.Count.ShouldBe(1);
 
@@ -2072,8 +2072,8 @@ namespace Zametek.Maths.Graphs.Tests
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int, int>>(new[]
                     {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>())
+                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
                     })).ToList();
             resourceSchedules.Count.ShouldBe(2);
 
@@ -2155,9 +2155,9 @@ namespace Zametek.Maths.Graphs.Tests
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int, int>>(new[]
                     {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>())
+                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
                     })).ToList();
             resourceSchedules.Count.ShouldBe(3);
 
@@ -2246,10 +2246,10 @@ namespace Zametek.Maths.Graphs.Tests
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int, int>>(new[]
                     {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 0, Enumerable.Empty<int>())
+                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
                     })).ToList();
             resourceSchedules.Count.ShouldBe(3);
 
@@ -2338,10 +2338,10 @@ namespace Zametek.Maths.Graphs.Tests
                 graphBuilder.CalculateResourceSchedulesByPriorityList(
                     new List<IResource<int, int>>(new[]
                     {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 4, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 3, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 2, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1, Enumerable.Empty<int>())
+                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 4, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 3, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 2, Enumerable.Empty<int>()),
+                        new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 1, Enumerable.Empty<int>())
                     })).ToList();
             resourceSchedules.Count.ShouldBe(3);
 

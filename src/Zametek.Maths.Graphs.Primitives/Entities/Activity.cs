@@ -28,8 +28,8 @@ namespace Zametek.Maths.Graphs
 
         public Activity(
             T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
-            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoEffort,
-            int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
+            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoBilling,
+            bool hasNoEffort, int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
             int? maximumLatestFinishTime)
         {
             if (targetWorkStreams is null)
@@ -49,6 +49,7 @@ namespace Zametek.Maths.Graphs
             AllocatedToResources = new HashSet<TResourceId>(allocatedToResources);
             CanBeRemoved = canBeRemoved;
             HasNoCost = hasNoCost;
+            HasNoBilling = hasNoBilling;
             HasNoEffort = hasNoEffort;
             Duration = duration;
             FreeSlack = freeSlack;
@@ -110,6 +111,12 @@ namespace Zametek.Maths.Graphs
         public bool IsDummy => Duration <= 0;
 
         public bool HasNoCost
+        {
+            get;
+            set;
+        }
+
+        public bool HasNoBilling
         {
             get;
             set;
@@ -244,7 +251,7 @@ namespace Zametek.Maths.Graphs
         {
             return new Activity<T, TResourceId, TWorkStreamId>(
                 Id, Name, Notes, TargetWorkStreams, TargetResources, TargetResourceOperator, AllocatedToResources,
-                CanBeRemoved, HasNoCost, HasNoEffort, Duration, FreeSlack, EarliestStartTime, LatestFinishTime,
+                CanBeRemoved, HasNoCost, HasNoBilling, HasNoEffort, Duration, FreeSlack, EarliestStartTime, LatestFinishTime,
                 MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
         }
 

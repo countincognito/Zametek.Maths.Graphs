@@ -13,7 +13,8 @@ namespace Zametek.Maths.Graphs
         public Resource(
             T id, string name, bool isExplicitTarget, bool isInactive,
             InterActivityAllocationType interActivityAllocationType,
-            double unitCost, int allocationOrder, IEnumerable<TWorkStreamId> interActivityPhases)
+            double unitCost, double unitBilling, int allocationOrder,
+            IEnumerable<TWorkStreamId> interActivityPhases)
         {
             if (interActivityPhases is null)
             {
@@ -25,6 +26,7 @@ namespace Zametek.Maths.Graphs
             IsInactive = isInactive;
             InterActivityAllocationType = interActivityAllocationType;
             UnitCost = unitCost;
+            UnitBilling = unitBilling;
             AllocationOrder = allocationOrder;
             InterActivityPhases = new HashSet<TWorkStreamId>(interActivityPhases);
         }
@@ -63,6 +65,11 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        public double UnitBilling
+        {
+            get;
+        }
+
         public int AllocationOrder
         {
             get;
@@ -77,7 +84,7 @@ namespace Zametek.Maths.Graphs
         {
             return new Resource<T, TWorkStreamId>(
                 Id, Name, IsExplicitTarget, IsInactive, InterActivityAllocationType,
-                UnitCost, AllocationOrder, InterActivityPhases);
+                UnitCost, UnitBilling, AllocationOrder, InterActivityPhases);
         }
 
         #endregion

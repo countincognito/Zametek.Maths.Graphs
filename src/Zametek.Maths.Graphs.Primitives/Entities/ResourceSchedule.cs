@@ -19,6 +19,7 @@ namespace Zametek.Maths.Graphs
             int finishTime,
             IEnumerable<bool> activityAllocation,
             IEnumerable<bool> costAllocation,
+            IEnumerable<bool> billingAllocation,
             IEnumerable<bool> effortAllocation)
         {
             if (scheduledActivities is null)
@@ -31,6 +32,7 @@ namespace Zametek.Maths.Graphs
             FinishTime = finishTime;
             ActivityAllocation = activityAllocation.ToList();
             CostAllocation = costAllocation.ToList();
+            BillingAllocation = billingAllocation.ToList();
             EffortAllocation = effortAllocation.ToList();
         }
 
@@ -40,8 +42,9 @@ namespace Zametek.Maths.Graphs
             int finishTime,
             IEnumerable<bool> activityAllocation,
             IEnumerable<bool> costAllocation,
+            IEnumerable<bool> billingAllocation,
             IEnumerable<bool> effortAllocation)
-            : this(null, scheduledActivities, startTime, finishTime, activityAllocation, costAllocation, effortAllocation)
+            : this(null, scheduledActivities, startTime, finishTime, activityAllocation, costAllocation, billingAllocation, effortAllocation)
         {
         }
 
@@ -65,6 +68,11 @@ namespace Zametek.Maths.Graphs
         }
 
         public IEnumerable<bool> CostAllocation
+        {
+            get;
+        }
+
+        public IEnumerable<bool> BillingAllocation
         {
             get;
         }
@@ -98,6 +106,7 @@ namespace Zametek.Maths.Graphs
                 FinishTime,
                 ActivityAllocation,
                 CostAllocation,
+                BillingAllocation,
                 EffortAllocation);
         }
 

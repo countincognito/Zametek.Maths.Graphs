@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private static (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> effortAllocation) ExtractAllocations(
+        private static (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> billingAllocation, IList<bool> effortAllocation) ExtractAllocations(
             IResource<TResourceId, TWorkStreamId> resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
@@ -115,11 +115,14 @@ namespace Zametek.Maths.Graphs
             List<bool> costAllocation = distribution
                 .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.CostIgnored))
                 .ToList();
+            List<bool> billingAllocation = distribution
+                .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.BillingIgnored))
+                .ToList();
             List<bool> effortAllocation = distribution
                 .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.EffortIgnored))
                 .ToList();
 
-            return (activityAllocation, costAllocation, effortAllocation);
+            return (activityAllocation, costAllocation, billingAllocation, effortAllocation);
         }
 
         private static void AllocationForIndirectType(
@@ -463,6 +466,13 @@ namespace Zametek.Maths.Graphs
                         distribution[timeIndex] |= TimeType.CostIgnored;
                     }
                 }
+                if (scheduledActivity.HasNoBilling)
+                {
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
+                    {
+                        distribution[timeIndex] |= TimeType.BillingIgnored;
+                    }
+                }
                 if (scheduledActivity.HasNoEffort)
                 {
                     for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
@@ -530,8 +540,8 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(activity));
             }
             var scheduledActivity = new ScheduledActivity<T>(
-                activity.Id, activity.Name, activity.HasNoCost, activity.HasNoEffort,
-                activity.Duration, startTime, startTime + activity.Duration);
+                activity.Id, activity.Name, activity.HasNoCost, activity.HasNoBilling,
+                activity.HasNoEffort, activity.Duration, startTime, startTime + activity.Duration);
             AddActivity(scheduledActivity);
         }
 
@@ -563,7 +573,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(activities));
             }
 
-            (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> effortAllocation) =
+            (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> billingAllocation, IList<bool> effortAllocation) =
                 ExtractAllocations(m_Resource, m_ScheduledActivities, activities, finishTime);
 
             return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
@@ -573,6 +583,7 @@ namespace Zametek.Maths.Graphs
                 finishTime,
                 activityAllocation,
                 costAllocation,
+                billingAllocation,
                 effortAllocation);
         }
 
@@ -584,12 +595,15 @@ namespace Zametek.Maths.Graphs
         private enum TimeType
         {
             None = 0,
-            CostIgnored = 1 << 0,
-            EffortIgnored = 1 << 1,
-            Start = 1 << 2,
-            Middle = 1 << 3,
-            Between = 1 << 4,
-            Finish = 1 << 5,
+            Start = 1 << 0,
+            Middle = 1 << 1,
+            Between = 1 << 2,
+            Finish = 1 << 3,
+
+            CostIgnored = 1 << 4,
+            BillingIgnored = 1 << 5,
+            EffortIgnored = 1 << 6,
+
             Allocated = Start | Middle | Between | Finish,
         }
 

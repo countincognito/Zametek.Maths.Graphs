@@ -62,11 +62,11 @@ namespace Zametek.Maths.Graphs
         public DependentActivity(
             T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
             IEnumerable<T> dependencies, IEnumerable<T> planningDependencies, IEnumerable<T> resourceDependencies, IEnumerable<T> successors,
-            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoEffort, int duration,
-            int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
+            LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoBilling, bool hasNoEffort,
+            int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)
             : base(
-                  id, name, notes, targetWorkStreams, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost, hasNoEffort,
-                  duration, freeSlack, earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
+                  id, name, notes, targetWorkStreams, targetResources, targetLogicalOperator, allocatedToResources, canBeRemoved, hasNoCost, hasNoBilling,
+                  hasNoEffort, duration, freeSlack, earliestStartTime, latestFinishTime, minimumFreeSlack, minimumEarliestStartTime, maximumLatestFinishTime)
         {
             if (dependencies is null)
             {
@@ -122,8 +122,8 @@ namespace Zametek.Maths.Graphs
         {
             return new DependentActivity<T, TResourceId, TWorkStreamId>(
                 Id, Name, Notes, TargetWorkStreams, TargetResources, Dependencies, PlanningDependencies, ResourceDependencies, Successors,
-                TargetResourceOperator, AllocatedToResources, CanBeRemoved, HasNoCost, HasNoEffort, Duration, FreeSlack, EarliestStartTime,
-                LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
+                TargetResourceOperator, AllocatedToResources, CanBeRemoved, HasNoCost, HasNoBilling, HasNoEffort, Duration, FreeSlack,
+                EarliestStartTime, LatestFinishTime, MinimumFreeSlack, MinimumEarliestStartTime, MaximumLatestFinishTime);
         }
 
         #endregion

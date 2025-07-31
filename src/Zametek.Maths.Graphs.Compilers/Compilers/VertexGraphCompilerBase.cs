@@ -518,6 +518,7 @@ namespace Zametek.Maths.Graphs
                                     false,
                                     InterActivityAllocationType.None,
                                     0.0,
+                                    0.0,
                                     0,
                                     Enumerable.Empty<TWorkStreamId>()),
                                 resourceSchedule.ScheduledActivities,
@@ -525,6 +526,7 @@ namespace Zametek.Maths.Graphs
                                 resourceSchedule.FinishTime,
                                 resourceSchedule.ActivityAllocation,
                                 resourceSchedule.CostAllocation,
+                                resourceSchedule.BillingAllocation,
                                 resourceSchedule.EffortAllocation)
                             );
                     }

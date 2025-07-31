@@ -15,6 +15,7 @@
     "IsInactive": false,
     "Name": "Steve",
     "UnitCost": 1.0,
+    "UnitBilling": 1.0,
     "InterActivityPhases": []
   },
   "ScheduledActivities": [
@@ -22,6 +23,8 @@
       "Duration": 1,
       "FinishTime": 74,
       "HasNoCost": false,
+      "HasNoBilling": false,
+      "HasNoEffort": false,
       "Id": 50,
       "Name": "Migration Prep",
       "StartTime": 73
@@ -30,6 +33,8 @@
       "Duration": 1,
       "FinishTime": 75,
       "HasNoCost": false,
+      "HasNoBilling": false,
+      "HasNoEffort": false,
       "Id": 51,
       "Name": "DB backup",
       "StartTime": 74
@@ -38,6 +43,8 @@
       "Duration": 1,
       "FinishTime": 76,
       "HasNoCost": false,
+      "HasNoBilling": false,
+      "HasNoEffort": false,
       "Id": 52,
       "Name": "Transfer DB",
       "StartTime": 75
@@ -46,6 +53,8 @@
       "Duration": 1,
       "FinishTime": 77,
       "HasNoCost": false,
+      "HasNoBilling": false,
+      "HasNoEffort": false,
       "Id": 53,
       "Name": "Import data to server",
       "StartTime": 76
@@ -54,6 +63,8 @@
       "Duration": 1,
       "FinishTime": 78,
       "HasNoCost": false,
+      "HasNoBilling": false,
+      "HasNoEffort": false,
       "Id": 54,
       "Name": "Validate DBs after import",
       "StartTime": 77
@@ -62,6 +73,8 @@
       "Duration": 1,
       "FinishTime": 79,
       "HasNoCost": false,
+      "HasNoBilling": false,
+      "HasNoEffort": false,
       "Id": 59,
       "Name": "Smoke tests",
       "StartTime": 78
@@ -70,6 +83,8 @@
       "Duration": 1,
       "FinishTime": 101,
       "HasNoCost": false,
+      "HasNoBilling": false,
+      "HasNoEffort": false,
       "Id": 66,
       "Name": "Test application",
       "StartTime": 100

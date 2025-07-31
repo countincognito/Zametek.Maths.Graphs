@@ -10,6 +10,8 @@ namespace Zametek.Maths.Graphs
 
         bool HasNoCost { get; }
 
+        bool HasNoBilling { get; }
+
         bool HasNoEffort { get; }
 
         int Duration { get; }

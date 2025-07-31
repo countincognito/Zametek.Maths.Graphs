@@ -25,7 +25,7 @@ namespace Zametek.Maths.Graphs.Tests
             const int finishTime = 0;
 
             int resourceId1 = 1;
-            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
@@ -43,7 +43,7 @@ namespace Zametek.Maths.Graphs.Tests
             const int finishTime = 10;
 
             int resourceId1 = 1;
-            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 0, Enumerable.Empty<int>());
+            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
