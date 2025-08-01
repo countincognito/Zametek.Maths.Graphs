@@ -1217,7 +1217,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -1256,7 +1256,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -1525,7 +1525,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -1573,7 +1573,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1806,7 +1806,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -1845,7 +1845,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -2604,7 +2604,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -2643,7 +2643,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -2912,7 +2912,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -2960,7 +2960,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3193,7 +3193,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -3232,7 +3232,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -3992,7 +3992,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -4031,7 +4031,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -4300,7 +4300,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -4348,7 +4348,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4581,7 +4581,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
@@ -4620,7 +4620,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
