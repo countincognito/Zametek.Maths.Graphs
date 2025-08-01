@@ -5353,10 +5353,158 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities2.Last().FinishTime.ShouldBe(12);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUnbilledDirectActivity_ThenDirectBillingsRemoved()
+        {
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId2);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId3);
 
 
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(3);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    false, false, false, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(1);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
+            scheduledActivities1.Count.ShouldBe(1);
+
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities1[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(3);
+
+            scheduledActivities1.Last().FinishTime.ShouldBe(3);
+
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var resourceSchedule2 = resourceSchedules[2];
+            resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
+            var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
+            scheduledActivities2.Count.ShouldBe(1);
+
+            scheduledActivities2[0].Id.ShouldBe(activityId3);
+            scheduledActivities2[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities2[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities2[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(12);
+
+            scheduledActivities2.Last().FinishTime.ShouldBe(12);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUncostedIndirectActivity_ThenIndirectCostsUnaffected()
@@ -5664,10 +5812,158 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities2.Last().FinishTime.ShouldBe(12);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUnbilledIndirectActivity_ThenIndirectBillingsUnaffected()
+        {
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoBilling = true };
+            activity2.TargetResources.Add(resourceId2);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId3);
 
 
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(3);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(1);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
+            scheduledActivities1.Count.ShouldBe(1);
+
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].HasNoBilling.ShouldBeTrue();
+            scheduledActivities1[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(3);
+
+            scheduledActivities1.Last().FinishTime.ShouldBe(3);
+
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var resourceSchedule2 = resourceSchedules[2];
+            resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
+            var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
+            scheduledActivities2.Count.ShouldBe(1);
+
+            scheduledActivities2[0].Id.ShouldBe(activityId3);
+            scheduledActivities2[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities2[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities2[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(12);
+
+            scheduledActivities2.Last().FinishTime.ShouldBe(12);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUncostedNoneActivity_ThenNoneCostsRemoved()
@@ -5975,10 +6271,158 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities2.Last().FinishTime.ShouldBe(12);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithOneOfEachTypeResources_WithUnbilledNoneActivity_ThenNoneBillingsRemoved()
+        {
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int resourceId3 = resourceId2 + 1;
+
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId2);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoBilling = true };
+            activity3.TargetResources.Add(resourceId3);
 
 
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(3);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(1);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[1].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
+            scheduledActivities1.Count.ShouldBe(1);
+
+            scheduledActivities1[0].Id.ShouldBe(activityId2);
+            scheduledActivities1[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities1[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities1[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities1[0].StartTime.ShouldBe(0);
+            scheduledActivities1[0].FinishTime.ShouldBe(3);
+
+            scheduledActivities1.Last().FinishTime.ShouldBe(3);
+
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].BillingAllocation.ShouldBe(
+                new bool[] {
+                    false, false, false, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
+            resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            var resourceSchedule2 = resourceSchedules[2];
+            resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
+            var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
+            scheduledActivities2.Count.ShouldBe(1);
+
+            scheduledActivities2[0].Id.ShouldBe(activityId3);
+            scheduledActivities2[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities2[0].HasNoBilling.ShouldBeTrue();
+            scheduledActivities2[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities2[0].StartTime.ShouldBe(0);
+            scheduledActivities2[0].FinishTime.ShouldBe(12);
+
+            scheduledActivities2.Last().FinishTime.ShouldBe(12);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUncostedFirstActivity_ThenFirstCostsRemoved()
@@ -6148,10 +6592,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUnbilledFirstActivity_ThenFirstBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    false, false, false, false, false, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUncostedMiddleActivity_ThenMiddleCostsRemoved()
@@ -6321,11 +6844,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUnbilledMiddleActivity_ThenMiddleBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoBilling = true };
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
 
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUncostedLastActivity_ThenLastCostsRemoved()
@@ -6495,10 +7096,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeDirectResources_WithUnbilledLastActivity_ThenLastBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoBilling = true };
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, false, false,
+                    false, false, false, false, false, false, false, false, false, false,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUncostedFirstActivity_ThenNoCostsRemoved()
@@ -6668,9 +7348,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUnbilledFirstActivity_ThenNoBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUncostedMiddleActivity_ThenNoCostsRemoved()
@@ -6840,9 +7600,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUnbilledMiddleActivity_ThenNoBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoBilling = true };
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUncostedLastActivity_ThenNoCostsRemoved()
@@ -7012,9 +7852,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeIndirectResources_WithUnbilledLastActivity_ThenNoBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoBilling = true };
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUncostedFirstActivity_ThenFirstCostsRemoved()
@@ -7184,9 +8104,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUnbilledFirstActivity_ThenFirstBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    false, false, false, false, false, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUncostedMiddleActivity_ThenMiddleCostsRemoved()
@@ -7356,9 +8356,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUnbilledMiddleActivity_ThenMiddleBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3) { HasNoBilling = true };
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12);
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUncostedLastActivity_ThenLastCostsRemoved()
@@ -7528,10 +8608,89 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(20);
         }
 
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithThreeNoneResources_WithUnbilledLastActivity_ThenLastBillingsRemoved()
+        {
+            int resourceId1 = 1;
 
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
 
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetResources.Add(resourceId1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 3);
+            activity2.TargetResources.Add(resourceId1);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 12) { HasNoBilling = true };
+            activity3.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                new List<IResource<int, int>>(new[] { resource1 }));
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].CostAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, false, false,
+                    false, false, false, false, false, false, false, false, false, false,
+                });
+
+            resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            var resourceSchedule0 = resourceSchedules[0];
+            resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+            var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+            scheduledActivities0.Count.ShouldBe(3);
+
+            scheduledActivities0[0].Id.ShouldBe(activityId1);
+            scheduledActivities0[0].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[0].StartTime.ShouldBe(0);
+            scheduledActivities0[0].FinishTime.ShouldBe(5);
+
+            scheduledActivities0[1].Id.ShouldBe(activityId2);
+            scheduledActivities0[1].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[1].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[1].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[1].StartTime.ShouldBe(5);
+            scheduledActivities0[1].FinishTime.ShouldBe(8);
+
+            scheduledActivities0[2].Id.ShouldBe(activityId3);
+            scheduledActivities0[2].HasNoCost.ShouldBeFalse();
+            scheduledActivities0[2].HasNoBilling.ShouldBeTrue();
+            scheduledActivities0[2].HasNoEffort.ShouldBeFalse();
+            scheduledActivities0[2].StartTime.ShouldBe(8);
+            scheduledActivities0[2].FinishTime.ShouldBe(20);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(20);
+        }
 
         [Fact]
         public void VertexGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
