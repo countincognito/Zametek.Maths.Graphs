@@ -1277,7 +1277,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -1600,7 +1600,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -1845,7 +1845,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    false, false, false, false, false, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -1866,7 +1866,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -2664,7 +2664,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -2987,7 +2987,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -3232,7 +3232,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    false, false, false, false, false, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -3253,7 +3253,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -4052,7 +4052,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -4375,7 +4375,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -4620,7 +4620,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    false, false, false, false, false, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
@@ -4641,7 +4641,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0[0].Id.ShouldBe(activityId3);
             scheduledActivities0[0].HasNoCost.ShouldBeTrue();
-            scheduledActivities0[0].HasNoBilling.ShouldBeFalse();
+            scheduledActivities0[0].HasNoBilling.ShouldBeTrue();
             scheduledActivities0[0].HasNoEffort.ShouldBeTrue();
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(8);
@@ -7141,14 +7141,14 @@ namespace Zametek.Maths.Graphs.Tests
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, true, true,
-                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, false, false,
+                    false, false, false, false, false, false, false, false, false, false,
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
                 new bool[] {
-                    true, true, true, true, true, true, true, true, false, false,
-                    false, false, false, false, false, false, false, false, false, false,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
