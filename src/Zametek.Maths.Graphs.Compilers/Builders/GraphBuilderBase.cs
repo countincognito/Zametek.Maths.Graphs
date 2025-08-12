@@ -166,7 +166,10 @@ namespace Zametek.Maths.Graphs
         {
             get
             {
-                return Activities.Select(x => x.EarliestStartTime.GetValueOrDefault()).DefaultIfEmpty().Min();
+                return Activities
+                    .Select(x => x.EarliestStartTime.GetValueOrDefault())
+                    .DefaultIfEmpty()
+                    .Min();
             }
         }
 
@@ -174,7 +177,10 @@ namespace Zametek.Maths.Graphs
         {
             get
             {
-                return Activities.Select(x => x.EarliestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
+                return Activities
+                    .Select(x => x.LatestFinishTime.GetValueOrDefault())
+                    .DefaultIfEmpty()
+                    .Max();
             }
         }
 
