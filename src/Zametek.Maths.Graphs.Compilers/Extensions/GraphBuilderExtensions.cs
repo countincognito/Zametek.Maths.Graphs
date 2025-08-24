@@ -148,7 +148,8 @@ namespace Zametek.Maths.Graphs
                             }
                         }
                         // When at least one explicit target resource must be available.
-                        else if (activity.TargetResourceOperator == LogicalOperator.OR)
+                        else if (activity.TargetResourceOperator == LogicalOperator.OR
+                                 || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                         {
                             // Check intersection of TargetResources and filtered Resources.
                             IEnumerable<TResourceId> intersection =
@@ -323,8 +324,26 @@ namespace Zametek.Maths.Graphs
                                         continue;
                                     }
 
+                                    // Find all the resources that must accommodate the activity.
+                                    if (activity.TargetResourceOperator == LogicalOperator.AND)
+                                    {
+                                        availableResourceSchedulers.Add(resourceScheduleBuilder);
+
+                                        var targetResources = new HashSet<TResourceId>(activity.TargetResources);
+                                        if (targetResources.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
+                                        {
+                                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> availableResourceScheduler in availableResourceSchedulers)
+                                            {
+                                                availableResourceScheduler.AppendActivity(activity, timeCounter);
+                                                started.Add(activityId);
+                                            }
+                                            keepLooking = true;
+                                            ready[activityIndex] = null;
+                                            break;
+                                        }
+                                    }
                                     // Find just one resource that can accommodate the activity.
-                                    if (activity.TargetResourceOperator == LogicalOperator.OR)
+                                    else if (activity.TargetResourceOperator == LogicalOperator.OR)
                                     {
                                         resourceScheduleBuilder.AppendActivity(activity, timeCounter);
                                         started.Add(activityId);
@@ -332,13 +351,16 @@ namespace Zametek.Maths.Graphs
                                         ready[activityIndex] = null;
                                         break;
                                     }
-                                    // Find all the resources that must accommodate the activity.
-                                    else if (activity.TargetResourceOperator == LogicalOperator.AND)
+                                    // Find all the active resources that must accommodate the activity.
+                                    else if (activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                                     {
                                         availableResourceSchedulers.Add(resourceScheduleBuilder);
 
-                                        var targetResources = new HashSet<TResourceId>(activity.TargetResources);
-                                        if (targetResources.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
+                                        // Check intersection of TargetResources and filtered Resources.
+                                        var intersection = new HashSet<TResourceId>(
+                                            activity.TargetResources.Intersect(filteredResources.Select(x => x.Id)));
+
+                                        if (intersection.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
                                         {
                                             foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> availableResourceScheduler in availableResourceSchedulers)
                                             {

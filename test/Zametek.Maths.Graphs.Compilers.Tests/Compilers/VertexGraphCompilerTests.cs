@@ -1,4 +1,5 @@
 ﻿using Shouldly;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -527,6 +528,8 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId12 = activityId11 + 1;
             int activityId13 = activityId12 + 1;
             int activityId14 = activityId13 + 1;
+            int activityId15 = activityId14 + 1;
+            int activityId16 = activityId15 + 1;
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
@@ -543,6 +546,8 @@ namespace Zametek.Maths.Graphs.Tests
             var activity12 = new DependentActivity<int, int, int>(activityId12, 3);
             var activity13 = new DependentActivity<int, int, int>(activityId13, 13);
             var activity14 = new DependentActivity<int, int, int>(activityId14, 8);
+            var activity15 = new DependentActivity<int, int, int>(activityId15, 4);
+            var activity16 = new DependentActivity<int, int, int>(activityId16, 3);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -600,6 +605,15 @@ namespace Zametek.Maths.Graphs.Tests
             activity14.TargetResources.Add(resourceId3);
             activity14.TargetResourceOperator = LogicalOperator.OR;
 
+            activity15.TargetResources.Add(resourceId1);
+            activity15.TargetResources.Add(resourceId2);
+            activity15.TargetResources.Add(resourceId3);
+            activity15.TargetResourceOperator = LogicalOperator.ACTIVE_AND;
+
+            activity16.TargetResources.Add(resourceId2);
+            activity16.TargetResources.Add(resourceId3);
+            activity16.TargetResourceOperator = LogicalOperator.ACTIVE_AND;
+
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
@@ -614,6 +628,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity12);
             graphCompiler.AddActivity(activity13);
             graphCompiler.AddActivity(activity14);
+            graphCompiler.AddActivity(activity15);
+            graphCompiler.AddActivity(activity16);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
@@ -641,6 +657,7 @@ namespace Zametek.Maths.Graphs.Tests
 {activityId9} -> {resourceId2}
 {activityId10} -> {resourceId3}
 {activityId12} -> {resourceId2}, {resourceId3}
+{activityId16} -> {resourceId2}, {resourceId3}
 ");
         }
 
@@ -650,15 +667,18 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
+            int activityId4 = activityId3 + 1;
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
             var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int> { activityId1 });
             var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 });
+            var activity4 = new DependentActivity<int, int, int>(activityId4, 4, new HashSet<int> { activityId3 });
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
+            int resourceId4 = resourceId3 + 1;
 
             activity1.TargetResources.Add(resourceId1);
             activity1.TargetResourceOperator = LogicalOperator.AND;
@@ -671,9 +691,15 @@ namespace Zametek.Maths.Graphs.Tests
             activity3.TargetResources.Add(resourceId3);
             activity3.TargetResourceOperator = LogicalOperator.OR;
 
+            activity4.TargetResources.Add(resourceId1);
+            activity4.TargetResources.Add(resourceId3);
+            activity4.TargetResources.Add(resourceId4);
+            activity4.TargetResourceOperator = LogicalOperator.ACTIVE_AND;
+
             graphCompiler.AddActivity(activity1);
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
+            graphCompiler.AddActivity(activity4);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>(new[]
@@ -681,18 +707,19 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                     new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
                 }));
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldBeEmpty();
 
             var resourceSchedules = compilation.ResourceSchedules.ToList();
-            resourceSchedules.Count.ShouldBe(1);
+            resourceSchedules.Count.ShouldBe(2);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
-            scheduledActivities0.Count.ShouldBe(3);
+            scheduledActivities0.Count.ShouldBe(4);
 
             scheduledActivities0[0].Id.ShouldBe(activityId1);
             scheduledActivities0[0].StartTime.ShouldBe(0);
@@ -706,7 +733,93 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0[2].StartTime.ShouldBe(13);
             scheduledActivities0[2].FinishTime.ShouldBe(17);
 
-            scheduledActivities0.Last().FinishTime.ShouldBe(17);
+            scheduledActivities0[3].Id.ShouldBe(activityId4);
+            scheduledActivities0[3].StartTime.ShouldBe(17);
+            scheduledActivities0[3].FinishTime.ShouldBe(21);
+
+            scheduledActivities0.Last().FinishTime.ShouldBe(21);
+
+
+            var resourceSchedule1 = resourceSchedules[1];
+            resourceSchedule1.Resource.Id.ShouldBe(resourceId4);
+            var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
+            scheduledActivities1.Count.ShouldBe(1);
+
+            scheduledActivities1[0].Id.ShouldBe(activityId4);
+            scheduledActivities1[0].StartTime.ShouldBe(17);
+            scheduledActivities1[0].FinishTime.ShouldBe(21);
+
+            scheduledActivities1.Last().FinishTime.ShouldBe(21);
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCompileWithDifferentResourceOperator_ThenResourceSchedulesCorrectOrder()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int activityId3 = activityId2 + 1;
+            int activityId4 = activityId3 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int> { activityId1 });
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 });
+            var activity4 = new DependentActivity<int, int, int>(activityId4, 4, new HashSet<int> { activityId3 });
+
+            int resourceId1 = 1;
+
+            activity1.TargetResources.Add(resourceId1);
+            activity2.TargetResources.Add(resourceId1);
+            activity3.TargetResources.Add(resourceId1);
+            activity4.TargetResources.Add(resourceId1);
+
+            graphCompiler.AddActivity(activity1);
+            graphCompiler.AddActivity(activity2);
+            graphCompiler.AddActivity(activity3);
+            graphCompiler.AddActivity(activity4);
+
+            foreach (LogicalOperator logicalOperator in Enum.GetValues(typeof(LogicalOperator)))
+            {
+                foreach (IDependentActivity<int, int, int> activity in graphCompiler.Builder.Activities)
+                {
+                    activity.TargetResourceOperator = logicalOperator;
+                }
+
+                IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                    new List<IResource<int, int>>(new[]
+                    {
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
+                    }));
+
+                compilation.ResourceSchedules.ShouldNotBeEmpty();
+                compilation.CompilationErrors.ShouldBeEmpty();
+
+                var resourceSchedules = compilation.ResourceSchedules.ToList();
+                resourceSchedules.Count.ShouldBe(1);
+
+                var resourceSchedule0 = resourceSchedules[0];
+                resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
+                var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
+                scheduledActivities0.Count.ShouldBe(4);
+
+                scheduledActivities0[0].Id.ShouldBe(activityId1);
+                scheduledActivities0[0].StartTime.ShouldBe(0);
+                scheduledActivities0[0].FinishTime.ShouldBe(6);
+
+                scheduledActivities0[1].Id.ShouldBe(activityId2);
+                scheduledActivities0[1].StartTime.ShouldBe(6);
+                scheduledActivities0[1].FinishTime.ShouldBe(13);
+
+                scheduledActivities0[2].Id.ShouldBe(activityId3);
+                scheduledActivities0[2].StartTime.ShouldBe(13);
+                scheduledActivities0[2].FinishTime.ShouldBe(17);
+
+                scheduledActivities0[3].Id.ShouldBe(activityId4);
+                scheduledActivities0[3].StartTime.ShouldBe(17);
+                scheduledActivities0[3].FinishTime.ShouldBe(21);
+
+                scheduledActivities0.Last().FinishTime.ShouldBe(21);
+            }
         }
 
         [Fact]

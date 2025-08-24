@@ -407,7 +407,8 @@ namespace Zametek.Maths.Graphs
                                 }
                             }
                             // When at least one explicit target resource must be available.
-                            else if (dependentActivity.TargetResourceOperator == LogicalOperator.OR)
+                            else if (dependentActivity.TargetResourceOperator == LogicalOperator.OR
+                                    || dependentActivity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                             {
                                 // Check intersection of TargetResources and filtered Resources.
                                 IEnumerable<TResourceId> intersection =
