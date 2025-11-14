@@ -177,7 +177,13 @@ namespace Zametek.Maths.Graphs
             }
 
             // Go through each node that is not an End or Isolated node.
-            foreach (Node<T, TEvent> node in NodeLookup.Values.Where(x => x.NodeType != NodeType.End && x.NodeType != NodeType.Isolated).ToList())
+
+            List<Node<T, TEvent>> nodes = NodeLookup.Values
+                .Where(x => x.NodeType != NodeType.End && x.NodeType != NodeType.Isolated)
+                .OrderByDescending(x => x.Content.EarliestFinishTime)
+                .ToList();
+
+            foreach (Node<T, TEvent> node in nodes)
             {
                 // Get the outgoing dummy edges and their head nodes.
                 var outgoingDummyEdgeIdLookup = new HashSet<T>(
@@ -264,10 +270,11 @@ namespace Zametek.Maths.Graphs
             }
             // First, find the tail nodes that connect to this node via dummy edges.
             var tailNodeParallelDummyEdgesLookup = new Dictionary<T, HashSet<T>>();
-            IEnumerable<T> removableIncomingDummyEdgeIds =
-                node.IncomingEdges.Select(x => EdgeLookup[x])
+            IEnumerable<T> removableIncomingDummyEdgeIds = node.IncomingEdges
+                .Select(x => EdgeLookup[x])
                 .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
-                .Select(x => x.Id);
+                .Select(x => x.Id)
+                .ToList();
 
             foreach (T incomingDummyEdgeId in removableIncomingDummyEdgeIds)
             {
@@ -284,8 +291,7 @@ namespace Zametek.Maths.Graphs
             }
 
             // Now find the tail nodes that connect to this node via multiple dummy edges.
-            IList<T> setsOfMoreThanOneDummyEdge =
-                tailNodeParallelDummyEdgesLookup
+            IList<T> setsOfMoreThanOneDummyEdge = tailNodeParallelDummyEdgesLookup
                 .Where(x => x.Value.Count > 1)
                 .Select(x => x.Key)
                 .ToList();
@@ -377,7 +383,14 @@ namespace Zametek.Maths.Graphs
             // Go through the incoming dummy edges and remove any that
             // connect directly to any ancestors of the non-dummy edges'
             // tail nodes.
-            foreach (T dummyEdgeId in node.IncomingEdges.Select(x => EdgeLookup[x]).Where(x => x.Content.IsDummy && x.Content.CanBeRemoved).Select(x => x.Id).ToList())
+
+            List<T> incomingDummyEdges = node.IncomingEdges
+                .Select(x => EdgeLookup[x])
+                .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
+                .Select(x => x.Id)
+                .ToList();
+
+            foreach (T dummyEdgeId in incomingDummyEdges)
             {
                 T dummyEdgeTailNodeId = EdgeTailNodeLookup[dummyEdgeId].Id;
                 if (tailNodeAncestors.Contains(dummyEdgeTailNodeId))
@@ -387,7 +400,11 @@ namespace Zametek.Maths.Graphs
             }
 
             // Go through all the remaining incoming edges and repeat.
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => EdgeTailNodeLookup[x].Id).ToList())
+            List<T> remainingIncomingEdges = node.IncomingEdges
+                .Select(x => EdgeTailNodeLookup[x].Id)
+                .ToList();
+
+            foreach (T tailNodeId in remainingIncomingEdges)
             {
                 RemoveRedundantIncomingDummyEdges(tailNodeId, nodeIdAncestorLookup);
             }
