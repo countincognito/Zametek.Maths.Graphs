@@ -20,6 +20,13 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(arrowGraphBuilder));
             }
 
+            bool edgesCleaned = arrowGraphBuilder.CleanUpEdges();
+
+            if (!edgesCleaned)
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
+            }
+
             arrowGraphBuilder.ClearCriticalPathVariables();
 
             if (!arrowGraphBuilder.CalculateEventEarliestFinishTimes())
@@ -33,13 +40,6 @@ namespace Zametek.Maths.Graphs
             if (!arrowGraphBuilder.CalculateCriticalPathVariables())
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPath);
-            }
-
-            bool edgesCleaned = arrowGraphBuilder.CleanUpEdges();
-
-            if (!edgesCleaned)
-            {
-                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
             }
         }
 

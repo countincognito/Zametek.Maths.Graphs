@@ -180,7 +180,7 @@ namespace Zametek.Maths.Graphs
 
             List<Node<T, TEvent>> nodes = NodeLookup.Values
                 .Where(x => x.NodeType != NodeType.End && x.NodeType != NodeType.Isolated)
-                .OrderByDescending(x => x.Content.EarliestFinishTime)
+                .OrderByDescending(x => x.Content.EarliestFinishTime) // Redirect edges on nodes with earlier finish times first.
                 .ToList();
 
             foreach (Node<T, TEvent> node in nodes)
@@ -224,7 +224,8 @@ namespace Zametek.Maths.Graphs
                 IList<T> commonDependencyEdgeIds =
                     dummyEdgeIdsToSuccessorNodes
                     .SelectMany(x => x)
-                    .Where(x => commonDependencyNodeLookup.Contains(EdgeTailNodeLookup[x].Id)).ToList();
+                    .Where(x => commonDependencyNodeLookup.Contains(EdgeTailNodeLookup[x].Id))
+                    .ToList();
 
                 // In order to redirect any common dependencies to the original
                 // node, it cannot have any successor nodes other than the common
@@ -232,10 +233,7 @@ namespace Zametek.Maths.Graphs
                 // the common successor nodes).
                 var allSuccessorNodeLookup = new HashSet<T>(node.OutgoingEdges.Select(x => EdgeHeadNodeLookup[x].Id));
 
-                var commonSuccessorNodes =
-                    commonDependencyEdgeIds.Select(x => EdgeHeadNodeLookup[x].Id);
-
-                var commonSuccessorNodeLookup = new HashSet<T>(commonSuccessorNodes);
+                var commonSuccessorNodeLookup = new HashSet<T>(commonDependencyEdgeIds.Select(x => EdgeHeadNodeLookup[x].Id));
 
                 if (!allSuccessorNodeLookup.IsSubsetOf(commonSuccessorNodeLookup))
                 {
@@ -243,7 +241,12 @@ namespace Zametek.Maths.Graphs
                 }
 
                 // Redirect all common dependencies towards the original node.
-                foreach (T commonDependencyEdgeId in commonDependencyEdgeIds.Where(x => !outgoingDummyEdgeIdLookup.Contains(x)).OrderBy(x => x))
+                List<T> commonDependencyEdgeIdsForOriginalNode = commonDependencyEdgeIds
+                    .Where(x => !outgoingDummyEdgeIdLookup.Contains(x))
+                    .OrderBy(x => x)
+                    .ToList();
+
+                foreach (T commonDependencyEdgeId in commonDependencyEdgeIdsForOriginalNode)
                 {
                     bool changeHeadSuccess = ChangeEdgeHeadNode(commonDependencyEdgeId, node.Id);
                     if (!changeHeadSuccess)

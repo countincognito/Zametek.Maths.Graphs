@@ -20,6 +20,13 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(vertexGraphBuilder));
             }
 
+            bool edgesCleaned = vertexGraphBuilder.CleanUpEdges();
+
+            if (!edgesCleaned)
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
+            }
+
             vertexGraphBuilder.ClearCriticalPathVariables();
 
             if (!vertexGraphBuilder.CalculateCriticalPathForwardFlow())
@@ -29,13 +36,6 @@ namespace Zametek.Maths.Graphs
             if (!vertexGraphBuilder.CalculateCriticalPathBackwardFlow())
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathBackwardFlow);
-            }
-
-            bool edgesCleaned = vertexGraphBuilder.CleanUpEdges();
-
-            if (!edgesCleaned)
-            {
-                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
             }
         }
 
