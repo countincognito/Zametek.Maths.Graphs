@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Zametek.Maths.Graphs
 {
@@ -935,9 +936,266 @@ namespace Zametek.Maths.Graphs
             m_EdgeTailNodeLookup.Clear();
         }
 
+        // Sets the compiled and planning dependencies for an activity, reconciling them
+        // with any existing resource dependencies already wired into the graph.
+        public bool SetActivityDependencies(T activityId, HashSet<T> dependencies, HashSet<T> planningDependencies)
+        {
+            if (dependencies is null) throw new ArgumentNullException(nameof(dependencies));
+            if (planningDependencies is null) throw new ArgumentNullException(nameof(planningDependencies));
+            if (!ActivityIds.Contains(activityId)) return false;
+
+            TActivity activityObj = Activity(activityId);
+
+            // Cast to IDependentActivity to access ResourceDependencies — only valid for
+            // TActivity subtypes that implement IDependentActivity (e.g. the compiler path).
+            if (!(activityObj is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity))
+            {
+                // Non-dependent activity: just wire in the dependencies directly.
+                IList<T> currentDeps = ActivityDependencyIds(activityId);
+                var toBeRemoved = new HashSet<T>(currentDeps.Except(dependencies.Union(planningDependencies)));
+                var toBeAdded = new HashSet<T>(dependencies.Union(planningDependencies).Except(currentDeps));
+                bool removed = RemoveActivityDependencies(activityId, toBeRemoved);
+                bool added = AddActivityDependencies(activityId, toBeAdded);
+                return removed && added;
+            }
+
+            var resourceAndCompiledDependencies = new HashSet<T>(dependentActivity.ResourceDependencies.Intersect(dependentActivity.Dependencies));
+            var resourceAndPlanningDependencies = new HashSet<T>(dependentActivity.ResourceDependencies.Intersect(dependentActivity.PlanningDependencies));
+
+            var resourceOrCompiledDependencies = new HashSet<T>(dependentActivity.ResourceDependencies.Union(dependentActivity.Dependencies));
+            var resourceOrPlanningDependencies = new HashSet<T>(dependentActivity.ResourceDependencies.Union(dependentActivity.PlanningDependencies));
+
+            var compiledNotResourceDependencies = new HashSet<T>(dependentActivity.Dependencies.Except(dependentActivity.ResourceDependencies));
+            var planningNotResourceDependencies = new HashSet<T>(dependentActivity.PlanningDependencies.Except(dependentActivity.ResourceDependencies));
+
+            var resourceNotCompiledDependencies = new HashSet<T>(dependentActivity.ResourceDependencies.Except(dependentActivity.Dependencies));
+            var resourceNotPlanningDependencies = new HashSet<T>(dependentActivity.ResourceDependencies.Except(dependentActivity.PlanningDependencies));
+
+            bool successfullyRemoved = true;
+            bool successfullyAdded = true;
+
+            // Resource: 1, Core: 1, New: 0
+            {
+                IList<T> toBeRemovedFromCompiledDependencies = resourceAndCompiledDependencies.Except(dependencies).ToList();
+                foreach (T dependencyId in toBeRemovedFromCompiledDependencies) dependentActivity.Dependencies.Remove(dependencyId);
+
+                IList<T> toBeRemovedFromPlanningDependencies = resourceAndPlanningDependencies.Except(planningDependencies).ToList();
+                foreach (T dependencyId in toBeRemovedFromPlanningDependencies) dependentActivity.PlanningDependencies.Remove(dependencyId);
+
+                List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
+                IList<T> currentDependencies = ActivityDependencyIds(activityId);
+                var toBeRemoved = new HashSet<T>(currentDependencies.Except(updatedDependencies).Union(toBeRemovedFromCompiledDependencies).Union(toBeRemovedFromPlanningDependencies));
+                successfullyRemoved &= RemoveActivityDependencies(activityId, toBeRemoved);
+            }
+
+            // Resource: 1, Core: 0, New: 1
+            {
+                var toBeAddedToCompiledDependencies = resourceNotCompiledDependencies.Intersect(dependencies);
+                foreach (T dependencyId in toBeAddedToCompiledDependencies) dependentActivity.Dependencies.Add(dependencyId);
+
+                var toBeAddedToPlanningDependencies = resourceNotPlanningDependencies.Intersect(planningDependencies);
+                foreach (T dependencyId in toBeAddedToPlanningDependencies) dependentActivity.PlanningDependencies.Add(dependencyId);
+
+                List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
+                IList<T> currentDependencies = ActivityDependencyIds(activityId);
+                var toBeAdded = new HashSet<T>(updatedDependencies.Except(currentDependencies).Union(toBeAddedToCompiledDependencies).Union(toBeAddedToPlanningDependencies));
+                successfullyAdded &= AddActivityDependencies(activityId, toBeAdded);
+            }
+
+            // Resource: 0, Core: 1, New: 0
+            {
+                var toBeRemovedFromCompiledDependencies = compiledNotResourceDependencies.Except(dependencies);
+                foreach (T dependencyId in toBeRemovedFromCompiledDependencies) dependentActivity.Dependencies.Remove(dependencyId);
+
+                var toBeRemovedFromPlanningDependencies = planningNotResourceDependencies.Except(planningDependencies);
+                foreach (T dependencyId in toBeRemovedFromPlanningDependencies) dependentActivity.PlanningDependencies.Remove(dependencyId);
+
+                List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
+                IList<T> currentDependencies = ActivityDependencyIds(activityId);
+                var toBeRemoved = new HashSet<T>(currentDependencies.Except(updatedDependencies).Union(toBeRemovedFromCompiledDependencies).Union(toBeRemovedFromPlanningDependencies));
+                successfullyRemoved &= RemoveActivityDependencies(activityId, toBeRemoved);
+            }
+
+            // Resource: 0, Core: 0, New: X
+            {
+                var toBeAddedToCompiledDependencies = dependencies.Except(resourceOrCompiledDependencies);
+                foreach (T dependencyId in toBeAddedToCompiledDependencies) dependentActivity.Dependencies.Add(dependencyId);
+
+                var toBeAddedToPlanningDependencies = planningDependencies.Except(resourceOrPlanningDependencies);
+                foreach (T dependencyId in toBeAddedToPlanningDependencies) dependentActivity.PlanningDependencies.Add(dependencyId);
+
+                List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
+                IList<T> currentDependencies = ActivityDependencyIds(activityId);
+                var toBeAdded = new HashSet<T>(updatedDependencies.Except(currentDependencies).Union(toBeAddedToCompiledDependencies).Union(toBeAddedToPlanningDependencies));
+                successfullyAdded &= AddActivityDependencies(activityId, toBeAdded);
+            }
+
+            return successfullyRemoved && successfullyAdded;
+        }
+
+        // Strips resource-only dependencies and clears resource allocation state before a compile pass.
+        public void ResetResourceState(IEnumerable<TActivity> activities)
+        {
+            foreach (TActivity activity in activities)
+            {
+                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+                IEnumerable<T> coreDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies);
+                RemoveActivityDependencies(activity.Id, new HashSet<T>(dependentActivity.ResourceDependencies.Except(coreDependencies)));
+                dependentActivity.ResourceDependencies.Clear();
+                dependentActivity.AllocatedToResources.Clear();
+            }
+        }
+
+        // Wires resource dependencies into the graph from the finished schedule.
+        public void AssignResourceDependencies(IList<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
+        {
+            foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> schedule in resourceSchedules)
+            {
+                IResource<TResourceId, TWorkStreamId> resource = schedule.Resource;
+                T previousId = default;
+                bool first = true;
+
+                foreach (IScheduledActivity<T> scheduledActivity in schedule.ScheduledActivities.OrderBy(x => x.StartTime))
+                {
+                    T currentId = scheduledActivity.Id;
+                    TActivity activityObj = Activity(currentId);
+                    if (!(activityObj is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+
+                    if (resource != null) dependentActivity.AllocatedToResources.Add(resource.Id);
+
+                    if (!first)
+                    {
+                        dependentActivity.ResourceDependencies.Add(previousId);
+                        IEnumerable<T> coreDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies);
+                        AddActivityDependencies(currentId, new HashSet<T>(dependentActivity.ResourceDependencies.Except(coreDependencies)));
+                    }
+
+                    first = false;
+                    previousId = scheduledActivity.Id;
+                }
+            }
+        }
+
+        // Removes resource-only dependencies (those that are not core compiled or planning dependencies).
+        public void RemoveResourceOnlyDependencies(IEnumerable<TActivity> activities)
+        {
+            foreach (TActivity activity in activities)
+            {
+                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+                IEnumerable<T> coreDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies);
+                RemoveActivityDependencies(activity.Id, new HashSet<T>(dependentActivity.ResourceDependencies.Except(coreDependencies)));
+            }
+        }
+
+        // Recomputes each activity's Successors set from the current graph structure.
+        public void UpdateActivitySuccessors(IEnumerable<TActivity> activities)
+        {
+            foreach (TActivity activity in activities)
+            {
+                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+                dependentActivity.Successors.Clear();
+                Node<T, TActivity> node = Node(activity.Id);
+                if (node.NodeType != NodeType.Start && node.NodeType != NodeType.Normal) continue;
+                IEnumerable<T> successorNodeIds = node.OutgoingEdges.Select(EdgeHeadNode).Select(x => x.Id);
+                dependentActivity.Successors.UnionWith(successorNodeIds);
+            }
+        }
+
+        // Checks pre-compilation conditions and appends any errors found.
+        public void AddPreCompilationErrors(
+            List<GraphCompilationError> errors,
+            IEnumerable<T> invalidDependencies,
+            IEnumerable<TActivity> activities,
+            IEnumerable<ICircularDependency<T>> circularDependencies,
+            IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints,
+            bool allResourcesExplicitTargetsButNotAllActivitiesTargeted,
+            IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet)
+        {
+            if (invalidDependencies.Any())
+            {
+                IEnumerable<IDependentActivity<T, TResourceId, TWorkStreamId>> dependentActivities =
+                    activities.OfType<IDependentActivity<T, TResourceId, TWorkStreamId>>();
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0010,
+                    BuildInvalidDependenciesErrorMessage(invalidDependencies, dependentActivities)));
+            }
+
+            if (circularDependencies.Any())
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0020,
+                    BuildCircularDependenciesErrorMessage(circularDependencies)));
+
+            if (invalidPrecompilationConstraints.Any())
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0030,
+                    BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
+
+            if (allResourcesExplicitTargetsButNotAllActivitiesTargeted)
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0040,
+                    $@"{Properties.Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
+
+            if (!CleanUpEdges())
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0050,
+                    $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
+
+            if (unavailableResourcesSet.Count != 0)
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0060,
+                    BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
+        }
+
         #endregion
 
         #region Private Methods
+
+        private static string BuildInvalidDependenciesErrorMessage(
+            IEnumerable<T> invalidDependencies,
+            IEnumerable<IDependentActivity<T, TResourceId, TWorkStreamId>> activities)
+        {
+            if (invalidDependencies == null || !invalidDependencies.Any()
+                || activities == null || !activities.Any())
+            {
+                return string.Empty;
+            }
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_InvalidDependencies}");
+            foreach (T invalidDependency in invalidDependencies)
+            {
+                IList<T> actsWithInvalidDeps = activities
+                    .Where(x => x.Dependencies.Union(x.PlanningDependencies).Contains(invalidDependency))
+                    .Select(x => x.Id)
+                    .OrderBy(x => x)
+                    .ToList();
+                output.AppendLine($@"{invalidDependency} {Properties.Resources.Message_IsInvalidButReferencedBy} {string.Join(@", ", actsWithInvalidDeps)}");
+            }
+            return output.ToString();
+        }
+
+        private static string BuildCircularDependenciesErrorMessage(IEnumerable<ICircularDependency<T>> circularDependencies)
+        {
+            if (circularDependencies == null || !circularDependencies.Any()) return string.Empty;
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_CircularDependencies}");
+            foreach (ICircularDependency<T> circularDependency in circularDependencies)
+                output.AppendLine(string.Join(@" -> ", circularDependency.Dependencies));
+            return output.ToString();
+        }
+
+        private static string BuildInvalidConstraintsErrorMessage(IEnumerable<IInvalidConstraint<T>> invalidConstraints)
+        {
+            if (invalidConstraints == null || !invalidConstraints.Any()) return string.Empty;
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_InvalidConstraints}");
+            foreach (IInvalidConstraint<T> invalidConstraint in invalidConstraints)
+                output.AppendLine($@"{invalidConstraint.Id} -> {invalidConstraint.Message}");
+            return output.ToString();
+        }
+
+        private static string BuildUnavailableResourcesErrorMessage(IEnumerable<IUnavailableResources<T, TResourceId>> unavailableResourceSet)
+        {
+            if (unavailableResourceSet == null || !unavailableResourceSet.Any()) return string.Empty;
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_UnavailableResources}");
+            foreach (IUnavailableResources<T, TResourceId> unavailableResources in unavailableResourceSet)
+                output.AppendLine($@"{unavailableResources.Id} -> {string.Join(@", ", unavailableResources.ResourceIds.OrderBy(x => x))}");
+            return output.ToString();
+        }
 
         private IList<ICircularDependency<T>> FindStronglyConnectedComponents()
         {
