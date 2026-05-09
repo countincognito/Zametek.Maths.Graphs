@@ -1,0 +1,35 @@
+name: Publish NuGet
+on:
+  push:
+    tags: ['v*.*.*']
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+      - run: dotnet restore
+      - run: dotnet build --configuration Release --no-restore
+      - run: dotnet test --configuration Release --no-build
+      - name: Pack Primitives
+        run: |
+          dotnet pack src/Zametek.Maths.Graphs.Primitives/Zametek.Maths.Graphs.Primitives.csproj \
+            --configuration Release --no-build \
+            --output ./nupkg \
+            -p:PackageVersion=${{ github.ref_name }}
+      - name: Pack Compilers
+        run: |
+          dotnet pack src/Zametek.Maths.Graphs.Compilers/Zametek.Maths.Graphs.Compilers.csproj \
+            --configuration Release --no-build \
+            --output ./nupkg \
+            -p:PackageVersion=${{ github.ref_name }}
+      - name: Push to NuGet
+        run: |
+          dotnet nuget push ./nupkg/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
