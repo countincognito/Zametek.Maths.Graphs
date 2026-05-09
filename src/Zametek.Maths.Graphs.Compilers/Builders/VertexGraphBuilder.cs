@@ -658,114 +658,13 @@ namespace Zametek.Maths.Graphs
             return FindStronglyConnectedComponents().Where(x => x.Dependencies.Count > 1).ToList();
         }
 
-        public IList<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints()
-        {
-            var activitiesWithInvalidConstraints = new List<IInvalidConstraint<T>>();
+        public IList<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
+            ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPreCompilationConstraints(
+                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
 
-            foreach (IActivity<T, TResourceId, TWorkStreamId> activity in Activities)
-            {
-                if (activity.MinimumFreeSlack.HasValue
-                    && activity.MaximumLatestFinishTime.HasValue)
-                {
-                    activitiesWithInvalidConstraints.Add(
-                        new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime));
-                    continue;
-                }
-                if (activity.MinimumEarliestStartTime.HasValue
-                    && activity.MaximumLatestFinishTime.HasValue
-                    && (activity.MinimumEarliestStartTime.Value + activity.Duration) > activity.MaximumLatestFinishTime.Value)
-                {
-                    activitiesWithInvalidConstraints.Add(
-                        new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime));
-                    continue;
-                }
-            }
-
-            return activitiesWithInvalidConstraints;
-        }
-
-        public IList<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints()
-        {
-            var activitiesWithInvalidConstraints = new List<IInvalidConstraint<T>>();
-
-            foreach (IActivity<T, TResourceId, TWorkStreamId> activity in Activities)
-            {
-                if (activity.EarliestStartTime.HasValue && activity.EarliestFinishTime.HasValue)
-                {
-                    if (activity.EarliestStartTime < 0)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_EarliestStartTimeLessThanZero));
-                    }
-                    if (activity.EarliestFinishTime < 0)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_EarliestFinishTimeLessThanZero));
-                    }
-                }
-
-                if (activity.LatestStartTime.HasValue && activity.LatestFinishTime.HasValue)
-                {
-                    if (activity.LatestStartTime < 0)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestStartTimeLessThanZero));
-                    }
-                    if (activity.LatestFinishTime < 0)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestFinishTimeLessThanZero));
-                    }
-                }
-
-                if (activity.EarliestStartTime.HasValue && activity.LatestStartTime.HasValue)
-                {
-                    if (activity.LatestStartTime < activity.EarliestStartTime)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestStartTimeLessThanEarliestStartTime));
-                    }
-                }
-
-                if (activity.EarliestFinishTime.HasValue && activity.LatestFinishTime.HasValue)
-                {
-                    if (activity.LatestFinishTime < activity.EarliestFinishTime)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestFinishTimeLessThanEarliestFinishTime));
-                    }
-                }
-
-                if (activity.EarliestStartTime.HasValue && activity.MinimumEarliestStartTime.HasValue)
-                {
-                    if (activity.EarliestStartTime < activity.MinimumEarliestStartTime)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_EarliestStartTimeLessThanMinimumEarliestStartTime));
-                    }
-                }
-
-                if (activity.LatestFinishTime.HasValue && activity.MaximumLatestFinishTime.HasValue)
-                {
-                    if (activity.LatestFinishTime > activity.MaximumLatestFinishTime)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_LatestFinishTimeMoreThanMaximumLatestFinishTime));
-                    }
-                }
-
-                if (activity.FreeSlack.HasValue && activity.MinimumFreeSlack.HasValue)
-                {
-                    if (activity.FreeSlack < activity.MinimumFreeSlack)
-                    {
-                        activitiesWithInvalidConstraints.Add(
-                            new InvalidConstraint<T>(activity.Id, Properties.Resources.Message_FreeSlackLessThanMinimumFreeSlack));
-                    }
-                }
-            }
-
-            return activitiesWithInvalidConstraints;
-        }
+        public IList<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints() =>
+            ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(
+                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
 
         public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
