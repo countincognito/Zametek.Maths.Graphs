@@ -427,116 +427,74 @@ namespace Zametek.Maths.Graphs
 
         public bool RemoveActivity(T activityId)
         {
-            // Retrieve the activity's node.
-            if (!m_NodeLookup.TryGetValue(activityId, out Node<T, TActivity> node))
-            {
-                return false;
-            }
-            if (!node.Content.CanBeRemoved)
-            {
-                return false;
-            }
+            if (!m_NodeLookup.TryGetValue(activityId, out Node<T, TActivity> node)) return false;
+            if (!node.Content.CanBeRemoved) return false;
 
             RemoveUnsatisfiedSuccessorActivity(activityId);
             m_NodeLookup.Remove(node.Id);
 
-            if (node.NodeType == NodeType.Isolated)
-            {
-                return true;
-            }
+            if (node.NodeType == NodeType.Isolated) return true;
 
             if (node.NodeType == NodeType.End || node.NodeType == NodeType.Normal)
             {
-                IList<T> incomingEdgeIds = node.IncomingEdges.ToList();
-                int length = incomingEdgeIds.Count;
-                for (int i = 0; i < length; i++)
-                {
-                    T edgeId = incomingEdgeIds[i];
-                    Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[edgeId];
-
-                    // Remove the edge from the tail node.
-                    tailNode.OutgoingEdges.Remove(edgeId);
-                    m_EdgeTailNodeLookup.Remove(edgeId);
-
-                    if (!tailNode.OutgoingEdges.Any())
-                    {
-                        if (tailNode.NodeType == NodeType.Normal)
-                        {
-                            tailNode.SetNodeType(NodeType.End);
-                        }
-                        else if (tailNode.NodeType == NodeType.Start)
-                        {
-                            tailNode.SetNodeType(NodeType.Isolated);
-                        }
-                    }
-
-                    // Remove the edge from the head node.
-                    node.IncomingEdges.Remove(edgeId);
-                    m_EdgeHeadNodeLookup.Remove(edgeId);
-
-                    if (!node.IncomingEdges.Any())
-                    {
-                        if (node.NodeType == NodeType.Normal)
-                        {
-                            node.SetNodeType(NodeType.Start);
-                        }
-                        else if (node.NodeType == NodeType.End)
-                        {
-                            node.SetNodeType(NodeType.Isolated);
-                        }
-                    }
-
-                    // Remove the edge completely.
-                    m_EdgeLookup.Remove(edgeId);
-                }
+                RemoveIncomingEdgesFromNode(node);
             }
 
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Normal)
             {
-                IList<T> outgoingEdgeIds = node.OutgoingEdges.ToList();
-                int length = outgoingEdgeIds.Count;
-                for (int i = 0; i < length; i++)
-                {
-                    T edgeId = outgoingEdgeIds[i];
-                    Node<T, TActivity> headNode = m_EdgeHeadNodeLookup[edgeId];
-
-                    // Remove the edge from the head node.
-                    headNode.IncomingEdges.Remove(edgeId);
-                    m_EdgeHeadNodeLookup.Remove(edgeId);
-
-                    if (!headNode.IncomingEdges.Any())
-                    {
-                        if (headNode.NodeType == NodeType.Normal)
-                        {
-                            headNode.SetNodeType(NodeType.Start);
-                        }
-                        else if (headNode.NodeType == NodeType.End)
-                        {
-                            headNode.SetNodeType(NodeType.Isolated);
-                        }
-                    }
-
-                    // Remove the edge from the tail node.
-                    node.OutgoingEdges.Remove(edgeId);
-                    m_EdgeTailNodeLookup.Remove(edgeId);
-
-                    if (!node.OutgoingEdges.Any())
-                    {
-                        if (node.NodeType == NodeType.Normal)
-                        {
-                            node.SetNodeType(NodeType.End);
-                        }
-                        else if (node.NodeType == NodeType.Start)
-                        {
-                            node.SetNodeType(NodeType.Isolated);
-                        }
-                    }
-
-                    // Remove the edge completely.
-                    m_EdgeLookup.Remove(edgeId);
-                }
+                RemoveOutgoingEdgesFromNode(node);
             }
             return true;
+        }
+
+        private void RemoveIncomingEdgesFromNode(Node<T, TActivity> node)
+        {
+            foreach (T edgeId in node.IncomingEdges.ToList())
+            {
+                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[edgeId];
+
+                tailNode.OutgoingEdges.Remove(edgeId);
+                m_EdgeTailNodeLookup.Remove(edgeId);
+                if (!tailNode.OutgoingEdges.Any()) DowngradeOutboundNodeType(tailNode);
+
+                node.IncomingEdges.Remove(edgeId);
+                m_EdgeHeadNodeLookup.Remove(edgeId);
+                if (!node.IncomingEdges.Any()) DowngradeInboundNodeType(node);
+
+                m_EdgeLookup.Remove(edgeId);
+            }
+        }
+
+        private void RemoveOutgoingEdgesFromNode(Node<T, TActivity> node)
+        {
+            foreach (T edgeId in node.OutgoingEdges.ToList())
+            {
+                Node<T, TActivity> headNode = m_EdgeHeadNodeLookup[edgeId];
+
+                headNode.IncomingEdges.Remove(edgeId);
+                m_EdgeHeadNodeLookup.Remove(edgeId);
+                if (!headNode.IncomingEdges.Any()) DowngradeInboundNodeType(headNode);
+
+                node.OutgoingEdges.Remove(edgeId);
+                m_EdgeTailNodeLookup.Remove(edgeId);
+                if (!node.OutgoingEdges.Any()) DowngradeOutboundNodeType(node);
+
+                m_EdgeLookup.Remove(edgeId);
+            }
+        }
+
+        // When a node loses its last outgoing edge it can no longer be Start or Normal.
+        private static void DowngradeOutboundNodeType(Node<T, TActivity> node)
+        {
+            if (node.NodeType == NodeType.Normal) node.SetNodeType(NodeType.End);
+            else if (node.NodeType == NodeType.Start) node.SetNodeType(NodeType.Isolated);
+        }
+
+        // When a node loses its last incoming edge it can no longer be End or Normal.
+        private static void DowngradeInboundNodeType(Node<T, TActivity> node)
+        {
+            if (node.NodeType == NodeType.Normal) node.SetNodeType(NodeType.Start);
+            else if (node.NodeType == NodeType.End) node.SetNodeType(NodeType.Isolated);
         }
 
         public bool RemoveActivityDependencies(T activityId, HashSet<T> dependencies)
@@ -561,55 +519,24 @@ namespace Zametek.Maths.Graphs
                 return true;
             }
 
-            // If any dependencies currently exist, remove them.
+            // Remove edges whose tail node is in the specified dependency set.
             var existingDependencyLookup = new HashSet<T>(m_NodeLookup.Keys.Intersect(dependencies));
-            IList<T> incomingEdgeIds = node.IncomingEdges.ToList();
-            int length = incomingEdgeIds.Count;
-            for (int i = 0; i < length; i++)
+
+            foreach (T edgeId in node.IncomingEdges.ToList())
             {
-                T edgeId = incomingEdgeIds[i];
                 Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[edgeId];
+                if (!existingDependencyLookup.Contains(tailNode.Id)) continue;
 
-                if (!existingDependencyLookup.Contains(tailNode.Id))
-                {
-                    continue;
-                }
-
-                // Remove the edge from the tail node.
                 tailNode.OutgoingEdges.Remove(edgeId);
                 m_EdgeTailNodeLookup.Remove(edgeId);
+                if (!tailNode.OutgoingEdges.Any()) DowngradeOutboundNodeType(tailNode);
 
-                if (!tailNode.OutgoingEdges.Any())
-                {
-                    if (tailNode.NodeType == NodeType.Normal)
-                    {
-                        tailNode.SetNodeType(NodeType.End);
-                    }
-                    else if (tailNode.NodeType == NodeType.Start)
-                    {
-                        tailNode.SetNodeType(NodeType.Isolated);
-                    }
-                }
-
-                // Remove the edge from the head node.
                 node.IncomingEdges.Remove(edgeId);
                 m_EdgeHeadNodeLookup.Remove(edgeId);
-
-                // Remove the edge completely.
                 m_EdgeLookup.Remove(edgeId);
             }
 
-            if (!node.IncomingEdges.Any())
-            {
-                if (node.NodeType == NodeType.Normal)
-                {
-                    node.SetNodeType(NodeType.Start);
-                }
-                else if (node.NodeType == NodeType.End)
-                {
-                    node.SetNodeType(NodeType.Isolated);
-                }
-            }
+            if (!node.IncomingEdges.Any()) DowngradeInboundNodeType(node);
 
             return true;
         }
