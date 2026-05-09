@@ -383,144 +383,37 @@ namespace Zametek.Maths.Graphs
             IList<IResource<TResourceId, TWorkStreamId>> resources,
             IList<IWorkStream<TWorkStreamId>> workStreams)
         {
-            if (resources is null)
-            {
-                throw new ArgumentNullException(nameof(resources));
-            }
-            if (workStreams is null)
-            {
-                throw new ArgumentNullException(nameof(workStreams));
-            }
+            if (resources is null) throw new ArgumentNullException(nameof(resources));
+            if (workStreams is null) throw new ArgumentNullException(nameof(workStreams));
 
             lock (m_Lock)
             {
                 IEnumerable<TDependentActivity> activities = m_VertexGraphBuilder.Activities;
+                ResetResourceState(activities);
 
-                // Reset activity dependencies in the graph to match only the compiled and planning dependencies
-                // (i.e. remove any that are *only* resource dependencies).
-                foreach (TDependentActivity activity in activities)
-                {
-                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
-                    m_VertexGraphBuilder.RemoveActivityDependencies(
-                        activity.Id,
-                        new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
-                    activity.ResourceDependencies.Clear();
-                    activity.AllocatedToResources.Clear();
-                }
-
-                // Sanity check the graph data.
+                // Sanity check graph and resources.
                 IEnumerable<T> invalidDependencies = m_VertexGraphBuilder.InvalidDependencies;
                 IEnumerable<ICircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
                 IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = m_VertexGraphBuilder.FindInvalidPreCompilationConstraints();
 
-                // If resources are 0, assume infinite resources.
                 bool infiniteResources = resources.Count == 0;
-
-                // Filter out disabled resources.
                 IList<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
-                // Sanity check the resources.
                 bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
                     !infiniteResources
                     && filteredResources.All(x => x.IsExplicitTarget)
                     && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && x.TargetResources.Count == 0);
 
-                // Check if any activities are obliged to use only explicit target resources
-                // that are unavailable.
-                var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
+                IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
+                    infiniteResources
+                    ? new List<IUnavailableResources<T, TResourceId>>()
+                    : GatherUnavailableResources(activities, filteredResources);
 
-                if (!infiniteResources)
-                {
-                    foreach (TDependentActivity dependentActivity in activities)
-                    {
-                        if (dependentActivity.TargetResources.Count != 0)
-                        {
-                            // When all explicit target resources must be available.
-                            if (dependentActivity.TargetResourceOperator == LogicalOperator.AND)
-                            {
-                                IEnumerable<TResourceId> unavailableResourceIds =
-                                    dependentActivity.TargetResources.Except(filteredResources.Select(x => x.Id));
-
-                                if (unavailableResourceIds.Any())
-                                {
-                                    unavailableResourcesSet.Add(
-                                        new UnavailableResources<T, TResourceId>(dependentActivity.Id, unavailableResourceIds));
-                                }
-                            }
-                            // When at least one explicit target resource must be available.
-                            else if (dependentActivity.TargetResourceOperator == LogicalOperator.OR
-                                    || dependentActivity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
-                            {
-                                IEnumerable<TResourceId> intersection =
-                                    dependentActivity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
-
-                                if (!intersection.Any())
-                                {
-                                    unavailableResourcesSet.Add(
-                                        new UnavailableResources<T, TResourceId>(dependentActivity.Id, dependentActivity.TargetResources));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Collate pre-compilation errors, if any exist.
-
+                // Collate pre-compilation errors.
                 var compilationErrors = new List<GraphCompilationError>();
-
-                // P0010
-                if (invalidDependencies.Any())
-                {
-                    compilationErrors.Add(
-                        new GraphCompilationError(
-                            GraphCompilationErrorCode.P0010,
-                            BuildInvalidDependenciesErrorMessage(invalidDependencies, activities)));
-                }
-
-                // P0020
-                if (circularDependencies.Any())
-                {
-                    compilationErrors.Add(
-                        new GraphCompilationError(
-                            GraphCompilationErrorCode.P0020,
-                            BuildCircularDependenciesErrorMessage(circularDependencies)));
-                }
-
-                // P0030
-                if (invalidPrecompilationConstraints.Any())
-                {
-                    compilationErrors.Add(
-                        new GraphCompilationError(
-                            GraphCompilationErrorCode.P0030,
-                            BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
-                }
-
-                // P0040
-                if (allResourcesExplicitTargetsButNotAllActivitiesTargeted)
-                {
-                    compilationErrors.Add(
-                        new GraphCompilationError(
-                            GraphCompilationErrorCode.P0040,
-                            $@"{Properties.Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
-                }
-
-                // P0050
-                if (!m_VertexGraphBuilder.CleanUpEdges())
-                {
-                    compilationErrors.Add(
-                        new GraphCompilationError(
-                            GraphCompilationErrorCode.P0050,
-                            $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
-                }
-
-                // P0060
-                if (unavailableResourcesSet.Count != 0)
-                {
-                    compilationErrors.Add(
-                        new GraphCompilationError(
-                            GraphCompilationErrorCode.P0060,
-                            BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
-                }
+                AddPreCompilationErrors(compilationErrors, invalidDependencies, activities, circularDependencies,
+                    invalidPrecompilationConstraints, allResourcesExplicitTargetsButNotAllActivitiesTargeted,
+                    unavailableResourcesSet);
 
                 if (compilationErrors.Count != 0)
                 {
@@ -531,203 +424,61 @@ namespace Zametek.Maths.Graphs
                         compilationErrors);
                 }
 
-                // Perform first compilation and calculate resource schedules.
+                // First pass: CPM + resource scheduling.
                 m_VertexGraphBuilder.CalculateCriticalPath();
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules = m_VertexGraphBuilder
                     .CalculateResourceSchedulesByPriorityList(filteredResources)
                     .ToList();
 
-                // If the previous calculation was performed with infinite resources, then it will not be possible
-                // to handle resource dependencies. So here we need to create fake resources for resource dependencies
-                // to work in the next step.
+                // Infinite-resource schedules lack real resource IDs — assign synthetic ones so
+                // resource-dependency chaining works in the next step.
                 if (infiniteResources)
                 {
-                    TResourceId resourceId = default;
-
-                    var replacementResourceSchedules = new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
-
-                    foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> resourceSchedule in resourceSchedules)
-                    {
-                        resourceId = resourceId.Next();
-
-                        replacementResourceSchedules.Add(
-                            new ResourceSchedule<T, TResourceId, TWorkStreamId>(
-                                new Resource<TResourceId, TWorkStreamId>(
-                                    resourceId,
-                                    null,
-                                    false,
-                                    false,
-                                    InterActivityAllocationType.None,
-                                    0.0,
-                                    0.0,
-                                    0,
-                                    Enumerable.Empty<TWorkStreamId>()),
-                                resourceSchedule.ScheduledActivities,
-                                resourceSchedule.StartTime,
-                                resourceSchedule.FinishTime,
-                                resourceSchedule.ActivityAllocation,
-                                resourceSchedule.CostAllocation,
-                                resourceSchedule.BillingAllocation,
-                                resourceSchedule.EffortAllocation)
-                            );
-                    }
-
-                    resourceSchedules.Clear();
-                    resourceSchedules.AddRange(replacementResourceSchedules);
+                    resourceSchedules = ReplaceWithSyntheticResources(resourceSchedules);
                 }
 
-                {
-                    // Determine the resource dependencies and add them to the compiled dependencies.
-                    foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> resourceSchedule in resourceSchedules)
-                    {
-                        T previousId = default;
-                        bool first = true;
-                        IResource<TResourceId, TWorkStreamId> resource = resourceSchedule.Resource;
-
-                        foreach (IScheduledActivity<T> scheduledActivity in resourceSchedule.ScheduledActivities.OrderBy(x => x.StartTime))
-                        {
-                            T currentId = scheduledActivity.Id;
-                            TDependentActivity activity = m_VertexGraphBuilder.Activity(currentId);
-
-                            if (resource != null)
-                            {
-                                activity.AllocatedToResources.Add(resource.Id);
-                            }
-
-                            if (!first)
-                            {
-                                activity.ResourceDependencies.Add(previousId);
-                                IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
-                                m_VertexGraphBuilder.AddActivityDependencies(
-                                    currentId,
-                                    new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
-                            }
-
-                            first = false;
-                            previousId = scheduledActivity.Id;
-                        }
-                    }
-
-                    // Rerun the compilation with the new dependencies.
-                    m_VertexGraphBuilder.CalculateCriticalPath();
-                }
-
-                // At this point, all nodes should have finish times, except the
-                // Isolated nodes. So we need to fix that.
+                // Second pass: wire resource dependencies and rerun CPM.
+                AssignResourceDependencies(resourceSchedules);
+                m_VertexGraphBuilder.CalculateCriticalPath();
 
                 if (!m_VertexGraphBuilder.BackFillIsolatedNodes())
                 {
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
                 }
 
-                // Clear up activity dependencies in the graph to match only the compiled and planning dependencies
-                // (i.e. remove any that are *only* resource dependencies).
-                foreach (TDependentActivity activity in activities)
-                {
-                    IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
-                    m_VertexGraphBuilder.RemoveActivityDependencies(
-                        activity.Id,
-                        new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
-                }
+                // Remove resource-only dependencies before post-compilation checks.
+                RemoveResourceOnlyDependencies(activities);
 
-                // Collate post-compilation errors, if any exist.
+                IEnumerable<IInvalidConstraint<T>> invalidPostcompilationConstraints =
+                    m_VertexGraphBuilder.FindInvalidPostCompilationConstraints();
 
-                IEnumerable<IInvalidConstraint<T>> invalidPostcompilationConstraints = m_VertexGraphBuilder.FindInvalidPostCompilationConstraints();
-
-                // C0010
                 if (invalidPostcompilationConstraints.Any())
                 {
-                    compilationErrors.Add(
-                        new GraphCompilationError(
-                            GraphCompilationErrorCode.C0010,
-                            BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
+                    compilationErrors.Add(new GraphCompilationError(
+                        GraphCompilationErrorCode.C0010,
+                        BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
                 }
 
-                // Go through each activity and update the upstream successors.
+                UpdateActivitySuccessors(activities);
 
-                foreach (TDependentActivity activity in activities)
-                {
-                    T activityId = activity.Id;
-                    activity.Successors.Clear();
-
-                    Node<T, TDependentActivity> node = m_VertexGraphBuilder.Node(activityId);
-
-                    if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Normal)
-                    {
-                        IEnumerable<T> successorNodeIds = node.OutgoingEdges
-                            .Select(m_VertexGraphBuilder.EdgeHeadNode)
-                            .Select(x => x.Id)
-                            .ToList();
-
-                        activity.Successors.UnionWith(successorNodeIds);
-                    }
-                }
-
-                // Go through each resource schedule and ensure the scheduled activities
-                // align with the compiled graph.
-
-                int startTime = m_VertexGraphBuilder.StartTime;
-                int finishTime = m_VertexGraphBuilder.FinishTime;
-                var newResourceScheduleBuilders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
-
-                foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> oldResourceSchedule in resourceSchedules)
-                {
-                    ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> newResourceScheduleBuilder =
-                        oldResourceSchedule.Resource == null || infiniteResources
-                        ? new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>()
-                        : new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(oldResourceSchedule.Resource);
-
-                    IEnumerable<IScheduledActivity<T>> oldScheduledActivities = oldResourceSchedule.ScheduledActivities;
-
-                    foreach (IScheduledActivity<T> oldScheduledActivity in oldScheduledActivities)
-                    {
-                        T oldScheduledActivityId = oldScheduledActivity.Id;
-                        TDependentActivity activity = m_VertexGraphBuilder.Activity(oldScheduledActivityId);
-
-                        newResourceScheduleBuilder.AppendActivityWithoutChecks(activity, activity.EarliestStartTime.GetValueOrDefault());
-                    }
-
-                    newResourceScheduleBuilders.Add(newResourceScheduleBuilder);
-                }
-
+                // Rebuild schedules aligned to compiled CPM finish times.
                 IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities =
                     m_VertexGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject());
 
-                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> newResourceSchedules = newResourceScheduleBuilders
-                    .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
-                    .Where(x => x.ScheduledActivities.Any())
-                    .ToList();
+                int startTime = m_VertexGraphBuilder.StartTime;
+                int finishTime = m_VertexGraphBuilder.FinishTime;
 
-                // Now find any remaining resources that were indirect and create schedules for them.
+                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> newResourceSchedules =
+                    RebuildAlignedResourceSchedules(resourceSchedules, infiniteResources, finalActivities, startTime, finishTime);
 
-                HashSet<TResourceId> scheduledResourceIds = newResourceSchedules.Where(x => x.Resource != null).Select(x => x.Resource.Id).ToHashSet();
-
-                IEnumerable<IResource<TResourceId, TWorkStreamId>> remainingIndirectResources = filteredResources
-                    .Where(x => x.InterActivityAllocationType == InterActivityAllocationType.Indirect && !scheduledResourceIds.Contains(x.Id));
-
-                var indirectResourceScheduleBuilders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
-
-                foreach (IResource<TResourceId, TWorkStreamId> indirectResource in remainingIndirectResources)
-                {
-                    indirectResourceScheduleBuilders.Add(new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(indirectResource));
-                }
-
-                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectResourceSchedules = indirectResourceScheduleBuilders
-                    .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
-                    .ToList();
+                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectResourceSchedules =
+                    CollectIndirectResourceSchedules(filteredResources, newResourceSchedules, finalActivities, startTime, finishTime);
 
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalResourceSchedules =
                     newResourceSchedules.Union(indirectResourceSchedules).ToList();
 
                 HashSet<TWorkStreamId> workstreamsUsed = finalActivities.SelectMany(x => x.TargetWorkStreams).Distinct().ToHashSet();
-
-                HashSet<TWorkStreamId> resourcePhases = totalResourceSchedules
-                    .Where(x => x.Resource != null)
-                    .Select(x => x.Resource)
-                    .SelectMany(x => x.InterActivityPhases)
-                    .Distinct().ToHashSet();
-
-                HashSet<TWorkStreamId> resourcePhasesUsed = resourcePhases.Intersect(workstreamsUsed).ToHashSet();
+                HashSet<TWorkStreamId> resourcePhasesUsed = GetResourcePhasesUsed(totalResourceSchedules, workstreamsUsed);
 
                 return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
                     m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
@@ -740,6 +491,226 @@ namespace Zametek.Maths.Graphs
         #endregion
 
         #region Private Methods
+
+        private void ResetResourceState(IEnumerable<TDependentActivity> activities)
+        {
+            foreach (TDependentActivity activity in activities)
+            {
+                IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
+                m_VertexGraphBuilder.RemoveActivityDependencies(
+                    activity.Id,
+                    new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
+                activity.ResourceDependencies.Clear();
+                activity.AllocatedToResources.Clear();
+            }
+        }
+
+        private static IList<IUnavailableResources<T, TResourceId>> GatherUnavailableResources(
+            IEnumerable<TDependentActivity> activities,
+            IList<IResource<TResourceId, TWorkStreamId>> filteredResources)
+        {
+            var output = new List<IUnavailableResources<T, TResourceId>>();
+
+            foreach (TDependentActivity activity in activities)
+            {
+                if (activity.TargetResources.Count == 0) continue;
+
+                if (activity.TargetResourceOperator == LogicalOperator.AND)
+                {
+                    IEnumerable<TResourceId> unavailable = activity.TargetResources.Except(filteredResources.Select(x => x.Id));
+                    if (unavailable.Any())
+                        output.Add(new UnavailableResources<T, TResourceId>(activity.Id, unavailable));
+                }
+                else if (activity.TargetResourceOperator == LogicalOperator.OR
+                         || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
+                {
+                    IEnumerable<TResourceId> intersection = activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
+                    if (!intersection.Any())
+                        output.Add(new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
+                }
+            }
+
+            return output;
+        }
+
+        private void AddPreCompilationErrors(
+            List<GraphCompilationError> errors,
+            IEnumerable<T> invalidDependencies,
+            IEnumerable<TDependentActivity> activities,
+            IEnumerable<ICircularDependency<T>> circularDependencies,
+            IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints,
+            bool allResourcesExplicitTargetsButNotAllActivitiesTargeted,
+            IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet)
+        {
+            if (invalidDependencies.Any())
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0010,
+                    BuildInvalidDependenciesErrorMessage(invalidDependencies, activities)));
+
+            if (circularDependencies.Any())
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0020,
+                    BuildCircularDependenciesErrorMessage(circularDependencies)));
+
+            if (invalidPrecompilationConstraints.Any())
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0030,
+                    BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
+
+            if (allResourcesExplicitTargetsButNotAllActivitiesTargeted)
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0040,
+                    $@"{Properties.Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
+
+            if (!m_VertexGraphBuilder.CleanUpEdges())
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0050,
+                    $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
+
+            if (unavailableResourcesSet.Count != 0)
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0060,
+                    BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
+        }
+
+        private static List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
+            List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
+        {
+            TResourceId resourceId = default;
+            var replacements = new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
+
+            foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> schedule in resourceSchedules)
+            {
+                resourceId = resourceId.Next();
+                replacements.Add(new ResourceSchedule<T, TResourceId, TWorkStreamId>(
+                    new Resource<TResourceId, TWorkStreamId>(
+                        resourceId, null, false, false, InterActivityAllocationType.None, 0.0, 0.0, 0,
+                        Enumerable.Empty<TWorkStreamId>()),
+                    schedule.ScheduledActivities,
+                    schedule.StartTime,
+                    schedule.FinishTime,
+                    schedule.ActivityAllocation,
+                    schedule.CostAllocation,
+                    schedule.BillingAllocation,
+                    schedule.EffortAllocation));
+            }
+
+            return replacements;
+        }
+
+        private void AssignResourceDependencies(
+            IList<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
+        {
+            foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> schedule in resourceSchedules)
+            {
+                IResource<TResourceId, TWorkStreamId> resource = schedule.Resource;
+                T previousId = default;
+                bool first = true;
+
+                foreach (IScheduledActivity<T> scheduledActivity in schedule.ScheduledActivities.OrderBy(x => x.StartTime))
+                {
+                    T currentId = scheduledActivity.Id;
+                    TDependentActivity activity = m_VertexGraphBuilder.Activity(currentId);
+
+                    if (resource != null) activity.AllocatedToResources.Add(resource.Id);
+
+                    if (!first)
+                    {
+                        activity.ResourceDependencies.Add(previousId);
+                        IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
+                        m_VertexGraphBuilder.AddActivityDependencies(
+                            currentId,
+                            new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
+                    }
+
+                    first = false;
+                    previousId = scheduledActivity.Id;
+                }
+            }
+        }
+
+        private void RemoveResourceOnlyDependencies(IEnumerable<TDependentActivity> activities)
+        {
+            foreach (TDependentActivity activity in activities)
+            {
+                IEnumerable<T> coreDependencies = activity.Dependencies.Union(activity.PlanningDependencies);
+                m_VertexGraphBuilder.RemoveActivityDependencies(
+                    activity.Id,
+                    new HashSet<T>(activity.ResourceDependencies.Except(coreDependencies)));
+            }
+        }
+
+        private void UpdateActivitySuccessors(IEnumerable<TDependentActivity> activities)
+        {
+            foreach (TDependentActivity activity in activities)
+            {
+                activity.Successors.Clear();
+                Node<T, TDependentActivity> node = m_VertexGraphBuilder.Node(activity.Id);
+                if (node.NodeType != NodeType.Start && node.NodeType != NodeType.Normal) continue;
+
+                IEnumerable<T> successorNodeIds = node.OutgoingEdges
+                    .Select(m_VertexGraphBuilder.EdgeHeadNode)
+                    .Select(x => x.Id);
+                activity.Successors.UnionWith(successorNodeIds);
+            }
+        }
+
+        private IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildAlignedResourceSchedules(
+            IList<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,
+            bool infiniteResources,
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
+            int startTime,
+            int finishTime)
+        {
+            var builders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
+
+            foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> oldSchedule in resourceSchedules)
+            {
+                ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder =
+                    oldSchedule.Resource == null || infiniteResources
+                    ? new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>()
+                    : new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(oldSchedule.Resource);
+
+                foreach (IScheduledActivity<T> scheduledActivity in oldSchedule.ScheduledActivities)
+                {
+                    TDependentActivity activity = m_VertexGraphBuilder.Activity(scheduledActivity.Id);
+                    builder.AppendActivityWithoutChecks(activity, activity.EarliestStartTime.GetValueOrDefault());
+                }
+
+                builders.Add(builder);
+            }
+
+            return builders
+                .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
+                .Where(x => x.ScheduledActivities.Any())
+                .ToList();
+        }
+
+        private static IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CollectIndirectResourceSchedules(
+            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> scheduledResources,
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
+            int startTime,
+            int finishTime)
+        {
+            HashSet<TResourceId> scheduledIds = scheduledResources
+                .Where(x => x.Resource != null)
+                .Select(x => x.Resource.Id)
+                .ToHashSet();
+
+            return filteredResources
+                .Where(x => x.InterActivityAllocationType == InterActivityAllocationType.Indirect
+                            && !scheduledIds.Contains(x.Id))
+                .Select(x => new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(x)
+                    .ToResourceSchedule(finalActivities, startTime, finishTime))
+                .ToList();
+        }
+
+        private static HashSet<TWorkStreamId> GetResourcePhasesUsed(
+            IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules,
+            HashSet<TWorkStreamId> workstreamsUsed)
+        {
+            HashSet<TWorkStreamId> resourcePhases = totalSchedules
+                .Where(x => x.Resource != null)
+                .SelectMany(x => x.Resource.InterActivityPhases)
+                .Distinct()
+                .ToHashSet();
+            return resourcePhases.Intersect(workstreamsUsed).ToHashSet();
+        }
 
         private static string BuildInvalidDependenciesErrorMessage(
             IEnumerable<T> invalidDependencies,
