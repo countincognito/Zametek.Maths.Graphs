@@ -9,9 +9,9 @@ namespace Zametek.Maths.Graphs.Tests
     {
         public ResourceScheduleBuilderFixture()
         {
-            ResourceSchedule1_JsonString = ReadJsonFile(@"Builders\TestFiles\ResourceSchedule1.json");
-            ResourceSchedule2_JsonString = ReadJsonFile(@"Builders\TestFiles\ResourceSchedule2.json");
-            ResourceSchedule3_JsonString = ReadJsonFile(@"Builders\TestFiles\ResourceSchedule3.json");
+            ResourceSchedule1_JsonString = ReadJsonFile(Path.Combine("Builders", "TestFiles", "ResourceSchedule1.json"));
+            ResourceSchedule2_JsonString = ReadJsonFile(Path.Combine("Builders", "TestFiles", "ResourceSchedule2.json"));
+            ResourceSchedule3_JsonString = ReadJsonFile(Path.Combine("Builders", "TestFiles", "ResourceSchedule3.json"));
 
 
             static string ReadJsonFile(string filename)
