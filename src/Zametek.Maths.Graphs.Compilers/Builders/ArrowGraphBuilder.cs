@@ -1047,91 +1047,41 @@ namespace Zametek.Maths.Graphs
 
         private bool HaveDescendantOrAncestorOverlap(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode)
         {
-            if (tailNode is null)
-            {
-                throw new ArgumentNullException(nameof(tailNode));
-            }
-            if (headNode is null)
-            {
-                throw new ArgumentNullException(nameof(headNode));
-            }
+            if (tailNode is null) throw new ArgumentNullException(nameof(tailNode));
+            if (headNode is null) throw new ArgumentNullException(nameof(headNode));
 
-            // First the descendants of the tail node.
-            var tailNodeAncestorsAndDescendants = new HashSet<T>();
+            var tailNeighbours = new HashSet<T>();
+            // Descendants of the tail node (nodes reachable via outgoing edges).
             if (tailNode.NodeType != NodeType.End && tailNode.NodeType != NodeType.Isolated)
-            {
-                tailNodeAncestorsAndDescendants.UnionWith(
-                    tailNode.OutgoingEdges
-                    .Select(x => m_EdgeLookup[x])
-                    .Select(x => m_EdgeHeadNodeLookup[x.Id].Id)
-                    .Except(new[] { headNode.Id }));
-            }
-
-            // Then the ancestors of the tail node.
+                tailNeighbours.UnionWith(tailNode.OutgoingEdges.Select(x => m_EdgeHeadNodeLookup[x].Id).Except(new[] { headNode.Id }));
+            // Ancestors of the tail node (nodes reaching it via incoming edges).
             if (tailNode.NodeType != NodeType.Start && tailNode.NodeType != NodeType.Isolated)
-            {
-                tailNodeAncestorsAndDescendants.UnionWith(
-                    tailNode.IncomingEdges
-                    .Select(x => m_EdgeLookup[x])
-                    .Select(x => m_EdgeTailNodeLookup[x.Id].Id)
-                    .Except(new[] { headNode.Id }));
-            }
+                tailNeighbours.UnionWith(tailNode.IncomingEdges.Select(x => m_EdgeTailNodeLookup[x].Id).Except(new[] { headNode.Id }));
 
-            // Next the ancestors of the head node.
-            var headNodeAncestorsAndDescendants = new HashSet<T>();
+            var headNeighbours = new HashSet<T>();
+            // Ancestors of the head node.
             if (headNode.NodeType != NodeType.Start && headNode.NodeType != NodeType.Isolated)
-            {
-                headNodeAncestorsAndDescendants.UnionWith(
-                    headNode.IncomingEdges
-                    .Select(x => m_EdgeLookup[x])
-                    .Select(x => m_EdgeTailNodeLookup[x.Id].Id)
-                    .Except(new[] { tailNode.Id }));
-            }
-
-            // Then the descendants of the head node.
+                headNeighbours.UnionWith(headNode.IncomingEdges.Select(x => m_EdgeTailNodeLookup[x].Id).Except(new[] { tailNode.Id }));
+            // Descendants of the head node.
             if (headNode.NodeType != NodeType.End && headNode.NodeType != NodeType.Isolated)
-            {
-                headNodeAncestorsAndDescendants.UnionWith(
-                    headNode.OutgoingEdges
-                    .Select(x => m_EdgeLookup[x])
-                    .Select(x => m_EdgeHeadNodeLookup[x.Id].Id)
-                    .Except(new[] { tailNode.Id }));
-            }
+                headNeighbours.UnionWith(headNode.OutgoingEdges.Select(x => m_EdgeHeadNodeLookup[x].Id).Except(new[] { tailNode.Id }));
 
-            IEnumerable<T> overlap = tailNodeAncestorsAndDescendants.Intersect(headNodeAncestorsAndDescendants);
-            if (overlap.Any())
-            {
-                return true;
-            }
-            return false;
+            return tailNeighbours.Overlaps(headNeighbours);
         }
 
         private bool ShareMoreThanOneEdge(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode)
         {
-            if (tailNode is null)
-            {
-                throw new ArgumentNullException(nameof(tailNode));
-            }
-            if (headNode is null)
-            {
-                throw new ArgumentNullException(nameof(headNode));
-            }
-            var tailNodeOutgoingEdgeIds = new HashSet<T>();
-            if (tailNode.NodeType != NodeType.End && tailNode.NodeType != NodeType.Isolated)
-            {
-                tailNodeOutgoingEdgeIds.UnionWith(tailNode.OutgoingEdges);
-            }
-            var headNodeIncomingEdgeIds = new HashSet<T>();
-            if (headNode.NodeType != NodeType.Start && headNode.NodeType != NodeType.Isolated)
-            {
-                headNodeIncomingEdgeIds.UnionWith(headNode.IncomingEdges);
-            }
-            IEnumerable<T> overlap = tailNodeOutgoingEdgeIds.Intersect(headNodeIncomingEdgeIds);
-            if (overlap.Count() > 1)
-            {
-                return true;
-            }
-            return false;
+            if (tailNode is null) throw new ArgumentNullException(nameof(tailNode));
+            if (headNode is null) throw new ArgumentNullException(nameof(headNode));
+
+            var tailOutgoing = tailNode.NodeType != NodeType.End && tailNode.NodeType != NodeType.Isolated
+                ? new HashSet<T>(tailNode.OutgoingEdges)
+                : new HashSet<T>();
+            var headIncoming = headNode.NodeType != NodeType.Start && headNode.NodeType != NodeType.Isolated
+                ? new HashSet<T>(headNode.IncomingEdges)
+                : new HashSet<T>();
+
+            return tailOutgoing.Intersect(headIncoming).Count() > 1;
         }
 
         private HashSet<T> GetAncestorNodes(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
@@ -1384,49 +1334,40 @@ namespace Zametek.Maths.Graphs
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
         {
-            if (!m_EdgeLookup.ContainsKey(activityId))
-            {
-                return;
-            }
+            if (!m_EdgeLookup.ContainsKey(activityId)) return;
+
+            // Create and register the head node for this activity's edge — always needed.
+            T headEventId = m_NodeIdGenerator();
+            var headNode = new Node<T, IEvent<T>>(s_EventGenerator(headEventId));
+            headNode.IncomingEdges.Add(activityId);
+            m_EdgeHeadNodeLookup.Add(activityId, headNode);
+            m_NodeLookup.Add(headNode.Id, headNode);
+
             if (m_UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out HashSet<Node<T, IEvent<T>>> unsatisfiedSuccessorTailNodes))
             {
-                T headEventId = m_NodeIdGenerator();
-                var headNode = new Node<T, IEvent<T>>(s_EventGenerator(headEventId));
-                headNode.IncomingEdges.Add(activityId);
-                m_EdgeHeadNodeLookup.Add(activityId, headNode);
-                m_NodeLookup.Add(headNode.Id, headNode);
-
+                // Wire dummy edges from the new head node to each waiting successor's tail node.
                 foreach (Node<T, IEvent<T>> tailNode in unsatisfiedSuccessorTailNodes)
                 {
-                    T dummyEdgeId = m_EdgeIdGenerator();
-                    var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator(dummyEdgeId));
-                    tailNode.IncomingEdges.Add(dummyEdgeId);
-                    m_EdgeHeadNodeLookup.Add(dummyEdgeId, tailNode);
-                    headNode.OutgoingEdges.Add(dummyEdgeId);
-                    m_EdgeTailNodeLookup.Add(dummyEdgeId, headNode);
-                    m_EdgeLookup.Add(dummyEdge.Id, dummyEdge);
+                    ConnectWithDummyEdge(headNode, tailNode);
                 }
                 m_UnsatisfiedSuccessorsLookup.Remove(activityId);
             }
             else
             {
-                T headEventId = m_NodeIdGenerator();
-                Node<T, IEvent<T>> dependencyHeadNode = new Node<T, IEvent<T>>(s_EventGenerator(headEventId));
-
-                dependencyHeadNode.IncomingEdges.Add(activityId);
-                m_EdgeHeadNodeLookup.Add(activityId, dependencyHeadNode);
-                m_NodeLookup.Add(dependencyHeadNode.Id, dependencyHeadNode);
-
-                T dummyEdgeId = m_EdgeIdGenerator();
-                var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator(dummyEdgeId));
-
-                dependencyHeadNode.OutgoingEdges.Add(dummyEdgeId);
-                m_EdgeTailNodeLookup.Add(dummyEdgeId, dependencyHeadNode);
-                m_EdgeLookup.Add(dummyEdgeId, dummyEdge);
-
-                EndNode.IncomingEdges.Add(dummyEdgeId);
-                m_EdgeHeadNodeLookup.Add(dummyEdgeId, EndNode);
+                // No successors waiting — connect the head node to the End node via a dummy edge.
+                ConnectWithDummyEdge(headNode, EndNode);
             }
+        }
+
+        private void ConnectWithDummyEdge(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode)
+        {
+            T dummyEdgeId = m_EdgeIdGenerator();
+            var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator(dummyEdgeId));
+            headNode.IncomingEdges.Add(dummyEdgeId);
+            m_EdgeHeadNodeLookup.Add(dummyEdgeId, headNode);
+            tailNode.OutgoingEdges.Add(dummyEdgeId);
+            m_EdgeTailNodeLookup.Add(dummyEdgeId, tailNode);
+            m_EdgeLookup.Add(dummyEdge.Id, dummyEdge);
         }
 
         #endregion
