@@ -31,6 +31,7 @@ namespace Zametek.Maths.Graphs
         private readonly IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> m_SccFinder;
         private readonly IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> m_CriticalPathEngine;
         private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
+        private ITransitiveReducer<T> m_TransitiveReducer;
 
         #endregion
 
@@ -79,6 +80,7 @@ namespace Zametek.Maths.Graphs
             m_EdgeHeadNodeLookup = new Dictionary<T, Node<T, TActivity>>();
             m_EdgeTailNodeLookup = new Dictionary<T, Node<T, TActivity>>();
             WhenTesting = false;
+            m_TransitiveReducer = CreateTransitiveReducer();
         }
 
         // Graph-loading constructor (from existing Graph<T, IEvent<T>, TActivity>).
@@ -178,6 +180,8 @@ namespace Zametek.Maths.Graphs
                     throw new ArgumentException(Properties.Resources.Message_VertexGraphCannotContainNormalNodesWithoutAnyEndNodes);
                 }
             }
+
+            m_TransitiveReducer = CreateTransitiveReducer();
         }
 
         #endregion
@@ -596,36 +600,12 @@ namespace Zametek.Maths.Graphs
 
         public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
-            if (!AllDependenciesSatisfied)
-            {
-                return null;
-            }
-            IList<ICircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
-            if (circularDependencies.Any())
-            {
-                return null;
-            }
-            var nodeIdAncestorLookup = new Dictionary<T, HashSet<T>>();
-            foreach (T endNodeId in EndNodes.Select(x => x.Id))
-            {
-                HashSet<T> totalAncestorNodes = GetAncestorNodes(endNodeId, nodeIdAncestorLookup);
-                nodeIdAncestorLookup.Add(endNodeId, totalAncestorNodes);
-            }
-            return nodeIdAncestorLookup;
+            return m_TransitiveReducer.GetAncestorNodesLookup();
         }
 
         public bool TransitiveReduction()
         {
-            IDictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
-            if (ancestorNodesLookup is null)
-            {
-                return false;
-            }
-            foreach (T endNodeId in EndNodes.Select(x => x.Id))
-            {
-                RemoveRedundantIncomingEdges(endNodeId, ancestorNodesLookup);
-            }
-            return true;
+            return m_TransitiveReducer.ReduceGraph();
         }
 
         public bool RedirectEdges()
@@ -1312,80 +1292,16 @@ namespace Zametek.Maths.Graphs
                 m_EdgeTailNodeLookup);
         }
 
-        private HashSet<T> GetAncestorNodes(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
+        private ITransitiveReducer<T> CreateTransitiveReducer()
         {
-            if (nodeIdAncestorLookup is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
-            }
-            Node<T, TActivity> node = m_NodeLookup[nodeId];
-            var totalAncestorNodes = new HashSet<T>();
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
-            {
-                return totalAncestorNodes;
-            }
-
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_EdgeTailNodeLookup[x].Id).ToList())
-            {
-                if (!totalAncestorNodes.Contains(tailNodeId))
-                {
-                    totalAncestorNodes.Add(tailNodeId);
-                }
-                if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
-                {
-                    tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);
-                    nodeIdAncestorLookup.Add(tailNodeId, tailNodeAncestorNodes);
-                }
-                totalAncestorNodes.UnionWith(tailNodeAncestorNodes);
-            }
-            return totalAncestorNodes;
-        }
-
-        private void RemoveRedundantIncomingEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
-        {
-            if (nodeIdAncestorLookup is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
-            }
-            Node<T, TActivity> node = m_NodeLookup[nodeId];
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
-            {
-                return;
-            }
-
-            // Go through all the incoming edges and collate the
-            // ancestors of their tail nodes.
-            var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
-                .Select(x => m_EdgeTailNodeLookup[x].Id)
-                .SelectMany(x => nodeIdAncestorLookup[x]));
-
-            // Go through the incoming edges and remove any that connect
-            // directly to any ancestors of the edges' tail nodes.
-            // In a vertex graph, all edges should be removable.
-            foreach (T edgeId in node.IncomingEdges.Select(x => m_EdgeLookup[x]).Where(x => x.Content.CanBeRemoved).Select(x => x.Id).ToList())
-            {
-                Node<T, TActivity> tailNode = m_EdgeTailNodeLookup[edgeId];
-                T edgeTailNodeId = tailNode.Id;
-                if (tailNodeAncestors.Contains(edgeTailNodeId))
-                {
-                    // Remove the edge from the tail node.
-                    tailNode.OutgoingEdges.Remove(edgeId);
-                    m_EdgeTailNodeLookup.Remove(edgeId);
-
-                    // Remove the edge from the node itself.
-                    node.IncomingEdges.Remove(edgeId);
-                    m_EdgeHeadNodeLookup.Remove(edgeId);
-
-                    // Remove the edge completely.
-                    m_EdgeLookup.Remove(edgeId);
-                }
-            }
-
-            // Go through all the remaining incoming edges and repeat.
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_EdgeTailNodeLookup[x].Id).ToList())
-            {
-                RemoveRedundantIncomingEdges(tailNodeId, nodeIdAncestorLookup);
-            }
+            return new VertexTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>(
+                () => AllDependenciesSatisfied,
+                () => FindStrongCircularDependencies(),
+                () => EndNodes.Select(x => x.Id),
+                m_EdgeLookup,
+                m_NodeLookup,
+                m_EdgeHeadNodeLookup,
+                m_EdgeTailNodeLookup);
         }
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)

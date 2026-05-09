@@ -29,6 +29,7 @@ namespace Zametek.Maths.Graphs
         private readonly IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> m_CriticalPathEngine;
         private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
         private IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator;
+        private ITransitiveReducer<T> m_TransitiveReducer;
 
         #endregion
 
@@ -156,8 +157,9 @@ namespace Zametek.Maths.Graphs
             if (EndNodes.Count() == 1) EndNode = EndNodes.First();
             else throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneEndNode);
 
-            // Wire up the orchestrator AFTER the dictionaries are populated.
+            // Wire up the orchestrator and reducer AFTER the dictionaries are populated.
             m_DummyEdgeOrchestrator = CreateOrchestrator();
+            m_TransitiveReducer = CreateTransitiveReducer();
         }
 
         #endregion
@@ -360,25 +362,12 @@ namespace Zametek.Maths.Graphs
 
         public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
-            if (!AllDependenciesSatisfied) return null;
-            IList<ICircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
-            if (circularDependencies.Any()) return null;
-            var nodeIdAncestorLookup = new Dictionary<T, HashSet<T>>();
-            foreach (T endNodeId in EndNodes.Select(x => x.Id))
-            {
-                HashSet<T> totalAncestorNodes = GetAncestorNodes(endNodeId, nodeIdAncestorLookup);
-                nodeIdAncestorLookup.Add(endNodeId, totalAncestorNodes);
-            }
-            return nodeIdAncestorLookup;
+            return m_TransitiveReducer.GetAncestorNodesLookup();
         }
 
         public bool TransitiveReduction()
         {
-            IDictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
-            if (ancestorNodesLookup is null) return false;
-            foreach (T endNodeId in EndNodes.Select(x => x.Id))
-                m_DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges(endNodeId, ancestorNodesLookup);
-            return true;
+            return m_TransitiveReducer.ReduceGraph();
         }
 
         public bool RedirectEdges() => m_DummyEdgeOrchestrator.RedirectDummyEdges();
@@ -474,6 +463,18 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
+        private void Initialize()
+        {
+            T startEventId = m_NodeIdGenerator();
+            StartNode = new Node<T, IEvent<T>>(NodeType.Start, s_EventGeneratorWithTimes(startEventId, 0, 0));
+            m_NodeLookup.Add(StartNode.Id, StartNode);
+            T endEventId = m_NodeIdGenerator();
+            EndNode = new Node<T, IEvent<T>>(NodeType.End, s_EventGenerator(endEventId));
+            m_NodeLookup.Add(EndNode.Id, EndNode);
+            m_DummyEdgeOrchestrator = CreateOrchestrator();
+            m_TransitiveReducer = CreateTransitiveReducer();
+        }
+
         private IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> CreateOrchestrator()
         {
             return new DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>(
@@ -489,15 +490,15 @@ namespace Zametek.Maths.Graphs
                 () => EndNode);
         }
 
-        private void Initialize()
+        private ITransitiveReducer<T> CreateTransitiveReducer()
         {
-            T startEventId = m_NodeIdGenerator();
-            StartNode = new Node<T, IEvent<T>>(NodeType.Start, s_EventGeneratorWithTimes(startEventId, 0, 0));
-            m_NodeLookup.Add(StartNode.Id, StartNode);
-            T endEventId = m_NodeIdGenerator();
-            EndNode = new Node<T, IEvent<T>>(NodeType.End, s_EventGenerator(endEventId));
-            m_NodeLookup.Add(EndNode.Id, EndNode);
-            m_DummyEdgeOrchestrator = CreateOrchestrator();
+            return new ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>(
+                () => AllDependenciesSatisfied,
+                () => FindStrongCircularDependencies(),
+                () => EndNodes.Select(x => x.Id),
+                m_DummyEdgeOrchestrator,
+                m_NodeLookup,
+                m_EdgeTailNodeLookup);
         }
 
         private void ClearCriticalPathVariables()
@@ -519,27 +520,6 @@ namespace Zametek.Maths.Graphs
         {
             return m_SccFinder.FindStronglyConnectedComponents(
                 EdgeIds, m_EdgeLookup, m_EdgeHeadNodeLookup, m_EdgeTailNodeLookup);
-        }
-
-        private HashSet<T> GetAncestorNodes(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
-        {
-            if (nodeIdAncestorLookup is null) throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
-            Node<T, IEvent<T>> node = m_NodeLookup[nodeId];
-            var totalAncestorNodes = new HashSet<T>();
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
-                return totalAncestorNodes;
-
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_EdgeTailNodeLookup[x].Id).ToList())
-            {
-                if (!totalAncestorNodes.Contains(tailNodeId)) totalAncestorNodes.Add(tailNodeId);
-                if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
-                {
-                    tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);
-                    nodeIdAncestorLookup.Add(tailNodeId, tailNodeAncestorNodes);
-                }
-                totalAncestorNodes.UnionWith(tailNodeAncestorNodes);
-            }
-            return totalAncestorNodes;
         }
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
