@@ -1101,6 +1101,112 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        // Gathers the set of activities that reference resources not present in filteredResources.
+        public static IList<IUnavailableResources<T, TResourceId>> GatherUnavailableResources(
+            IEnumerable<TActivity> activities,
+            IList<IResource<TResourceId, TWorkStreamId>> filteredResources)
+        {
+            var output = new List<IUnavailableResources<T, TResourceId>>();
+            foreach (TActivity activity in activities)
+            {
+                if (!activity.TargetResources.Any()) continue;
+                if (activity.TargetResourceOperator == LogicalOperator.AND)
+                {
+                    IEnumerable<TResourceId> unavailable = activity.TargetResources.Except(filteredResources.Select(x => x.Id));
+                    if (unavailable.Any()) output.Add(new UnavailableResources<T, TResourceId>(activity.Id, unavailable));
+                }
+                else if (activity.TargetResourceOperator == LogicalOperator.OR
+                         || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
+                {
+                    IEnumerable<TResourceId> intersection = activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
+                    if (!intersection.Any()) output.Add(new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
+                }
+            }
+            return output;
+        }
+
+        // Replaces infinite-resource schedules with synthetic resource IDs so that resource-dependency
+        // chaining works in the second compile pass.
+        public static List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
+            List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
+        {
+            TResourceId resourceId = default;
+            var replacements = new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
+            foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> schedule in resourceSchedules)
+            {
+                resourceId = resourceId.Next();
+                replacements.Add(new ResourceSchedule<T, TResourceId, TWorkStreamId>(
+                    new Resource<TResourceId, TWorkStreamId>(
+                        resourceId, null, false, false, InterActivityAllocationType.None, 0.0, 0.0, 0,
+                        Enumerable.Empty<TWorkStreamId>()),
+                    schedule.ScheduledActivities,
+                    schedule.StartTime,
+                    schedule.FinishTime,
+                    schedule.ActivityAllocation,
+                    schedule.CostAllocation,
+                    schedule.BillingAllocation,
+                    schedule.EffortAllocation));
+            }
+            return replacements;
+        }
+
+        // Rebuilds resource schedules aligned to CPM-computed EarliestStartTime values.
+        public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildAlignedResourceSchedules(
+            IList<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,
+            bool infiniteResources,
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
+            int startTime,
+            int finishTime)
+        {
+            var builders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
+            foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> oldSchedule in resourceSchedules)
+            {
+                ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder =
+                    oldSchedule.Resource == null || infiniteResources
+                    ? new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>()
+                    : new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(oldSchedule.Resource);
+
+                foreach (IScheduledActivity<T> scheduledActivity in oldSchedule.ScheduledActivities)
+                {
+                    TActivity activityObj = Activity(scheduledActivity.Id);
+                    builder.AppendActivityWithoutChecks(activityObj, activityObj.EarliestStartTime.GetValueOrDefault());
+                }
+                builders.Add(builder);
+            }
+            return builders
+                .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
+                .Where(x => x.ScheduledActivities.Any())
+                .ToList();
+        }
+
+        // Returns schedules for Indirect resources that were not directly assigned any activities.
+        public static IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CollectIndirectResourceSchedules(
+            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> scheduledResources,
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
+            int startTime,
+            int finishTime)
+        {
+            HashSet<TResourceId> scheduledIds = scheduledResources
+                .Where(x => x.Resource != null).Select(x => x.Resource.Id).ToHashSet();
+            return filteredResources
+                .Where(x => x.InterActivityAllocationType == InterActivityAllocationType.Indirect
+                            && !scheduledIds.Contains(x.Id))
+                .Select(x => new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(x)
+                    .ToResourceSchedule(finalActivities, startTime, finishTime))
+                .ToList();
+        }
+
+        // Returns the set of work-stream phase IDs that appear on at least one resource schedule.
+        public static HashSet<TWorkStreamId> GetResourcePhasesUsed(
+            IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules,
+            HashSet<TWorkStreamId> workstreamsUsed)
+        {
+            HashSet<TWorkStreamId> resourcePhases = totalSchedules
+                .Where(x => x.Resource != null).SelectMany(x => x.Resource.InterActivityPhases).Distinct().ToHashSet();
+            return resourcePhases.Intersect(workstreamsUsed).ToHashSet();
+        }
+
         // Checks pre-compilation conditions and appends any errors found.
         public void AddPreCompilationErrors(
             List<GraphCompilationError> errors,
