@@ -108,10 +108,6 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(resources));
             }
-            if (resources.Count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(resources), Properties.Resources.Message_ValueCannotBeNegative);
-            }
             if (!graphBuilder.Activities.Any())
             {
                 return Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
@@ -283,7 +279,7 @@ namespace Zametek.Maths.Graphs
                                     }
 
                                     if (activity.MaximumLatestFinishTime.HasValue
-                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
+                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() < (timeCounter + activity.Duration))
                                     {
                                         continue;
                                     }
@@ -319,7 +315,7 @@ namespace Zametek.Maths.Graphs
                                     }
 
                                     if (activity.MaximumLatestFinishTime.HasValue
-                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
+                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() < (timeCounter + activity.Duration))
                                     {
                                         continue;
                                     }

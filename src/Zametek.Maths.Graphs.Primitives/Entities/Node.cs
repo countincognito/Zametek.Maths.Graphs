@@ -103,6 +103,7 @@ namespace Zametek.Maths.Graphs
             {
                 int hash = HashFactorOne;
                 hash = hash * HashFactorTwo + Id.GetHashCode();
+                hash = hash * HashFactorTwo + NodeType.GetHashCode();
                 return hash;
             }
         }
