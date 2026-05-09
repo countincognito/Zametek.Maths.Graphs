@@ -27,6 +27,7 @@ namespace Zametek.Maths.Graphs
 
         private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> m_SccFinder;
         private readonly IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> m_CriticalPathEngine;
+        private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
 
         #endregion
 
@@ -51,7 +52,8 @@ namespace Zametek.Maths.Graphs
                   nodeIdGenerator,
                   s_DefaultDummyActivityGenerator,
                   new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>())
+                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
+                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
 
@@ -65,7 +67,8 @@ namespace Zametek.Maths.Graphs
                   nodeIdGenerator,
                   dummyActivityGenerator,
                   new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>())
+                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
+                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
 
@@ -80,7 +83,8 @@ namespace Zametek.Maths.Graphs
                   nodeIdGenerator,
                   s_DefaultDummyActivityGenerator,
                   sccFinder,
-                  criticalPathEngine)
+                  criticalPathEngine,
+                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
 
@@ -90,13 +94,15 @@ namespace Zametek.Maths.Graphs
             Func<T> nodeIdGenerator,
             Func<T, TActivity> dummyActivityGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> sccFinder,
-            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> criticalPathEngine)
+            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> criticalPathEngine,
+            IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
         {
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
             m_NodeIdGenerator = nodeIdGenerator ?? throw new ArgumentNullException(nameof(nodeIdGenerator));
             m_DummyActivityGenerator = dummyActivityGenerator ?? throw new ArgumentNullException(nameof(dummyActivityGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
+            m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
             m_EdgeLookup = new Dictionary<T, Edge<T, TActivity>>();
             m_NodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
@@ -118,7 +124,8 @@ namespace Zametek.Maths.Graphs
                   nodeIdGenerator,
                   s_DefaultDummyActivityGenerator,
                   new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>())
+                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
+                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
 
@@ -134,7 +141,8 @@ namespace Zametek.Maths.Graphs
                   nodeIdGenerator,
                   dummyActivityGenerator,
                   new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>())
+                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
+                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
 
@@ -151,7 +159,8 @@ namespace Zametek.Maths.Graphs
                   nodeIdGenerator,
                   s_DefaultDummyActivityGenerator,
                   sccFinder,
-                  criticalPathEngine)
+                  criticalPathEngine,
+                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
 
@@ -162,7 +171,8 @@ namespace Zametek.Maths.Graphs
             Func<T> nodeIdGenerator,
             Func<T, TActivity> dummyActivityGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> sccFinder,
-            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> criticalPathEngine)
+            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> criticalPathEngine,
+            IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
         {
             if (graph is null)
             {
@@ -174,6 +184,7 @@ namespace Zametek.Maths.Graphs
             m_DummyActivityGenerator = dummyActivityGenerator ?? throw new ArgumentNullException(nameof(dummyActivityGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
+            m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
             m_EdgeLookup = new Dictionary<T, Edge<T, TActivity>>();
             m_NodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
@@ -810,267 +821,69 @@ namespace Zametek.Maths.Graphs
             // If resources are limited, check to make sure all activities can be accepted.
             if (!infiniteResources)
             {
-                var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
-
-                foreach (TActivity activity in Activities)
-                {
-                    if (activity.TargetResources.Any())
-                    {
-                        if (activity.TargetResourceOperator == LogicalOperator.AND)
-                        {
-                            IEnumerable<TResourceId> unavailableResourceIds =
-                                activity.TargetResources.Except(filteredResources.Select(x => x.Id));
-
-                            if (unavailableResourceIds.Any())
-                            {
-                                unavailableResourcesSet.Add(
-                                    new UnavailableResources<T, TResourceId>(activity.Id, unavailableResourceIds));
-                            }
-                        }
-                        else if (activity.TargetResourceOperator == LogicalOperator.OR
-                                 || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
-                        {
-                            IEnumerable<TResourceId> intersection =
-                                activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
-
-                            if (!intersection.Any())
-                            {
-                                unavailableResourcesSet.Add(
-                                    new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
-                            }
-                        }
-                    }
-                }
-
-                if (unavailableResourcesSet.Any())
-                {
-                    throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided);
-                }
-
-                bool allResourcesAreExplicitTargets = filteredResources.All(x => x.IsExplicitTarget);
-                bool atLeastOneActivityRequiresNonExplicitTargetResource = Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
-                if (allResourcesAreExplicitTargets && atLeastOneActivityRequiresNonExplicitTargetResource)
-                {
-                    throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
-                }
+                ValidateActivitiesAgainstResources(filteredResources);
             }
 
             var tmpGraphBuilder = (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)CloneObject();
 
             // Use a separate clone for the priority list calculation so that tmpGraphBuilder retains
             // original activity durations for the scheduling loop below.
-            IList<T?> priorityList = CalculateCriticalPathPriorityList(
-                    (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)tmpGraphBuilder.CloneObject())
-                .Select(x => new T?(x))
-                .ToList();
+            IList<T> priorityList = CalculateCriticalPathPriorityList(
+                (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)tmpGraphBuilder.CloneObject());
 
-            IList<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> resourceScheduleBuilders = filteredResources
-                .OrderBy(x => x.AllocationOrder)
-                .Select(x => new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(x))
-                .ToList();
+            return m_ResourceSchedulingEngine.CalculateResourceSchedules(
+                priorityList,
+                filteredResources,
+                infiniteResources,
+                id => tmpGraphBuilder.Activity(id),
+                id => tmpGraphBuilder.StrongActivityDependencyIds(id),
+                () => Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList());
+        }
 
-            var completed = new HashSet<T>();
-            var started = new HashSet<T>();
-            var ready = new List<T?>(Enumerable.Repeat((T?)null, priorityList.Count));
-            int timeCounter = 0;
-            while (priorityList.Any(x => x.HasValue) || started.Any() || ready.Any(x => x.HasValue))
+        private void ValidateActivitiesAgainstResources(IList<IResource<TResourceId, TWorkStreamId>> filteredResources)
+        {
+            var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
+
+            foreach (TActivity activity in Activities)
             {
-                var running = new HashSet<T>(resourceScheduleBuilders
-                    .Select(x => x.ActivityAt(timeCounter))
-                    .Where(x => x.HasValue)
-                    .Select(x => x.GetValueOrDefault()));
-                IList<T> notYetCompleted = started.Intersect(running).ToList();
+                if (!activity.TargetResources.Any()) continue;
 
-                started.ExceptWith(notYetCompleted);
-                completed.UnionWith(started);
-
-                started.Clear();
-                started.UnionWith(notYetCompleted);
-
-                var indicesToRemove = new HashSet<int>();
-                for (int activityIndex = 0; activityIndex < priorityList.Count; activityIndex++)
+                if (activity.TargetResourceOperator == LogicalOperator.AND)
                 {
-                    T? nullableActivityId = priorityList[activityIndex];
-                    if (!nullableActivityId.HasValue)
-                    {
-                        continue;
-                    }
-                    T activityId = nullableActivityId.GetValueOrDefault();
+                    IEnumerable<TResourceId> unavailableResourceIds =
+                        activity.TargetResources.Except(filteredResources.Select(x => x.Id));
 
-                    var directDependencies = new HashSet<T>(tmpGraphBuilder.StrongActivityDependencyIds(activityId));
-
-                    if (directDependencies.IsSubsetOf(completed)
-                        && !completed.Contains(activityId)
-                        && !started.Contains(activityId))
+                    if (unavailableResourceIds.Any())
                     {
-                        ready[activityIndex] = activityId;
-                        indicesToRemove.Add(activityIndex);
+                        unavailableResourcesSet.Add(
+                            new UnavailableResources<T, TResourceId>(activity.Id, unavailableResourceIds));
                     }
                 }
-
-                foreach (int indexToRemove in indicesToRemove)
+                else if (activity.TargetResourceOperator == LogicalOperator.OR
+                         || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                 {
-                    priorityList[indexToRemove] = null;
-                }
+                    IEnumerable<TResourceId> intersection =
+                        activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
 
-                bool keepLooking = true;
-                while (ready.Any(x => x.HasValue) && keepLooking)
-                {
-                    keepLooking = false;
-                    bool availableResourceScheduleBuilderExists = false;
-
-                    for (int activityIndex = 0; activityIndex < ready.Count; activityIndex++)
+                    if (!intersection.Any())
                     {
-                        T? nullableActivityId = ready[activityIndex];
-                        if (!nullableActivityId.HasValue)
-                        {
-                            continue;
-                        }
-                        T activityId = nullableActivityId.GetValueOrDefault();
-                        IActivity<T, TResourceId, TWorkStreamId> activity = tmpGraphBuilder.Activity(activityId);
-                        activity.AllocatedToResources.Clear();
-
-                        bool activityMustBeTargetedToSpecificResource = !infiniteResources && activity.TargetResources.Any();
-
-                        if (!activityMustBeTargetedToSpecificResource)
-                        {
-                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> resourceScheduleBuilder in resourceScheduleBuilders)
-                            {
-                                if (resourceScheduleBuilder.EarliestAvailableStartTimeForNextActivity <= timeCounter)
-                                {
-                                    availableResourceScheduleBuilderExists = true;
-                                    if (resourceScheduleBuilder.IsExplicitTarget)
-                                    {
-                                        continue;
-                                    }
-
-                                    if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
-                                    {
-                                        continue;
-                                    }
-
-                                    if (activity.MaximumLatestFinishTime.HasValue
-                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
-                                    {
-                                        continue;
-                                    }
-
-                                    resourceScheduleBuilder.AppendActivity(activity, timeCounter);
-                                    started.Add(activityId);
-                                    keepLooking = true;
-                                    ready[activityIndex] = null;
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var availableResourceSchedulers = new HashSet<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
-
-                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> resourceScheduleBuilder in resourceScheduleBuilders)
-                            {
-                                if (resourceScheduleBuilder.EarliestAvailableStartTimeForNextActivity <= timeCounter)
-                                {
-                                    availableResourceScheduleBuilderExists = true;
-                                    bool resourceCannotAcceptThisActivity = resourceScheduleBuilder.ResourceId != null
-                                        && !activity.TargetResources.Contains(resourceScheduleBuilder.ResourceId.GetValueOrDefault());
-
-                                    if (resourceCannotAcceptThisActivity)
-                                    {
-                                        continue;
-                                    }
-
-                                    if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
-                                    {
-                                        continue;
-                                    }
-
-                                    if (activity.MaximumLatestFinishTime.HasValue
-                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
-                                    {
-                                        continue;
-                                    }
-
-                                    if (activity.TargetResourceOperator == LogicalOperator.AND)
-                                    {
-                                        availableResourceSchedulers.Add(resourceScheduleBuilder);
-
-                                        var targetResources = new HashSet<TResourceId>(activity.TargetResources);
-                                        if (targetResources.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
-                                        {
-                                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> availableResourceScheduler in availableResourceSchedulers)
-                                            {
-                                                availableResourceScheduler.AppendActivity(activity, timeCounter);
-                                                started.Add(activityId);
-                                            }
-                                            keepLooking = true;
-                                            ready[activityIndex] = null;
-                                            break;
-                                        }
-                                    }
-                                    else if (activity.TargetResourceOperator == LogicalOperator.OR)
-                                    {
-                                        resourceScheduleBuilder.AppendActivity(activity, timeCounter);
-                                        started.Add(activityId);
-                                        keepLooking = true;
-                                        ready[activityIndex] = null;
-                                        break;
-                                    }
-                                    else if (activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
-                                    {
-                                        availableResourceSchedulers.Add(resourceScheduleBuilder);
-
-                                        var intersection = new HashSet<TResourceId>(
-                                            activity.TargetResources.Intersect(filteredResources.Select(x => x.Id)));
-
-                                        if (intersection.SetEquals(availableResourceSchedulers.Select(x => x.ResourceId.GetValueOrDefault())))
-                                        {
-                                            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> availableResourceScheduler in availableResourceSchedulers)
-                                            {
-                                                availableResourceScheduler.AppendActivity(activity, timeCounter);
-                                                started.Add(activityId);
-                                            }
-                                            keepLooking = true;
-                                            ready[activityIndex] = null;
-                                            break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        throw new NotImplementedException($@"Unknown TargetResourceOperator value ({activity.TargetResourceOperator})");
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (infiniteResources && !availableResourceScheduleBuilderExists && !keepLooking)
-                    {
-                        resourceScheduleBuilders.Add(new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>());
-                        keepLooking = true;
+                        unavailableResourcesSet.Add(
+                            new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
                     }
                 }
-                timeCounter++;
             }
 
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities =
-                Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject())
-                .ToList();
+            if (unavailableResourcesSet.Any())
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided);
+            }
 
-            int startTime = resourceScheduleBuilders
-                .Select(x => x.ScheduledActivities
-                    .Select(y => y.StartTime)
-                    .DefaultIfEmpty().Min())
-                .DefaultIfEmpty().Min();
-
-            int finishTime = resourceScheduleBuilders
-                .Select(x => x.LastActivityFinishTime)
-                .DefaultIfEmpty().Max();
-
-            return resourceScheduleBuilders
-                .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
-                .Where(x => x.ScheduledActivities.Any())
-                .ToList();
+            bool allResourcesAreExplicitTargets = filteredResources.All(x => x.IsExplicitTarget);
+            bool atLeastOneActivityRequiresNonExplicitTargetResource = Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
+            if (allResourcesAreExplicitTargets && atLeastOneActivityRequiresNonExplicitTargetResource)
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
+            }
         }
 
         private static IList<T> CalculateCriticalPathPriorityList(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
