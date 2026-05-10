@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Zametek.Maths.Graphs
 {
@@ -1096,16 +1095,19 @@ namespace Zametek.Maths.Graphs
                 IEnumerable<IDependentActivity<T, TResourceId, TWorkStreamId>> dependentActivities =
                     activities.OfType<IDependentActivity<T, TResourceId, TWorkStreamId>>();
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0010,
-                    BuildInvalidDependenciesErrorMessage(invalidDependencies, dependentActivities)));
+                    GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
+                        .BuildInvalidDependenciesErrorMessage(invalidDependencies, dependentActivities)));
             }
 
             if (circularDependencies.Any())
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0020,
-                    BuildCircularDependenciesErrorMessage(circularDependencies)));
+                    GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
+                        .BuildCircularDependenciesErrorMessage(circularDependencies)));
 
             if (invalidPrecompilationConstraints.Any())
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0030,
-                    BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
+                    GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
+                        .BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
 
             if (allResourcesExplicitTargetsButNotAllActivitiesTargeted)
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0040,
@@ -1117,65 +1119,13 @@ namespace Zametek.Maths.Graphs
 
             if (unavailableResourcesSet.Count != 0)
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0060,
-                    BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
+                    GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
+                        .BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
         }
 
         #endregion
 
         #region Private Methods
-
-        private static string BuildInvalidDependenciesErrorMessage(
-            IEnumerable<T> invalidDependencies,
-            IEnumerable<IDependentActivity<T, TResourceId, TWorkStreamId>> activities)
-        {
-            if (invalidDependencies == null || !invalidDependencies.Any()
-                || activities == null || !activities.Any())
-            {
-                return string.Empty;
-            }
-            var output = new StringBuilder();
-            output.AppendLine($@"{Properties.Resources.Message_InvalidDependencies}");
-            foreach (T invalidDependency in invalidDependencies)
-            {
-                IList<T> actsWithInvalidDeps = activities
-                    .Where(x => x.Dependencies.Union(x.PlanningDependencies).Contains(invalidDependency))
-                    .Select(x => x.Id)
-                    .OrderBy(x => x)
-                    .ToList();
-                output.AppendLine($@"{invalidDependency} {Properties.Resources.Message_IsInvalidButReferencedBy} {string.Join(@", ", actsWithInvalidDeps)}");
-            }
-            return output.ToString();
-        }
-
-        private static string BuildCircularDependenciesErrorMessage(IEnumerable<ICircularDependency<T>> circularDependencies)
-        {
-            if (circularDependencies == null || !circularDependencies.Any()) return string.Empty;
-            var output = new StringBuilder();
-            output.AppendLine($@"{Properties.Resources.Message_CircularDependencies}");
-            foreach (ICircularDependency<T> circularDependency in circularDependencies)
-                output.AppendLine(string.Join(@" -> ", circularDependency.Dependencies));
-            return output.ToString();
-        }
-
-        private static string BuildInvalidConstraintsErrorMessage(IEnumerable<IInvalidConstraint<T>> invalidConstraints)
-        {
-            if (invalidConstraints == null || !invalidConstraints.Any()) return string.Empty;
-            var output = new StringBuilder();
-            output.AppendLine($@"{Properties.Resources.Message_InvalidConstraints}");
-            foreach (IInvalidConstraint<T> invalidConstraint in invalidConstraints)
-                output.AppendLine($@"{invalidConstraint.Id} -> {invalidConstraint.Message}");
-            return output.ToString();
-        }
-
-        private static string BuildUnavailableResourcesErrorMessage(IEnumerable<IUnavailableResources<T, TResourceId>> unavailableResourceSet)
-        {
-            if (unavailableResourceSet == null || !unavailableResourceSet.Any()) return string.Empty;
-            var output = new StringBuilder();
-            output.AppendLine($@"{Properties.Resources.Message_UnavailableResources}");
-            foreach (IUnavailableResources<T, TResourceId> unavailableResources in unavailableResourceSet)
-                output.AppendLine($@"{unavailableResources.Id} -> {string.Join(@", ", unavailableResources.ResourceIds.OrderBy(x => x))}");
-            return output.ToString();
-        }
 
         private IList<ICircularDependency<T>> FindStronglyConnectedComponents()
         {

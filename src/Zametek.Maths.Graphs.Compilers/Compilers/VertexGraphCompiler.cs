@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Zametek.Maths.Graphs
 {
@@ -230,7 +229,8 @@ namespace Zametek.Maths.Graphs
                 {
                     compilationErrors.Add(new GraphCompilationError(
                         GraphCompilationErrorCode.C0010,
-                        BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
+                        GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, TDependentActivity>
+                            .BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
                 }
 
                 m_VertexGraphBuilder.UpdateActivitySuccessors(activities);
@@ -267,20 +267,5 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
-        #region Private Static Helpers
-
-        // Only needed inline because the post-compilation constraint error cannot go through builder
-        // (the error code is C0010, not a pre-compilation P00xx error).
-        private static string BuildInvalidConstraintsErrorMessage(IEnumerable<IInvalidConstraint<T>> invalidConstraints)
-        {
-            if (invalidConstraints == null || !invalidConstraints.Any()) return string.Empty;
-            var output = new StringBuilder();
-            output.AppendLine($@"{Properties.Resources.Message_InvalidConstraints}");
-            foreach (IInvalidConstraint<T> invalidConstraint in invalidConstraints)
-                output.AppendLine($@"{invalidConstraint.Id} -> {invalidConstraint.Message}");
-            return output.ToString();
-        }
-
-        #endregion
     }
 }
