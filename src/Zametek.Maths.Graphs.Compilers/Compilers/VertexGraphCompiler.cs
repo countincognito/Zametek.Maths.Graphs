@@ -174,30 +174,13 @@ namespace Zametek.Maths.Graphs
 
             lock (m_Lock)
             {
-                IEnumerable<TDependentActivity> activities = m_VertexGraphBuilder.Activities;
-                m_VertexGraphBuilder.ResetResourceState(activities);
-
-                IEnumerable<T> invalidDependencies = m_VertexGraphBuilder.InvalidDependencies;
-                IEnumerable<ICircularDependency<T>> circularDependencies = m_VertexGraphBuilder.FindStrongCircularDependencies();
-                IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = m_VertexGraphBuilder.FindInvalidPreCompilationConstraints();
-
                 bool infiniteResources = resources.Count == 0;
                 IList<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
-                bool allResourcesExplicitTargetsButNotAllActivitiesTargeted =
-                    !infiniteResources
-                    && filteredResources.All(x => x.IsExplicitTarget)
-                    && m_VertexGraphBuilder.Activities.Any(x => !x.IsDummy && x.TargetResources.Count == 0);
-
-                IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
-                    infiniteResources
-                    ? new List<IUnavailableResources<T, TResourceId>>()
-                    : PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.GatherUnavailableResources(
-                        activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>(), filteredResources);
+                m_VertexGraphBuilder.ResetResourceState(m_VertexGraphBuilder.Activities);
 
                 var compilationErrors = new List<GraphCompilationError>();
-                m_VertexGraphBuilder.AddPreCompilationErrors(compilationErrors, invalidDependencies, activities, circularDependencies,
-                    invalidPrecompilationConstraints, allResourcesExplicitTargetsButNotAllActivitiesTargeted, unavailableResourcesSet);
+                m_VertexGraphBuilder.AddPreCompilationErrors(compilationErrors, filteredResources, infiniteResources);
 
                 if (compilationErrors.Count != 0)
                 {
@@ -208,9 +191,10 @@ namespace Zametek.Maths.Graphs
                         compilationErrors);
                 }
 
+                // First CPM pass → schedule → wire resource dependencies → second CPM pass.
                 m_VertexGraphBuilder.CalculateCriticalPath();
-                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules = m_VertexGraphBuilder
-                    .CalculateResourceSchedulesByPriorityList(filteredResources).ToList();
+                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules =
+                    m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources).ToList();
 
                 if (infiniteResources)
                     resourceSchedules = PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.ReplaceWithSyntheticResources(resourceSchedules);
@@ -221,20 +205,11 @@ namespace Zametek.Maths.Graphs
                 if (!m_VertexGraphBuilder.BackFillIsolatedNodes())
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
 
-                m_VertexGraphBuilder.RemoveResourceOnlyDependencies(activities);
+                m_VertexGraphBuilder.RemoveResourceOnlyDependencies(m_VertexGraphBuilder.Activities);
+                m_VertexGraphBuilder.AddPostCompilationErrors(compilationErrors);
+                m_VertexGraphBuilder.UpdateActivitySuccessors(m_VertexGraphBuilder.Activities);
 
-                IEnumerable<IInvalidConstraint<T>> invalidPostcompilationConstraints =
-                    m_VertexGraphBuilder.FindInvalidPostCompilationConstraints();
-                if (invalidPostcompilationConstraints.Any())
-                {
-                    compilationErrors.Add(new GraphCompilationError(
-                        GraphCompilationErrorCode.C0010,
-                        GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, TDependentActivity>
-                            .BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
-                }
-
-                m_VertexGraphBuilder.UpdateActivitySuccessors(activities);
-
+                // Rebuild schedules aligned to final CPM times, collect indirect resource schedules.
                 IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities =
                     m_VertexGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject());
                 int startTime = m_VertexGraphBuilder.StartTime;
@@ -245,11 +220,9 @@ namespace Zametek.Maths.Graphs
                         resourceSchedules, infiniteResources,
                         id => (IActivity<T, TResourceId, TWorkStreamId>)m_VertexGraphBuilder.Activity(id),
                         finalActivities, startTime, finishTime);
-
                 IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectSchedules =
                     PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.CollectIndirectResourceSchedules(
                         filteredResources, newSchedules, finalActivities, startTime, finishTime);
-
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules =
                     newSchedules.Union(indirectSchedules).ToList();
 

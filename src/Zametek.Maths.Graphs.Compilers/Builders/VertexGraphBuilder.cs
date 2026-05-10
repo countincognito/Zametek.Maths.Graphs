@@ -1080,16 +1080,19 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        // Checks pre-compilation conditions and appends any errors found.
+        // Checks all pre-compilation conditions and appends any errors found.
+        // Accepts filteredResources and infiniteResources so the compiler delegates
+        // resource-flag computation here rather than inlining it.
         public void AddPreCompilationErrors(
             List<GraphCompilationError> errors,
-            IEnumerable<T> invalidDependencies,
-            IEnumerable<TActivity> activities,
-            IEnumerable<ICircularDependency<T>> circularDependencies,
-            IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints,
-            bool allResourcesExplicitTargetsButNotAllActivitiesTargeted,
-            IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet)
+            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            bool infiniteResources)
         {
+            IEnumerable<TActivity> activities = Activities;
+            IEnumerable<T> invalidDependencies = InvalidDependencies;
+            IEnumerable<ICircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
+            IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = FindInvalidPreCompilationConstraints();
+
             if (invalidDependencies.Any())
             {
                 IEnumerable<IDependentActivity<T, TResourceId, TWorkStreamId>> dependentActivities =
@@ -1109,7 +1112,11 @@ namespace Zametek.Maths.Graphs
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
 
-            if (allResourcesExplicitTargetsButNotAllActivitiesTargeted)
+            bool allResourcesExplicitButNotAllActivitiesTargeted =
+                !infiniteResources
+                && filteredResources.All(x => x.IsExplicitTarget)
+                && Activities.Any(x => !x.IsDummy && x.TargetResources.Count == 0);
+            if (allResourcesExplicitButNotAllActivitiesTargeted)
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0040,
                     $@"{Properties.Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
 
@@ -1117,10 +1124,28 @@ namespace Zametek.Maths.Graphs
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0050,
                     $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
 
+            IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
+                infiniteResources
+                ? new List<IUnavailableResources<T, TResourceId>>()
+                : PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.GatherUnavailableResources(
+                    activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>(), filteredResources);
             if (unavailableResourcesSet.Count != 0)
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0060,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
+        }
+
+        // Appends any post-compilation constraint errors to the error list.
+        public void AddPostCompilationErrors(List<GraphCompilationError> errors)
+        {
+            IEnumerable<IInvalidConstraint<T>> invalidPostcompilationConstraints = FindInvalidPostCompilationConstraints();
+            if (invalidPostcompilationConstraints.Any())
+            {
+                errors.Add(new GraphCompilationError(
+                    GraphCompilationErrorCode.C0010,
+                    GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
+                        .BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
+            }
         }
 
         #endregion
