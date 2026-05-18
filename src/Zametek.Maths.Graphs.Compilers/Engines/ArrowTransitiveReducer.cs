@@ -7,7 +7,7 @@ namespace Zametek.Maths.Graphs
     // Transitive reducer for Activity-on-Arrow graphs.
     // Computes the ancestor-node lookup and delegates dummy-edge removal to the
     // IDummyEdgeOrchestrator — only dummy edges are reduced in arrow graphs.
-    // Holds references (not ownership) to the graph-state dictionaries owned by ArrowGraphBuilder.
+    // Operates on the shared ArrowGraphState.
     internal sealed class ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>
         : ITransitiveReducer<T>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
@@ -17,33 +17,25 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        private readonly Func<bool> m_AllDependenciesSatisfied;
         private readonly Func<IList<ICircularDependency<T>>> m_FindStrongCircularDependencies;
         private readonly Func<IEnumerable<T>> m_GetEndNodeIds;
         private readonly IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator;
-
-        // References to builder-owned graph state.
-        private readonly Dictionary<T, Node<T, IEvent<T>>> m_NodeLookup;
-        private readonly Dictionary<T, Node<T, IEvent<T>>> m_EdgeTailNodeLookup;
+        private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
 
         #endregion
 
         #region Ctor
 
         internal ArrowTransitiveReducer(
-            Func<bool> allDependenciesSatisfied,
             Func<IList<ICircularDependency<T>>> findStrongCircularDependencies,
             Func<IEnumerable<T>> getEndNodeIds,
             IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> dummyEdgeOrchestrator,
-            Dictionary<T, Node<T, IEvent<T>>> nodeLookup,
-            Dictionary<T, Node<T, IEvent<T>>> edgeTailNodeLookup)
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
-            m_AllDependenciesSatisfied = allDependenciesSatisfied ?? throw new ArgumentNullException(nameof(allDependenciesSatisfied));
             m_FindStrongCircularDependencies = findStrongCircularDependencies ?? throw new ArgumentNullException(nameof(findStrongCircularDependencies));
             m_GetEndNodeIds = getEndNodeIds ?? throw new ArgumentNullException(nameof(getEndNodeIds));
             m_DummyEdgeOrchestrator = dummyEdgeOrchestrator ?? throw new ArgumentNullException(nameof(dummyEdgeOrchestrator));
-            m_NodeLookup = nodeLookup ?? throw new ArgumentNullException(nameof(nodeLookup));
-            m_EdgeTailNodeLookup = edgeTailNodeLookup ?? throw new ArgumentNullException(nameof(edgeTailNodeLookup));
+            m_State = state ?? throw new ArgumentNullException(nameof(state));
         }
 
         #endregion
@@ -52,7 +44,7 @@ namespace Zametek.Maths.Graphs
 
         public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
-            if (!m_AllDependenciesSatisfied()) return null;
+            if (!m_State.AllDependenciesSatisfied) return null;
             IList<ICircularDependency<T>> circularDependencies = m_FindStrongCircularDependencies();
             if (circularDependencies.Any()) return null;
             var nodeIdAncestorLookup = new Dictionary<T, HashSet<T>>();
@@ -80,12 +72,12 @@ namespace Zametek.Maths.Graphs
         private HashSet<T> GetAncestorNodes(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
             if (nodeIdAncestorLookup is null) throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
-            Node<T, IEvent<T>> node = m_NodeLookup[nodeId];
+            Node<T, IEvent<T>> node = m_State.Node(nodeId);
             var totalAncestorNodes = new HashSet<T>();
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
                 return totalAncestorNodes;
 
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_EdgeTailNodeLookup[x].Id).ToList())
+            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
             {
                 if (!totalAncestorNodes.Contains(tailNodeId)) totalAncestorNodes.Add(tailNodeId);
                 if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))

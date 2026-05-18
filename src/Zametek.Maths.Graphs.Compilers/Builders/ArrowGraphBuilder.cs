@@ -4,10 +4,11 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    // Sealed builder for Activity-on-Arrow graphs. Owns all graph state directly.
-    // Algorithm work is delegated to injected engine instances (SCC finder, CPM engine,
-    // dummy-edge orchestrator). The public constructors wire up default engine instances;
-    // the internal constructors accept injected engines for testability.
+    // Sealed builder for Activity-on-Arrow graphs. Owns all graph state directly,
+    // encapsulated in a single ArrowGraphState instance that is shared with the
+    // injected engines (SCC finder, CPM engine, dummy-edge orchestrator, transitive
+    // reducer). The public constructors wire up default engine instances; the
+    // internal constructors accept injected engines for testability.
     public sealed class ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
         : ICloneObject
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
@@ -25,21 +26,12 @@ namespace Zametek.Maths.Graphs
         private readonly Func<T> m_NodeIdGenerator;
         private readonly Func<T, TActivity> m_DummyActivityGenerator;
 
-        private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> m_SccFinder;
-        private readonly IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> m_CriticalPathEngine;
+        private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_SccFinder;
+        private readonly IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
         private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
+        private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
         private IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator;
         private ITransitiveReducer<T> m_TransitiveReducer;
-
-        #endregion
-
-        #region Graph State
-
-        private readonly Dictionary<T, Edge<T, TActivity>> m_EdgeLookup;
-        private readonly Dictionary<T, Node<T, IEvent<T>>> m_NodeLookup;
-        private readonly Dictionary<T, HashSet<Node<T, IEvent<T>>>> m_UnsatisfiedSuccessorsLookup;
-        private readonly Dictionary<T, Node<T, IEvent<T>>> m_EdgeHeadNodeLookup;
-        private readonly Dictionary<T, Node<T, IEvent<T>>> m_EdgeTailNodeLookup;
 
         #endregion
 
@@ -53,8 +45,8 @@ namespace Zametek.Maths.Graphs
                   edgeIdGenerator,
                   nodeIdGenerator,
                   s_DefaultDummyActivityGenerator,
-                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
+                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
+                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
@@ -64,8 +56,8 @@ namespace Zametek.Maths.Graphs
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator,
             Func<T, TActivity> dummyActivityGenerator,
-            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> sccFinder,
-            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> criticalPathEngine,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
+            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
         {
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
@@ -75,11 +67,7 @@ namespace Zametek.Maths.Graphs
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
-            m_EdgeLookup = new Dictionary<T, Edge<T, TActivity>>();
-            m_NodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
-            m_UnsatisfiedSuccessorsLookup = new Dictionary<T, HashSet<Node<T, IEvent<T>>>>();
-            m_EdgeHeadNodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
-            m_EdgeTailNodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
+            m_State = new ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             WhenTesting = false;
             Initialize();
         }
@@ -94,8 +82,8 @@ namespace Zametek.Maths.Graphs
                   edgeIdGenerator,
                   nodeIdGenerator,
                   s_DefaultDummyActivityGenerator,
-                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>>(),
+                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
+                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
         }
@@ -106,8 +94,8 @@ namespace Zametek.Maths.Graphs
             Func<T> edgeIdGenerator,
             Func<T> nodeIdGenerator,
             Func<T, TActivity> dummyActivityGenerator,
-            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> sccFinder,
-            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, IEvent<T>> criticalPathEngine,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
+            IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
         {
             if (graph is null) throw new ArgumentNullException(nameof(graph));
@@ -119,45 +107,41 @@ namespace Zametek.Maths.Graphs
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
-            m_EdgeLookup = new Dictionary<T, Edge<T, TActivity>>();
-            m_NodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
-            m_UnsatisfiedSuccessorsLookup = new Dictionary<T, HashSet<Node<T, IEvent<T>>>>();
-            m_EdgeHeadNodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
-            m_EdgeTailNodeLookup = new Dictionary<T, Node<T, IEvent<T>>>();
+            m_State = new ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             WhenTesting = false;
 
             foreach (Edge<T, TActivity> edge in graph.Edges)
-                m_EdgeLookup.Add(edge.Id, edge);
+                m_State.AddEdge(edge);
 
             foreach (Node<T, IEvent<T>> node in graph.Nodes)
             {
                 if (node.NodeType != NodeType.Start && node.NodeType != NodeType.Isolated)
                     foreach (T edgeId in node.IncomingEdges)
-                        m_EdgeHeadNodeLookup.Add(edgeId, node);
+                        m_State.SetEdgeHeadNode(edgeId, node);
                 if (node.NodeType != NodeType.End && node.NodeType != NodeType.Isolated)
                     foreach (T edgeId in node.OutgoingEdges)
-                        m_EdgeTailNodeLookup.Add(edgeId, node);
-                m_NodeLookup.Add(node.Id, node);
+                        m_State.SetEdgeTailNode(edgeId, node);
+                m_State.AddNode(node);
             }
 
             // Check all edges are used.
-            if (!m_EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(m_EdgeHeadNodeLookup.Keys.OrderBy(x => x)))
+            if (!m_State.EdgeKeysMatch(m_State.EdgeHeadNodeKeys))
                 throw new ArgumentException(Properties.Resources.Message_ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch);
-            if (!m_EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(m_EdgeTailNodeLookup.Keys.OrderBy(x => x)))
+            if (!m_State.EdgeKeysMatch(m_State.EdgeTailNodeKeys))
                 throw new ArgumentException(Properties.Resources.Message_ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch);
 
             // Check all nodes are used.
-            IEnumerable<T> edgeNodeLookupIds = m_EdgeHeadNodeLookup.Values.Select(x => x.Id).Union(m_EdgeTailNodeLookup.Values.Select(x => x.Id));
-            if (!m_NodeLookup.Values.Where(x => x.NodeType != NodeType.Isolated).Select(x => x.Id).OrderBy(x => x).SequenceEqual(edgeNodeLookupIds.OrderBy(x => x)))
+            IEnumerable<T> edgeNodeLookupIds = m_State.EdgeHeadNodes.Select(x => x.Id).Union(m_State.EdgeTailNodes.Select(x => x.Id));
+            if (!m_State.Nodes.Where(x => x.NodeType != NodeType.Isolated).Select(x => x.Id).OrderBy(x => x).SequenceEqual(edgeNodeLookupIds.OrderBy(x => x)))
                 throw new ArgumentException(Properties.Resources.Message_ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch);
 
             // Check Start and End nodes.
-            if (StartNodes.Count() == 1) StartNode = StartNodes.First();
+            if (StartNodes.Count() == 1) m_State.StartNode = StartNodes.First();
             else throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneStartNode);
-            if (EndNodes.Count() == 1) EndNode = EndNodes.First();
+            if (EndNodes.Count() == 1) m_State.EndNode = EndNodes.First();
             else throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneEndNode);
 
-            // Wire up the orchestrator and reducer AFTER the dictionaries are populated.
+            // Wire up the orchestrator and reducer AFTER the state has been populated.
             m_DummyEdgeOrchestrator = CreateOrchestrator();
             m_TransitiveReducer = CreateTransitiveReducer();
         }
@@ -166,41 +150,37 @@ namespace Zametek.Maths.Graphs
 
         #region Properties
 
-        public Node<T, IEvent<T>> StartNode { get; private set; }
+        public Node<T, IEvent<T>> StartNode => m_State.StartNode;
 
-        public Node<T, IEvent<T>> EndNode { get; private set; }
+        public Node<T, IEvent<T>> EndNode => m_State.EndNode;
 
-        public IEnumerable<Node<T, IEvent<T>>> StartNodes =>
-            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.Start);
+        public IEnumerable<Node<T, IEvent<T>>> StartNodes => m_State.StartNodes;
 
-        public IEnumerable<Node<T, IEvent<T>>> EndNodes =>
-            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.End);
+        public IEnumerable<Node<T, IEvent<T>>> EndNodes => m_State.EndNodes;
 
-        public IEnumerable<Node<T, IEvent<T>>> NormalNodes =>
-            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.Normal);
+        public IEnumerable<Node<T, IEvent<T>>> NormalNodes => m_State.NormalNodes;
 
-        public IEnumerable<Node<T, IEvent<T>>> IsolatedNodes =>
-            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.Isolated);
+        public IEnumerable<Node<T, IEvent<T>>> IsolatedNodes => m_State.IsolatedNodes;
 
-        public IEnumerable<T> EdgeIds => m_EdgeLookup.Keys;
+        public IEnumerable<T> EdgeIds => m_State.EdgeIds;
 
-        public IEnumerable<T> NodeIds => m_NodeLookup.Keys;
+        public IEnumerable<T> NodeIds => m_State.NodeIds;
 
-        public IEnumerable<TActivity> Activities => m_EdgeLookup.Values.Select(x => x.Content);
+        public IEnumerable<TActivity> Activities => m_State.Activities;
 
-        public IEnumerable<IEvent<T>> Events => m_NodeLookup.Values.Select(x => x.Content);
+        public IEnumerable<IEvent<T>> Events => m_State.Events;
 
         public IEnumerable<T> ActivityIds => Activities.Select(x => x.Id);
 
         public IEnumerable<T> EventIds => Events.Select(x => x.Id);
 
-        public IEnumerable<Edge<T, TActivity>> Edges => m_EdgeLookup.Values;
+        public IEnumerable<Edge<T, TActivity>> Edges => m_State.Edges;
 
-        public IEnumerable<Node<T, IEvent<T>>> Nodes => m_NodeLookup.Values;
+        public IEnumerable<Node<T, IEvent<T>>> Nodes => m_State.Nodes;
 
-        public IEnumerable<T> InvalidDependencies => m_UnsatisfiedSuccessorsLookup.Keys;
+        public IEnumerable<T> InvalidDependencies => m_State.InvalidDependencies;
 
-        public bool AllDependenciesSatisfied => !m_UnsatisfiedSuccessorsLookup.Any();
+        public bool AllDependenciesSatisfied => m_State.AllDependenciesSatisfied;
 
         public int StartTime =>
             Activities.Select(x => x.EarliestStartTime.GetValueOrDefault()).DefaultIfEmpty().Min();
@@ -214,34 +194,18 @@ namespace Zametek.Maths.Graphs
 
         #region Public Methods
 
-        public TActivity Activity(T key) => m_EdgeLookup[key].Content;
+        public TActivity Activity(T key) => m_State.Edge(key).Content;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "No better term available")]
-        public IEvent<T> Event(T key) => m_NodeLookup[key].Content;
+        public IEvent<T> Event(T key) => m_State.Node(key).Content;
 
-        public Edge<T, TActivity> Edge(T key)
-        {
-            m_EdgeLookup.TryGetValue(key, out Edge<T, TActivity> edge);
-            return edge;
-        }
+        public Edge<T, TActivity> Edge(T key) => m_State.Edge(key);
 
-        public Node<T, IEvent<T>> Node(T key)
-        {
-            m_NodeLookup.TryGetValue(key, out Node<T, IEvent<T>> node);
-            return node;
-        }
+        public Node<T, IEvent<T>> Node(T key) => m_State.Node(key);
 
-        public Node<T, IEvent<T>> EdgeHeadNode(T key)
-        {
-            m_EdgeHeadNodeLookup.TryGetValue(key, out Node<T, IEvent<T>> node);
-            return node;
-        }
+        public Node<T, IEvent<T>> EdgeHeadNode(T key) => m_State.EdgeHeadNode(key);
 
-        public Node<T, IEvent<T>> EdgeTailNode(T key)
-        {
-            m_EdgeTailNodeLookup.TryGetValue(key, out Node<T, IEvent<T>> node);
-            return node;
-        }
+        public Node<T, IEvent<T>> EdgeTailNode(T key) => m_State.EdgeTailNode(key);
 
         public bool AddActivity(TActivity activity)
         {
@@ -252,51 +216,46 @@ namespace Zametek.Maths.Graphs
         {
             if (activity == null) throw new ArgumentNullException(nameof(activity));
             if (dependencies is null) throw new ArgumentNullException(nameof(dependencies));
-            if (m_EdgeLookup.ContainsKey(activity.Id)) return false;
+            if (m_State.ContainsEdge(activity.Id)) return false;
             if (dependencies.Contains(activity.Id)) return false;
 
             var edge = new Edge<T, TActivity>(activity);
-            m_EdgeLookup.Add(edge.Id, edge);
+            m_State.AddEdge(edge);
 
             if (dependencies.Any())
             {
                 T tailEventId = m_NodeIdGenerator();
                 var tailNode = new Node<T, IEvent<T>>(s_EventGenerator(tailEventId));
                 tailNode.OutgoingEdges.Add(edge.Id);
-                m_EdgeTailNodeLookup.Add(edge.Id, tailNode);
-                m_NodeLookup.Add(tailNode.Id, tailNode);
+                m_State.SetEdgeTailNode(edge.Id, tailNode);
+                m_State.AddNode(tailNode);
 
-                IList<T> existingDependencies = m_EdgeLookup.Keys.Intersect(dependencies).ToList();
+                IList<T> existingDependencies = m_State.EdgeIds.Intersect(dependencies).ToList();
                 IList<T> nonExistingDependencies = dependencies.Except(existingDependencies).ToList();
 
                 foreach (T dependencyId in existingDependencies)
                 {
-                    Node<T, IEvent<T>> dependencyHeadNode = m_EdgeHeadNodeLookup[dependencyId];
+                    Node<T, IEvent<T>> dependencyHeadNode = m_State.EdgeHeadNode(dependencyId);
                     T dummyEdgeId = m_EdgeIdGenerator();
                     var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator(dummyEdgeId));
                     tailNode.IncomingEdges.Add(dummyEdgeId);
-                    m_EdgeHeadNodeLookup.Add(dummyEdgeId, tailNode);
+                    m_State.SetEdgeHeadNode(dummyEdgeId, tailNode);
                     if (dependencyHeadNode.NodeType == NodeType.End)
                         dependencyHeadNode.SetNodeType(NodeType.Normal);
                     dependencyHeadNode.OutgoingEdges.Add(dummyEdgeId);
-                    m_EdgeTailNodeLookup.Add(dummyEdgeId, dependencyHeadNode);
-                    m_EdgeLookup.Add(dummyEdge.Id, dummyEdge);
+                    m_State.SetEdgeTailNode(dummyEdgeId, dependencyHeadNode);
+                    m_State.AddEdge(dummyEdge);
                 }
 
                 foreach (T dependencyId in nonExistingDependencies)
                 {
-                    if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, IEvent<T>>> tailNodes))
-                    {
-                        tailNodes = new HashSet<Node<T, IEvent<T>>>();
-                        m_UnsatisfiedSuccessorsLookup.Add(dependencyId, tailNodes);
-                    }
-                    tailNodes.Add(tailNode);
+                    m_State.AddUnsatisfiedSuccessor(dependencyId, tailNode);
                 }
             }
             else
             {
-                StartNode.OutgoingEdges.Add(edge.Id);
-                m_EdgeTailNodeLookup.Add(edge.Id, StartNode);
+                m_State.StartNode.OutgoingEdges.Add(edge.Id);
+                m_State.SetEdgeTailNode(edge.Id, m_State.StartNode);
             }
             ResolveUnsatisfiedSuccessorActivities(edge.Id);
             return true;
@@ -324,22 +283,22 @@ namespace Zametek.Maths.Graphs
 
         public IList<T> ActivityDependencyIds(T activityId)
         {
-            Node<T, IEvent<T>> tailNode = m_EdgeTailNodeLookup[activityId];
+            Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
             if (tailNode.NodeType == NodeType.Start || tailNode.NodeType == NodeType.Isolated)
                 return new List<T>();
             var output = new List<T>();
-            foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_EdgeLookup[x]))
+            foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_State.Edge(x)))
                 output.Add(incomingEdge.Id);
             return output;
         }
 
         public IList<T> StrongActivityDependencyIds(T activityId)
         {
-            Node<T, IEvent<T>> tailNode = m_EdgeTailNodeLookup[activityId];
+            Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
             if (tailNode.NodeType == NodeType.Start || tailNode.NodeType == NodeType.Isolated)
                 return new List<T>();
             var output = new List<T>();
-            foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_EdgeLookup[x]))
+            foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_State.Edge(x)))
             {
                 if (incomingEdge.Content.IsDummy)
                     output.AddRange(StrongActivityDependencyIds(incomingEdge.Id));
@@ -392,21 +351,15 @@ namespace Zametek.Maths.Graphs
             IList<IInvalidConstraint<T>> constraints = allDependenciesSatisfied
                 ? FindInvalidPreCompilationConstraints() : new List<IInvalidConstraint<T>>();
 
-            if (!m_CriticalPathEngine.CalculateEventEarliestFinishTimes(
-                NodeIds, m_EdgeLookup, m_NodeLookup, m_EdgeHeadNodeLookup, m_EdgeTailNodeLookup,
-                constraints, StartNode, EndNode, WhenTesting))
+            if (!m_CriticalPathEngine.CalculateEventEarliestFinishTimes(m_State, constraints, WhenTesting))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventEarliestFinishTimes);
             }
-            if (!m_CriticalPathEngine.CalculateEventLatestFinishTimes(
-                NodeIds, m_EdgeLookup, m_NodeLookup, m_EdgeHeadNodeLookup, m_EdgeTailNodeLookup,
-                constraints, EndNode, WhenTesting))
+            if (!m_CriticalPathEngine.CalculateEventLatestFinishTimes(m_State, constraints, WhenTesting))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventLatestFinishTimes);
             }
-            if (!m_CriticalPathEngine.CalculateCriticalPathVariables(
-                EdgeIds, m_EdgeLookup, m_EdgeHeadNodeLookup, m_EdgeTailNodeLookup,
-                constraints, Events))
+            if (!m_CriticalPathEngine.CalculateCriticalPathVariables(m_State, constraints))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPath);
             }
@@ -445,17 +398,13 @@ namespace Zametek.Maths.Graphs
         {
             if (!CleanUpEdges()) return null;
             return new Graph<T, TActivity, IEvent<T>>(
-                m_EdgeLookup.Values.Select(x => (Edge<T, TActivity>)x.CloneObject()),
-                m_NodeLookup.Values.Select(x => (Node<T, IEvent<T>>)x.CloneObject()));
+                m_State.Edges.Select(x => (Edge<T, TActivity>)x.CloneObject()),
+                m_State.Nodes.Select(x => (Node<T, IEvent<T>>)x.CloneObject()));
         }
 
         public void Reset()
         {
-            m_EdgeLookup.Clear();
-            m_NodeLookup.Clear();
-            m_UnsatisfiedSuccessorsLookup.Clear();
-            m_EdgeHeadNodeLookup.Clear();
-            m_EdgeTailNodeLookup.Clear();
+            m_State.Clear();
             Initialize();
         }
 
@@ -466,11 +415,13 @@ namespace Zametek.Maths.Graphs
         private void Initialize()
         {
             T startEventId = m_NodeIdGenerator();
-            StartNode = new Node<T, IEvent<T>>(NodeType.Start, s_EventGeneratorWithTimes(startEventId, 0, 0));
-            m_NodeLookup.Add(StartNode.Id, StartNode);
+            var startNode = new Node<T, IEvent<T>>(NodeType.Start, s_EventGeneratorWithTimes(startEventId, 0, 0));
+            m_State.StartNode = startNode;
+            m_State.AddNode(startNode);
             T endEventId = m_NodeIdGenerator();
-            EndNode = new Node<T, IEvent<T>>(NodeType.End, s_EventGenerator(endEventId));
-            m_NodeLookup.Add(EndNode.Id, EndNode);
+            var endNode = new Node<T, IEvent<T>>(NodeType.End, s_EventGenerator(endEventId));
+            m_State.EndNode = endNode;
+            m_State.AddNode(endNode);
             m_DummyEdgeOrchestrator = CreateOrchestrator();
             m_TransitiveReducer = CreateTransitiveReducer();
         }
@@ -480,25 +431,17 @@ namespace Zametek.Maths.Graphs
             return new DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>(
                 m_EdgeIdGenerator,
                 m_DummyActivityGenerator,
-                () => AllDependenciesSatisfied,
                 () => FindStrongCircularDependencies(),
-                m_EdgeLookup,
-                m_NodeLookup,
-                m_EdgeHeadNodeLookup,
-                m_EdgeTailNodeLookup,
-                () => StartNode,
-                () => EndNode);
+                m_State);
         }
 
         private ITransitiveReducer<T> CreateTransitiveReducer()
         {
             return new ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>(
-                () => AllDependenciesSatisfied,
                 () => FindStrongCircularDependencies(),
                 () => EndNodes.Select(x => x.Id),
                 m_DummyEdgeOrchestrator,
-                m_NodeLookup,
-                m_EdgeTailNodeLookup);
+                m_State);
         }
 
         private void ClearCriticalPathVariables()
@@ -518,29 +461,28 @@ namespace Zametek.Maths.Graphs
 
         private IList<ICircularDependency<T>> FindStronglyConnectedComponents()
         {
-            return m_SccFinder.FindStronglyConnectedComponents(
-                EdgeIds, m_EdgeLookup, m_EdgeHeadNodeLookup, m_EdgeTailNodeLookup);
+            return m_SccFinder.FindStronglyConnectedComponents(m_State);
         }
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
         {
-            if (!m_EdgeLookup.ContainsKey(activityId)) return;
+            if (!m_State.ContainsEdge(activityId)) return;
 
             T headEventId = m_NodeIdGenerator();
             var headNode = new Node<T, IEvent<T>>(s_EventGenerator(headEventId));
             headNode.IncomingEdges.Add(activityId);
-            m_EdgeHeadNodeLookup.Add(activityId, headNode);
-            m_NodeLookup.Add(headNode.Id, headNode);
+            m_State.SetEdgeHeadNode(activityId, headNode);
+            m_State.AddNode(headNode);
 
-            if (m_UnsatisfiedSuccessorsLookup.TryGetValue(activityId, out HashSet<Node<T, IEvent<T>>> unsatisfiedSuccessorTailNodes))
+            if (m_State.TryGetUnsatisfiedSuccessors(activityId, out HashSet<Node<T, IEvent<T>>> unsatisfiedSuccessorTailNodes))
             {
                 foreach (Node<T, IEvent<T>> tailNode in unsatisfiedSuccessorTailNodes)
                     m_DummyEdgeOrchestrator.ConnectWithDummyEdge(headNode, tailNode);
-                m_UnsatisfiedSuccessorsLookup.Remove(activityId);
+                m_State.RemoveUnsatisfiedSuccessors(activityId);
             }
             else
             {
-                m_DummyEdgeOrchestrator.ConnectWithDummyEdge(headNode, EndNode);
+                m_DummyEdgeOrchestrator.ConnectWithDummyEdge(headNode, m_State.EndNode);
             }
         }
 

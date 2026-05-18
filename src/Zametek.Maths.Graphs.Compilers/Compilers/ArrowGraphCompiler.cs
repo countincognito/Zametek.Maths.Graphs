@@ -30,8 +30,8 @@ namespace Zametek.Maths.Graphs
                 () => edgeId = edgeId.Previous(),
                 () => nodeId = nodeId.Previous(),
                 (id) => new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TDependentActivity,
-                new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TDependentActivity, IEvent<T>>(),
-                new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TDependentActivity, IEvent<T>>(),
+                new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TDependentActivity>(),
+                new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TDependentActivity>(),
                 new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>());
             m_Lock = new object();
         }

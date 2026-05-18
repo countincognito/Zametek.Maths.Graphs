@@ -1,0 +1,217 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Zametek.Maths.Graphs
+{
+    // Owns all mutable graph state for an Activity-on-Vertex graph: the five lookup
+    // dictionaries. Both the builder and every Vertex engine (transitive reducer,
+    // CPM engine, SCC finder) operate on a single instance of this class.
+    // No single Start/End node — vertex graphs allow multiple of each, exposed
+    // via StartNodes / EndNodes filtering Nodes by NodeType.
+    internal sealed class VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>
+        where TActivity : IActivity<T, TResourceId, TWorkStreamId>
+        where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
+    {
+        #region Fields
+
+        private readonly Dictionary<T, Edge<T, IEvent<T>>> m_EdgeLookup = new Dictionary<T, Edge<T, IEvent<T>>>();
+        private readonly Dictionary<T, Node<T, TActivity>> m_NodeLookup = new Dictionary<T, Node<T, TActivity>>();
+        private readonly Dictionary<T, HashSet<Node<T, TActivity>>> m_UnsatisfiedSuccessorsLookup = new Dictionary<T, HashSet<Node<T, TActivity>>>();
+        private readonly Dictionary<T, Node<T, TActivity>> m_EdgeHeadNodeLookup = new Dictionary<T, Node<T, TActivity>>();
+        private readonly Dictionary<T, Node<T, TActivity>> m_EdgeTailNodeLookup = new Dictionary<T, Node<T, TActivity>>();
+
+        #endregion
+
+        #region Properties
+
+        public IEnumerable<T> EdgeIds => m_EdgeLookup.Keys;
+
+        public IEnumerable<T> NodeIds => m_NodeLookup.Keys;
+
+        public IEnumerable<Edge<T, IEvent<T>>> Edges => m_EdgeLookup.Values;
+
+        public IEnumerable<Node<T, TActivity>> Nodes => m_NodeLookup.Values;
+
+        public IEnumerable<T> InvalidDependencies => m_UnsatisfiedSuccessorsLookup.Keys;
+
+        public bool AllDependenciesSatisfied => m_UnsatisfiedSuccessorsLookup.Count == 0;
+
+        public int EdgeCount => m_EdgeLookup.Count;
+
+        public int NodeCount => m_NodeLookup.Count;
+
+        // Activities live on nodes in a vertex graph; events live on edges.
+        public IEnumerable<TActivity> Activities => m_NodeLookup.Values.Select(x => x.Content);
+
+        public IEnumerable<IEvent<T>> Events => m_EdgeLookup.Values.Select(x => x.Content);
+
+        public IEnumerable<Node<T, TActivity>> StartNodes =>
+            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.Start);
+
+        public IEnumerable<Node<T, TActivity>> EndNodes =>
+            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.End);
+
+        public IEnumerable<Node<T, TActivity>> NormalNodes =>
+            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.Normal);
+
+        public IEnumerable<Node<T, TActivity>> IsolatedNodes =>
+            m_NodeLookup.Values.Where(x => x.NodeType == NodeType.Isolated);
+
+        #endregion
+
+        #region Read API
+
+        public bool ContainsEdge(T edgeId) => m_EdgeLookup.ContainsKey(edgeId);
+
+        public bool ContainsNode(T nodeId) => m_NodeLookup.ContainsKey(nodeId);
+
+        public Edge<T, IEvent<T>> Edge(T edgeId)
+        {
+            m_EdgeLookup.TryGetValue(edgeId, out Edge<T, IEvent<T>> edge);
+            return edge;
+        }
+
+        public Node<T, TActivity> Node(T nodeId)
+        {
+            m_NodeLookup.TryGetValue(nodeId, out Node<T, TActivity> node);
+            return node;
+        }
+
+        public Node<T, TActivity> EdgeHeadNode(T edgeId)
+        {
+            m_EdgeHeadNodeLookup.TryGetValue(edgeId, out Node<T, TActivity> node);
+            return node;
+        }
+
+        public Node<T, TActivity> EdgeTailNode(T edgeId)
+        {
+            m_EdgeTailNodeLookup.TryGetValue(edgeId, out Node<T, TActivity> node);
+            return node;
+        }
+
+        public bool TryGetEdge(T edgeId, out Edge<T, IEvent<T>> edge) =>
+            m_EdgeLookup.TryGetValue(edgeId, out edge);
+
+        public bool TryGetNode(T nodeId, out Node<T, TActivity> node) =>
+            m_NodeLookup.TryGetValue(nodeId, out node);
+
+        public bool TryGetEdgeHeadNode(T edgeId, out Node<T, TActivity> node) =>
+            m_EdgeHeadNodeLookup.TryGetValue(edgeId, out node);
+
+        public bool TryGetEdgeTailNode(T edgeId, out Node<T, TActivity> node) =>
+            m_EdgeTailNodeLookup.TryGetValue(edgeId, out node);
+
+        public bool TryGetUnsatisfiedSuccessors(T dependencyId, out HashSet<Node<T, TActivity>> successors) =>
+            m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out successors);
+
+        #endregion
+
+        #region Mutation API
+
+        public void AddEdge(Edge<T, IEvent<T>> edge)
+        {
+            if (edge is null) throw new ArgumentNullException(nameof(edge));
+            m_EdgeLookup.Add(edge.Id, edge);
+        }
+
+        public bool RemoveEdge(T edgeId) => m_EdgeLookup.Remove(edgeId);
+
+        public void AddNode(Node<T, TActivity> node)
+        {
+            if (node is null) throw new ArgumentNullException(nameof(node));
+            m_NodeLookup.Add(node.Id, node);
+        }
+
+        public bool RemoveNode(T nodeId) => m_NodeLookup.Remove(nodeId);
+
+        public void SetEdgeHeadNode(T edgeId, Node<T, TActivity> node)
+        {
+            if (node is null) throw new ArgumentNullException(nameof(node));
+            m_EdgeHeadNodeLookup.Add(edgeId, node);
+        }
+
+        public bool RemoveEdgeHeadNode(T edgeId) => m_EdgeHeadNodeLookup.Remove(edgeId);
+
+        public void SetEdgeTailNode(T edgeId, Node<T, TActivity> node)
+        {
+            if (node is null) throw new ArgumentNullException(nameof(node));
+            m_EdgeTailNodeLookup.Add(edgeId, node);
+        }
+
+        public bool RemoveEdgeTailNode(T edgeId) => m_EdgeTailNodeLookup.Remove(edgeId);
+
+        public void AddUnsatisfiedSuccessor(T dependencyId, Node<T, TActivity> successor)
+        {
+            if (successor is null) throw new ArgumentNullException(nameof(successor));
+            if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> nodes))
+            {
+                nodes = new HashSet<Node<T, TActivity>>();
+                m_UnsatisfiedSuccessorsLookup.Add(dependencyId, nodes);
+            }
+            nodes.Add(successor);
+        }
+
+        public bool RemoveUnsatisfiedSuccessors(T dependencyId) =>
+            m_UnsatisfiedSuccessorsLookup.Remove(dependencyId);
+
+        // Removes an activity from the unsatisfied-successor set keyed under
+        // dependencyId. If that set becomes empty, drops the entry entirely.
+        public void RemoveActivityFromUnsatisfiedSuccessor(T dependencyId, T activityId)
+        {
+            if (m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> nodes))
+            {
+                nodes.RemoveWhere(x => x.Id.Equals(activityId));
+                if (nodes.Count == 0)
+                {
+                    m_UnsatisfiedSuccessorsLookup.Remove(dependencyId);
+                }
+            }
+        }
+
+        // Removes the activity from every unsatisfied-successor set it appears in,
+        // dropping any sets that become empty as a result.
+        public void RemoveActivityFromAllUnsatisfiedSuccessors(T activityId)
+        {
+            IList<T> keysContainingActivity = m_UnsatisfiedSuccessorsLookup
+                .Where(x => x.Value.Select(y => y.Id).Contains(activityId))
+                .Select(x => x.Key)
+                .ToList();
+
+            foreach (T key in keysContainingActivity)
+            {
+                HashSet<Node<T, TActivity>> nodes = m_UnsatisfiedSuccessorsLookup[key];
+                nodes.RemoveWhere(x => x.Id.Equals(activityId));
+                if (nodes.Count == 0)
+                {
+                    m_UnsatisfiedSuccessorsLookup.Remove(key);
+                }
+            }
+        }
+
+        public void Clear()
+        {
+            m_EdgeLookup.Clear();
+            m_NodeLookup.Clear();
+            m_UnsatisfiedSuccessorsLookup.Clear();
+            m_EdgeHeadNodeLookup.Clear();
+            m_EdgeTailNodeLookup.Clear();
+        }
+
+        // Validation helpers used by the graph-loading builder constructor.
+        public bool EdgeKeysMatch(IEnumerable<T> otherKeys) =>
+            m_EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(otherKeys.OrderBy(x => x));
+
+        public IEnumerable<T> EdgeHeadNodeKeys => m_EdgeHeadNodeLookup.Keys;
+
+        public IEnumerable<T> EdgeTailNodeKeys => m_EdgeTailNodeLookup.Keys;
+
+        public IEnumerable<Node<T, TActivity>> EdgeHeadNodes => m_EdgeHeadNodeLookup.Values;
+
+        public IEnumerable<Node<T, TActivity>> EdgeTailNodes => m_EdgeTailNodeLookup.Values;
+
+        #endregion
+    }
+}

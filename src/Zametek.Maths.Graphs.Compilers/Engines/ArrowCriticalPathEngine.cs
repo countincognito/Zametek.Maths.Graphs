@@ -8,65 +8,31 @@ namespace Zametek.Maths.Graphs
     // Calculates the critical path for Activity-on-Arrow graphs.
     // Implements the forward pass (earliest event finish times), backward pass
     // (latest event finish times), and per-activity critical path variable calculation.
-    internal sealed class ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, TEvent>
-        : IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+    // Operates on the shared ArrowGraphState passed to each method.
+    internal sealed class ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
+        : IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
-        where TActivity : IActivity<T, TResourceId, TWorkStreamId>
-        where TEvent : IEvent<T>
+        where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
         public bool CalculateEventEarliestFinishTimes(
-            IEnumerable<T> nodeIds,
-            IDictionary<T, Edge<T, TActivity>> edgeLookup,
-            IDictionary<T, Node<T, TEvent>> nodeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeHeadNodeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeTailNodeLookup,
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             IEnumerable<IInvalidConstraint<T>> invalidConstraints,
-            Node<T, TEvent> startNode,
-            Node<T, TEvent> endNode,
             bool shuffle)
         {
-            if (nodeIds is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIds));
-            }
-            if (edgeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeLookup));
-            }
-            if (nodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(nodeLookup));
-            }
-            if (edgeHeadNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeHeadNodeLookup));
-            }
-            if (edgeTailNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeTailNodeLookup));
-            }
-            if (invalidConstraints is null)
-            {
-                throw new ArgumentNullException(nameof(invalidConstraints));
-            }
-            if (startNode is null)
-            {
-                throw new ArgumentNullException(nameof(startNode));
-            }
-            if (endNode is null)
-            {
-                throw new ArgumentNullException(nameof(endNode));
-            }
+            if (state is null) throw new ArgumentNullException(nameof(state));
+            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
+            if (state.StartNode is null) throw new InvalidOperationException(@"Arrow graph state has no Start node");
+            if (state.EndNode is null) throw new InvalidOperationException(@"Arrow graph state has no End node");
 
-            if (invalidConstraints.Any())
-            {
-                return false;
-            }
+            if (invalidConstraints.Any()) return false;
+
+            Node<T, IEvent<T>> startNode = state.StartNode;
+            Node<T, IEvent<T>> endNode = state.EndNode;
 
             var completedNodeIds = new HashSet<T>();
-            var remainingNodeIds = new HashSet<T>(nodeIds);
+            var remainingNodeIds = new HashSet<T>(state.NodeIds);
 
             // Make sure the remainingNodeIds contain the Start node.
             if (!remainingNodeIds.Contains(startNode.Id))
@@ -92,7 +58,7 @@ namespace Zametek.Maths.Graphs
 
                 foreach (T nodeId in remainingNodeIdList)
                 {
-                    Node<T, TEvent> node = nodeLookup[nodeId];
+                    Node<T, IEvent<T>> node = state.Node(nodeId);
 
                     // Get the incoming edges and the dependency nodes IDs.
                     List<T> incomingEdges = new List<T>(node.IncomingEdges);
@@ -102,7 +68,7 @@ namespace Zametek.Maths.Graphs
                         incomingEdges.Shuffle();
                     }
 
-                    var dependencyNodeIds = new HashSet<T>(incomingEdges.Select(x => edgeTailNodeLookup[x].Id));
+                    var dependencyNodeIds = new HashSet<T>(incomingEdges.Select(x => state.EdgeTailNode(x).Id));
 
                     // If calculations for all the dependency nodes have been completed, then use them
                     // to complete the calculations for this node.
@@ -112,8 +78,8 @@ namespace Zametek.Maths.Graphs
 
                         foreach (T incomingEdgeId in incomingEdges)
                         {
-                            Edge<T, TActivity> incomingEdge = edgeLookup[incomingEdgeId];
-                            Node<T, TEvent> incomingEdgeTailNode = edgeTailNodeLookup[incomingEdgeId];
+                            Edge<T, TActivity> incomingEdge = state.Edge(incomingEdgeId);
+                            Node<T, IEvent<T>> incomingEdgeTailNode = state.EdgeTailNode(incomingEdgeId);
 
                             if (incomingEdgeTailNode.Content.EarliestFinishTime.HasValue)
                             {
@@ -169,57 +135,26 @@ namespace Zametek.Maths.Graphs
         }
 
         public bool CalculateEventLatestFinishTimes(
-            IEnumerable<T> nodeIds,
-            IDictionary<T, Edge<T, TActivity>> edgeLookup,
-            IDictionary<T, Node<T, TEvent>> nodeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeHeadNodeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeTailNodeLookup,
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             IEnumerable<IInvalidConstraint<T>> invalidConstraints,
-            Node<T, TEvent> endNode,
             bool shuffle)
         {
-            if (nodeIds is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIds));
-            }
-            if (edgeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeLookup));
-            }
-            if (nodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(nodeLookup));
-            }
-            if (edgeHeadNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeHeadNodeLookup));
-            }
-            if (edgeTailNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeTailNodeLookup));
-            }
-            if (invalidConstraints is null)
-            {
-                throw new ArgumentNullException(nameof(invalidConstraints));
-            }
-            if (endNode is null)
-            {
-                throw new ArgumentNullException(nameof(endNode));
-            }
+            if (state is null) throw new ArgumentNullException(nameof(state));
+            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
+            if (state.EndNode is null) throw new InvalidOperationException(@"Arrow graph state has no End node");
 
-            if (invalidConstraints.Any())
-            {
-                return false;
-            }
+            if (invalidConstraints.Any()) return false;
 
             // Only perform if all events have earliest finish times.
-            if (!nodeLookup.Values.All(x => x.Content.EarliestFinishTime.HasValue))
+            if (!state.Nodes.All(x => x.Content.EarliestFinishTime.HasValue))
             {
                 return false;
             }
 
+            Node<T, IEvent<T>> endNode = state.EndNode;
+
             var completedNodeIds = new HashSet<T>();
-            var remainingNodeIds = new HashSet<T>(nodeIds);
+            var remainingNodeIds = new HashSet<T>(state.NodeIds);
 
             if (!remainingNodeIds.Contains(endNode.Id))
             {
@@ -250,7 +185,7 @@ namespace Zametek.Maths.Graphs
 
                 foreach (T nodeId in remainingNodeIdList)
                 {
-                    Node<T, TEvent> node = nodeLookup[nodeId];
+                    Node<T, IEvent<T>> node = state.Node(nodeId);
 
                     // Get the outgoing edges and the successor nodes IDs.
                     List<T> outgoingEdges = new List<T>(node.OutgoingEdges);
@@ -260,7 +195,7 @@ namespace Zametek.Maths.Graphs
                         outgoingEdges.Shuffle();
                     }
 
-                    var successorNodeIds = new HashSet<T>(outgoingEdges.Select(x => edgeHeadNodeLookup[x].Id));
+                    var successorNodeIds = new HashSet<T>(outgoingEdges.Select(x => state.EdgeHeadNode(x).Id));
 
                     if (successorNodeIds.IsSubsetOf(completedNodeIds))
                     {
@@ -268,8 +203,8 @@ namespace Zametek.Maths.Graphs
 
                         foreach (T outgoingEdgeId in outgoingEdges)
                         {
-                            Edge<T, TActivity> outgoingEdge = edgeLookup[outgoingEdgeId];
-                            Node<T, TEvent> outgoingEdgeHeadNode = edgeHeadNodeLookup[outgoingEdgeId];
+                            Edge<T, TActivity> outgoingEdge = state.Edge(outgoingEdgeId);
+                            Node<T, IEvent<T>> outgoingEdgeHeadNode = state.EdgeHeadNode(outgoingEdgeId);
 
                             if (outgoingEdgeHeadNode.Content.LatestFinishTime.HasValue)
                             {
@@ -308,61 +243,32 @@ namespace Zametek.Maths.Graphs
         }
 
         public bool CalculateCriticalPathVariables(
-            IEnumerable<T> edgeIds,
-            IDictionary<T, Edge<T, TActivity>> edgeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeHeadNodeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeTailNodeLookup,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
-            IEnumerable<TEvent> events)
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IEnumerable<IInvalidConstraint<T>> invalidConstraints)
         {
-            if (edgeIds is null)
-            {
-                throw new ArgumentNullException(nameof(edgeIds));
-            }
-            if (edgeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeLookup));
-            }
-            if (edgeHeadNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeHeadNodeLookup));
-            }
-            if (edgeTailNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeTailNodeLookup));
-            }
-            if (invalidConstraints is null)
-            {
-                throw new ArgumentNullException(nameof(invalidConstraints));
-            }
-            if (events is null)
-            {
-                throw new ArgumentNullException(nameof(events));
-            }
+            if (state is null) throw new ArgumentNullException(nameof(state));
+            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
 
-            if (invalidConstraints.Any())
-            {
-                return false;
-            }
+            if (invalidConstraints.Any()) return false;
 
             // Only perform if all events have earliest finish times.
-            if (!events.All(x => x.EarliestFinishTime.HasValue))
+            if (!state.Events.All(x => x.EarliestFinishTime.HasValue))
             {
                 return false;
             }
 
             // Only perform if all events have latest finish times.
-            if (!events.All(x => x.LatestFinishTime.HasValue))
+            if (!state.Events.All(x => x.LatestFinishTime.HasValue))
             {
                 return false;
             }
 
             // Earliest Start Times and Latest Finish Times.
-            foreach (T edgeId in edgeIds.ToList())
+            foreach (T edgeId in state.EdgeIds.ToList())
             {
-                Edge<T, TActivity> edge = edgeLookup[edgeId];
+                Edge<T, TActivity> edge = state.Edge(edgeId);
 
-                int? earliestStartTime = edgeTailNodeLookup[edge.Id].Content.EarliestFinishTime;
+                int? earliestStartTime = state.EdgeTailNode(edge.Id).Content.EarliestFinishTime;
 
                 if (edge.Content.MinimumEarliestStartTime.HasValue)
                 {
@@ -386,7 +292,7 @@ namespace Zametek.Maths.Graphs
 
                 edge.Content.EarliestStartTime = earliestStartTime;
 
-                int? latestFinishTime = edgeHeadNodeLookup[edge.Id].Content.LatestFinishTime;
+                int? latestFinishTime = state.EdgeHeadNode(edge.Id).Content.LatestFinishTime;
 
                 if (edge.Content.MaximumLatestFinishTime.HasValue)
                 {
@@ -402,10 +308,10 @@ namespace Zametek.Maths.Graphs
             }
 
             // Free float/slack calculations.
-            foreach (T edgeId in edgeIds.ToList())
+            foreach (T edgeId in state.EdgeIds.ToList())
             {
-                Edge<T, TActivity> edge = edgeLookup[edgeId];
-                Node<T, TEvent> headNode = edgeHeadNodeLookup[edgeId];
+                Edge<T, TActivity> edge = state.Edge(edgeId);
+                Node<T, IEvent<T>> headNode = state.EdgeHeadNode(edgeId);
 
                 if (headNode.NodeType == NodeType.End)
                 {
@@ -435,7 +341,7 @@ namespace Zametek.Maths.Graphs
 
                 foreach (T outgoingEdgeId in outgoingEdges)
                 {
-                    Edge<T, TActivity> outgoingEdge = edgeLookup[outgoingEdgeId];
+                    Edge<T, TActivity> outgoingEdge = state.Edge(outgoingEdgeId);
 
                     if (outgoingEdge.Content.EarliestStartTime.HasValue)
                     {

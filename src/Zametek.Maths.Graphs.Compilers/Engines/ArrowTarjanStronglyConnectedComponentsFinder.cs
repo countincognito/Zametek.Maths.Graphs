@@ -10,36 +10,17 @@ namespace Zametek.Maths.Graphs
     //
     // Fix applied: companion HashSet<T> onStack replaces O(n) stack.Contains() calls,
     // giving the full O(V + E) complexity.
-    internal sealed class ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, TEvent>
-        : IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+    internal sealed class ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
+        : IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
-        where TActivity : IActivity<T, TResourceId, TWorkStreamId>
-        where TEvent : IEvent<T>
+        where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
         public IList<ICircularDependency<T>> FindStronglyConnectedComponents(
-            IEnumerable<T> edgeIds,
-            IDictionary<T, Edge<T, TActivity>> edgeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeHeadNodeLookup,
-            IDictionary<T, Node<T, TEvent>> edgeTailNodeLookup)
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
-            if (edgeIds is null)
-            {
-                throw new ArgumentNullException(nameof(edgeIds));
-            }
-            if (edgeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeLookup));
-            }
-            if (edgeHeadNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeHeadNodeLookup));
-            }
-            if (edgeTailNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeTailNodeLookup));
-            }
+            if (state is null) throw new ArgumentNullException(nameof(state));
 
             int index = 0;
             var stack = new Stack<T>();
@@ -48,7 +29,7 @@ namespace Zametek.Maths.Graphs
             var lowLinkLookup = new Dictionary<T, int>();
             var circularDependencies = new List<ICircularDependency<T>>();
 
-            IList<T> edgeIdList = edgeIds.ToList();
+            IList<T> edgeIdList = state.EdgeIds.ToList();
 
             foreach (T id in edgeIdList)
             {
@@ -64,8 +45,7 @@ namespace Zametek.Maths.Graphs
                 stack.Push(referenceId);
                 onStack.Add(referenceId);
 
-                Edge<T, TActivity> referenceEdge = edgeLookup[referenceId];
-                Node<T, TEvent> tailNode = edgeTailNodeLookup[referenceId];
+                Node<T, IEvent<T>> tailNode = state.EdgeTailNode(referenceId);
                 if (tailNode.NodeType == NodeType.End || tailNode.NodeType == NodeType.Normal)
                 {
                     foreach (T incomingEdgeId in tailNode.IncomingEdges)
@@ -90,7 +70,7 @@ namespace Zametek.Maths.Graphs
                     {
                         currentId = stack.Pop();
                         onStack.Remove(currentId);
-                        Edge<T, TActivity> currentEdge = edgeLookup[currentId];
+                        Edge<T, TActivity> currentEdge = state.Edge(currentId);
                         if (!currentEdge.Content.CanBeRemoved)
                         {
                             circularDependency.Dependencies.Add(currentId);

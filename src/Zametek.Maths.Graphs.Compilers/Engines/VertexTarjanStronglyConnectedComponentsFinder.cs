@@ -10,36 +10,17 @@ namespace Zametek.Maths.Graphs
     //
     // Fix applied: companion HashSet<T> onStack replaces O(n) stack.Contains() calls,
     // giving the full O(V + E) complexity.
-    internal sealed class VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, TEvent>
-        : IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity, TEvent>
+    internal sealed class VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
+        : IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
-        where TEvent : IEvent<T>
     {
         public IList<ICircularDependency<T>> FindStronglyConnectedComponents(
-            IEnumerable<T> nodeIds,
-            IDictionary<T, Node<T, TActivity>> nodeLookup,
-            IDictionary<T, Node<T, TActivity>> edgeHeadNodeLookup,
-            IDictionary<T, Node<T, TActivity>> edgeTailNodeLookup)
+            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
-            if (nodeIds is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIds));
-            }
-            if (nodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(nodeLookup));
-            }
-            if (edgeHeadNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeHeadNodeLookup));
-            }
-            if (edgeTailNodeLookup is null)
-            {
-                throw new ArgumentNullException(nameof(edgeTailNodeLookup));
-            }
+            if (state is null) throw new ArgumentNullException(nameof(state));
 
             int index = 0;
             var stack = new Stack<T>();
@@ -48,7 +29,7 @@ namespace Zametek.Maths.Graphs
             var lowLinkLookup = new Dictionary<T, int>();
             var circularDependencies = new List<ICircularDependency<T>>();
 
-            IList<T> nodeIdList = nodeIds.ToList();
+            IList<T> nodeIdList = state.NodeIds.ToList();
 
             foreach (T id in nodeIdList)
             {
@@ -64,12 +45,12 @@ namespace Zametek.Maths.Graphs
                 stack.Push(referenceId);
                 onStack.Add(referenceId);
 
-                Node<T, TActivity> referenceNode = nodeLookup[referenceId];
+                Node<T, TActivity> referenceNode = state.Node(referenceId);
                 if (referenceNode.NodeType == NodeType.End || referenceNode.NodeType == NodeType.Normal)
                 {
                     foreach (T incomingEdgeId in referenceNode.IncomingEdges)
                     {
-                        Node<T, TActivity> tailNode = edgeTailNodeLookup[incomingEdgeId];
+                        Node<T, TActivity> tailNode = state.EdgeTailNode(incomingEdgeId);
                         T tailNodeId = tailNode.Id;
                         if (indexLookup[tailNodeId] < 0)
                         {
@@ -91,7 +72,7 @@ namespace Zametek.Maths.Graphs
                     {
                         currentId = stack.Pop();
                         onStack.Remove(currentId);
-                        Node<T, TActivity> currentNode = nodeLookup[currentId];
+                        Node<T, TActivity> currentNode = state.Node(currentId);
                         if (!currentNode.Content.CanBeRemoved)
                         {
                             circularDependency.Dependencies.Add(currentId);
