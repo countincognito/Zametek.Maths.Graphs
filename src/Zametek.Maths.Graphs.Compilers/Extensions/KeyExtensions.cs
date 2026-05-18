@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using Zametek.Utility;
+using System;
 
 namespace Zametek.Maths.Graphs
 {
@@ -12,91 +7,29 @@ namespace Zametek.Maths.Graphs
         internal static T Next<T>(this T input)
             where T : struct, IComparable<T>, IEquatable<T>
         {
-            object objectifiedInput = input;
-            MethodInfo incrementMethod = null;
-            var paramInputs = new List<ParameterExpression>();
-            objectifiedInput.TypeSwitchOn()
-                .Case<int>(x =>
-                {
-                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextInt), BindingFlags.Static | BindingFlags.NonPublic);
-                    paramInputs.Add(Expression.Parameter(typeof(T), nameof(objectifiedInput)));
-                })
-                .Case<Guid>(x =>
-                {
-                    incrementMethod = typeof(KeyExtensions).GetMethod(nameof(NextGuid), BindingFlags.Static | BindingFlags.NonPublic);
-                })
-                .Default(x =>
-                {
-                    throw new InvalidOperationException($@"Type of input ({typeof(T)}) not defined for increment");
-                });
-
-            if (paramInputs.Any())
+            if (typeof(T) == typeof(int))
             {
-                MethodCallExpression body = Expression.Call(incrementMethod, paramInputs.ToArray());
-                Func<T, T> increment = Expression.Lambda<Func<T, T>>(body, paramInputs).Compile();
-                return increment((T)objectifiedInput);
+                return (T)(object)((int)(object)input + 1);
             }
-            else
+            if (typeof(T) == typeof(Guid))
             {
-                MethodCallExpression body = Expression.Call(incrementMethod);
-                Func<T> increment = Expression.Lambda<Func<T>>(body).Compile();
-                return increment();
+                return (T)(object)Guid.NewGuid();
             }
-        }
-
-        internal static int NextInt(int input)
-        {
-            return ++input;
-        }
-
-        internal static Guid NextGuid()
-        {
-            return Guid.NewGuid();
+            throw new InvalidOperationException($"Type {typeof(T)} is not supported for key generation.");
         }
 
         internal static T Previous<T>(this T input)
             where T : struct, IComparable<T>, IEquatable<T>
         {
-            object objectifiedInput = input;
-            MethodInfo decrementMethod = null;
-            var paramInputs = new List<ParameterExpression>();
-            objectifiedInput.TypeSwitchOn()
-                .Case<int>(x =>
-                {
-                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousInt), BindingFlags.Static | BindingFlags.NonPublic);
-                    paramInputs.Add(Expression.Parameter(typeof(T), nameof(objectifiedInput)));
-                })
-                .Case<Guid>(x =>
-                {
-                    decrementMethod = typeof(KeyExtensions).GetMethod(nameof(PreviousGuid), BindingFlags.Static | BindingFlags.NonPublic);
-                })
-                .Default(x =>
-                {
-                    throw new InvalidOperationException($@"Type of input ({typeof(T)}) not defined for decrement");
-                });
-
-            if (paramInputs.Any())
+            if (typeof(T) == typeof(int))
             {
-                MethodCallExpression body = Expression.Call(decrementMethod, paramInputs.ToArray());
-                Func<T, T> decrement = Expression.Lambda<Func<T, T>>(body, paramInputs).Compile();
-                return decrement((T)objectifiedInput);
+                return (T)(object)((int)(object)input - 1);
             }
-            else
+            if (typeof(T) == typeof(Guid))
             {
-                MethodCallExpression body = Expression.Call(decrementMethod);
-                Func<T> decrement = Expression.Lambda<Func<T>>(body).Compile();
-                return decrement();
+                throw new InvalidOperationException("Guid keys do not support Previous.");
             }
-        }
-
-        internal static int PreviousInt(int input)
-        {
-            return --input;
-        }
-
-        internal static Guid PreviousGuid()
-        {
-            return Guid.NewGuid();
+            throw new InvalidOperationException($"Type {typeof(T)} is not supported for key generation.");
         }
     }
 }

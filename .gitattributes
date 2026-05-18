@@ -1,0 +1,15 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Ensure scripts are LF
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.dll binary
+*.exe binary
+*.nupkg binary

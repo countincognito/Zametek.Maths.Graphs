@@ -6,10 +6,9 @@
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Company>countincognito</Company>
     <Authors>countincognito</Authors>
-    <Copyright>Copyright (c) 2025 Riccardo M Bennett-Lovsey</Copyright>
+    <Copyright>Copyright (c) 2026 Riccardo M Bennett-Lovsey</Copyright>
     <Description>Primitive classes, interfaces and enums for use in Zametek.Maths.Graphs.</Description>
     <PackageProjectUrl>https://github.com/countincognito/Zametek.Maths.Graphs</PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
     <Version>2.4.8</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <NeutralLanguage>en-GB</NeutralLanguage>
@@ -23,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.300">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
