@@ -527,11 +527,11 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        protected void GetEdgesInDecendingOrder(T nodeId, IList<Edge<T, TEdgeContent>> edgesInDecendingOrder, HashSet<T> recordedEdges)
+        protected void GetEdgesInDescendingOrder(T nodeId, IList<Edge<T, TEdgeContent>> edgesInDescendingOrder, HashSet<T> recordedEdges)
         {
-            if (edgesInDecendingOrder is null)
+            if (edgesInDescendingOrder is null)
             {
-                throw new ArgumentNullException(nameof(edgesInDecendingOrder));
+                throw new ArgumentNullException(nameof(edgesInDescendingOrder));
             }
             if (recordedEdges is null)
             {
@@ -549,23 +549,23 @@ namespace Zametek.Maths.Graphs
             {
                 if (!recordedEdges.Contains(outgoingEdge.Id))
                 {
-                    edgesInDecendingOrder.Add(outgoingEdge);
+                    edgesInDescendingOrder.Add(outgoingEdge);
                     recordedEdges.Add(outgoingEdge.Id);
                 }
-                GetEdgesInDecendingOrder(EdgeHeadNodeLookup[outgoingEdge.Id].Id, edgesInDecendingOrder, recordedEdges);
+                GetEdgesInDescendingOrder(EdgeHeadNodeLookup[outgoingEdge.Id].Id, edgesInDescendingOrder, recordedEdges);
             }
         }
 
         /// <summary>
         /// Check to make sure that no other edges will be made parallel
         /// by removing this edge. If there is an intersection between
-        /// the ancestor/decendant nodes of the edge's tail node, and the
-        /// ancestor/decendant nodes of the head node, then do not remove it.
+        /// the ancestor/descendant nodes of the edge's tail node, and the
+        /// ancestor/descendant nodes of the head node, then do not remove it.
         /// </summary>
         /// <param name="tailNode"></param>
         /// <param name="headNode"></param>
         /// <returns></returns>
-        protected bool HaveDecendantOrAncestorOverlap(Node<T, TNodeContent> tailNode, Node<T, TNodeContent> headNode)
+        protected bool HaveDescendantOrAncestorOverlap(Node<T, TNodeContent> tailNode, Node<T, TNodeContent> headNode)
         {
             if (tailNode is null)
             {
@@ -576,12 +576,12 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(headNode));
             }
 
-            // First the decendants of the tail node.
-            var tailNodeAncestorsAndDecendants = new HashSet<T>();
+            // First the descendants of the tail node.
+            var tailNodeAncestorsAndDescendants = new HashSet<T>();
             if (tailNode.NodeType != NodeType.End
                 && tailNode.NodeType != NodeType.Isolated)
             {
-                tailNodeAncestorsAndDecendants.UnionWith(
+                tailNodeAncestorsAndDescendants.UnionWith(
                     tailNode.OutgoingEdges
                     .Select(x => EdgeLookup[x])
                     .Select(x => EdgeHeadNodeLookup[x.Id].Id)
@@ -592,7 +592,7 @@ namespace Zametek.Maths.Graphs
             if (tailNode.NodeType != NodeType.Start
                 && tailNode.NodeType != NodeType.Isolated)
             {
-                tailNodeAncestorsAndDecendants.UnionWith(
+                tailNodeAncestorsAndDescendants.UnionWith(
                     tailNode.IncomingEdges
                     .Select(x => EdgeLookup[x])
                     .Select(x => EdgeTailNodeLookup[x.Id].Id)
@@ -600,29 +600,29 @@ namespace Zametek.Maths.Graphs
             }
 
             // Next the ancestors of the head node.
-            var headNodeAncestorsAndDecendants = new HashSet<T>();
+            var headNodeAncestorsAndDescendants = new HashSet<T>();
             if (headNode.NodeType != NodeType.Start
                 && headNode.NodeType != NodeType.Isolated)
             {
-                headNodeAncestorsAndDecendants.UnionWith(
+                headNodeAncestorsAndDescendants.UnionWith(
                     headNode.IncomingEdges
                     .Select(x => EdgeLookup[x])
                     .Select(x => EdgeTailNodeLookup[x.Id].Id)
                     .Except(new[] { tailNode.Id }));
             }
 
-            // Then the decendants of the head node.
+            // Then the descendants of the head node.
             if (headNode.NodeType != NodeType.End
                 && headNode.NodeType != NodeType.Isolated)
             {
-                headNodeAncestorsAndDecendants.UnionWith(
+                headNodeAncestorsAndDescendants.UnionWith(
                     headNode.OutgoingEdges
                     .Select(x => EdgeLookup[x])
                     .Select(x => EdgeHeadNodeLookup[x.Id].Id)
                     .Except(new[] { tailNode.Id }));
             }
 
-            IEnumerable<T> overlap = tailNodeAncestorsAndDecendants.Intersect(headNodeAncestorsAndDecendants);
+            IEnumerable<T> overlap = tailNodeAncestorsAndDescendants.Intersect(headNodeAncestorsAndDescendants);
             if (overlap.Any())
             {
                 return true;

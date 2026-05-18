@@ -98,7 +98,7 @@ namespace Zametek.Maths.Graphs
 
             // Check to make sure that no other edges will be made parallel
             // by removing this edge.
-            if (HaveDecendantOrAncestorOverlap(tailNode, headNode)
+            if (HaveDescendantOrAncestorOverlap(tailNode, headNode)
                 && !ShareMoreThanOneEdge(tailNode, headNode))
             {
                 return false;
@@ -326,7 +326,7 @@ namespace Zametek.Maths.Graphs
             // Go through and remove all the dummy edges that are
             // the only outgoing edge of their tail node, and also
             // the only incoming edge of their head node.
-            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDecendingOrder().Where(x => x.Content.CanBeRemoved))
+            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
             {
                 Node<T, TEvent> tailNode = EdgeTailNodeLookup[edge.Id];
                 Node<T, TEvent> headNode = EdgeHeadNodeLookup[edge.Id];
@@ -339,7 +339,7 @@ namespace Zametek.Maths.Graphs
 
             // Next, go through and remove all the dummy edges that
             // are the only incoming edge of their head node.
-            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDecendingOrder().Where(x => x.Content.CanBeRemoved))
+            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
             {
                 if (EdgeHeadNodeLookup[edge.Id].IncomingEdges.Count == 1)
                 {
@@ -349,7 +349,7 @@ namespace Zametek.Maths.Graphs
 
             // Next, go through and remove all the dummy edges that
             // are the only outgoing edge of their tail node.
-            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDecendingOrder().Where(x => x.Content.CanBeRemoved))
+            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
             {
                 if (EdgeTailNodeLookup[edge.Id].OutgoingEdges.Count == 1)
                 {
@@ -413,13 +413,13 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        private IList<Edge<T, TActivity>> GetDummyEdgesInDecendingOrder()
+        private IList<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder()
         {
             var recordedEdges = new HashSet<T>();
             T startNodeId = StartNode.Id;
-            var edgesInDecendingOrder = new List<Edge<T, TActivity>>();
-            GetEdgesInDecendingOrder(startNodeId, edgesInDecendingOrder, recordedEdges);
-            return edgesInDecendingOrder.Where(x => x.Content.IsDummy).ToList();
+            var edgesInDescendingOrder = new List<Edge<T, TActivity>>();
+            GetEdgesInDescendingOrder(startNodeId, edgesInDescendingOrder, recordedEdges);
+            return edgesInDescendingOrder.Where(x => x.Content.IsDummy).ToList();
         }
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
@@ -667,6 +667,7 @@ namespace Zametek.Maths.Graphs
         {
             int index = 0;
             var stack = new Stack<T>();
+            var onStack = new HashSet<T>();
             var indexLookup = new Dictionary<T, int>();
             var lowLinkLookup = new Dictionary<T, int>();
             var circularDependencies = new List<ICircularDependency<T>>();
@@ -683,6 +684,7 @@ namespace Zametek.Maths.Graphs
                 lowLinkLookup[referenceId] = index;
                 index++;
                 stack.Push(referenceId);
+                onStack.Add(referenceId);
 
                 Edge<T, TActivity> referenceEdge = EdgeLookup[referenceId];
                 Node<T, TEvent> tailNode = EdgeTailNodeLookup[referenceId];
@@ -695,7 +697,7 @@ namespace Zametek.Maths.Graphs
                             StrongConnect(incomingEdgeId);
                             lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], lowLinkLookup[incomingEdgeId]);
                         }
-                        else if (stack.Contains(incomingEdgeId))
+                        else if (onStack.Contains(incomingEdgeId))
                         {
                             lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], indexLookup[incomingEdgeId]);
                         }
@@ -709,6 +711,7 @@ namespace Zametek.Maths.Graphs
                     do
                     {
                         currentId = stack.Pop();
+                        onStack.Remove(currentId);
                         Edge<T, TActivity> currentEdge = EdgeLookup[currentId];
                         if (!currentEdge.Content.CanBeRemoved)
                         {
