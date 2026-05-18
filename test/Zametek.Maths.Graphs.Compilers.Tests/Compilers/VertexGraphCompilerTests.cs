@@ -1,7 +1,8 @@
-﻿using Shouldly;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
@@ -119,11 +120,13 @@ namespace Zametek.Maths.Graphs.Tests
 
             compilationErrors.Count.ShouldBe(1);
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0030);
-            compilationErrors[0].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_InvalidConstraints}
-4 -> {Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}
-9 -> {Properties.Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime}
-".Replace("\r\n", "\n"));
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_InvalidConstraints);
+            message.AppendLine($@"4 -> {Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}");
+            message.AppendLine($@"9 -> {Properties.Resources.Message_CannotSetMinimumFreeSlackAndMaximumLatestFinishTime}");
+
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
         }
 
         [Fact]
@@ -149,11 +152,13 @@ namespace Zametek.Maths.Graphs.Tests
 
             compilationErrors.Count.ShouldBe(1);
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0020);
-            compilationErrors[0].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_CircularDependencies}
-4 -> 7 -> 2
-9 -> 8 -> 5
-".Replace("\r\n", "\n"));
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_CircularDependencies);
+            message.AppendLine(@"4 -> 7 -> 2");
+            message.AppendLine(@"9 -> 8 -> 5");
+
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
         }
 
         [Fact]
@@ -178,11 +183,13 @@ namespace Zametek.Maths.Graphs.Tests
             var compilationErrors = compilation.CompilationErrors.ToList();
             compilationErrors.Count.ShouldBe(1);
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0010);
-            compilationErrors[0].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_InvalidDependencies}
-21 {Properties.Resources.Message_IsInvalidButReferencedBy} 3
-22 {Properties.Resources.Message_IsInvalidButReferencedBy} 7
-".Replace("\r\n", "\n"));
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_InvalidDependencies);
+            message.AppendLine($@"21 {Properties.Resources.Message_IsInvalidButReferencedBy} 3");
+            message.AppendLine($@"22 {Properties.Resources.Message_IsInvalidButReferencedBy} 7");
+
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
         }
 
         [Fact]
@@ -209,24 +216,30 @@ namespace Zametek.Maths.Graphs.Tests
             compilationErrors.Count.ShouldBe(3);
 
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0010);
-            compilationErrors[0].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_InvalidDependencies}
-21 {Properties.Resources.Message_IsInvalidButReferencedBy} 3
-22 {Properties.Resources.Message_IsInvalidButReferencedBy} 7, 8
-".Replace("\r\n", "\n"));
+
+            var message0 = new StringBuilder();
+            message0.AppendLine(Properties.Resources.Message_InvalidDependencies);
+            message0.AppendLine($@"21 {Properties.Resources.Message_IsInvalidButReferencedBy} 3");
+            message0.AppendLine($@"22 {Properties.Resources.Message_IsInvalidButReferencedBy} 7, 8");
+
+            compilationErrors[0].ErrorMessage.ShouldBe(message0.ToString());
 
             compilationErrors[1].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0020);
-            compilationErrors[1].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_CircularDependencies}
-4 -> 7 -> 2
-9 -> 8 -> 5
-".Replace("\r\n", "\n"));
+
+            var message1 = new StringBuilder();
+            message1.AppendLine(Properties.Resources.Message_CircularDependencies);
+            message1.AppendLine(@"4 -> 7 -> 2");
+            message1.AppendLine(@"9 -> 8 -> 5");
+
+            compilationErrors[1].ErrorMessage.ShouldBe(message1.ToString());
 
             compilationErrors[2].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0030);
-            compilationErrors[2].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_InvalidConstraints}
-4 -> {Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}
-".Replace("\r\n", "\n"));
+
+            var message2 = new StringBuilder();
+            message2.AppendLine(Properties.Resources.Message_InvalidConstraints);
+            message2.AppendLine($@"4 -> {Properties.Resources.Message_MinimumEarliestStartTimePlusDurationMustBeGreaterThanMaximumLatestFinishTime}");
+
+            compilationErrors[2].ErrorMessage.ShouldBe(message2.ToString());
         }
 
         [Fact]
@@ -262,15 +275,17 @@ namespace Zametek.Maths.Graphs.Tests
 
             compilationErrors.Count.ShouldBe(1);
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.C0010);
-            compilationErrors[0].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_InvalidConstraints}
-2 -> {Properties.Resources.Message_LatestStartTimeLessThanZero}
-2 -> {Properties.Resources.Message_LatestFinishTimeLessThanZero}
-2 -> {Properties.Resources.Message_LatestStartTimeLessThanEarliestStartTime}
-2 -> {Properties.Resources.Message_LatestFinishTimeLessThanEarliestFinishTime}
-4 -> {Properties.Resources.Message_EarliestStartTimeLessThanZero}
-4 -> {Properties.Resources.Message_LatestStartTimeLessThanZero}
-".Replace("\r\n", "\n"));
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_InvalidConstraints);
+            message.AppendLine($@"2 -> {Properties.Resources.Message_LatestStartTimeLessThanZero}");
+            message.AppendLine($@"2 -> {Properties.Resources.Message_LatestFinishTimeLessThanZero}");
+            message.AppendLine($@"2 -> {Properties.Resources.Message_LatestStartTimeLessThanEarliestStartTime}");
+            message.AppendLine($@"2 -> {Properties.Resources.Message_LatestFinishTimeLessThanEarliestFinishTime}");
+            message.AppendLine($@"4 -> {Properties.Resources.Message_EarliestStartTimeLessThanZero}");
+            message.AppendLine($@"4 -> {Properties.Resources.Message_LatestStartTimeLessThanZero}");
+
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
 
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
@@ -481,10 +496,12 @@ namespace Zametek.Maths.Graphs.Tests
 
             compilationErrors.Count.ShouldBe(1);
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.C0010);
-            compilationErrors[0].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_InvalidConstraints}
-1 -> {Properties.Resources.Message_FreeSlackLessThanMinimumFreeSlack}
-".Replace("\r\n", "\n"));
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_InvalidConstraints);
+            message.AppendLine($@"1 -> {Properties.Resources.Message_FreeSlackLessThanMinimumFreeSlack}");
+
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(10);
@@ -646,19 +663,21 @@ namespace Zametek.Maths.Graphs.Tests
 
             compilationErrors.Count.ShouldBe(1);
             compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.P0060);
-            compilationErrors[0].ErrorMessage.Replace("\r\n", "\n").ShouldBe(
-                $@"{Properties.Resources.Message_UnavailableResources}
-{activityId2} -> {resourceId2}
-{activityId3} -> {resourceId3}
-{activityId4} -> {resourceId2}
-{activityId5} -> {resourceId2}, {resourceId3}
-{activityId6} -> {resourceId3}
-{activityId7} -> {resourceId2}, {resourceId3}
-{activityId9} -> {resourceId2}
-{activityId10} -> {resourceId3}
-{activityId12} -> {resourceId2}, {resourceId3}
-{activityId16} -> {resourceId2}, {resourceId3}
-".Replace("\r\n", "\n"));
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_UnavailableResources);
+            message.AppendLine($@"{activityId2} -> {resourceId2}");
+            message.AppendLine($@"{activityId3} -> {resourceId3}");
+            message.AppendLine($@"{activityId4} -> {resourceId2}");
+            message.AppendLine($@"{activityId5} -> {resourceId2}, {resourceId3}");
+            message.AppendLine($@"{activityId6} -> {resourceId3}");
+            message.AppendLine($@"{activityId7} -> {resourceId2}, {resourceId3}");
+            message.AppendLine($@"{activityId9} -> {resourceId2}");
+            message.AppendLine($@"{activityId10} -> {resourceId3}");
+            message.AppendLine($@"{activityId12} -> {resourceId2}, {resourceId3}");
+            message.AppendLine($@"{activityId16} -> {resourceId2}, {resourceId3}");
+
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
         }
 
         [Fact]
