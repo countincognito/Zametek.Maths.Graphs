@@ -34,98 +34,6 @@ namespace Zametek.Maths.Graphs
 
         #region Public Methods
 
-        //public bool AddActivityDependencies(T activityId, HashSet<T> dependencies)
-        //{
-        //    lock (m_Lock)
-        //    {
-        //        if (dependencies is null)
-        //        {
-        //            throw new ArgumentNullException(nameof(dependencies));
-        //        }
-        //        if (!m_VertexGraphBuilder.ActivityIds.Contains(activityId))
-        //        {
-        //            return false;
-        //        }
-        //        if (!dependencies.Any())
-        //        {
-        //            return true;
-        //        }
-
-        //        var activity = (TDependentActivity)m_VertexGraphBuilder.Activity(activityId);
-        //        var resourceAndCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.Dependencies));
-        //        var resourceOrCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Union(activity.Dependencies));
-        //        var onlyResourceDependencies = new HashSet<T>(activity.ResourceDependencies.Except(resourceAndCompiledDependencies));
-
-        //        // If a dependency is already a compiled dependency, then do nothing.
-
-        //        // If a dependency is already a resource dependency, but not a compiled dependency,
-        //        // then just add it to the the compiled dependencies.
-        //        var toBeAddedToCompiledDependencies = new HashSet<T>(dependencies.Intersect(onlyResourceDependencies));
-
-        //        foreach (T dependencyId in toBeAddedToCompiledDependencies)
-        //        {
-        //            activity.Dependencies.Add(dependencyId);
-        //        }
-
-        //        // If a dependency is neither a compiled dependency, nor a resource dependency,
-        //        // then add it to everything.
-        //        var toBeAddedToEverything = new HashSet<T>(dependencies.Except(resourceOrCompiledDependencies));
-
-        //        foreach (T dependencyId in toBeAddedToEverything)
-        //        {
-        //            activity.Dependencies.Add(dependencyId);
-        //        }
-
-        //        return m_VertexGraphBuilder.AddActivityDependencies(activityId, toBeAddedToEverything);
-        //    }
-        //}
-
-        //public bool RemoveActivityDependencies(T activityId, HashSet<T> dependencies)
-        //{
-        //    lock (m_Lock)
-        //    {
-        //        if (dependencies is null)
-        //        {
-        //            throw new ArgumentNullException(nameof(dependencies));
-        //        }
-        //        if (!m_VertexGraphBuilder.ActivityIds.Contains(activityId))
-        //        {
-        //            return false;
-        //        }
-        //        if (!dependencies.Any())
-        //        {
-        //            return true;
-        //        }
-
-        //        var activity = (TDependentActivity)m_VertexGraphBuilder.Activity(activityId);
-        //        var resourceAndCompiledDependencies = new HashSet<T>(activity.ResourceDependencies.Intersect(activity.Dependencies));
-        //        var onlyCompiledDependencies = new HashSet<T>(activity.Dependencies.Except(resourceAndCompiledDependencies));
-
-        //        // If a dependency is a resource dependency, but not a compiled dependency,
-        //        // then do nothing.
-
-        //        // If a dependency is a resource dependency, and also a compiled dependency,
-        //        // then just remove it from the compiled dependencies.
-        //        var toBeRemovedFromCompiledDependencies = new HashSet<T>(dependencies.Intersect(resourceAndCompiledDependencies));
-
-        //        foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
-        //        {
-        //            activity.Dependencies.Remove(dependencyId);
-        //        }
-
-        //        // If a dependency is only a compiled dependency, but not a resource dependency,
-        //        // then remove it from the compiled dependencies and the graph builder.
-        //        var toBeRemovedFromEverything = new HashSet<T>(dependencies.Intersect(onlyCompiledDependencies));
-
-        //        foreach (T dependencyId in toBeRemovedFromEverything)
-        //        {
-        //            activity.Dependencies.Remove(dependencyId);
-        //        }
-
-        //        return m_VertexGraphBuilder.RemoveActivityDependencies(activityId, toBeRemovedFromEverything);
-        //    }
-        //}
-
         public bool SetActivityDependencies(T activityId, HashSet<T> dependencies, HashSet<T> planningDependencies)
         {
             lock (m_Lock)
@@ -608,15 +516,6 @@ namespace Zametek.Maths.Graphs
                             GraphCompilationErrorCode.C0010,
                             BuildInvalidConstraintsErrorMessage(invalidPostcompilationConstraints)));
                 }
-
-                //if (compilationErrors.Count != 0)
-                //{
-                //    return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
-                //        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
-                //        Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>(),
-                //        Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
-                //        compilationErrors);
-                //}
 
                 // Go through each activity and update the upstream successors.
 

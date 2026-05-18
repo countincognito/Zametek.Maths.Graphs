@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace Zametek.Maths.Graphs
 {
@@ -36,70 +35,6 @@ namespace Zametek.Maths.Graphs
         #endregion
 
         #region Private Methods
-
-        //private void RemoveParallelIncomingEdges(Node<T, TActivity> node)
-        //{
-        //    if (node is null)
-        //    {
-        //        throw new ArgumentNullException(nameof(node));
-        //    }
-        //    // Clean up any dummy edges that are parallel coming into the head node.
-        //    if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
-        //    {
-        //        return;
-        //    }
-        //    // First, find the tail nodes that connect to this node via ALL edges.
-        //    // In a vertex graph, all edges should be removable.
-        //    var tailNodeParallelEdgesLookup = new Dictionary<T, HashSet<T>>();
-        //    IEnumerable<T> removableIncomingEdgeIds =
-        //        node.IncomingEdges.Select(x => EdgeLookup[x])
-        //        .Where(x => x.Content.CanBeRemoved)
-        //        .Select(x => x.Id);
-
-        //    foreach (T incomingEdgeId in removableIncomingEdgeIds)
-        //    {
-        //        T tailNodeId = EdgeTailNodeLookup[incomingEdgeId].Id;
-        //        if (!tailNodeParallelEdgesLookup.TryGetValue(tailNodeId, out HashSet<T> edgeIds))
-        //        {
-        //            edgeIds = new HashSet<T>();
-        //            tailNodeParallelEdgesLookup.Add(tailNodeId, edgeIds);
-        //        }
-        //        if (!edgeIds.Contains(incomingEdgeId))
-        //        {
-        //            edgeIds.Add(incomingEdgeId);
-        //        }
-        //    }
-
-        //    // Now find the tail nodes that connect to this node via multiple edges.
-        //    IList<T> setsOfMoreThanOneEdge =
-        //        tailNodeParallelEdgesLookup
-        //        .Where(x => x.Value.Count > 1)
-        //        .Select(x => x.Key)
-        //        .ToList();
-
-        //    foreach (T tailNodeId in setsOfMoreThanOneEdge)
-        //    {
-        //        Node<T, TActivity> tailNode = EdgeTailNodeLookup[tailNodeId];
-        //        IList<T> edgeIds = tailNodeParallelEdgesLookup[tailNodeId].ToList();
-        //        int length = edgeIds.Count;
-        //        // Leave one edge behind.
-        //        for (int i = 1; i < length; i++)
-        //        {
-        //            T edgeId = edgeIds[i];
-
-        //            // Remove the edge from the tail node.
-        //            tailNode.OutgoingEdges.Remove(edgeId);
-        //            EdgeTailNodeLookup.Remove(edgeId);
-
-        //            // Remove the edge from the head node.
-        //            node.IncomingEdges.Remove(edgeId);
-        //            EdgeHeadNodeLookup.Remove(edgeId);
-
-        //            // Remove the edge completely.
-        //            EdgeLookup.Remove(edgeId);
-        //        }
-        //    }
-        //}
 
         private void RemoveRedundantIncomingEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
@@ -667,6 +602,7 @@ namespace Zametek.Maths.Graphs
         {
             int index = 0;
             var stack = new Stack<T>();
+            var onStack = new HashSet<T>();
             var indexLookup = new Dictionary<T, int>();
             var lowLinkLookup = new Dictionary<T, int>();
             var circularDependencies = new List<ICircularDependency<T>>();
@@ -683,6 +619,7 @@ namespace Zametek.Maths.Graphs
                 lowLinkLookup[referenceId] = index;
                 index++;
                 stack.Push(referenceId);
+                onStack.Add(referenceId);
 
                 Node<T, TActivity> referenceNode = NodeLookup[referenceId];
                 if (referenceNode.NodeType == NodeType.End || referenceNode.NodeType == NodeType.Normal)
@@ -696,7 +633,7 @@ namespace Zametek.Maths.Graphs
                             StrongConnect(tailNodeId);
                             lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], lowLinkLookup[tailNodeId]);
                         }
-                        else if (stack.Contains(tailNodeId))
+                        else if (onStack.Contains(tailNodeId))
                         {
                             lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], indexLookup[tailNodeId]);
                         }
@@ -710,6 +647,7 @@ namespace Zametek.Maths.Graphs
                     do
                     {
                         currentId = stack.Pop();
+                        onStack.Remove(currentId);
                         Node<T, TActivity> currentNode = NodeLookup[currentId];
                         if (!currentNode.Content.CanBeRemoved)
                         {

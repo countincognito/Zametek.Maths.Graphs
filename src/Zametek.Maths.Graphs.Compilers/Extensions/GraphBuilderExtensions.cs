@@ -1,8 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Zametek.Maths.Graphs
 {
@@ -107,10 +105,6 @@ namespace Zametek.Maths.Graphs
             if (resources is null)
             {
                 throw new ArgumentNullException(nameof(resources));
-            }
-            if (resources.Count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(resources), Properties.Resources.Message_ValueCannotBeNegative);
             }
             if (!graphBuilder.Activities.Any())
             {

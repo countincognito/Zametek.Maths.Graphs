@@ -175,7 +175,7 @@ namespace Zametek.Maths.Graphs
             get
             {
                 int? totalSlack = TotalSlack;
-                return totalSlack <= 0;
+                return totalSlack.HasValue && totalSlack.Value <= 0;
             }
         }
 
