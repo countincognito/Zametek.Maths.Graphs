@@ -20,7 +20,10 @@ namespace Zametek.Maths.Graphs
         public IList<ICircularDependency<T>> FindStronglyConnectedComponents(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
-            if (state is null) throw new ArgumentNullException(nameof(state));
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
 
             int index = 0;
             var stack = new Stack<T>();

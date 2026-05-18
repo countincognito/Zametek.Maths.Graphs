@@ -365,13 +365,22 @@ namespace Zametek.Maths.Graphs
 
         public bool RemoveActivity(T activityId)
         {
-            if (!m_State.TryGetNode(activityId, out Node<T, TActivity> node)) return false;
-            if (!node.Content.CanBeRemoved) return false;
+            if (!m_State.TryGetNode(activityId, out Node<T, TActivity> node))
+            {
+                return false;
+            }
+            if (!node.Content.CanBeRemoved)
+            {
+                return false;
+            }
 
             RemoveUnsatisfiedSuccessorActivity(activityId);
             m_State.RemoveNode(node.Id);
 
-            if (node.NodeType == NodeType.Isolated) return true;
+            if (node.NodeType == NodeType.Isolated)
+            {
+                return true;
+            }
 
             if (node.NodeType == NodeType.End || node.NodeType == NodeType.Normal)
             {
@@ -393,11 +402,17 @@ namespace Zametek.Maths.Graphs
 
                 tailNode.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
-                if (!tailNode.OutgoingEdges.Any()) DowngradeOutboundNodeType(tailNode);
+                if (!tailNode.OutgoingEdges.Any())
+                {
+                    DowngradeOutboundNodeType(tailNode);
+                }
 
                 node.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
-                if (!node.IncomingEdges.Any()) DowngradeInboundNodeType(node);
+                if (!node.IncomingEdges.Any())
+                {
+                    DowngradeInboundNodeType(node);
+                }
 
                 m_State.RemoveEdge(edgeId);
             }
@@ -411,11 +426,17 @@ namespace Zametek.Maths.Graphs
 
                 headNode.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
-                if (!headNode.IncomingEdges.Any()) DowngradeInboundNodeType(headNode);
+                if (!headNode.IncomingEdges.Any())
+                {
+                    DowngradeInboundNodeType(headNode);
+                }
 
                 node.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
-                if (!node.OutgoingEdges.Any()) DowngradeOutboundNodeType(node);
+                if (!node.OutgoingEdges.Any())
+                {
+                    DowngradeOutboundNodeType(node);
+                }
 
                 m_State.RemoveEdge(edgeId);
             }
@@ -424,15 +445,27 @@ namespace Zametek.Maths.Graphs
         // When a node loses its last outgoing edge it can no longer be Start or Normal.
         private static void DowngradeOutboundNodeType(Node<T, TActivity> node)
         {
-            if (node.NodeType == NodeType.Normal) node.SetNodeType(NodeType.End);
-            else if (node.NodeType == NodeType.Start) node.SetNodeType(NodeType.Isolated);
+            if (node.NodeType == NodeType.Normal)
+            {
+                node.SetNodeType(NodeType.End);
+            }
+            else if (node.NodeType == NodeType.Start)
+            {
+                node.SetNodeType(NodeType.Isolated);
+            }
         }
 
         // When a node loses its last incoming edge it can no longer be End or Normal.
         private static void DowngradeInboundNodeType(Node<T, TActivity> node)
         {
-            if (node.NodeType == NodeType.Normal) node.SetNodeType(NodeType.Start);
-            else if (node.NodeType == NodeType.End) node.SetNodeType(NodeType.Isolated);
+            if (node.NodeType == NodeType.Normal)
+            {
+                node.SetNodeType(NodeType.Start);
+            }
+            else if (node.NodeType == NodeType.End)
+            {
+                node.SetNodeType(NodeType.Isolated);
+            }
         }
 
         public bool RemoveActivityDependencies(T activityId, HashSet<T> dependencies)
@@ -463,18 +496,27 @@ namespace Zametek.Maths.Graphs
             foreach (T edgeId in node.IncomingEdges.ToList())
             {
                 Node<T, TActivity> tailNode = m_State.EdgeTailNode(edgeId);
-                if (!existingDependencyLookup.Contains(tailNode.Id)) continue;
+                if (!existingDependencyLookup.Contains(tailNode.Id))
+                {
+                    continue;
+                }
 
                 tailNode.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
-                if (!tailNode.OutgoingEdges.Any()) DowngradeOutboundNodeType(tailNode);
+                if (!tailNode.OutgoingEdges.Any())
+                {
+                    DowngradeOutboundNodeType(tailNode);
+                }
 
                 node.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
                 m_State.RemoveEdge(edgeId);
             }
 
-            if (!node.IncomingEdges.Any()) DowngradeInboundNodeType(node);
+            if (!node.IncomingEdges.Any())
+            {
+                DowngradeInboundNodeType(node);
+            }
 
             return true;
         }
@@ -707,7 +749,10 @@ namespace Zametek.Maths.Graphs
 
             foreach (TActivity activity in Activities)
             {
-                if (!activity.TargetResources.Any()) continue;
+                if (!activity.TargetResources.Any())
+                {
+                    continue;
+                }
 
                 if (activity.TargetResourceOperator == LogicalOperator.AND)
                 {
@@ -811,9 +856,18 @@ namespace Zametek.Maths.Graphs
         // with any existing resource dependencies already wired into the graph.
         public bool SetActivityDependencies(T activityId, HashSet<T> dependencies, HashSet<T> planningDependencies)
         {
-            if (dependencies is null) throw new ArgumentNullException(nameof(dependencies));
-            if (planningDependencies is null) throw new ArgumentNullException(nameof(planningDependencies));
-            if (!ActivityIds.Contains(activityId)) return false;
+            if (dependencies is null)
+            {
+                throw new ArgumentNullException(nameof(dependencies));
+            }
+            if (planningDependencies is null)
+            {
+                throw new ArgumentNullException(nameof(planningDependencies));
+            }
+            if (!ActivityIds.Contains(activityId))
+            {
+                return false;
+            }
 
             TActivity activityObj = Activity(activityId);
 
@@ -848,10 +902,16 @@ namespace Zametek.Maths.Graphs
             // Resource: 1, Core: 1, New: 0
             {
                 IList<T> toBeRemovedFromCompiledDependencies = resourceAndCompiledDependencies.Except(dependencies).ToList();
-                foreach (T dependencyId in toBeRemovedFromCompiledDependencies) dependentActivity.Dependencies.Remove(dependencyId);
+                foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
+                {
+                    dependentActivity.Dependencies.Remove(dependencyId);
+                }
 
                 IList<T> toBeRemovedFromPlanningDependencies = resourceAndPlanningDependencies.Except(planningDependencies).ToList();
-                foreach (T dependencyId in toBeRemovedFromPlanningDependencies) dependentActivity.PlanningDependencies.Remove(dependencyId);
+                foreach (T dependencyId in toBeRemovedFromPlanningDependencies)
+                {
+                    dependentActivity.PlanningDependencies.Remove(dependencyId);
+                }
 
                 List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
                 IList<T> currentDependencies = ActivityDependencyIds(activityId);
@@ -862,10 +922,16 @@ namespace Zametek.Maths.Graphs
             // Resource: 1, Core: 0, New: 1
             {
                 var toBeAddedToCompiledDependencies = resourceNotCompiledDependencies.Intersect(dependencies);
-                foreach (T dependencyId in toBeAddedToCompiledDependencies) dependentActivity.Dependencies.Add(dependencyId);
+                foreach (T dependencyId in toBeAddedToCompiledDependencies)
+                {
+                    dependentActivity.Dependencies.Add(dependencyId);
+                }
 
                 var toBeAddedToPlanningDependencies = resourceNotPlanningDependencies.Intersect(planningDependencies);
-                foreach (T dependencyId in toBeAddedToPlanningDependencies) dependentActivity.PlanningDependencies.Add(dependencyId);
+                foreach (T dependencyId in toBeAddedToPlanningDependencies)
+                {
+                    dependentActivity.PlanningDependencies.Add(dependencyId);
+                }
 
                 List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
                 IList<T> currentDependencies = ActivityDependencyIds(activityId);
@@ -876,10 +942,16 @@ namespace Zametek.Maths.Graphs
             // Resource: 0, Core: 1, New: 0
             {
                 var toBeRemovedFromCompiledDependencies = compiledNotResourceDependencies.Except(dependencies);
-                foreach (T dependencyId in toBeRemovedFromCompiledDependencies) dependentActivity.Dependencies.Remove(dependencyId);
+                foreach (T dependencyId in toBeRemovedFromCompiledDependencies)
+                {
+                    dependentActivity.Dependencies.Remove(dependencyId);
+                }
 
                 var toBeRemovedFromPlanningDependencies = planningNotResourceDependencies.Except(planningDependencies);
-                foreach (T dependencyId in toBeRemovedFromPlanningDependencies) dependentActivity.PlanningDependencies.Remove(dependencyId);
+                foreach (T dependencyId in toBeRemovedFromPlanningDependencies)
+                {
+                    dependentActivity.PlanningDependencies.Remove(dependencyId);
+                }
 
                 List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
                 IList<T> currentDependencies = ActivityDependencyIds(activityId);
@@ -890,10 +962,16 @@ namespace Zametek.Maths.Graphs
             // Resource: 0, Core: 0, New: X
             {
                 var toBeAddedToCompiledDependencies = dependencies.Except(resourceOrCompiledDependencies);
-                foreach (T dependencyId in toBeAddedToCompiledDependencies) dependentActivity.Dependencies.Add(dependencyId);
+                foreach (T dependencyId in toBeAddedToCompiledDependencies)
+                {
+                    dependentActivity.Dependencies.Add(dependencyId);
+                }
 
                 var toBeAddedToPlanningDependencies = planningDependencies.Except(resourceOrPlanningDependencies);
-                foreach (T dependencyId in toBeAddedToPlanningDependencies) dependentActivity.PlanningDependencies.Add(dependencyId);
+                foreach (T dependencyId in toBeAddedToPlanningDependencies)
+                {
+                    dependentActivity.PlanningDependencies.Add(dependencyId);
+                }
 
                 List<T> updatedDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies).Union(dependentActivity.ResourceDependencies).ToList();
                 IList<T> currentDependencies = ActivityDependencyIds(activityId);
@@ -909,7 +987,10 @@ namespace Zametek.Maths.Graphs
         {
             foreach (TActivity activity in activities)
             {
-                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity))
+                {
+                    continue;
+                }
                 IEnumerable<T> coreDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies);
                 RemoveActivityDependencies(activity.Id, new HashSet<T>(dependentActivity.ResourceDependencies.Except(coreDependencies)));
                 dependentActivity.ResourceDependencies.Clear();
@@ -930,9 +1011,15 @@ namespace Zametek.Maths.Graphs
                 {
                     T currentId = scheduledActivity.Id;
                     TActivity activityObj = Activity(currentId);
-                    if (!(activityObj is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+                    if (!(activityObj is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity))
+                    {
+                        continue;
+                    }
 
-                    if (resource != null) dependentActivity.AllocatedToResources.Add(resource.Id);
+                    if (resource != null)
+                    {
+                        dependentActivity.AllocatedToResources.Add(resource.Id);
+                    }
 
                     if (!first)
                     {
@@ -952,7 +1039,10 @@ namespace Zametek.Maths.Graphs
         {
             foreach (TActivity activity in activities)
             {
-                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity))
+                {
+                    continue;
+                }
                 IEnumerable<T> coreDependencies = dependentActivity.Dependencies.Union(dependentActivity.PlanningDependencies);
                 RemoveActivityDependencies(activity.Id, new HashSet<T>(dependentActivity.ResourceDependencies.Except(coreDependencies)));
             }
@@ -963,10 +1053,16 @@ namespace Zametek.Maths.Graphs
         {
             foreach (TActivity activity in activities)
             {
-                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)) continue;
+                if (!(activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity))
+                {
+                    continue;
+                }
                 dependentActivity.Successors.Clear();
                 Node<T, TActivity> node = Node(activity.Id);
-                if (node.NodeType != NodeType.Start && node.NodeType != NodeType.Normal) continue;
+                if (node.NodeType != NodeType.Start && node.NodeType != NodeType.Normal)
+                {
+                    continue;
+                }
                 IEnumerable<T> successorNodeIds = node.OutgoingEdges.Select(EdgeHeadNode).Select(x => x.Id);
                 dependentActivity.Successors.UnionWith(successorNodeIds);
             }
@@ -995,26 +1091,34 @@ namespace Zametek.Maths.Graphs
             }
 
             if (circularDependencies.Any())
+            {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0020,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildCircularDependenciesErrorMessage(circularDependencies)));
+            }
 
             if (invalidPrecompilationConstraints.Any())
+            {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0030,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
+            }
 
             bool allResourcesExplicitButNotAllActivitiesTargeted =
                 !infiniteResources
                 && filteredResources.All(x => x.IsExplicitTarget)
                 && Activities.Any(x => !x.IsDummy && x.TargetResources.Count == 0);
             if (allResourcesExplicitButNotAllActivitiesTargeted)
+            {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0040,
                     $@"{Properties.Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
+            }
 
             if (!CleanUpEdges())
+            {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0050,
                     $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
+            }
 
             IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
                 infiniteResources
@@ -1022,9 +1126,11 @@ namespace Zametek.Maths.Graphs
                 : PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.GatherUnavailableResources(
                     activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>(), filteredResources);
             if (unavailableResourcesSet.Count != 0)
+            {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0060,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
+            }
         }
 
         // Appends any post-compilation constraint errors to the error list.

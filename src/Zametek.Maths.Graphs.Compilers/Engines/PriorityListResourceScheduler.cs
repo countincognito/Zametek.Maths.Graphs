@@ -24,11 +24,26 @@ namespace Zametek.Maths.Graphs
             Func<T, IList<T>> strongDependencyLookup,
             Func<IEnumerable<IActivity<T, TResourceId, TWorkStreamId>>> finalActivitiesFactory)
         {
-            if (priorityList is null) throw new ArgumentNullException(nameof(priorityList));
-            if (filteredResources is null) throw new ArgumentNullException(nameof(filteredResources));
-            if (activityLookup is null) throw new ArgumentNullException(nameof(activityLookup));
-            if (strongDependencyLookup is null) throw new ArgumentNullException(nameof(strongDependencyLookup));
-            if (finalActivitiesFactory is null) throw new ArgumentNullException(nameof(finalActivitiesFactory));
+            if (priorityList is null)
+            {
+                throw new ArgumentNullException(nameof(priorityList));
+            }
+            if (filteredResources is null)
+            {
+                throw new ArgumentNullException(nameof(filteredResources));
+            }
+            if (activityLookup is null)
+            {
+                throw new ArgumentNullException(nameof(activityLookup));
+            }
+            if (strongDependencyLookup is null)
+            {
+                throw new ArgumentNullException(nameof(strongDependencyLookup));
+            }
+            if (finalActivitiesFactory is null)
+            {
+                throw new ArgumentNullException(nameof(finalActivitiesFactory));
+            }
 
             IList<T?> workingList = priorityList.Select(x => new T?(x)).ToList();
 
@@ -95,7 +110,10 @@ namespace Zametek.Maths.Graphs
             var indicesToRemove = new HashSet<int>();
             for (int i = 0; i < workingList.Count; i++)
             {
-                if (!workingList[i].HasValue) continue;
+                if (!workingList[i].HasValue)
+                {
+                    continue;
+                }
                 T activityId = workingList[i].GetValueOrDefault();
                 var directDependencies = new HashSet<T>(strongDependencyLookup(activityId));
                 if (directDependencies.IsSubsetOf(completed)
@@ -129,7 +147,10 @@ namespace Zametek.Maths.Graphs
 
                 for (int i = 0; i < ready.Count; i++)
                 {
-                    if (!ready[i].HasValue) continue;
+                    if (!ready[i].HasValue)
+                    {
+                        continue;
+                    }
                     T activityId = ready[i].GetValueOrDefault();
                     IActivity<T, TResourceId, TWorkStreamId> activity = activityLookup(activityId);
                     activity.AllocatedToResources.Clear();
@@ -177,10 +198,19 @@ namespace Zametek.Maths.Graphs
         {
             foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder in builders)
             {
-                if (builder.EarliestAvailableStartTimeForNextActivity > timeCounter) continue;
+                if (builder.EarliestAvailableStartTimeForNextActivity > timeCounter)
+                {
+                    continue;
+                }
                 availableBuilderExists = true;
-                if (builder.IsExplicitTarget) continue;
-                if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter) continue;
+                if (builder.IsExplicitTarget)
+                {
+                    continue;
+                }
+                if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
+                {
+                    continue;
+                }
                 if (activity.MaximumLatestFinishTime.HasValue
                     && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
                 {
@@ -206,7 +236,10 @@ namespace Zametek.Maths.Graphs
 
             foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder in builders)
             {
-                if (builder.EarliestAvailableStartTimeForNextActivity > timeCounter) continue;
+                if (builder.EarliestAvailableStartTimeForNextActivity > timeCounter)
+                {
+                    continue;
+                }
                 availableBuilderExists = true;
 
                 if (builder.ResourceId != null
@@ -214,7 +247,10 @@ namespace Zametek.Maths.Graphs
                 {
                     continue;
                 }
-                if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter) continue;
+                if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
+                {
+                    continue;
+                }
                 if (activity.MaximumLatestFinishTime.HasValue
                     && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
                 {
@@ -266,17 +302,26 @@ namespace Zametek.Maths.Graphs
             var output = new List<IUnavailableResources<T, TResourceId>>();
             foreach (IActivity<T, TResourceId, TWorkStreamId> activity in activities)
             {
-                if (!activity.TargetResources.Any()) continue;
+                if (!activity.TargetResources.Any())
+                {
+                    continue;
+                }
                 if (activity.TargetResourceOperator == LogicalOperator.AND)
                 {
                     IEnumerable<TResourceId> unavailable = activity.TargetResources.Except(filteredResources.Select(x => x.Id));
-                    if (unavailable.Any()) output.Add(new UnavailableResources<T, TResourceId>(activity.Id, unavailable));
+                    if (unavailable.Any())
+                    {
+                        output.Add(new UnavailableResources<T, TResourceId>(activity.Id, unavailable));
+                    }
                 }
                 else if (activity.TargetResourceOperator == LogicalOperator.OR
                          || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                 {
                     IEnumerable<TResourceId> intersection = activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
-                    if (!intersection.Any()) output.Add(new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
+                    if (!intersection.Any())
+                    {
+                        output.Add(new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
+                    }
                 }
             }
             return output;

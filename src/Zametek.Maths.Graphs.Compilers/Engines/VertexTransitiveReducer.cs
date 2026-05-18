@@ -39,9 +39,15 @@ namespace Zametek.Maths.Graphs
 
         public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
-            if (!m_State.AllDependenciesSatisfied) return null;
+            if (!m_State.AllDependenciesSatisfied)
+            {
+                return null;
+            }
             IList<ICircularDependency<T>> circularDependencies = m_FindStrongCircularDependencies();
-            if (circularDependencies.Any()) return null;
+            if (circularDependencies.Any())
+            {
+                return null;
+            }
             var nodeIdAncestorLookup = new Dictionary<T, HashSet<T>>();
             foreach (T endNodeId in m_GetEndNodeIds())
             {
@@ -54,9 +60,14 @@ namespace Zametek.Maths.Graphs
         public bool ReduceGraph()
         {
             IDictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
-            if (ancestorNodesLookup is null) return false;
+            if (ancestorNodesLookup is null)
+            {
+                return false;
+            }
             foreach (T endNodeId in m_GetEndNodeIds())
+            {
                 RemoveRedundantIncomingEdges(endNodeId, ancestorNodesLookup);
+            }
             return true;
         }
 
@@ -66,15 +77,23 @@ namespace Zametek.Maths.Graphs
 
         private HashSet<T> GetAncestorNodes(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
-            if (nodeIdAncestorLookup is null) throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
+            if (nodeIdAncestorLookup is null)
+            {
+                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
+            }
             Node<T, TActivity> node = m_State.Node(nodeId);
             var totalAncestorNodes = new HashSet<T>();
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+            {
                 return totalAncestorNodes;
+            }
 
             foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
             {
-                if (!totalAncestorNodes.Contains(tailNodeId)) totalAncestorNodes.Add(tailNodeId);
+                if (!totalAncestorNodes.Contains(tailNodeId))
+                {
+                    totalAncestorNodes.Add(tailNodeId);
+                }
                 if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
                 {
                     tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);
@@ -87,9 +106,15 @@ namespace Zametek.Maths.Graphs
 
         private void RemoveRedundantIncomingEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
-            if (nodeIdAncestorLookup is null) throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
+            if (nodeIdAncestorLookup is null)
+            {
+                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
+            }
             Node<T, TActivity> node = m_State.Node(nodeId);
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated) return;
+            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+            {
+                return;
+            }
 
             var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
                 .Select(x => m_State.EdgeTailNode(x).Id)
@@ -114,7 +139,9 @@ namespace Zametek.Maths.Graphs
             }
 
             foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
+            {
                 RemoveRedundantIncomingEdges(tailNodeId, nodeIdAncestorLookup);
+            }
         }
 
         #endregion

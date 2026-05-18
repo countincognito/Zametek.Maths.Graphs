@@ -20,10 +20,19 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
-            if (state is null) throw new ArgumentNullException(nameof(state));
-            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (invalidConstraints is null)
+            {
+                throw new ArgumentNullException(nameof(invalidConstraints));
+            }
 
-            if (invalidConstraints.Any()) return false;
+            if (invalidConstraints.Any())
+            {
+                return false;
+            }
 
             var completedEdgeIds = new HashSet<T>();
             var remainingEdgeIds = new HashSet<T>(state.EdgeIds);
@@ -282,10 +291,19 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
-            if (state is null) throw new ArgumentNullException(nameof(state));
-            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (invalidConstraints is null)
+            {
+                throw new ArgumentNullException(nameof(invalidConstraints));
+            }
 
-            if (invalidConstraints.Any()) return false;
+            if (invalidConstraints.Any())
+            {
+                return false;
+            }
 
             // Only perform if all events have earliest finish times.
             if (!state.Events.All(x => x.EarliestFinishTime.HasValue))
@@ -519,10 +537,19 @@ namespace Zametek.Maths.Graphs
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             IEnumerable<IInvalidConstraint<T>> invalidConstraints)
         {
-            if (state is null) throw new ArgumentNullException(nameof(state));
-            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (invalidConstraints is null)
+            {
+                throw new ArgumentNullException(nameof(invalidConstraints));
+            }
 
-            if (invalidConstraints.Any()) return false;
+            if (invalidConstraints.Any())
+            {
+                return false;
+            }
 
             IList<Node<T, TActivity>> endNodesList = state.EndNodes.ToList();
             IList<Node<T, TActivity>> isolatedNodesList = state.IsolatedNodes.ToList();

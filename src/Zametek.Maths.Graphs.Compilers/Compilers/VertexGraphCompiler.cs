@@ -110,13 +110,17 @@ namespace Zametek.Maths.Graphs
                     IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
                         .Activities.Where(x => x.Dependencies.Contains(activityId)).Select(x => x.Id);
                     foreach (T id in dependentActivityIds)
+                    {
                         m_VertexGraphBuilder.Activity(id).Dependencies.Remove(activityId);
+                    }
                 }
                 {
                     IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
                         .Activities.Where(x => x.PlanningDependencies.Contains(activityId)).Select(x => x.Id);
                     foreach (T id in dependentActivityIds)
+                    {
                         m_VertexGraphBuilder.Activity(id).PlanningDependencies.Remove(activityId);
+                    }
                 }
                 m_VertexGraphBuilder.Activity(activityId)?.SetAsRemovable();
                 return m_VertexGraphBuilder.RemoveActivity(activityId);
@@ -169,8 +173,14 @@ namespace Zametek.Maths.Graphs
             IList<IResource<TResourceId, TWorkStreamId>> resources,
             IList<IWorkStream<TWorkStreamId>> workStreams)
         {
-            if (resources is null) throw new ArgumentNullException(nameof(resources));
-            if (workStreams is null) throw new ArgumentNullException(nameof(workStreams));
+            if (resources is null)
+            {
+                throw new ArgumentNullException(nameof(resources));
+            }
+            if (workStreams is null)
+            {
+                throw new ArgumentNullException(nameof(workStreams));
+            }
 
             lock (m_Lock)
             {
@@ -197,13 +207,17 @@ namespace Zametek.Maths.Graphs
                     m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources).ToList();
 
                 if (infiniteResources)
+                {
                     resourceSchedules = PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.ReplaceWithSyntheticResources(resourceSchedules);
+                }
 
                 m_VertexGraphBuilder.AssignResourceDependencies(resourceSchedules);
                 m_VertexGraphBuilder.CalculateCriticalPath();
 
                 if (!m_VertexGraphBuilder.BackFillIsolatedNodes())
+                {
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
+                }
 
                 m_VertexGraphBuilder.RemoveResourceOnlyDependencies(m_VertexGraphBuilder.Activities);
                 m_VertexGraphBuilder.AddPostCompilationErrors(compilationErrors);

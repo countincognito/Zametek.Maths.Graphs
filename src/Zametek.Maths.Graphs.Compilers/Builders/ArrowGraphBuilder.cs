@@ -98,7 +98,10 @@ namespace Zametek.Maths.Graphs
             IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
         {
-            if (graph is null) throw new ArgumentNullException(nameof(graph));
+            if (graph is null)
+            {
+                throw new ArgumentNullException(nameof(graph));
+            }
 
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
             m_NodeIdGenerator = nodeIdGenerator ?? throw new ArgumentNullException(nameof(nodeIdGenerator));
@@ -111,35 +114,63 @@ namespace Zametek.Maths.Graphs
             WhenTesting = false;
 
             foreach (Edge<T, TActivity> edge in graph.Edges)
+            {
                 m_State.AddEdge(edge);
+            }
 
             foreach (Node<T, IEvent<T>> node in graph.Nodes)
             {
                 if (node.NodeType != NodeType.Start && node.NodeType != NodeType.Isolated)
+                {
                     foreach (T edgeId in node.IncomingEdges)
+                    {
                         m_State.SetEdgeHeadNode(edgeId, node);
+                    }
+                }
                 if (node.NodeType != NodeType.End && node.NodeType != NodeType.Isolated)
+                {
                     foreach (T edgeId in node.OutgoingEdges)
+                    {
                         m_State.SetEdgeTailNode(edgeId, node);
+                    }
+                }
                 m_State.AddNode(node);
             }
 
             // Check all edges are used.
             if (!m_State.EdgeKeysMatch(m_State.EdgeHeadNodeKeys))
+            {
                 throw new ArgumentException(Properties.Resources.Message_ListOfEdgeIdsAndEdgesReferencedByHeadNodesDoNotMatch);
+            }
             if (!m_State.EdgeKeysMatch(m_State.EdgeTailNodeKeys))
+            {
                 throw new ArgumentException(Properties.Resources.Message_ListOfEdgeIdsAndEdgesReferencedByTailNodesDoNotMatch);
+            }
 
             // Check all nodes are used.
             IEnumerable<T> edgeNodeLookupIds = m_State.EdgeHeadNodes.Select(x => x.Id).Union(m_State.EdgeTailNodes.Select(x => x.Id));
             if (!m_State.Nodes.Where(x => x.NodeType != NodeType.Isolated).Select(x => x.Id).OrderBy(x => x).SequenceEqual(edgeNodeLookupIds.OrderBy(x => x)))
+            {
                 throw new ArgumentException(Properties.Resources.Message_ListOfNodeIdsAndEdgesReferencedByTailNodesDoNotMatch);
+            }
 
             // Check Start and End nodes.
-            if (StartNodes.Count() == 1) m_State.StartNode = StartNodes.First();
-            else throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneStartNode);
-            if (EndNodes.Count() == 1) m_State.EndNode = EndNodes.First();
-            else throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneEndNode);
+            if (StartNodes.Count() == 1)
+            {
+                m_State.StartNode = StartNodes.First();
+            }
+            else
+            {
+                throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneStartNode);
+            }
+            if (EndNodes.Count() == 1)
+            {
+                m_State.EndNode = EndNodes.First();
+            }
+            else
+            {
+                throw new ArgumentException(Properties.Resources.Message_ArrowGraphContainsMoreThanOneEndNode);
+            }
 
             // Wire up the orchestrator and reducer AFTER the state has been populated.
             m_DummyEdgeOrchestrator = CreateOrchestrator();
@@ -214,10 +245,22 @@ namespace Zametek.Maths.Graphs
 
         public bool AddActivity(TActivity activity, HashSet<T> dependencies)
         {
-            if (activity == null) throw new ArgumentNullException(nameof(activity));
-            if (dependencies is null) throw new ArgumentNullException(nameof(dependencies));
-            if (m_State.ContainsEdge(activity.Id)) return false;
-            if (dependencies.Contains(activity.Id)) return false;
+            if (activity == null)
+            {
+                throw new ArgumentNullException(nameof(activity));
+            }
+            if (dependencies is null)
+            {
+                throw new ArgumentNullException(nameof(dependencies));
+            }
+            if (m_State.ContainsEdge(activity.Id))
+            {
+                return false;
+            }
+            if (dependencies.Contains(activity.Id))
+            {
+                return false;
+            }
 
             var edge = new Edge<T, TActivity>(activity);
             m_State.AddEdge(edge);
@@ -241,7 +284,9 @@ namespace Zametek.Maths.Graphs
                     tailNode.IncomingEdges.Add(dummyEdgeId);
                     m_State.SetEdgeHeadNode(dummyEdgeId, tailNode);
                     if (dependencyHeadNode.NodeType == NodeType.End)
+                    {
                         dependencyHeadNode.SetNodeType(NodeType.Normal);
+                    }
                     dependencyHeadNode.OutgoingEdges.Add(dummyEdgeId);
                     m_State.SetEdgeTailNode(dummyEdgeId, dependencyHeadNode);
                     m_State.AddEdge(dummyEdge);
@@ -285,10 +330,14 @@ namespace Zametek.Maths.Graphs
         {
             Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
             if (tailNode.NodeType == NodeType.Start || tailNode.NodeType == NodeType.Isolated)
+            {
                 return new List<T>();
+            }
             var output = new List<T>();
             foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_State.Edge(x)))
+            {
                 output.Add(incomingEdge.Id);
+            }
             return output;
         }
 
@@ -296,14 +345,20 @@ namespace Zametek.Maths.Graphs
         {
             Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
             if (tailNode.NodeType == NodeType.Start || tailNode.NodeType == NodeType.Isolated)
+            {
                 return new List<T>();
+            }
             var output = new List<T>();
             foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_State.Edge(x)))
             {
                 if (incomingEdge.Content.IsDummy)
+                {
                     output.AddRange(StrongActivityDependencyIds(incomingEdge.Id));
+                }
                 else
+                {
                     output.Add(incomingEdge.Id);
+                }
             }
             return output;
         }
@@ -335,15 +390,23 @@ namespace Zametek.Maths.Graphs
 
         public bool CleanUpEdges()
         {
-            if (!RedirectEdges()) return false;
-            if (!RemoveRedundantEdges()) return false;
+            if (!RedirectEdges())
+            {
+                return false;
+            }
+            if (!RemoveRedundantEdges())
+            {
+                return false;
+            }
             return true;
         }
 
         public void CalculateCriticalPath()
         {
             if (!CleanUpEdges())
+            {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
+            }
 
             ClearCriticalPathVariables();
 
@@ -374,14 +437,26 @@ namespace Zametek.Maths.Graphs
         public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
             IList<IResource<TResourceId, TWorkStreamId>> resources)
         {
-            if (resources is null) throw new ArgumentNullException(nameof(resources));
-            if (resources.Count < 0) throw new ArgumentOutOfRangeException(nameof(resources), Properties.Resources.Message_ValueCannotBeNegative);
-            if (!Activities.Any()) return Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
+            if (resources is null)
+            {
+                throw new ArgumentNullException(nameof(resources));
+            }
+            if (resources.Count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(resources), Properties.Resources.Message_ValueCannotBeNegative);
+            }
+            if (!Activities.Any())
+            {
+                return Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
+            }
 
             bool infiniteResources = !resources.Any();
             IList<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
-            if (!infiniteResources) ValidateActivitiesAgainstResources(filteredResources);
+            if (!infiniteResources)
+            {
+                ValidateActivitiesAgainstResources(filteredResources);
+            }
 
             var tmpGraphBuilder = (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)CloneObject();
             IList<T> priorityList = CalculateCriticalPathPriorityList(
@@ -396,7 +471,10 @@ namespace Zametek.Maths.Graphs
 
         public Graph<T, TActivity, IEvent<T>> ToGraph()
         {
-            if (!CleanUpEdges()) return null;
+            if (!CleanUpEdges())
+            {
+                return null;
+            }
             return new Graph<T, TActivity, IEvent<T>>(
                 m_State.Edges.Select(x => (Edge<T, TActivity>)x.CloneObject()),
                 m_State.Nodes.Select(x => (Node<T, IEvent<T>>)x.CloneObject()));
@@ -466,7 +544,10 @@ namespace Zametek.Maths.Graphs
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
         {
-            if (!m_State.ContainsEdge(activityId)) return;
+            if (!m_State.ContainsEdge(activityId))
+            {
+                return;
+            }
 
             T headEventId = m_NodeIdGenerator();
             var headNode = new Node<T, IEvent<T>>(s_EventGenerator(headEventId));
@@ -477,7 +558,9 @@ namespace Zametek.Maths.Graphs
             if (m_State.TryGetUnsatisfiedSuccessors(activityId, out HashSet<Node<T, IEvent<T>>> unsatisfiedSuccessorTailNodes))
             {
                 foreach (Node<T, IEvent<T>> tailNode in unsatisfiedSuccessorTailNodes)
+                {
                     m_DummyEdgeOrchestrator.ConnectWithDummyEdge(headNode, tailNode);
+                }
                 m_State.RemoveUnsatisfiedSuccessors(activityId);
             }
             else
@@ -491,33 +574,47 @@ namespace Zametek.Maths.Graphs
             var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
             foreach (TActivity activity in Activities)
             {
-                if (!activity.TargetResources.Any()) continue;
+                if (!activity.TargetResources.Any())
+                {
+                    continue;
+                }
                 if (activity.TargetResourceOperator == LogicalOperator.AND)
                 {
                     IEnumerable<TResourceId> unavailableResourceIds = activity.TargetResources.Except(filteredResources.Select(x => x.Id));
                     if (unavailableResourceIds.Any())
+                    {
                         unavailableResourcesSet.Add(new UnavailableResources<T, TResourceId>(activity.Id, unavailableResourceIds));
+                    }
                 }
                 else if (activity.TargetResourceOperator == LogicalOperator.OR
                          || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                 {
                     IEnumerable<TResourceId> intersection = activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
                     if (!intersection.Any())
+                    {
                         unavailableResourcesSet.Add(new UnavailableResources<T, TResourceId>(activity.Id, activity.TargetResources));
+                    }
                 }
             }
             if (unavailableResourcesSet.Any())
+            {
                 throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided);
+            }
 
             bool allResourcesAreExplicitTargets = filteredResources.All(x => x.IsExplicitTarget);
             bool atLeastOneActivityRequiresNonExplicitTargetResource = Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
             if (allResourcesAreExplicitTargets && atLeastOneActivityRequiresNonExplicitTargetResource)
+            {
                 throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
+            }
         }
 
         private static IList<T> CalculateCriticalPathPriorityList(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
         {
-            if (graphBuilder is null) throw new ArgumentNullException(nameof(graphBuilder));
+            if (graphBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(graphBuilder));
+            }
             var priorityList = new List<T>();
             bool cont = true;
             while (cont)
@@ -547,7 +644,9 @@ namespace Zametek.Maths.Graphs
                 }
             }
             if (graphBuilder.Activities.Any(x => !x.IsDummy))
+            {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathPriorityList);
+            }
             return priorityList;
         }
 

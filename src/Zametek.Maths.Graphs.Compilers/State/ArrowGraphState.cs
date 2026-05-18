@@ -117,7 +117,10 @@ namespace Zametek.Maths.Graphs
 
         public void AddEdge(Edge<T, TActivity> edge)
         {
-            if (edge is null) throw new ArgumentNullException(nameof(edge));
+            if (edge is null)
+            {
+                throw new ArgumentNullException(nameof(edge));
+            }
             m_EdgeLookup.Add(edge.Id, edge);
         }
 
@@ -125,7 +128,10 @@ namespace Zametek.Maths.Graphs
 
         public void AddNode(Node<T, IEvent<T>> node)
         {
-            if (node is null) throw new ArgumentNullException(nameof(node));
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
             m_NodeLookup.Add(node.Id, node);
         }
 
@@ -133,7 +139,10 @@ namespace Zametek.Maths.Graphs
 
         public void SetEdgeHeadNode(T edgeId, Node<T, IEvent<T>> node)
         {
-            if (node is null) throw new ArgumentNullException(nameof(node));
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
             m_EdgeHeadNodeLookup.Add(edgeId, node);
         }
 
@@ -141,7 +150,10 @@ namespace Zametek.Maths.Graphs
 
         public void SetEdgeTailNode(T edgeId, Node<T, IEvent<T>> node)
         {
-            if (node is null) throw new ArgumentNullException(nameof(node));
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
             m_EdgeTailNodeLookup.Add(edgeId, node);
         }
 
@@ -149,7 +161,10 @@ namespace Zametek.Maths.Graphs
 
         public void AddUnsatisfiedSuccessor(T dependencyId, Node<T, IEvent<T>> successor)
         {
-            if (successor is null) throw new ArgumentNullException(nameof(successor));
+            if (successor is null)
+            {
+                throw new ArgumentNullException(nameof(successor));
+            }
             if (!m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, IEvent<T>>> nodes))
             {
                 nodes = new HashSet<Node<T, IEvent<T>>>();

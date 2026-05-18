@@ -21,12 +21,27 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
-            if (state is null) throw new ArgumentNullException(nameof(state));
-            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
-            if (state.StartNode is null) throw new InvalidOperationException(@"Arrow graph state has no Start node");
-            if (state.EndNode is null) throw new InvalidOperationException(@"Arrow graph state has no End node");
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (invalidConstraints is null)
+            {
+                throw new ArgumentNullException(nameof(invalidConstraints));
+            }
+            if (state.StartNode is null)
+            {
+                throw new InvalidOperationException(@"Arrow graph state has no Start node");
+            }
+            if (state.EndNode is null)
+            {
+                throw new InvalidOperationException(@"Arrow graph state has no End node");
+            }
 
-            if (invalidConstraints.Any()) return false;
+            if (invalidConstraints.Any())
+            {
+                return false;
+            }
 
             Node<T, IEvent<T>> startNode = state.StartNode;
             Node<T, IEvent<T>> endNode = state.EndNode;
@@ -139,11 +154,23 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
-            if (state is null) throw new ArgumentNullException(nameof(state));
-            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
-            if (state.EndNode is null) throw new InvalidOperationException(@"Arrow graph state has no End node");
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (invalidConstraints is null)
+            {
+                throw new ArgumentNullException(nameof(invalidConstraints));
+            }
+            if (state.EndNode is null)
+            {
+                throw new InvalidOperationException(@"Arrow graph state has no End node");
+            }
 
-            if (invalidConstraints.Any()) return false;
+            if (invalidConstraints.Any())
+            {
+                return false;
+            }
 
             // Only perform if all events have earliest finish times.
             if (!state.Nodes.All(x => x.Content.EarliestFinishTime.HasValue))
@@ -246,10 +273,19 @@ namespace Zametek.Maths.Graphs
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             IEnumerable<IInvalidConstraint<T>> invalidConstraints)
         {
-            if (state is null) throw new ArgumentNullException(nameof(state));
-            if (invalidConstraints is null) throw new ArgumentNullException(nameof(invalidConstraints));
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (invalidConstraints is null)
+            {
+                throw new ArgumentNullException(nameof(invalidConstraints));
+            }
 
-            if (invalidConstraints.Any()) return false;
+            if (invalidConstraints.Any())
+            {
+                return false;
+            }
 
             // Only perform if all events have earliest finish times.
             if (!state.Events.All(x => x.EarliestFinishTime.HasValue))
