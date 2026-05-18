@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -277,7 +277,7 @@ namespace Zametek.Maths.Graphs
                                     }
 
                                     if (activity.MaximumLatestFinishTime.HasValue
-                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() < (timeCounter + activity.Duration))
+                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
                                     {
                                         continue;
                                     }
@@ -313,7 +313,7 @@ namespace Zametek.Maths.Graphs
                                     }
 
                                     if (activity.MaximumLatestFinishTime.HasValue
-                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() < (timeCounter + activity.Duration))
+                                        && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
                                     {
                                         continue;
                                     }

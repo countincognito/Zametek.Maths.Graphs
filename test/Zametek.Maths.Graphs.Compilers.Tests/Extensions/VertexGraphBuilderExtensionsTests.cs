@@ -1,4 +1,4 @@
-﻿using Shouldly;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2497,11 +2497,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(5, 2));
 
             IList<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList(new List<IResource<int, int>>()).ToList();
-            resourceSchedules.Count.ShouldBe(4);
+            resourceSchedules.Count.ShouldBe(3);
 
-            // Activity 2 has MaximumLatestFinishTime=4, Duration=2, so it is schedulable at t=1 (finish=3 ≤ 4).
-            // With the corrected guard (< instead of >), activity 2 is scheduled at t=1 on RS0,
-            // which causes activities 3 and 4 to each get their own resource schedule.
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.ShouldBeNull();
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -2510,7 +2507,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0[0].StartTime.ShouldBe(0);
             scheduledActivities0[0].FinishTime.ShouldBe(1);
 
-            scheduledActivities0[1].Id.ShouldBe(2);
+            scheduledActivities0[1].Id.ShouldBe(3);
             scheduledActivities0[1].StartTime.ShouldBe(1);
             scheduledActivities0[1].FinishTime.ShouldBe(3);
 
@@ -2520,34 +2517,27 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.ShouldBeNull();
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
-            scheduledActivities1.Count.ShouldBe(1);
+            scheduledActivities1.Count.ShouldBe(2);
             scheduledActivities1[0].Id.ShouldBe(5);
             scheduledActivities1[0].StartTime.ShouldBe(0);
             scheduledActivities1[0].FinishTime.ShouldBe(2);
 
-            scheduledActivities1.Last().FinishTime.ShouldBe(2);
+            scheduledActivities1[1].Id.ShouldBe(2);
+            scheduledActivities1[1].StartTime.ShouldBe(2);
+            scheduledActivities1[1].FinishTime.ShouldBe(4);
+
+            scheduledActivities1.Last().FinishTime.ShouldBe(4);
 
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.ShouldBeNull();
             var scheduledActivities2 = resourceSchedule2.ScheduledActivities.ToList();
             scheduledActivities2.Count.ShouldBe(1);
-            scheduledActivities2[0].Id.ShouldBe(3);
+            scheduledActivities2[0].Id.ShouldBe(4);
             scheduledActivities2[0].StartTime.ShouldBe(1);
             scheduledActivities2[0].FinishTime.ShouldBe(3);
 
             scheduledActivities2.Last().FinishTime.ShouldBe(3);
-
-
-            var resourceSchedule3 = resourceSchedules[3];
-            resourceSchedule3.Resource.ShouldBeNull();
-            var scheduledActivities3 = resourceSchedule3.ScheduledActivities.ToList();
-            scheduledActivities3.Count.ShouldBe(1);
-            scheduledActivities3[0].Id.ShouldBe(4);
-            scheduledActivities3[0].StartTime.ShouldBe(1);
-            scheduledActivities3[0].FinishTime.ShouldBe(3);
-
-            scheduledActivities3.Last().FinishTime.ShouldBe(3);
         }
     }
 }
