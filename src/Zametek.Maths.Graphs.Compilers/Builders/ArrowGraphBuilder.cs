@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    // Sealed builder for Activity-on-Arrow graphs. Owns all graph state directly,
+    // Builder for Activity-on-Arrow graphs. Owns all graph state directly,
     // encapsulated in a single ArrowGraphState instance that is shared with the
     // injected engines (SCC finder, CPM engine, dummy-edge orchestrator, transitive
     // reducer). The public constructors wire up default engine instances; the
     // internal constructors accept injected engines for testability.
-    public sealed class ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
+    public class ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
         : ICloneObject
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -227,7 +227,6 @@ namespace Zametek.Maths.Graphs
 
         public TActivity Activity(T key) => m_State.Edge(key).Content;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "No better term available")]
         public IEvent<T> Event(T key) => m_State.Node(key).Content;
 
         public Edge<T, TActivity> Edge(T key) => m_State.Edge(key);
@@ -265,7 +264,7 @@ namespace Zametek.Maths.Graphs
             var edge = new Edge<T, TActivity>(activity);
             m_State.AddEdge(edge);
 
-            if (dependencies.Any())
+            if (dependencies.Count != 0)
             {
                 T tailEventId = m_NodeIdGenerator();
                 var tailNode = new Node<T, IEvent<T>>(s_EventGenerator(tailEventId));
@@ -574,7 +573,7 @@ namespace Zametek.Maths.Graphs
             var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
             foreach (TActivity activity in Activities)
             {
-                if (!activity.TargetResources.Any())
+                if (activity.TargetResources.Count == 0)
                 {
                     continue;
                 }
@@ -596,20 +595,20 @@ namespace Zametek.Maths.Graphs
                     }
                 }
             }
-            if (unavailableResourcesSet.Any())
+            if (unavailableResourcesSet.Count != 0)
             {
                 throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided);
             }
 
             bool allResourcesAreExplicitTargets = filteredResources.All(x => x.IsExplicitTarget);
-            bool atLeastOneActivityRequiresNonExplicitTargetResource = Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
+            bool atLeastOneActivityRequiresNonExplicitTargetResource = Activities.Any(x => !x.IsDummy && x.TargetResources.Count == 0);
             if (allResourcesAreExplicitTargets && atLeastOneActivityRequiresNonExplicitTargetResource)
             {
                 throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
             }
         }
 
-        private static IList<T> CalculateCriticalPathPriorityList(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
+        private static List<T> CalculateCriticalPathPriorityList(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
         {
             if (graphBuilder is null)
             {

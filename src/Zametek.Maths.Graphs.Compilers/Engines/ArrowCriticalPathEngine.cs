@@ -61,7 +61,7 @@ namespace Zametek.Maths.Graphs
             remainingNodeIds.Remove(startNode.Id);
 
             // Forward flow algorithm.
-            while (remainingNodeIds.Any())
+            while (remainingNodeIds.Count != 0)
             {
                 bool progress = false;
                 List<T> remainingNodeIdList = remainingNodeIds.ToList();
@@ -200,7 +200,7 @@ namespace Zametek.Maths.Graphs
             remainingNodeIds.Remove(endNode.Id);
 
             // Backward flow algorithm.
-            while (remainingNodeIds.Any())
+            while (remainingNodeIds.Count != 0)
             {
                 bool progress = false;
                 var remainingNodeIdList = remainingNodeIds.ToList();

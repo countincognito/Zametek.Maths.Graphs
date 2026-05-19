@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    // Sealed compiler for Activity-on-Arrow graphs. Owns the ArrowGraphBuilder directly.
+    // Compiler for Activity-on-Arrow graphs. Owns the ArrowGraphBuilder directly.
     // No inheritance from any compiler base class — all coordination logic is inlined.
-    public sealed class ArrowGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
+    public class ArrowGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
         where TDependentActivity : class, IDependentActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>

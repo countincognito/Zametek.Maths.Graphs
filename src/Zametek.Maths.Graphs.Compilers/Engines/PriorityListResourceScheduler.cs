@@ -45,9 +45,9 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(finalActivitiesFactory));
             }
 
-            IList<T?> workingList = priorityList.Select(x => new T?(x)).ToList();
+            List<T?> workingList = priorityList.Select(x => new T?(x)).ToList();
 
-            IList<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> resourceScheduleBuilders = filteredResources
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> resourceScheduleBuilders = filteredResources
                 .OrderBy(x => x.AllocationOrder)
                 .Select(x => new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(x))
                 .ToList();
@@ -57,7 +57,7 @@ namespace Zametek.Maths.Graphs
             var ready = new List<T?>(Enumerable.Repeat((T?)null, workingList.Count));
             int timeCounter = 0;
 
-            while (workingList.Any(x => x.HasValue) || started.Any() || ready.Any(x => x.HasValue))
+            while (workingList.Any(x => x.HasValue) || started.Count != 0 || ready.Any(x => x.HasValue))
             {
                 AdvanceCompletedActivities(resourceScheduleBuilders, timeCounter, started, completed);
                 PromoteReadyActivities(workingList, ready, completed, started, strongDependencyLookup);
@@ -101,8 +101,8 @@ namespace Zametek.Maths.Graphs
         }
 
         private static void PromoteReadyActivities(
-            IList<T?> workingList,
-            IList<T?> ready,
+            List<T?> workingList,
+            List<T?> ready,
             HashSet<T> completed,
             HashSet<T> started,
             Func<T, IList<T>> strongDependencyLookup)
@@ -131,8 +131,8 @@ namespace Zametek.Maths.Graphs
         }
 
         private static void AssignReadyActivitiesToResources(
-            IList<T?> ready,
-            IList<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+            List<T?> ready,
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
             Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
             IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,

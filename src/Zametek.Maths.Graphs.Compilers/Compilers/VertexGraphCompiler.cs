@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    // Sealed compiler for Activity-on-Vertex graphs.
+    // Compiler for Activity-on-Vertex graphs.
     // Thin coordinator: owns the builder + a lock. Every public method delegates to
     // m_VertexGraphBuilder under the lock. No algorithm logic lives here.
-    public sealed class VertexGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
+    public class VertexGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
         where TDependentActivity : IDependentActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -132,7 +132,9 @@ namespace Zametek.Maths.Graphs
             lock (m_Lock)
             {
                 if (!m_VertexGraphBuilder.TransitiveReduction())
+                {
                     throw new InvalidOperationException(Properties.Resources.Message_CannotPerformTransitiveReduction);
+                }
 
                 foreach (T activityId in m_VertexGraphBuilder.ActivityIds)
                 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -201,20 +201,15 @@ namespace Zametek.Maths.Graphs
                         int earliestEndTime = activity.EarliestFinishTime.GetValueOrDefault();
 
                         // Gather the start times.
-                        if (resourcePhaseStarts.ContainsKey(workStream))
+                        if (!resourcePhaseStarts.TryAdd(workStream, earliestStartTime))
                         {
                             // We do nothing here, since the activities are ordered
                             // then we won't be interested in any later start times.
                         }
-                        else
-                        {
-                            resourcePhaseStarts.Add(workStream, earliestStartTime);
-                        }
 
                         // Gather the end times.
-                        if (resourcePhaseEnds.ContainsKey(workStream))
+                        if (resourcePhaseEnds.TryGetValue(workStream, out int currentEndTime))
                         {
-                            int currentEndTime = resourcePhaseEnds[workStream];
                             if (earliestEndTime > currentEndTime)
                             {
                                 resourcePhaseEnds[workStream] = earliestEndTime;

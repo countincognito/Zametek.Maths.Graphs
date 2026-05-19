@@ -95,10 +95,7 @@ namespace Zametek.Maths.Graphs
 
             foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
             {
-                if (!totalAncestorNodes.Contains(tailNodeId))
-                {
-                    totalAncestorNodes.Add(tailNodeId);
-                }
+                totalAncestorNodes.Add(tailNodeId);
                 if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
                 {
                     tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);

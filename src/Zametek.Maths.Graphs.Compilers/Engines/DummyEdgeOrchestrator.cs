@@ -88,7 +88,7 @@ namespace Zametek.Maths.Graphs
 
             if (headNode.NodeType != NodeType.End
                 && headNode.NodeType != NodeType.Isolated
-                && !headNode.IncomingEdges.Any())
+                && headNode.IncomingEdges.Count == 0)
             {
                 IList<T> headNodeOutgoingEdgeIds = headNode.OutgoingEdges.ToList();
                 foreach (T headNodeOutgoingEdgeId in headNodeOutgoingEdgeIds)
@@ -102,7 +102,7 @@ namespace Zametek.Maths.Graphs
             }
             else if (tailNode.NodeType != NodeType.Start
                 && tailNode.NodeType != NodeType.Isolated
-                && !tailNode.OutgoingEdges.Any())
+                && tailNode.OutgoingEdges.Count == 0)
             {
                 IList<T> tailNodeIncomingEdgeIds = tailNode.IncomingEdges.ToList();
                 foreach (T tailNodeIncomingEdgeId in tailNodeIncomingEdgeIds)
@@ -401,12 +401,12 @@ namespace Zametek.Maths.Graphs
                 dummyEdgeIds.Add(incomingDummyEdgeId);
             }
 
-            IList<T> setsOfMoreThanOneDummyEdge = tailNodeParallelDummyEdgesLookup
+            List<T> setsOfMoreThanOneDummyEdge = tailNodeParallelDummyEdgesLookup
                 .Where(x => x.Value.Count > 1).Select(x => x.Key).ToList();
 
             foreach (T tailNodeId in setsOfMoreThanOneDummyEdge)
             {
-                IList<T> dummyEdgeIds = tailNodeParallelDummyEdgesLookup[tailNodeId].ToList();
+                List<T> dummyEdgeIds = tailNodeParallelDummyEdgesLookup[tailNodeId].ToList();
                 int length = dummyEdgeIds.Count;
                 for (int i = 1; i < length; i++)
                 {
@@ -492,8 +492,8 @@ namespace Zametek.Maths.Graphs
 
             if (oldTailNode.NodeType != NodeType.Start
                 && oldTailNode.NodeType != NodeType.Isolated
-                && !oldTailNode.IncomingEdges.Any()
-                && !oldTailNode.OutgoingEdges.Any())
+                && oldTailNode.IncomingEdges.Count == 0
+                && oldTailNode.OutgoingEdges.Count == 0)
             {
                 m_State.RemoveNode(oldTailNode.Id);
             }
@@ -531,8 +531,8 @@ namespace Zametek.Maths.Graphs
 
             if (oldHeadNode.NodeType != NodeType.End
                 && oldHeadNode.NodeType != NodeType.Isolated
-                && !oldHeadNode.IncomingEdges.Any()
-                && !oldHeadNode.OutgoingEdges.Any())
+                && oldHeadNode.IncomingEdges.Count == 0
+                && oldHeadNode.OutgoingEdges.Count == 0)
             {
                 m_State.RemoveNode(oldHeadNode.Id);
             }

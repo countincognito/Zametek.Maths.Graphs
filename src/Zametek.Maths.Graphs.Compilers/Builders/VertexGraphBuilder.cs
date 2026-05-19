@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    // Sealed builder for Activity-on-Vertex graphs. Owns all graph state directly,
+    // Builder for Activity-on-Vertex graphs. Owns all graph state directly,
     // encapsulated in a single VertexGraphState instance shared with the injected
     // engines (SCC finder, CPM engine, transitive reducer). The public constructor
     // wires up default engine instances; the internal constructor accepts injected
     // engines for testability.
-    public sealed class VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
+    public class VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
         : ICloneObject
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -214,7 +214,6 @@ namespace Zametek.Maths.Graphs
 
         public TActivity Activity(T key) => m_State.Node(key).Content;
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "No better term available")]
         public IEvent<T> Event(T key) => m_State.Edge(key).Content;
 
         public Edge<T, IEvent<T>> Edge(T key) => m_State.Edge(key);
@@ -253,7 +252,7 @@ namespace Zametek.Maths.Graphs
             m_State.AddNode(node);
 
             // We expect dependencies at some point.
-            if (dependencies.Any())
+            if (dependencies.Count != 0)
             {
                 node.SetNodeType(NodeType.End);
 
@@ -307,7 +306,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (!dependencies.Any())
+            if (dependencies.Count == 0)
             {
                 return true;
             }
@@ -402,14 +401,14 @@ namespace Zametek.Maths.Graphs
 
                 tailNode.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
-                if (!tailNode.OutgoingEdges.Any())
+                if (tailNode.OutgoingEdges.Count == 0)
                 {
                     DowngradeOutboundNodeType(tailNode);
                 }
 
                 node.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
-                if (!node.IncomingEdges.Any())
+                if (node.IncomingEdges.Count == 0)
                 {
                     DowngradeInboundNodeType(node);
                 }
@@ -426,14 +425,14 @@ namespace Zametek.Maths.Graphs
 
                 headNode.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
-                if (!headNode.IncomingEdges.Any())
+                if (headNode.IncomingEdges.Count == 0)
                 {
                     DowngradeInboundNodeType(headNode);
                 }
 
                 node.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
-                if (!node.OutgoingEdges.Any())
+                if (node.OutgoingEdges.Count == 0)
                 {
                     DowngradeOutboundNodeType(node);
                 }
@@ -478,7 +477,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (!dependencies.Any())
+            if (dependencies.Count == 0)
             {
                 return true;
             }
@@ -503,7 +502,7 @@ namespace Zametek.Maths.Graphs
 
                 tailNode.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
-                if (!tailNode.OutgoingEdges.Any())
+                if (tailNode.OutgoingEdges.Count == 0)
                 {
                     DowngradeOutboundNodeType(tailNode);
                 }
@@ -513,7 +512,7 @@ namespace Zametek.Maths.Graphs
                 m_State.RemoveEdge(edgeId);
             }
 
-            if (!node.IncomingEdges.Any())
+            if (node.IncomingEdges.Count == 0)
             {
                 DowngradeInboundNodeType(node);
             }
@@ -749,7 +748,7 @@ namespace Zametek.Maths.Graphs
 
             foreach (TActivity activity in Activities)
             {
-                if (!activity.TargetResources.Any())
+                if (activity.TargetResources.Count == 0)
                 {
                     continue;
                 }
@@ -766,7 +765,7 @@ namespace Zametek.Maths.Graphs
                     }
                 }
                 else if (activity.TargetResourceOperator == LogicalOperator.OR
-                         || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
+                    || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                 {
                     IEnumerable<TResourceId> intersection =
                         activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
@@ -779,20 +778,20 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
-            if (unavailableResourcesSet.Any())
+            if (unavailableResourcesSet.Count != 0)
             {
                 throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneOfSpecifiedTargetResourcesAreNotAvailableInResourcesProvided);
             }
 
             bool allResourcesAreExplicitTargets = filteredResources.All(x => x.IsExplicitTarget);
-            bool atLeastOneActivityRequiresNonExplicitTargetResource = Activities.Any(x => !x.IsDummy && !x.TargetResources.Any());
+            bool atLeastOneActivityRequiresNonExplicitTargetResource = Activities.Any(x => !x.IsDummy && x.TargetResources.Count == 0);
             if (allResourcesAreExplicitTargets && atLeastOneActivityRequiresNonExplicitTargetResource)
             {
                 throw new InvalidOperationException(Properties.Resources.Message_AtLeastOneActivityRequiresNonExplicitTargetResourceButAllProvidedResourcesAreExplicitTargets);
             }
         }
 
-        private static IList<T> CalculateCriticalPathPriorityList(VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
+        private static List<T> CalculateCriticalPathPriorityList(VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
         {
             if (graphBuilder is null)
             {
