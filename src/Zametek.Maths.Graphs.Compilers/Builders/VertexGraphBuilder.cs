@@ -520,7 +520,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        public IList<T> ActivityDependencyIds(T activityId)
+        public List<T> ActivityDependencyIds(T activityId)
         {
             Node<T, TActivity> node = m_State.Node(activityId);
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
@@ -536,7 +536,7 @@ namespace Zametek.Maths.Graphs
             return output;
         }
 
-        public IList<T> StrongActivityDependencyIds(T activityId)
+        public List<T> StrongActivityDependencyIds(T activityId)
         {
             Node<T, TActivity> node = m_State.Node(activityId);
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
@@ -559,20 +559,20 @@ namespace Zametek.Maths.Graphs
             return output;
         }
 
-        public IList<ICircularDependency<T>> FindStrongCircularDependencies()
+        public List<ICircularDependency<T>> FindStrongCircularDependencies()
         {
             return FindStronglyConnectedComponents().Where(x => x.Dependencies.Count > 1).ToList();
         }
 
-        public IList<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
+        public List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPreCompilationConstraints(
-                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
+                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
 
-        public IList<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints() =>
+        public List<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(
-                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
+                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
 
-        public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
+        public Dictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
             return m_TransitiveReducer.GetAncestorNodesLookup();
         }
@@ -660,7 +660,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Exposes the priority list calculation used internally by CalculateResourceSchedulesByPriorityList.
-        public IList<T> CalculateCriticalPathPriorityList()
+        public List<T> CalculateCriticalPathPriorityList()
         {
             var tmpGraphBuilder = (VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)CloneObject();
             return CalculateCriticalPathPriorityList(tmpGraphBuilder);
@@ -676,7 +676,7 @@ namespace Zametek.Maths.Graphs
 
             ClearCriticalPathVariables();
 
-            IList<IInvalidConstraint<T>> constraints = AllDependenciesSatisfied
+            List<IInvalidConstraint<T>> constraints = AllDependenciesSatisfied
                 ? FindInvalidPreCompilationConstraints()
                 : new List<IInvalidConstraint<T>>();
 
@@ -692,14 +692,14 @@ namespace Zametek.Maths.Graphs
 
         public bool BackFillIsolatedNodes()
         {
-            IList<IInvalidConstraint<T>> constraints = AllDependenciesSatisfied
+            List<IInvalidConstraint<T>> constraints = AllDependenciesSatisfied
                 ? FindInvalidPreCompilationConstraints()
                 : new List<IInvalidConstraint<T>>();
             return m_CriticalPathEngine.BackFillIsolatedNodes(m_State, constraints);
         }
 
-        public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
-            IList<IResource<TResourceId, TWorkStreamId>> resources)
+        public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
+            List<IResource<TResourceId, TWorkStreamId>> resources)
         {
             if (resources is null)
             {
@@ -711,14 +711,14 @@ namespace Zametek.Maths.Graphs
             }
             if (!Activities.Any())
             {
-                return Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
+                return new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
             }
 
             // If resources are 0, assume infinite.
             bool infiniteResources = !resources.Any();
 
             // Filter out inactive resources.
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
             // If resources are limited, check to make sure all activities can be accepted.
             if (!infiniteResources)
@@ -730,7 +730,7 @@ namespace Zametek.Maths.Graphs
 
             // Use a separate clone for the priority list calculation so that tmpGraphBuilder retains
             // original activity durations for the scheduling loop below.
-            IList<T> priorityList = CalculateCriticalPathPriorityList(
+            List<T> priorityList = CalculateCriticalPathPriorityList(
                 (VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)tmpGraphBuilder.CloneObject());
 
             return m_ResourceSchedulingEngine.CalculateResourceSchedules(
@@ -739,10 +739,11 @@ namespace Zametek.Maths.Graphs
                 infiniteResources,
                 id => tmpGraphBuilder.Activity(id),
                 id => tmpGraphBuilder.StrongActivityDependencyIds(id),
-                () => Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList());
+                () => Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList())
+                .ToList();
         }
 
-        private void ValidateActivitiesAgainstResources(IList<IResource<TResourceId, TWorkStreamId>> filteredResources)
+        private void ValidateActivitiesAgainstResources(List<IResource<TResourceId, TWorkStreamId>> filteredResources)
         {
             var unavailableResourcesSet = new List<IUnavailableResources<T, TResourceId>>();
 
@@ -982,7 +983,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Strips resource-only dependencies and clears resource allocation state before a compile pass.
-        public void ResetResourceState(IEnumerable<TActivity> activities)
+        public void ResetResourceState(List<TActivity> activities)
         {
             foreach (TActivity activity in activities)
             {
@@ -998,7 +999,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Wires resource dependencies into the graph from the finished schedule.
-        public void AssignResourceDependencies(IList<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
+        public void AssignResourceDependencies(List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
         {
             foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> schedule in resourceSchedules)
             {
@@ -1034,7 +1035,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Removes resource-only dependencies (those that are not core compiled or planning dependencies).
-        public void RemoveResourceOnlyDependencies(IEnumerable<TActivity> activities)
+        public void RemoveResourceOnlyDependencies(List<TActivity> activities)
         {
             foreach (TActivity activity in activities)
             {
@@ -1048,7 +1049,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Recomputes each activity's Successors set from the current graph structure.
-        public void UpdateActivitySuccessors(IEnumerable<TActivity> activities)
+        public void UpdateActivitySuccessors(List<TActivity> activities)
         {
             foreach (TActivity activity in activities)
             {
@@ -1072,31 +1073,31 @@ namespace Zametek.Maths.Graphs
         // resource-flag computation here rather than inlining it.
         public void AddPreCompilationErrors(
             List<GraphCompilationError> errors,
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources)
         {
-            IEnumerable<TActivity> activities = Activities;
-            IEnumerable<T> invalidDependencies = InvalidDependencies;
-            IEnumerable<ICircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
-            IEnumerable<IInvalidConstraint<T>> invalidPrecompilationConstraints = FindInvalidPreCompilationConstraints();
+            List<TActivity> activities = Activities.ToList();
+            List<T> invalidDependencies = InvalidDependencies.ToList();
+            List<ICircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
+            List<IInvalidConstraint<T>> invalidPrecompilationConstraints = FindInvalidPreCompilationConstraints();
 
-            if (invalidDependencies.Any())
+            if (invalidDependencies.Count != 0)
             {
-                IEnumerable<IDependentActivity<T, TResourceId, TWorkStreamId>> dependentActivities =
-                    activities.OfType<IDependentActivity<T, TResourceId, TWorkStreamId>>();
+                List<IDependentActivity<T, TResourceId, TWorkStreamId>> dependentActivities =
+                    activities.OfType<IDependentActivity<T, TResourceId, TWorkStreamId>>().ToList();
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0010,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildInvalidDependenciesErrorMessage(invalidDependencies, dependentActivities)));
             }
 
-            if (circularDependencies.Any())
+            if (circularDependencies.Count != 0)
             {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0020,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildCircularDependenciesErrorMessage(circularDependencies)));
             }
 
-            if (invalidPrecompilationConstraints.Any())
+            if (invalidPrecompilationConstraints.Count != 0)
             {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0030,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
@@ -1119,11 +1120,12 @@ namespace Zametek.Maths.Graphs
                     $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
             }
 
-            IList<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
+            List<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
                 infiniteResources
                 ? new List<IUnavailableResources<T, TResourceId>>()
                 : PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.GatherUnavailableResources(
-                    activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>(), filteredResources);
+                    activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList(), filteredResources)
+                .ToList();
             if (unavailableResourcesSet.Count != 0)
             {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0060,
@@ -1135,8 +1137,8 @@ namespace Zametek.Maths.Graphs
         // Appends any post-compilation constraint errors to the error list.
         public void AddPostCompilationErrors(List<GraphCompilationError> errors)
         {
-            IEnumerable<IInvalidConstraint<T>> invalidPostcompilationConstraints = FindInvalidPostCompilationConstraints();
-            if (invalidPostcompilationConstraints.Any())
+            List<IInvalidConstraint<T>> invalidPostcompilationConstraints = FindInvalidPostCompilationConstraints();
+            if (invalidPostcompilationConstraints.Count != 0)
             {
                 errors.Add(new GraphCompilationError(
                     GraphCompilationErrorCode.C0010,
@@ -1149,7 +1151,7 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private IList<ICircularDependency<T>> FindStronglyConnectedComponents()
+        private List<ICircularDependency<T>> FindStronglyConnectedComponents()
         {
             return m_SccFinder.FindStronglyConnectedComponents(m_State);
         }

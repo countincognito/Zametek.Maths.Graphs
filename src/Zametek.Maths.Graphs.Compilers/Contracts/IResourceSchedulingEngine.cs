@@ -12,11 +12,11 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedules(
-            IList<T> priorityList,
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            List<T> priorityList,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
             Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
-            Func<T, IList<T>> strongDependencyLookup,
-            Func<IEnumerable<IActivity<T, TResourceId, TWorkStreamId>>> finalActivitiesFactory);
+            Func<T, List<T>> strongDependencyLookup,
+            Func<List<IActivity<T, TResourceId, TWorkStreamId>>> finalActivitiesFactory);
     }
 }

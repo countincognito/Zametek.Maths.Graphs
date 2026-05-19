@@ -11,7 +11,7 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
-        IList<ICircularDependency<T>> FindStronglyConnectedComponents(
+        List<ICircularDependency<T>> FindStronglyConnectedComponents(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state);
     }
 
@@ -23,7 +23,7 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
-        IList<ICircularDependency<T>> FindStronglyConnectedComponents(
+        List<ICircularDependency<T>> FindStronglyConnectedComponents(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state);
     }
 }

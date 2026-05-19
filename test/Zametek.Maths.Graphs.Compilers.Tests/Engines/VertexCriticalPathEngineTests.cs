@@ -31,7 +31,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildLinearVertexState();
             var invalidConstraints = new[] { new InvalidConstraint<int>(99, "some-constraint") };
 
-            bool result = engine.CalculateCriticalPathForwardFlow(state, invalidConstraints, false);
+            bool result = engine.CalculateCriticalPathForwardFlow(state, [.. invalidConstraints.Cast<IInvalidConstraint<int>>()], false);
 
             result.ShouldBeFalse();
         }
@@ -75,7 +75,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildLinearVertexStateWithForwardFlow();
             var invalidConstraints = new[] { new InvalidConstraint<int>(99, "some-constraint") };
 
-            bool result = engine.CalculateCriticalPathBackwardFlow(state, invalidConstraints, false);
+            bool result = engine.CalculateCriticalPathBackwardFlow(state, [.. invalidConstraints.Cast<IInvalidConstraint<int>>()], false);
 
             result.ShouldBeFalse();
         }
@@ -130,7 +130,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildIsolatedAndEndVertexState();
             var invalidConstraints = new[] { new InvalidConstraint<int>(99, "some-constraint") };
 
-            bool result = engine.BackFillIsolatedNodes(state, invalidConstraints);
+            bool result = engine.BackFillIsolatedNodes(state, [.. invalidConstraints.Cast<IInvalidConstraint<int>>()]);
 
             result.ShouldBeFalse();
         }

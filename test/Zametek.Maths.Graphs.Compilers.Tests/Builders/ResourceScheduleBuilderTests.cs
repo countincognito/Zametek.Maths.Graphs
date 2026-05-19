@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Shouldly;
 using System;
@@ -28,7 +28,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
+            var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
             rs.ActivityAllocation.ShouldBeEmpty();
             rs.FinishTime.ShouldBe(finishTime);
@@ -46,7 +46,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
+            var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
             rs.ActivityAllocation.Count().ShouldBe(10);
             rs.FinishTime.ShouldBe(finishTime);
@@ -74,7 +74,7 @@ namespace Zametek.Maths.Graphs.Tests
                 rsb.AppendActivity(scheduledActivity);
             }
 
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
+            var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
             var first = rs.ActivityAllocation.Take(start).Distinct();
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
@@ -108,7 +108,7 @@ namespace Zametek.Maths.Graphs.Tests
                 rsb.AppendActivity(scheduledActivity);
             }
 
-            var rs = rsb.ToResourceSchedule(Enumerable.Empty<IActivity<int, int, int>>(), startTime, finishTime);
+            var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
             var first = rs.ActivityAllocation.Take(start).Distinct();
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
@@ -139,14 +139,14 @@ namespace Zametek.Maths.Graphs.Tests
             const int finishTime = 22;
             JObject json = JObject.Parse(m_Fixture.ResourceSchedule3_JsonString);
 
-            var dependentActivities = JsonConvert.DeserializeObject<IList<DummyDependentActivity>>(json.GetValue(@"DependentActivities", StringComparison.OrdinalIgnoreCase).ToString());
-            var resources = JsonConvert.DeserializeObject<IList<Resource<int, int>>>(json.GetValue(@"Resources", StringComparison.OrdinalIgnoreCase).ToString());
+            var dependentActivities = JsonConvert.DeserializeObject<List<DummyDependentActivity>>(json.GetValue(@"DependentActivities", StringComparison.OrdinalIgnoreCase).ToString());
+            var resources = JsonConvert.DeserializeObject<List<Resource<int, int>>>(json.GetValue(@"Resources", StringComparison.OrdinalIgnoreCase).ToString());
 
             var resource = resources.First(x => x.Id == resourceId);
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
 
-            var rs = rsb.ToResourceSchedule(dependentActivities, startTime, finishTime);
+            var rs = rsb.ToResourceSchedule([.. dependentActivities.Cast<IActivity<int, int, int>>()], startTime, finishTime);
 
             var first = rs.ActivityAllocation.Take(start).Distinct();
             var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();

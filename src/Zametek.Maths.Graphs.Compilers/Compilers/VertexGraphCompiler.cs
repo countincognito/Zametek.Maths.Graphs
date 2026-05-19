@@ -166,14 +166,14 @@ namespace Zametek.Maths.Graphs
         }
 
         public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
-            IList<IResource<TResourceId, TWorkStreamId>> resources)
+            List<IResource<TResourceId, TWorkStreamId>> resources)
         {
             return Compile(resources, new List<IWorkStream<TWorkStreamId>>());
         }
 
         public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
-            IList<IResource<TResourceId, TWorkStreamId>> resources,
-            IList<IWorkStream<TWorkStreamId>> workStreams)
+            List<IResource<TResourceId, TWorkStreamId>> resources,
+            List<IWorkStream<TWorkStreamId>> workStreams)
         {
             if (resources is null)
             {
@@ -187,9 +187,9 @@ namespace Zametek.Maths.Graphs
             lock (m_Lock)
             {
                 bool infiniteResources = resources.Count == 0;
-                IList<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
+                List<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
-                m_VertexGraphBuilder.ResetResourceState(m_VertexGraphBuilder.Activities);
+                m_VertexGraphBuilder.ResetResourceState(m_VertexGraphBuilder.Activities.ToList());
 
                 var compilationErrors = new List<GraphCompilationError>();
                 m_VertexGraphBuilder.AddPreCompilationErrors(compilationErrors, filteredResources, infiniteResources);
@@ -221,24 +221,27 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
                 }
 
-                m_VertexGraphBuilder.RemoveResourceOnlyDependencies(m_VertexGraphBuilder.Activities);
+                m_VertexGraphBuilder.RemoveResourceOnlyDependencies(m_VertexGraphBuilder.Activities.ToList());
                 m_VertexGraphBuilder.AddPostCompilationErrors(compilationErrors);
-                m_VertexGraphBuilder.UpdateActivitySuccessors(m_VertexGraphBuilder.Activities);
+                m_VertexGraphBuilder.UpdateActivitySuccessors(m_VertexGraphBuilder.Activities.ToList());
 
                 // Rebuild schedules aligned to final CPM times, collect indirect resource schedules.
-                IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities =
-                    m_VertexGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject());
+                List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = m_VertexGraphBuilder.Activities
+                    .Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject())
+                    .ToList();
                 int startTime = m_VertexGraphBuilder.StartTime;
                 int finishTime = m_VertexGraphBuilder.FinishTime;
 
-                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> newSchedules =
+                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> newSchedules =
                     PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.RebuildAlignedResourceSchedules(
                         resourceSchedules, infiniteResources,
-                        id => (IActivity<T, TResourceId, TWorkStreamId>)m_VertexGraphBuilder.Activity(id),
-                        finalActivities, startTime, finishTime);
-                IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectSchedules =
+                        id => m_VertexGraphBuilder.Activity(id),
+                        finalActivities, startTime, finishTime)
+                    .ToList();
+                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectSchedules =
                     PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.CollectIndirectResourceSchedules(
-                        filteredResources, newSchedules, finalActivities, startTime, finishTime);
+                        filteredResources, newSchedules, finalActivities, startTime, finishTime)
+                    .ToList();
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules =
                     newSchedules.Union(indirectSchedules).ToList();
 

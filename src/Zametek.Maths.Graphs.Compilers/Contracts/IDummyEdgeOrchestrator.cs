@@ -24,9 +24,9 @@ namespace Zametek.Maths.Graphs
         bool RemoveRedundantDummyEdges();
 
         // Removes dummy edges made redundant by transitivity starting from nodeId.
-        void RemoveRedundantIncomingDummyEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup);
+        void RemoveRedundantIncomingDummyEdges(T nodeId, Dictionary<T, HashSet<T>> nodeIdAncestorLookup);
 
         // Returns all dummy edges in depth-first descending order from the start node.
-        IList<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder();
+        List<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder();
     }
 }

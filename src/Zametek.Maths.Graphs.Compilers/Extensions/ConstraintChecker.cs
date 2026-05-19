@@ -10,8 +10,8 @@ namespace Zametek.Maths.Graphs
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
-        internal static IList<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints(
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities)
+        internal static List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints(
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities)
         {
             var output = new List<IInvalidConstraint<T>>();
 
@@ -38,8 +38,8 @@ namespace Zametek.Maths.Graphs
             return output;
         }
 
-        internal static IList<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints(
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities)
+        internal static List<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints(
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities)
         {
             var output = new List<IInvalidConstraint<T>>();
 
@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs
 
         private static void CheckEarlyTimes(
             IActivity<T, TResourceId, TWorkStreamId> activity,
-            IList<IInvalidConstraint<T>> output)
+            List<IInvalidConstraint<T>> output)
         {
             if (!activity.EarliestStartTime.HasValue || !activity.EarliestFinishTime.HasValue)
             {
@@ -79,7 +79,7 @@ namespace Zametek.Maths.Graphs
 
         private static void CheckLateTimes(
             IActivity<T, TResourceId, TWorkStreamId> activity,
-            IList<IInvalidConstraint<T>> output)
+            List<IInvalidConstraint<T>> output)
         {
             if (!activity.LatestStartTime.HasValue || !activity.LatestFinishTime.HasValue)
             {
@@ -99,7 +99,7 @@ namespace Zametek.Maths.Graphs
 
         private static void CheckStartTimeOrder(
             IActivity<T, TResourceId, TWorkStreamId> activity,
-            IList<IInvalidConstraint<T>> output)
+            List<IInvalidConstraint<T>> output)
         {
             if (!activity.EarliestStartTime.HasValue || !activity.LatestStartTime.HasValue)
             {
@@ -114,7 +114,7 @@ namespace Zametek.Maths.Graphs
 
         private static void CheckFinishTimeOrder(
             IActivity<T, TResourceId, TWorkStreamId> activity,
-            IList<IInvalidConstraint<T>> output)
+            List<IInvalidConstraint<T>> output)
         {
             if (!activity.EarliestFinishTime.HasValue || !activity.LatestFinishTime.HasValue)
             {
@@ -129,7 +129,7 @@ namespace Zametek.Maths.Graphs
 
         private static void CheckEarliestStartConstraint(
             IActivity<T, TResourceId, TWorkStreamId> activity,
-            IList<IInvalidConstraint<T>> output)
+            List<IInvalidConstraint<T>> output)
         {
             if (!activity.EarliestStartTime.HasValue || !activity.MinimumEarliestStartTime.HasValue)
             {
@@ -144,7 +144,7 @@ namespace Zametek.Maths.Graphs
 
         private static void CheckLatestFinishConstraint(
             IActivity<T, TResourceId, TWorkStreamId> activity,
-            IList<IInvalidConstraint<T>> output)
+            List<IInvalidConstraint<T>> output)
         {
             if (!activity.LatestFinishTime.HasValue || !activity.MaximumLatestFinishTime.HasValue)
             {
@@ -159,7 +159,7 @@ namespace Zametek.Maths.Graphs
 
         private static void CheckFreeSlackConstraint(
             IActivity<T, TResourceId, TWorkStreamId> activity,
-            IList<IInvalidConstraint<T>> output)
+            List<IInvalidConstraint<T>> output)
         {
             if (!activity.FreeSlack.HasValue || !activity.MinimumFreeSlack.HasValue)
             {

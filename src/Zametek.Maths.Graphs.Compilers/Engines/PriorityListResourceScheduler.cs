@@ -17,12 +17,12 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedules(
-            IList<T> priorityList,
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            List<T> priorityList,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
             Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
-            Func<T, IList<T>> strongDependencyLookup,
-            Func<IEnumerable<IActivity<T, TResourceId, TWorkStreamId>>> finalActivitiesFactory)
+            Func<T, List<T>> strongDependencyLookup,
+            Func<List<IActivity<T, TResourceId, TWorkStreamId>>> finalActivitiesFactory)
         {
             if (priorityList is null)
             {
@@ -66,7 +66,7 @@ namespace Zametek.Maths.Graphs
                 timeCounter++;
             }
 
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = finalActivitiesFactory();
+            List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = finalActivitiesFactory();
 
             int startTime = resourceScheduleBuilders
                 .Select(x => x.ScheduledActivities.Select(y => y.StartTime).DefaultIfEmpty().Min())
@@ -83,7 +83,7 @@ namespace Zametek.Maths.Graphs
         }
 
         private static void AdvanceCompletedActivities(
-            IList<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
             int timeCounter,
             HashSet<T> started,
             HashSet<T> completed)
@@ -105,7 +105,7 @@ namespace Zametek.Maths.Graphs
             List<T?> ready,
             HashSet<T> completed,
             HashSet<T> started,
-            Func<T, IList<T>> strongDependencyLookup)
+            Func<T, List<T>> strongDependencyLookup)
         {
             var indicesToRemove = new HashSet<int>();
             for (int i = 0; i < workingList.Count; i++)
@@ -134,7 +134,7 @@ namespace Zametek.Maths.Graphs
             List<T?> ready,
             List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
             Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
             HashSet<T> started,
             int timeCounter)
@@ -155,7 +155,7 @@ namespace Zametek.Maths.Graphs
                     IActivity<T, TResourceId, TWorkStreamId> activity = activityLookup(activityId);
                     activity.AllocatedToResources.Clear();
 
-                    bool mustTargetSpecific = !infiniteResources && activity.TargetResources.Any();
+                    bool mustTargetSpecific = !infiniteResources && activity.TargetResources.Count != 0;
 
                     if (!mustTargetSpecific)
                     {
@@ -189,7 +189,7 @@ namespace Zametek.Maths.Graphs
         }
 
         private static bool TryScheduleUnrestricted(
-            IList<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
             IActivity<T, TResourceId, TWorkStreamId> activity,
             T activityId,
             int timeCounter,
@@ -224,10 +224,10 @@ namespace Zametek.Maths.Graphs
         }
 
         private static bool TryScheduleTargeted(
-            IList<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
             IActivity<T, TResourceId, TWorkStreamId> activity,
             T activityId,
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             int timeCounter,
             HashSet<T> started,
             ref bool availableBuilderExists)
@@ -296,13 +296,13 @@ namespace Zametek.Maths.Graphs
 
         // Gathers the set of activities that reference resources not present in filteredResources.
         internal static IList<IUnavailableResources<T, TResourceId>> GatherUnavailableResources(
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources)
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources)
         {
             var output = new List<IUnavailableResources<T, TResourceId>>();
             foreach (IActivity<T, TResourceId, TWorkStreamId> activity in activities)
             {
-                if (!activity.TargetResources.Any())
+                if (activity.TargetResources.Count == 0)
                 {
                     continue;
                 }
@@ -355,10 +355,10 @@ namespace Zametek.Maths.Graphs
         // Rebuilds resource schedules aligned to CPM-computed EarliestStartTime values.
         // activityLookup is a delegate into the builder that resolves activity by ID.
         internal static IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildAlignedResourceSchedules(
-            IList<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,
+            List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,
             bool infiniteResources,
             Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
+            List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
             int startTime,
             int finishTime)
         {
@@ -385,9 +385,9 @@ namespace Zametek.Maths.Graphs
 
         // Returns schedules for Indirect resources that were not directly assigned any activities.
         internal static IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CollectIndirectResourceSchedules(
-            IList<IResource<TResourceId, TWorkStreamId>> filteredResources,
-            IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> scheduledResources,
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            List<IResourceSchedule<T, TResourceId, TWorkStreamId>> scheduledResources,
+            List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
             int startTime,
             int finishTime)
         {
@@ -403,7 +403,7 @@ namespace Zametek.Maths.Graphs
 
         // Returns the set of work-stream phase IDs that appear on at least one resource schedule.
         internal static HashSet<TWorkStreamId> GetResourcePhasesUsed(
-            IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules,
+            List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules,
             HashSet<TWorkStreamId> workstreamsUsed)
         {
             HashSet<TWorkStreamId> resourcePhases = totalSchedules

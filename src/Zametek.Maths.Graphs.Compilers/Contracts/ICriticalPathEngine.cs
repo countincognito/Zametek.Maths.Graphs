@@ -14,17 +14,17 @@ namespace Zametek.Maths.Graphs
     {
         bool CalculateEventEarliestFinishTimes(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle);
 
         bool CalculateEventLatestFinishTimes(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle);
 
         bool CalculateCriticalPathVariables(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints);
+            List<IInvalidConstraint<T>> invalidConstraints);
     }
 
     // Calculates critical path variables for Activity-on-Vertex graphs.
@@ -36,16 +36,16 @@ namespace Zametek.Maths.Graphs
     {
         bool CalculateCriticalPathForwardFlow(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle);
 
         bool CalculateCriticalPathBackwardFlow(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle);
 
         bool BackFillIsolatedNodes(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints);
+            List<IInvalidConstraint<T>> invalidConstraints);
     }
 }

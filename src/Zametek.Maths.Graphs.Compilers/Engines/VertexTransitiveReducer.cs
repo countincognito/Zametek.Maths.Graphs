@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs
 
         #region ITransitiveReducer
 
-        public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
+        public Dictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
             if (!m_State.AllDependenciesSatisfied)
             {
@@ -90,10 +90,7 @@ namespace Zametek.Maths.Graphs
 
             foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
             {
-                if (!totalAncestorNodes.Contains(tailNodeId))
-                {
-                    totalAncestorNodes.Add(tailNodeId);
-                }
+                totalAncestorNodes.Add(tailNodeId);
                 if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
                 {
                     tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);

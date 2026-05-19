@@ -28,7 +28,7 @@ namespace Zametek.Maths.Graphs
         internal DummyEdgeOrchestrator(
             Func<T> edgeIdGenerator,
             Func<T, TActivity> dummyActivityGenerator,
-            Func<IList<ICircularDependency<T>>> findStrongCircularDependencies,
+            Func<List<ICircularDependency<T>>> findStrongCircularDependencies,
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
@@ -239,7 +239,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        public void RemoveRedundantIncomingDummyEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
+        public void RemoveRedundantIncomingDummyEdges(T nodeId, Dictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
             if (nodeIdAncestorLookup is null)
             {
@@ -280,7 +280,7 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        public IList<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder()
+        public List<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder()
         {
             var recordedEdges = new HashSet<T>();
             var edgesInDescendingOrder = new List<Edge<T, TActivity>>();
@@ -292,7 +292,7 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private void GetEdgesInDescendingOrder(T nodeId, IList<Edge<T, TActivity>> edgesInDescendingOrder, HashSet<T> recordedEdges)
+        private void GetEdgesInDescendingOrder(T nodeId, List<Edge<T, TActivity>> edgesInDescendingOrder, HashSet<T> recordedEdges)
         {
             if (edgesInDescendingOrder is null)
             {

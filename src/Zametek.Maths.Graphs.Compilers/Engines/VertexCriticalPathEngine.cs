@@ -17,7 +17,7 @@ namespace Zametek.Maths.Graphs
     {
         public bool CalculateCriticalPathForwardFlow(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
             if (state is null)
@@ -29,7 +29,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(invalidConstraints));
             }
 
-            if (invalidConstraints.Any())
+            if (invalidConstraints.Count != 0)
             {
                 return false;
             }
@@ -137,7 +137,7 @@ namespace Zametek.Maths.Graphs
             }
 
             // Forward flow algorithm.
-            while (remainingEdgeIds.Any())
+            while (remainingEdgeIds.Count != 0)
             {
                 bool progress = false;
                 List<T> remainingEdgeIdList = remainingEdgeIds.ToList();
@@ -288,7 +288,7 @@ namespace Zametek.Maths.Graphs
 
         public bool CalculateCriticalPathBackwardFlow(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
             if (state is null)
@@ -300,7 +300,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(invalidConstraints));
             }
 
-            if (invalidConstraints.Any())
+            if (invalidConstraints.Count != 0)
             {
                 return false;
             }
@@ -378,7 +378,7 @@ namespace Zametek.Maths.Graphs
             }
 
             // Backward flow algorithm.
-            while (remainingEdgeIds.Any())
+            while (remainingEdgeIds.Count != 0)
             {
                 bool progress = false;
                 List<T> remainingEdgeIdList = remainingEdgeIds.ToList();
@@ -535,7 +535,7 @@ namespace Zametek.Maths.Graphs
 
         public bool BackFillIsolatedNodes(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints)
+            List<IInvalidConstraint<T>> invalidConstraints)
         {
             if (state is null)
             {
@@ -546,7 +546,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(invalidConstraints));
             }
 
-            if (invalidConstraints.Any())
+            if (invalidConstraints.Count != 0)
             {
                 return false;
             }

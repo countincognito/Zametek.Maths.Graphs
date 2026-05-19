@@ -14,11 +14,11 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         internal static string BuildInvalidDependenciesErrorMessage(
-            IEnumerable<T> invalidDependencies,
-            IEnumerable<TDependentActivity> activities)
+            List<T> invalidDependencies,
+            List<TDependentActivity> activities)
         {
-            if (invalidDependencies == null || !invalidDependencies.Any()
-                || activities == null || !activities.Any())
+            if (invalidDependencies == null || invalidDependencies.Count == 0
+                || activities == null || activities.Count == 0)
             {
                 return string.Empty;
             }
@@ -36,9 +36,9 @@ namespace Zametek.Maths.Graphs
             return output.ToString();
         }
 
-        internal static string BuildCircularDependenciesErrorMessage(IEnumerable<ICircularDependency<T>> circularDependencies)
+        internal static string BuildCircularDependenciesErrorMessage(List<ICircularDependency<T>> circularDependencies)
         {
-            if (circularDependencies == null || !circularDependencies.Any())
+            if (circularDependencies == null || circularDependencies.Count == 0)
             {
                 return string.Empty;
             }
@@ -51,9 +51,9 @@ namespace Zametek.Maths.Graphs
             return output.ToString();
         }
 
-        internal static string BuildInvalidConstraintsErrorMessage(IEnumerable<IInvalidConstraint<T>> invalidConstraints)
+        internal static string BuildInvalidConstraintsErrorMessage(List<IInvalidConstraint<T>> invalidConstraints)
         {
-            if (invalidConstraints == null || !invalidConstraints.Any())
+            if (invalidConstraints == null || invalidConstraints.Count == 0)
             {
                 return string.Empty;
             }
@@ -66,9 +66,9 @@ namespace Zametek.Maths.Graphs
             return output.ToString();
         }
 
-        internal static string BuildUnavailableResourcesErrorMessage(IEnumerable<IUnavailableResources<T, TResourceId>> unavailableResourceSet)
+        internal static string BuildUnavailableResourcesErrorMessage(List<IUnavailableResources<T, TResourceId>> unavailableResourceSet)
         {
-            if (unavailableResourceSet == null || !unavailableResourceSet.Any())
+            if (unavailableResourceSet == null || unavailableResourceSet.Count == 0)
             {
                 return string.Empty;
             }

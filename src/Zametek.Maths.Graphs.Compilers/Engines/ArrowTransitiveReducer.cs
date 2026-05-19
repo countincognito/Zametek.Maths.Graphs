@@ -27,8 +27,8 @@ namespace Zametek.Maths.Graphs
         #region Ctor
 
         internal ArrowTransitiveReducer(
-            Func<IList<ICircularDependency<T>>> findStrongCircularDependencies,
-            Func<IEnumerable<T>> getEndNodeIds,
+            Func<List<ICircularDependency<T>>> findStrongCircularDependencies,
+            Func<List<T>> getEndNodeIds,
             IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> dummyEdgeOrchestrator,
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
@@ -42,7 +42,7 @@ namespace Zametek.Maths.Graphs
 
         #region ITransitiveReducer
 
-        public IDictionary<T, HashSet<T>> GetAncestorNodesLookup()
+        public Dictionary<T, HashSet<T>> GetAncestorNodesLookup()
         {
             if (!m_State.AllDependenciesSatisfied)
             {
@@ -64,7 +64,7 @@ namespace Zametek.Maths.Graphs
 
         public bool ReduceGraph()
         {
-            IDictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
+            Dictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
             if (ancestorNodesLookup is null)
             {
                 return false;
@@ -80,7 +80,7 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private HashSet<T> GetAncestorNodes(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
+        private HashSet<T> GetAncestorNodes(T nodeId, Dictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
             if (nodeIdAncestorLookup is null)
             {

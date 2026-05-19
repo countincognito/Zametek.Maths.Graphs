@@ -16,7 +16,7 @@ namespace Zametek.Maths.Graphs.Tests
                 BuildOrchestrator(state);
 
             Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                null, () => Enumerable.Empty<int>(), orchestrator, state);
+                null, () => [], orchestrator, state);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
             Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                () => new List<ICircularDependency<int>>(), () => Enumerable.Empty<int>(), null, state);
+                () => new List<ICircularDependency<int>>(), () => [], null, state);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -49,7 +49,7 @@ namespace Zametek.Maths.Graphs.Tests
                 BuildOrchestrator(state);
 
             Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                () => new List<ICircularDependency<int>>(), () => Enumerable.Empty<int>(), orchestrator, null);
+                () => new List<ICircularDependency<int>>(), () => [], orchestrator, null);
             act.ShouldThrow<ArgumentNullException>();
         }
 

@@ -18,7 +18,7 @@ namespace Zametek.Maths.Graphs
     {
         public bool CalculateEventEarliestFinishTimes(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
             if (state is null)
@@ -38,7 +38,7 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException(@"Arrow graph state has no End node");
             }
 
-            if (invalidConstraints.Any())
+            if (invalidConstraints.Count != 0)
             {
                 return false;
             }
@@ -151,7 +151,7 @@ namespace Zametek.Maths.Graphs
 
         public bool CalculateEventLatestFinishTimes(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints,
+            List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
             if (state is null)
@@ -167,7 +167,7 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException(@"Arrow graph state has no End node");
             }
 
-            if (invalidConstraints.Any())
+            if (invalidConstraints.Count != 0)
             {
                 return false;
             }
@@ -271,7 +271,7 @@ namespace Zametek.Maths.Graphs
 
         public bool CalculateCriticalPathVariables(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            IEnumerable<IInvalidConstraint<T>> invalidConstraints)
+            List<IInvalidConstraint<T>> invalidConstraints)
         {
             if (state is null)
             {
@@ -282,7 +282,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(invalidConstraints));
             }
 
-            if (invalidConstraints.Any())
+            if (invalidConstraints.Count != 0)
             {
                 return false;
             }

@@ -17,7 +17,7 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
-        public IList<ICircularDependency<T>> FindStronglyConnectedComponents(
+        public List<ICircularDependency<T>> FindStronglyConnectedComponents(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
             if (state is null)
@@ -32,7 +32,7 @@ namespace Zametek.Maths.Graphs
             var lowLinkLookup = new Dictionary<T, int>();
             var circularDependencies = new List<ICircularDependency<T>>();
 
-            IList<T> edgeIdList = state.EdgeIds.ToList();
+            List<T> edgeIdList = state.EdgeIds.ToList();
 
             foreach (T id in edgeIdList)
             {

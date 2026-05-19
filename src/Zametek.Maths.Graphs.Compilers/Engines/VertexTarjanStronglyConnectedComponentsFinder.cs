@@ -17,7 +17,7 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
-        public IList<ICircularDependency<T>> FindStronglyConnectedComponents(
+        public List<ICircularDependency<T>> FindStronglyConnectedComponents(
             VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
             if (state is null)

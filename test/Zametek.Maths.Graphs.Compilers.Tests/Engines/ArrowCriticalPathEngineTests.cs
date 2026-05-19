@@ -1,5 +1,6 @@
 using Shouldly;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
@@ -52,7 +53,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildLinearArrowState();
             var invalidConstraints = new[] { new InvalidConstraint<int>(99, "some-constraint") };
 
-            bool result = engine.CalculateEventEarliestFinishTimes(state, invalidConstraints, false);
+            bool result = engine.CalculateEventEarliestFinishTimes(state, [.. invalidConstraints.Cast<IInvalidConstraint<int>>()], false);
 
             result.ShouldBeFalse();
         }
@@ -104,7 +105,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildLinearArrowStateWithEarliestFinishTimes();
             var invalidConstraints = new[] { new InvalidConstraint<int>(99, "some-constraint") };
 
-            bool result = engine.CalculateEventLatestFinishTimes(state, invalidConstraints, false);
+            bool result = engine.CalculateEventLatestFinishTimes(state, [.. invalidConstraints.Cast<IInvalidConstraint<int>>()], false);
 
             result.ShouldBeFalse();
         }
@@ -158,7 +159,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildLinearArrowStateWithLatestFinishTimes();
             var invalidConstraints = new[] { new InvalidConstraint<int>(99, "some-constraint") };
 
-            bool result = engine.CalculateCriticalPathVariables(state, invalidConstraints);
+            bool result = engine.CalculateCriticalPathVariables(state, [.. invalidConstraints.Cast<IInvalidConstraint<int>>()]);
 
             result.ShouldBeFalse();
         }

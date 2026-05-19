@@ -59,10 +59,10 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private static (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> billingAllocation, IList<bool> effortAllocation) ExtractAllocations(
+        private static (List<bool> activityAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation) ExtractAllocations(
             IResource<TResourceId, TWorkStreamId> resource,
-            IEnumerable<IScheduledActivity<T>> scheduledActivities,
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities,
             int finishTime)
         {
             if (scheduledActivities is null)
@@ -127,9 +127,9 @@ namespace Zametek.Maths.Graphs
 
         private static void AllocationForIndirectType(
             IResource<TResourceId, TWorkStreamId> resource,
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
-            IEnumerable<IScheduledActivity<T>> scheduledActivities,
-            IList<TimeType> distribution)
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
         {
             if (resource is null)
             {
@@ -273,8 +273,8 @@ namespace Zametek.Maths.Graphs
         }
 
         private static void AllocationForScheduledActivitiesType(
-            IEnumerable<IScheduledActivity<T>> scheduledActivities,
-            IList<TimeType> distribution)
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
         {
             if (scheduledActivities is null)
             {
@@ -367,8 +367,8 @@ namespace Zametek.Maths.Graphs
         }
 
         private static void AllocationForNoneType(
-            IEnumerable<IScheduledActivity<T>> scheduledActivities,
-            IList<TimeType> distribution)
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
         {
             if (scheduledActivities is null)
             {
@@ -421,8 +421,8 @@ namespace Zametek.Maths.Graphs
         }
 
         private static void AllocationForNoCostOrEffortActivities(
-            IEnumerable<IScheduledActivity<T>> scheduledActivities,
-            IList<TimeType> distribution)
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
         {
             if (scheduledActivities is null)
             {
@@ -559,7 +559,7 @@ namespace Zametek.Maths.Graphs
         }
 
         public IResourceSchedule<T, TResourceId, TWorkStreamId> ToResourceSchedule(
-            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities,
             int startTime,
             int finishTime)
         {
@@ -568,8 +568,8 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(activities));
             }
 
-            (IList<bool> activityAllocation, IList<bool> costAllocation, IList<bool> billingAllocation, IList<bool> effortAllocation) =
-                ExtractAllocations(m_Resource, m_ScheduledActivities, activities, finishTime);
+            (List<bool> activityAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation) =
+                ExtractAllocations(m_Resource, m_ScheduledActivities.ToList(), activities, finishTime);
 
             return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
                 m_Resource,
