@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Zametek.Maths.Graphs.Compilers/Zametek.Maths.Graphs.Compilers.csproj" />
+    <Project Path="src/Zametek.Maths.Graphs.Primitives/Zametek.Maths.Graphs.Primitives.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Zametek.Maths.Graphs.Compilers.Tests/Zametek.Maths.Graphs.Compilers.Tests.csproj" />
+  </Folder>
+</Solution>
