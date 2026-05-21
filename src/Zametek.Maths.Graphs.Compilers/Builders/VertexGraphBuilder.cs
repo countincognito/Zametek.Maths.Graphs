@@ -25,8 +25,7 @@ namespace Zametek.Maths.Graphs
             return output;
         };
 
-        private readonly Func<T> m_EdgeIdGenerator;
-        private readonly Func<T> m_NodeIdGenerator;
+        private readonly IIdGenerator<T> m_EdgeIdGenerator;
 
         private readonly IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_SccFinder;
         private readonly IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
@@ -39,12 +38,9 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         // Public constructor — stable API surface. Wires up default engine instances.
-        public VertexGraphBuilder(
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator)
+        public VertexGraphBuilder(IIdGenerator<T> edgeIdGenerator)
             : this(
                   edgeIdGenerator,
-                  nodeIdGenerator,
                   new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
                   new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
@@ -53,14 +49,12 @@ namespace Zametek.Maths.Graphs
 
         // Internal constructor — accepts injected engines for testability.
         internal VertexGraphBuilder(
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator,
+            IIdGenerator<T> edgeIdGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine = null)
         {
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
-            m_NodeIdGenerator = nodeIdGenerator ?? throw new ArgumentNullException(nameof(nodeIdGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
@@ -73,12 +67,10 @@ namespace Zametek.Maths.Graphs
         // Graph-loading constructor (from existing Graph<T, IEvent<T>, TActivity>).
         public VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator)
+            IIdGenerator<T> edgeIdGenerator)
             : this(
                   graph,
                   edgeIdGenerator,
-                  nodeIdGenerator,
                   new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
                   new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
@@ -88,8 +80,7 @@ namespace Zametek.Maths.Graphs
         // Internal graph-loading constructor with engine injection.
         internal VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator,
+            IIdGenerator<T> edgeIdGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine = null)
@@ -100,7 +91,6 @@ namespace Zametek.Maths.Graphs
             }
 
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
-            m_NodeIdGenerator = nodeIdGenerator ?? throw new ArgumentNullException(nameof(nodeIdGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
@@ -264,7 +254,7 @@ namespace Zametek.Maths.Graphs
                 foreach (T dependencyId in existingDependencies)
                 {
                     Node<T, TActivity> dependencyNode = m_State.Node(dependencyId);
-                    T edgeId = m_EdgeIdGenerator();
+                    T edgeId = m_EdgeIdGenerator.Generate();
                     var edge = new Edge<T, IEvent<T>>(s_EventGenerator(edgeId));
                     node.IncomingEdges.Add(edgeId);
                     m_State.SetEdgeHeadNode(edgeId, node);
@@ -333,7 +323,7 @@ namespace Zametek.Maths.Graphs
             foreach (T dependencyId in existingDependencies)
             {
                 Node<T, TActivity> dependencyNode = m_State.Node(dependencyId);
-                T edgeId = m_EdgeIdGenerator();
+                T edgeId = m_EdgeIdGenerator.Generate();
                 var edge = new Edge<T, IEvent<T>>(s_EventGenerator(edgeId));
                 node.IncomingEdges.Add(edgeId);
                 m_State.SetEdgeHeadNode(edgeId, node);
@@ -1188,7 +1178,7 @@ namespace Zametek.Maths.Graphs
 
                 foreach (Node<T, TActivity> successorNode in unsatisfiedSuccessorNodes)
                 {
-                    T edgeId = m_EdgeIdGenerator();
+                    T edgeId = m_EdgeIdGenerator.Generate();
                     var edge = new Edge<T, IEvent<T>>(s_EventGenerator(edgeId));
                     dependencyNode.OutgoingEdges.Add(edgeId);
                     m_State.SetEdgeTailNode(edgeId, dependencyNode);
@@ -1234,14 +1224,11 @@ namespace Zametek.Maths.Graphs
         public object CloneObject()
         {
             Graph<T, IEvent<T>, TActivity> vertexGraphCopy = ToGraph();
-            T minNodeId = vertexGraphCopy.Nodes.Select(x => x.Id).DefaultIfEmpty().Min();
-            minNodeId = minNodeId.Previous();
             T minEdgeId = vertexGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
             minEdgeId = minEdgeId.Previous();
             return new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 vertexGraphCopy,
-                () => minEdgeId = minEdgeId.Previous(),
-                () => minNodeId = minNodeId.Previous());
+                new PreviousIdGenerator<T>(minEdgeId));
         }
 
         #endregion

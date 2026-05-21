@@ -21,20 +21,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPathForwardFlow();
 
@@ -79,20 +78,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPathForwardFlow();
             graphBuilder.CalculateCriticalPathBackwardFlow();
@@ -138,20 +136,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -232,20 +229,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6) { MinimumFreeSlack = 10 });
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -326,20 +322,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8) { MinimumFreeSlack = 15 }, new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8) { MinimumFreeSlack = 15 }, [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -420,20 +415,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10) { MinimumFreeSlack = 15 }, new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10) { MinimumFreeSlack = 15 }, [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -514,20 +508,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6) { MinimumEarliestStartTime = 10 });
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -608,20 +601,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8) { MinimumEarliestStartTime = 10 }, new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8) { MinimumEarliestStartTime = 10 }, [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -702,20 +694,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10) { MinimumEarliestStartTime = 20 }, new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10) { MinimumEarliestStartTime = 20 }, [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -796,20 +787,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6) { MaximumLatestFinishTime = 7 });
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -890,20 +880,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6) { MaximumLatestFinishTime = 5 });
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -984,20 +973,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11) { MaximumLatestFinishTime = 18 }, new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11) { MaximumLatestFinishTime = 18 }, [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -1078,20 +1066,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11) { MaximumLatestFinishTime = 16 }, new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11) { MaximumLatestFinishTime = 16 }, [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -1182,20 +1169,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4) { MaximumLatestFinishTime = 22 }, new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4) { MaximumLatestFinishTime = 22 }, [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -1276,20 +1262,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4) { MaximumLatestFinishTime = 21 }, new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4) { MaximumLatestFinishTime = 21 }, [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.CalculateCriticalPath();
 
@@ -1385,20 +1370,19 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 }, new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 }, [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             Action act = () => graphBuilder.CalculateCriticalPath();
             act.ShouldThrow<InvalidOperationException>();
@@ -1417,25 +1401,24 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.Nodes.Count().ShouldBe(9);
             graphBuilder.Edges.Count().ShouldBe(9);
 
-            bool result1 = graphBuilder.AddActivityDependencies(activityId6, new HashSet<int> { activityId5 });
+            bool result1 = graphBuilder.AddActivityDependencies(activityId6, [activityId5]);
             result1.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1473,7 +1456,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result2 = graphBuilder.AddActivityDependencies(activityId6, new HashSet<int> { 4 });
+            bool result2 = graphBuilder.AddActivityDependencies(activityId6, [activityId4]);
             result2.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1511,7 +1494,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result3 = graphBuilder.RemoveActivityDependencies(activityId6, new HashSet<int> { 5 });
+            bool result3 = graphBuilder.RemoveActivityDependencies(activityId6, [5]);
             result3.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1549,7 +1532,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result4 = graphBuilder.RemoveActivityDependencies(activityId6, new HashSet<int> { 4 });
+            bool result4 = graphBuilder.RemoveActivityDependencies(activityId6, [activityId4]);
             result4.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1599,25 +1582,24 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.Nodes.Count().ShouldBe(9);
             graphBuilder.Edges.Count().ShouldBe(9);
 
-            bool result1 = graphBuilder.AddActivityDependencies(activityId6, new HashSet<int> { activityId5 });
+            bool result1 = graphBuilder.AddActivityDependencies(activityId6, [activityId5]);
             result1.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1656,7 +1638,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result2 = graphBuilder.AddActivityDependencies(activityId6, new HashSet<int> { 4 });
+            bool result2 = graphBuilder.AddActivityDependencies(activityId6, [activityId4]);
             result2.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1695,7 +1677,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result3 = graphBuilder.RemoveActivityDependencies(activityId6, new HashSet<int> { 5 });
+            bool result3 = graphBuilder.RemoveActivityDependencies(activityId6, [activityId5]);
             result3.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1734,7 +1716,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result4 = graphBuilder.RemoveActivityDependencies(activityId6, new HashSet<int> { 4 });
+            bool result4 = graphBuilder.RemoveActivityDependencies(activityId6, [activityId4]);
             result4.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1785,25 +1767,24 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId7 = activityId6 + 1;
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), new HashSet<int> { activityId2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), new HashSet<int> { activityId1, activityId2, activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), new HashSet<int> { activityId3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), new HashSet<int> { activityId4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), new HashSet<int> { activityId4, activityId6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), new HashSet<int> { activityId5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId4, 11), [activityId2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId5, 8), [activityId1, activityId2, activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId6, 7), [activityId3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId7, 4), [activityId4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.Nodes.Count().ShouldBe(9);
             graphBuilder.Edges.Count().ShouldBe(9);
 
-            bool result1 = graphBuilder.AddActivityDependencies(activityId6, new HashSet<int> { 5 });
+            bool result1 = graphBuilder.AddActivityDependencies(activityId6, [activityId5]);
             result1.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1840,7 +1821,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result2 = graphBuilder.AddActivityDependencies(activityId6, new HashSet<int> { 4 });
+            bool result2 = graphBuilder.AddActivityDependencies(activityId6, [activityId4]);
             result2.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1877,7 +1858,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result3 = graphBuilder.RemoveActivityDependencies(activityId6, new HashSet<int> { 5 });
+            bool result3 = graphBuilder.RemoveActivityDependencies(activityId6, [activityId5]);
             result3.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1914,7 +1895,7 @@ namespace Zametek.Maths.Graphs.Tests
 
 
 
-            bool result4 = graphBuilder.RemoveActivityDependencies(activityId6, new HashSet<int> { 4 });
+            bool result4 = graphBuilder.RemoveActivityDependencies(activityId6, [activityId4]);
             result4.ShouldBeTrue();
 
             graphBuilder.Nodes.Count().ShouldBe(9);
@@ -1954,53 +1935,50 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilderExtensions_GivenCalculateCriticalPathPriorityList_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), new HashSet<int> { 2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), new HashSet<int> { 1, 2, 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), new HashSet<int> { 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), new HashSet<int> { 4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), new HashSet<int> { 4, 6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), [2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), [1, 2, 3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), [3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), [4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
-            List<int> priorityList = graphBuilder.CalculateCriticalPathPriorityList().ToList();
+            List<int> priorityList = graphBuilder.CalculateCriticalPathPriorityList();
 
-            priorityList.ShouldBeEquivalentTo(new List<int>(new[] { 3, 2, 1, 5, 4, 6, 9, 7, 8 }));
+            priorityList.ShouldBeEquivalentTo(new List<int>([3, 2, 1, 5, 4, 6, 9, 7, 8]));
         }
 
         [Fact]
         public void VertexGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenOneResource_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), new HashSet<int> { 2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), new HashSet<int> { 1, 2, 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), new HashSet<int> { 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), new HashSet<int> { 4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), new HashSet<int> { 4, 6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), [2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), [1, 2, 3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), [3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), [4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
             int resourceId1 = 1;
 
-            IList<IResourceSchedule<int, int, int>> resourceSchedules =
-                graphBuilder.CalculateResourceSchedulesByPriorityList(
-                    new List<IResource<int, int>>(new[]
-                    {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
-                    })).ToList();
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder
+                .CalculateResourceSchedulesByPriorityList(
+                [
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
+                ]);
             resourceSchedules.Count.ShouldBe(1);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -2050,31 +2028,29 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriority_WhenListTwoResources_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), new HashSet<int> { 2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), new HashSet<int> { 1, 2, 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), new HashSet<int> { 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), new HashSet<int> { 4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), new HashSet<int> { 4, 6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), [2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), [1, 2, 3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), [3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), [4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
 
-            IList<IResourceSchedule<int, int, int>> resourceSchedules =
-                graphBuilder.CalculateResourceSchedulesByPriorityList(
-                    new List<IResource<int, int>>(new[]
-                    {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
-                    })).ToList();
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder
+                .CalculateResourceSchedulesByPriorityList(
+                [
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
+                ]);
             resourceSchedules.Count.ShouldBe(2);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -2132,33 +2108,31 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenThreeResources_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), new HashSet<int> { 2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), new HashSet<int> { 1, 2, 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), new HashSet<int> { 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), new HashSet<int> { 4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), new HashSet<int> { 4, 6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), [2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), [1, 2, 3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), [3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), [4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
 
-            IList<IResourceSchedule<int, int, int>> resourceSchedules =
-                graphBuilder.CalculateResourceSchedulesByPriorityList(
-                    new List<IResource<int, int>>(new[]
-                    {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
-                    })).ToList();
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder
+                .CalculateResourceSchedulesByPriorityList(
+                [
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
+                ]);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -2222,35 +2196,33 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenFourResources_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), new HashSet<int> { 2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), new HashSet<int> { 1, 2, 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), new HashSet<int> { 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), new HashSet<int> { 4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), new HashSet<int> { 4, 6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), [2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), [1, 2, 3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), [3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), [4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
             int resourceId4 = resourceId3 + 1;
 
-            IList<IResourceSchedule<int, int, int>> resourceSchedules =
-                graphBuilder.CalculateResourceSchedulesByPriorityList(
-                    new List<IResource<int, int>>(new[]
-                    {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>())
-                    })).ToList();
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder
+                .CalculateResourceSchedulesByPriorityList(
+                [
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
+                ]);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -2314,35 +2286,33 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenFourOrderedResources_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), new HashSet<int> { 2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), new HashSet<int> { 1, 2, 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), new HashSet<int> { 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), new HashSet<int> { 4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), new HashSet<int> { 4, 6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), [2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), [1, 2, 3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), [3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), [4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
             int resourceId4 = resourceId3 + 1;
 
-            IList<IResourceSchedule<int, int, int>> resourceSchedules =
-                graphBuilder.CalculateResourceSchedulesByPriorityList(
-                    new List<IResource<int, int>>(new[]
-                    {
-                        new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 4, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 3, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 2, Enumerable.Empty<int>()),
-                        new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 1, Enumerable.Empty<int>())
-                    })).ToList();
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder
+                .CalculateResourceSchedulesByPriorityList(
+                [
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 4, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 3, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 2, []),
+                    new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 1, [])
+                ]);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -2406,22 +2376,21 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenUnlimitedResources_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 6));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 7));
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 8));
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), new HashSet<int> { 2 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), new HashSet<int> { 1, 2, 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), new HashSet<int> { 3 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), new HashSet<int> { 4 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), new HashSet<int> { 4, 6 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), new HashSet<int> { 5 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 11), [2]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(5, 8), [1, 2, 3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(6, 7), [3]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(7, 4), [4]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
-            IList<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList(new List<IResource<int, int>>()).ToList();
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList([]);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -2485,18 +2454,17 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilderExtensions_GivenCalculateResourceSchedulesByPriorityList_WhenUnlimitedResourcesWithPotentialOverlap_ThenCorrectOrder()
         {
             int eventId = 0;
-            int dummyActivityId = 100;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(() => eventId = eventId.Next(), () => dummyActivityId = dummyActivityId.Next())
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
             {
                 WhenTesting = true
             };
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 1));
-            graphBuilder.AddActivity(new Activity<int, int, int>(2, 2) { MinimumEarliestStartTime = 1, MaximumLatestFinishTime = 4 }, new HashSet<int> { 1 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(3, 2), new HashSet<int> { 1 });
-            graphBuilder.AddActivity(new Activity<int, int, int>(4, 2), new HashSet<int> { 1 });
+            graphBuilder.AddActivity(new Activity<int, int, int>(2, 2) { MinimumEarliestStartTime = 1, MaximumLatestFinishTime = 4 }, [1]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(3, 2), [1]);
+            graphBuilder.AddActivity(new Activity<int, int, int>(4, 2), [1]);
             graphBuilder.AddActivity(new Activity<int, int, int>(5, 2));
 
-            IList<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList(new List<IResource<int, int>>()).ToList();
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList([]);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];

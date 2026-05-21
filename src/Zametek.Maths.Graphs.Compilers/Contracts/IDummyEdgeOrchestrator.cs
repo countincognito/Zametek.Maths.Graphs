@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
@@ -7,9 +8,9 @@ namespace Zametek.Maths.Graphs
     // owned by ArrowGraphBuilder, which are supplied at construction time.
     internal interface IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
-        where T : struct, System.IComparable<T>, System.IEquatable<T>
-        where TResourceId : struct, System.IComparable<TResourceId>, System.IEquatable<TResourceId>
-        where TWorkStreamId : struct, System.IComparable<TWorkStreamId>, System.IEquatable<TWorkStreamId>
+        where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         // Inserts a dummy edge from tailNode to headNode.
         void ConnectWithDummyEdge(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode);

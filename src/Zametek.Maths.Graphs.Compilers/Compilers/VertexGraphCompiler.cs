@@ -25,10 +25,7 @@ namespace Zametek.Maths.Graphs
         public VertexGraphCompiler()
         {
             T edgeId = default;
-            T nodeId = default;
-            m_VertexGraphBuilder = new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity>(
-                () => edgeId = edgeId.Previous(),
-                () => nodeId = nodeId.Previous());
+            m_VertexGraphBuilder = new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity>(new PreviousIdGenerator<T>(edgeId));
             m_Lock = new object();
         }
 
