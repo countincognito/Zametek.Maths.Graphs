@@ -12,11 +12,8 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTransitiveReducer_GivenCtorCalledWithNullFindStrongCircularDependencies_ThenThrowsArgumentNullException()
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator =
-                BuildOrchestrator(state);
-
-            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                null, () => [], orchestrator, state);
+            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator = BuildOrchestrator(state);
+            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(null, () => [], orchestrator, state);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -24,11 +21,8 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTransitiveReducer_GivenCtorCalledWithNullGetEndNodeIds_ThenThrowsArgumentNullException()
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator =
-                BuildOrchestrator(state);
-
-            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                () => new List<ICircularDependency<int>>(), null, orchestrator, state);
+            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator = BuildOrchestrator(state);
+            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(() => [], null, orchestrator, state);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -36,8 +30,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTransitiveReducer_GivenCtorCalledWithNullDummyEdgeOrchestrator_ThenThrowsArgumentNullException()
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                () => new List<ICircularDependency<int>>(), () => [], null, state);
+            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(() => [], () => [], null, state);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -45,11 +38,8 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTransitiveReducer_GivenCtorCalledWithNullState_ThenThrowsArgumentNullException()
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator =
-                BuildOrchestrator(state);
-
-            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                () => new List<ICircularDependency<int>>(), () => [], orchestrator, null);
+            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator = BuildOrchestrator(state);
+            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(() => [], () => [], orchestrator, null);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -96,7 +86,7 @@ namespace Zametek.Maths.Graphs.Tests
                 BuildOrchestrator(state),
                 state);
 
-            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            Dictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
 
             output.ShouldNotBeNull();
             output[state.EndNode.Id].ShouldContain(state.StartNode.Id);
@@ -160,7 +150,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int nextId = 9000;
             return new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
-                () => nextId++,
+                new NextIdGenerator<int>(nextId),
                 id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
                 () => [],
                 state);

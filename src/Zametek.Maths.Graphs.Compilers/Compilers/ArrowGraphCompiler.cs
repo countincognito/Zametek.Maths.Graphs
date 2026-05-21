@@ -27,8 +27,8 @@ namespace Zametek.Maths.Graphs
             T nodeId = default;
             // Use DependentActivity as dummy so that the cast to TDependentActivity succeeds.
             m_ArrowGraphBuilder = new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity>(
-                () => edgeId = edgeId.Previous(),
-                () => nodeId = nodeId.Previous(),
+                new PreviousIdGenerator<T>(edgeId),
+                new PreviousIdGenerator<T>(nodeId),
                 (id) => new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TDependentActivity,
                 new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TDependentActivity>(),
                 new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TDependentActivity>(),

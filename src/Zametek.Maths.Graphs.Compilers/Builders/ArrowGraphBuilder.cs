@@ -22,8 +22,8 @@ namespace Zametek.Maths.Graphs
         private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
         private static readonly Func<T, TActivity> s_DefaultDummyActivityGenerator = (id) => new Activity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TActivity;
 
-        private readonly Func<T> m_EdgeIdGenerator;
-        private readonly Func<T> m_NodeIdGenerator;
+        private readonly IIdGenerator<T> m_EdgeIdGenerator;
+        private readonly IIdGenerator<T> m_NodeIdGenerator;
         private readonly Func<T, TActivity> m_DummyActivityGenerator;
 
         private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_SccFinder;
@@ -39,8 +39,8 @@ namespace Zametek.Maths.Graphs
 
         // Public constructor — stable API surface. Wires up default engine instances.
         public ArrowGraphBuilder(
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator)
+            IIdGenerator<T> edgeIdGenerator,
+            IIdGenerator<T> nodeIdGenerator)
             : this(
                   edgeIdGenerator,
                   nodeIdGenerator,
@@ -53,8 +53,8 @@ namespace Zametek.Maths.Graphs
 
         // Internal constructor — accepts all engines + dummy generator for testability.
         internal ArrowGraphBuilder(
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator,
+            IIdGenerator<T> edgeIdGenerator,
+            IIdGenerator<T> nodeIdGenerator,
             Func<T, TActivity> dummyActivityGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
@@ -75,8 +75,8 @@ namespace Zametek.Maths.Graphs
         // Public graph-loading constructor (from existing Graph<T, TActivity, IEvent<T>>).
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator)
+            IIdGenerator<T> edgeIdGenerator,
+            IIdGenerator<T> nodeIdGenerator)
             : this(
                   graph,
                   edgeIdGenerator,
@@ -91,8 +91,8 @@ namespace Zametek.Maths.Graphs
         // Internal graph-loading constructor with full engine injection.
         internal ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
-            Func<T> edgeIdGenerator,
-            Func<T> nodeIdGenerator,
+            IIdGenerator<T> edgeIdGenerator,
+            IIdGenerator<T> nodeIdGenerator,
             Func<T, TActivity> dummyActivityGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
@@ -266,7 +266,7 @@ namespace Zametek.Maths.Graphs
 
             if (dependencies.Count != 0)
             {
-                T tailEventId = m_NodeIdGenerator();
+                T tailEventId = m_NodeIdGenerator.Generate();
                 var tailNode = new Node<T, IEvent<T>>(s_EventGenerator(tailEventId));
                 tailNode.OutgoingEdges.Add(edge.Id);
                 m_State.SetEdgeTailNode(edge.Id, tailNode);
@@ -278,7 +278,7 @@ namespace Zametek.Maths.Graphs
                 foreach (T dependencyId in existingDependencies)
                 {
                     Node<T, IEvent<T>> dependencyHeadNode = m_State.EdgeHeadNode(dependencyId);
-                    T dummyEdgeId = m_EdgeIdGenerator();
+                    T dummyEdgeId = m_EdgeIdGenerator.Generate();
                     var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator(dummyEdgeId));
                     tailNode.IncomingEdges.Add(dummyEdgeId);
                     m_State.SetEdgeHeadNode(dummyEdgeId, tailNode);
@@ -450,7 +450,7 @@ namespace Zametek.Maths.Graphs
                 return new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
             }
 
-            bool infiniteResources = !resources.Any();
+            bool infiniteResources = resources.Count == 0;
             List<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
             if (!infiniteResources)
@@ -493,11 +493,11 @@ namespace Zametek.Maths.Graphs
 
         private void Initialize()
         {
-            T startEventId = m_NodeIdGenerator();
+            T startEventId = m_NodeIdGenerator.Generate();
             var startNode = new Node<T, IEvent<T>>(NodeType.Start, s_EventGeneratorWithTimes(startEventId, 0, 0));
             m_State.StartNode = startNode;
             m_State.AddNode(startNode);
-            T endEventId = m_NodeIdGenerator();
+            T endEventId = m_NodeIdGenerator.Generate();
             var endNode = new Node<T, IEvent<T>>(NodeType.End, s_EventGenerator(endEventId));
             m_State.EndNode = endNode;
             m_State.AddNode(endNode);
@@ -550,7 +550,7 @@ namespace Zametek.Maths.Graphs
                 return;
             }
 
-            T headEventId = m_NodeIdGenerator();
+            T headEventId = m_NodeIdGenerator.Generate();
             var headNode = new Node<T, IEvent<T>>(s_EventGenerator(headEventId));
             headNode.IncomingEdges.Add(activityId);
             m_State.SetEdgeHeadNode(activityId, headNode);
@@ -664,8 +664,8 @@ namespace Zametek.Maths.Graphs
             minEdgeId = minEdgeId.Previous();
             return new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 arrowGraphCopy,
-                () => minEdgeId = minEdgeId.Previous(),
-                () => minNodeId = minNodeId.Previous(),
+                new PreviousIdGenerator<T>(minEdgeId),
+                new PreviousIdGenerator<T>(minNodeId),
                 m_DummyActivityGenerator,
                 m_SccFinder,
                 m_CriticalPathEngine,

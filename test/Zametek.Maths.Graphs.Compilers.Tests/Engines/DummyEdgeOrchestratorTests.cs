@@ -25,7 +25,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
-                () => 1,
+                new NextIdGenerator<int>(1),
                 null,
                 () => [],
                 state);
@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
-                () => 1,
+                new NextIdGenerator<int>(1),
                 id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
                 null,
                 state);
@@ -48,7 +48,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void DummyEdgeOrchestrator_GivenCtorCalledWithNullState_ThenThrowsArgumentNullException()
         {
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
-                () => 1,
+                new NextIdGenerator<int>(1),
                 id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
                 () => [],
                 null);
@@ -65,7 +65,7 @@ namespace Zametek.Maths.Graphs.Tests
             state.AddNode(head);
 
             const int dummyEdgeId = 555;
-            var orchestrator = BuildOrchestrator(state, () => dummyEdgeId);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(dummyEdgeId - 1));
 
             orchestrator.ConnectWithDummyEdge(tail, head);
 
@@ -82,7 +82,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void DummyEdgeOrchestrator_GivenRemoveDummyActivity_WithNonExistentActivity_ThenReturnsFalse()
         {
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            var orchestrator = BuildOrchestrator(state, () => 100);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(100));
 
             bool result = orchestrator.RemoveDummyActivity(999);
 
@@ -107,7 +107,7 @@ namespace Zametek.Maths.Graphs.Tests
             state.SetEdgeTailNode(edgeId, tail);
             state.SetEdgeHeadNode(edgeId, head);
 
-            var orchestrator = BuildOrchestrator(state, () => 200);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(200));
 
             bool result = orchestrator.RemoveDummyActivity(edgeId);
 
@@ -132,7 +132,7 @@ namespace Zametek.Maths.Graphs.Tests
             state.SetEdgeTailNode(edgeId, tail);
             state.SetEdgeHeadNode(edgeId, head);
 
-            var orchestrator = BuildOrchestrator(state, () => 200);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(200));
 
             bool result = orchestrator.RemoveDummyActivity(edgeId);
 
@@ -143,7 +143,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void DummyEdgeOrchestrator_GivenGetDummyEdgesInDescendingOrder_WithMixedEdges_ThenReturnsOnlyDummies()
         {
             var state = BuildArrowStateWithDummies();
-            var orchestrator = BuildOrchestrator(state, () => 999);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(999));
 
             IList<Edge<int, Activity<int, int, int>>> output = orchestrator.GetDummyEdgesInDescendingOrder();
 
@@ -157,7 +157,7 @@ namespace Zametek.Maths.Graphs.Tests
             var dependentNode = new Node<int, IEvent<int>>(NodeType.Normal, new Event<int>(99));
             state.AddUnsatisfiedSuccessor(7777, dependentNode);
 
-            var orchestrator = BuildOrchestrator(state, () => 999);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(999));
 
             bool result = orchestrator.RedirectDummyEdges();
 
@@ -169,7 +169,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var state = BuildArrowStateWithDummies();
             var orchestrator = new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
-                () => 999,
+                new NextIdGenerator<int>(999),
                 id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
                 () => [new CircularDependency<int>([1, 2])],
                 state);
@@ -186,7 +186,7 @@ namespace Zametek.Maths.Graphs.Tests
             var dependentNode = new Node<int, IEvent<int>>(NodeType.Normal, new Event<int>(99));
             state.AddUnsatisfiedSuccessor(7777, dependentNode);
 
-            var orchestrator = BuildOrchestrator(state, () => 999);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(999));
 
             bool result = orchestrator.RemoveRedundantDummyEdges();
 
@@ -198,9 +198,9 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var state = BuildArrowStateWithDummies();
             var orchestrator = new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
-                () => 999,
+                new NextIdGenerator<int>(999),
                 id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
-                () => [new CircularDependency<int>([ 1, 2 ])],
+                () => [new CircularDependency<int>([1, 2])],
                 state);
 
             bool result = orchestrator.RemoveRedundantDummyEdges();
@@ -212,7 +212,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void DummyEdgeOrchestrator_GivenRemoveRedundantIncomingDummyEdges_WithNullLookup_ThenThrowsArgumentNullException()
         {
             var state = BuildArrowStateWithDummies();
-            var orchestrator = BuildOrchestrator(state, () => 999);
+            var orchestrator = BuildOrchestrator(state, new NextIdGenerator<int>(999));
 
             Action act = () => orchestrator.RemoveRedundantIncomingDummyEdges(state.EndNode.Id, null);
             act.ShouldThrow<ArgumentNullException>();
@@ -220,7 +220,7 @@ namespace Zametek.Maths.Graphs.Tests
 
         private static DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> BuildOrchestrator(
             ArrowGraphState<int, int, int, Activity<int, int, int>> state,
-            Func<int> edgeIdGenerator)
+            IIdGenerator<int> edgeIdGenerator)
         {
             return new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 edgeIdGenerator,

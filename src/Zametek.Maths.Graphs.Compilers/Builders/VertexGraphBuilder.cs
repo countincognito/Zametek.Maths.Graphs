@@ -31,7 +31,7 @@ namespace Zametek.Maths.Graphs
         private readonly IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
         private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
         private readonly VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
-        private ITransitiveReducer<T> m_TransitiveReducer;
+        private readonly ITransitiveReducer<T> m_TransitiveReducer;
 
         #endregion
 
@@ -622,7 +622,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (FindInvalidPreCompilationConstraints().Any())
+            if (FindInvalidPreCompilationConstraints().Count != 0)
             {
                 return false;
             }
@@ -639,7 +639,7 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            if (FindInvalidPreCompilationConstraints().Any())
+            if (FindInvalidPreCompilationConstraints().Count != 0)
             {
                 return false;
             }
@@ -705,7 +705,7 @@ namespace Zametek.Maths.Graphs
             }
 
             // If resources are 0, assume infinite.
-            bool infiniteResources = !resources.Any();
+            bool infiniteResources = resources.Count == 0;
 
             // Filter out inactive resources.
             List<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
