@@ -29,7 +29,8 @@ namespace Zametek.Maths.Graphs
             m_ArrowGraphBuilder = new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity>(
                 new PreviousIdGenerator<T>(edgeId),
                 new PreviousIdGenerator<T>(nodeId),
-                (id) => new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TDependentActivity,
+                new DummyActivityGenerator<T, TResourceId, TWorkStreamId, TDependentActivity>(),
+                //(id) => new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TDependentActivity,
                 new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TDependentActivity>(),
                 new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TDependentActivity>(),
                 new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>());

@@ -17,7 +17,7 @@ namespace Zametek.Maths.Graphs
         #region Fields
 
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
-        private readonly Func<T, TActivity> m_DummyActivityGenerator;
+        private readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> m_DummyActivityGenerator;
         private readonly Func<IList<ICircularDependency<T>>> m_FindStrongCircularDependencies;
         private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
 
@@ -27,7 +27,7 @@ namespace Zametek.Maths.Graphs
 
         internal DummyEdgeOrchestrator(
             IIdGenerator<T> edgeIdGenerator,
-            Func<T, TActivity> dummyActivityGenerator,
+            IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
             Func<List<ICircularDependency<T>>> findStrongCircularDependencies,
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
@@ -44,7 +44,7 @@ namespace Zametek.Maths.Graphs
         public void ConnectWithDummyEdge(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode)
         {
             T dummyEdgeId = m_EdgeIdGenerator.Generate();
-            var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator(dummyEdgeId));
+            var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator.Generate(dummyEdgeId));
             headNode.IncomingEdges.Add(dummyEdgeId);
             m_State.SetEdgeHeadNode(dummyEdgeId, headNode);
             tailNode.OutgoingEdges.Add(dummyEdgeId);

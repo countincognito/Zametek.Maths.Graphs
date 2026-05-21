@@ -14,7 +14,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 null,
-                id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
+                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
                 () => [],
                 state);
             act.ShouldThrow<ArgumentNullException>();
@@ -38,7 +38,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(1),
-                id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
+                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
                 null,
                 state);
             act.ShouldThrow<ArgumentNullException>();
@@ -49,7 +49,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(1),
-                id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
+                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
                 () => [],
                 null);
             act.ShouldThrow<ArgumentNullException>();
@@ -170,7 +170,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildArrowStateWithDummies();
             var orchestrator = new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(999),
-                id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
+                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
                 () => [new CircularDependency<int>([1, 2])],
                 state);
 
@@ -199,7 +199,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildArrowStateWithDummies();
             var orchestrator = new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(999),
-                id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
+                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
                 () => [new CircularDependency<int>([1, 2])],
                 state);
 
@@ -224,7 +224,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             return new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 edgeIdGenerator,
-                id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
+                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
                 () => [],
                 state);
         }

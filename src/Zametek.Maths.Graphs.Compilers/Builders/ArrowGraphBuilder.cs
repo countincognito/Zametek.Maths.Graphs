@@ -20,11 +20,11 @@ namespace Zametek.Maths.Graphs
 
         private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) => new Event<T>(id);
         private static readonly Func<T, int?, int?, IEvent<T>> s_EventGeneratorWithTimes = (id, earliestFinishTime, latestFinishTime) => new Event<T>(id, earliestFinishTime, latestFinishTime);
-        private static readonly Func<T, TActivity> s_DefaultDummyActivityGenerator = (id) => new Activity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TActivity;
+        private static readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> s_DefaultDummyActivityGenerator = new DummyActivityGenerator<T, TResourceId, TWorkStreamId, TActivity>();
 
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
         private readonly IIdGenerator<T> m_NodeIdGenerator;
-        private readonly Func<T, TActivity> m_DummyActivityGenerator;
+        private readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> m_DummyActivityGenerator;
 
         private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_SccFinder;
         private readonly IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
@@ -55,7 +55,7 @@ namespace Zametek.Maths.Graphs
         internal ArrowGraphBuilder(
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator,
-            Func<T, TActivity> dummyActivityGenerator,
+            IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
@@ -93,7 +93,7 @@ namespace Zametek.Maths.Graphs
             Graph<T, TActivity, IEvent<T>> graph,
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator,
-            Func<T, TActivity> dummyActivityGenerator,
+            IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
@@ -279,7 +279,7 @@ namespace Zametek.Maths.Graphs
                 {
                     Node<T, IEvent<T>> dependencyHeadNode = m_State.EdgeHeadNode(dependencyId);
                     T dummyEdgeId = m_EdgeIdGenerator.Generate();
-                    var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator(dummyEdgeId));
+                    var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator.Generate(dummyEdgeId));
                     tailNode.IncomingEdges.Add(dummyEdgeId);
                     m_State.SetEdgeHeadNode(dummyEdgeId, tailNode);
                     if (dependencyHeadNode.NodeType == NodeType.End)

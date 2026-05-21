@@ -1,7 +1,6 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
@@ -151,7 +150,7 @@ namespace Zametek.Maths.Graphs.Tests
             int nextId = 9000;
             return new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(nextId),
-                id => new Activity<int, int, int>(id, 0, canBeRemoved: true),
+                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
                 () => [],
                 state);
         }
