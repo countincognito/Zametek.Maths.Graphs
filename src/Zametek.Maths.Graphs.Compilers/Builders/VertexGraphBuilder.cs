@@ -83,7 +83,7 @@ namespace Zametek.Maths.Graphs
             IIdGenerator<T> edgeIdGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
-            IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine = null)
+            IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
         {
             if (graph is null)
             {
@@ -93,7 +93,7 @@ namespace Zametek.Maths.Graphs
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
-            m_ResourceSchedulingEngine = resourceSchedulingEngine ?? new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
+            m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
             m_State = new VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             WhenTesting = false;
@@ -551,7 +551,7 @@ namespace Zametek.Maths.Graphs
 
         public List<ICircularDependency<T>> FindStrongCircularDependencies()
         {
-            return FindStronglyConnectedComponents().Where(x => x.Dependencies.Count > 1).ToList();
+            return m_SccFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: true);
         }
 
         public List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
@@ -729,7 +729,7 @@ namespace Zametek.Maths.Graphs
                 infiniteResources,
                 id => tmpGraphBuilder.Activity(id),
                 id => tmpGraphBuilder.StrongActivityDependencyIds(id),
-                () => Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList())
+                () => tmpGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList())
                 .ToList();
         }
 
@@ -1143,14 +1143,13 @@ namespace Zametek.Maths.Graphs
 
         private List<ICircularDependency<T>> FindStronglyConnectedComponents()
         {
-            return m_SccFinder.FindStronglyConnectedComponents(m_State);
+            return m_SccFinder.FindStronglyConnectedComponents(m_State, ignoreDummies: false);
         }
 
         private ITransitiveReducer<T> CreateTransitiveReducer()
         {
             return new VertexTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>(
-                () => FindStrongCircularDependencies(),
-                () => EndNodes.Select(x => x.Id),
+                m_SccFinder,
                 m_State);
         }
 

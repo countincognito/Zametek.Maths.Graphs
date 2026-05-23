@@ -12,7 +12,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithNullState_ThenThrowsArgumentNullException()
         {
             var finder = new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
-            Action act = () => finder.FindStronglyConnectedComponents(null);
+            Action act = () => finder.FindStronglyConnectedComponents(null, ignoreDummies: false);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -22,7 +22,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
             var finder = new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
 
             output.ShouldBeEmpty();
         }
@@ -33,7 +33,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildAcyclicArrowState();
             var finder = new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
 
             output.All(x => x.Dependencies.Count <= 1).ShouldBeTrue();
         }
@@ -44,7 +44,7 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildCyclicArrowState();
             var finder = new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
 
             ICircularDependency<int> cycle = output.FirstOrDefault(x => x.Dependencies.Count > 1);
             cycle.ShouldNotBeNull();
@@ -54,16 +54,31 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithRemovableEdgesInCycle_ThenCircularDependencyExcludesRemovableEdges()
+        public void ArrowTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponentsIgnoringDummies_WithRemovableEdgesInCycle_ThenCircularDependencyExcludesRemovableEdges()
         {
             var state = BuildCyclicArrowStateWithRemovableEdge();
             var finder = new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: true);
 
             ICircularDependency<int> cycle = output.FirstOrDefault(x => x.Dependencies.Count > 1);
             cycle.ShouldNotBeNull();
             cycle.Dependencies.ShouldNotContain(12);
+            cycle.Dependencies.ShouldContain(11);
+            cycle.Dependencies.ShouldContain(13);
+        }
+
+        [Fact]
+        public void ArrowTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithRemovableEdgesInCycle_ThenCircularDependencyIncludesRemovableEdges()
+        {
+            var state = BuildCyclicArrowStateWithRemovableEdge();
+            var finder = new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
+
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
+
+            ICircularDependency<int> cycle = output.FirstOrDefault(x => x.Dependencies.Count > 1);
+            cycle.ShouldNotBeNull();
+            cycle.Dependencies.ShouldContain(12);
             cycle.Dependencies.ShouldContain(11);
             cycle.Dependencies.ShouldContain(13);
         }

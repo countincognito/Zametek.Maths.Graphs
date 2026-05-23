@@ -15,7 +15,7 @@ namespace Zametek.Maths.Graphs.Tests
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 null,
                 new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
-                () => [],
+                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
                 state);
             act.ShouldThrow<ArgumentNullException>();
         }
@@ -27,7 +27,7 @@ namespace Zametek.Maths.Graphs.Tests
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(1),
                 null,
-                () => [],
+                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
                 state);
             act.ShouldThrow<ArgumentNullException>();
         }
@@ -50,7 +50,7 @@ namespace Zametek.Maths.Graphs.Tests
             Action act = () => new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(1),
                 new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
-                () => [],
+                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
                 null);
             act.ShouldThrow<ArgumentNullException>();
         }
@@ -167,11 +167,11 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void DummyEdgeOrchestrator_GivenRedirectDummyEdges_WithCircularDependencies_ThenReturnsFalse()
         {
-            var state = BuildArrowStateWithDummies();
+            var state = BuildArrowStateWithDummiesAndCircularDependency();
             var orchestrator = new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(999),
                 new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
-                () => [new CircularDependency<int>([1, 2])],
+                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
                 state);
 
             bool result = orchestrator.RedirectDummyEdges();
@@ -196,11 +196,11 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void DummyEdgeOrchestrator_GivenRemoveRedundantDummyEdges_WithCircularDependencies_ThenReturnsFalse()
         {
-            var state = BuildArrowStateWithDummies();
+            var state = BuildArrowStateWithDummiesAndCircularDependency();
             var orchestrator = new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 new NextIdGenerator<int>(999),
                 new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
-                () => [new CircularDependency<int>([1, 2])],
+                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
                 state);
 
             bool result = orchestrator.RemoveRedundantDummyEdges();
@@ -225,7 +225,7 @@ namespace Zametek.Maths.Graphs.Tests
             return new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
                 edgeIdGenerator,
                 new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
-                () => [],
+                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
                 state);
         }
 
@@ -245,6 +245,30 @@ namespace Zametek.Maths.Graphs.Tests
 
             AddEdge(state, 11, startNode, middleNode, duration: 3, canBeRemoved: false);
             AddEdge(state, 12, middleNode, endNode, duration: 0, canBeRemoved: true);
+
+            return state;
+        }
+
+        private static ArrowGraphState<int, int, int, Activity<int, int, int>> BuildArrowStateWithDummiesAndCircularDependency()
+        {
+            // Start -> [dummy 11, dur=0] -> N1 -> [real 12, dur=3] -> N2 [dummy 14, dur=0] -> End
+            var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
+
+            var startNode = new Node<int, IEvent<int>>(NodeType.Start, new Event<int>(1));
+            var middleNode1 = new Node<int, IEvent<int>>(NodeType.Normal, new Event<int>(2));
+            var middleNode2 = new Node<int, IEvent<int>>(NodeType.Normal, new Event<int>(3));
+            var endNode = new Node<int, IEvent<int>>(NodeType.End, new Event<int>(4));
+            state.AddNode(startNode);
+            state.AddNode(middleNode1);
+            state.AddNode(middleNode2);
+            state.AddNode(endNode);
+            state.StartNode = startNode;
+            state.EndNode = endNode;
+
+            AddEdge(state, 11, startNode, middleNode1, duration: 0, canBeRemoved: true);
+            AddEdge(state, 12, middleNode1, middleNode2, duration: 3, canBeRemoved: false);
+            AddEdge(state, 13, middleNode2, middleNode1, duration: 3, canBeRemoved: false);
+            AddEdge(state, 14, middleNode2, endNode, duration: 0, canBeRemoved: true);
 
             return state;
         }

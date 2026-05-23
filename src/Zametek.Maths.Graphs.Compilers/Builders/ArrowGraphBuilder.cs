@@ -364,7 +364,7 @@ namespace Zametek.Maths.Graphs
 
         public List<ICircularDependency<T>> FindStrongCircularDependencies()
         {
-            return FindStronglyConnectedComponents().Where(x => x.Dependencies.Count > 1).ToList();
+            return m_SccFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: true);
         }
 
         public List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
@@ -466,7 +466,7 @@ namespace Zametek.Maths.Graphs
                 priorityList, filteredResources, infiniteResources,
                 id => tmpGraphBuilder.Activity(id),
                 id => tmpGraphBuilder.StrongActivityDependencyIds(id),
-                () => Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList())
+                () => tmpGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList())
                 .ToList();
         }
 
@@ -510,16 +510,15 @@ namespace Zametek.Maths.Graphs
             return new DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>(
                 m_EdgeIdGenerator,
                 m_DummyActivityGenerator,
-                () => FindStrongCircularDependencies(),
+                m_SccFinder,
                 m_State);
         }
 
         private ITransitiveReducer<T> CreateTransitiveReducer()
         {
             return new ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>(
-                () => FindStrongCircularDependencies(),
-                () => EndNodes.Select(x => x.Id).ToList(),
                 m_DummyEdgeOrchestrator,
+                m_SccFinder,
                 m_State);
         }
 
@@ -540,7 +539,7 @@ namespace Zametek.Maths.Graphs
 
         private List<ICircularDependency<T>> FindStronglyConnectedComponents()
         {
-            return m_SccFinder.FindStronglyConnectedComponents(m_State);
+            return m_SccFinder.FindStronglyConnectedComponents(m_State, ignoreDummies: true);
         }
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)

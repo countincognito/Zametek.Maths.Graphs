@@ -18,7 +18,8 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
         public List<ICircularDependency<T>> FindStronglyConnectedComponents(
-            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
+            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            bool ignoreDummies)
         {
             if (state is null)
             {
@@ -76,7 +77,9 @@ namespace Zametek.Maths.Graphs
                         currentId = stack.Pop();
                         onStack.Remove(currentId);
                         Node<T, TActivity> currentNode = state.Node(currentId);
-                        if (!currentNode.Content.CanBeRemoved)
+
+                        bool isDummy = currentNode.Content.CanBeRemoved;
+                        if (!ignoreDummies || !isDummy)
                         {
                             circularDependency.Dependencies.Add(currentId);
                         }
@@ -94,6 +97,15 @@ namespace Zametek.Maths.Graphs
             }
 
             return circularDependencies;
+        }
+
+        public List<ICircularDependency<T>> FindStronglyCircularDependencies(
+            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            bool ignoreDummies)
+        {
+            return FindStronglyConnectedComponents(state, ignoreDummies)
+                .Where(x => x.Dependencies.Count > 1)
+                .ToList();
         }
     }
 }

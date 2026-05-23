@@ -12,7 +12,12 @@ namespace Zametek.Maths.Graphs
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
         List<ICircularDependency<T>> FindStronglyConnectedComponents(
-            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state);
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            bool ignoreDummies);
+
+        List<ICircularDependency<T>> FindStronglyCircularDependencies(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            bool ignoreDummies);
     }
 
     // Finds strongly connected components (Tarjan's algorithm) for Vertex graphs.
@@ -24,6 +29,11 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
         List<ICircularDependency<T>> FindStronglyConnectedComponents(
-            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state);
+            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            bool ignoreDummies);
+
+        List<ICircularDependency<T>> FindStronglyCircularDependencies(
+            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            bool ignoreDummies);
     }
 }

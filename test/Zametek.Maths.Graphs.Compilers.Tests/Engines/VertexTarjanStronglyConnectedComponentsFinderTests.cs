@@ -9,42 +9,42 @@ namespace Zametek.Maths.Graphs.Tests
     public class VertexTarjanStronglyConnectedComponentsFinderTests
     {
         [Fact]
-        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithNullState_ThenThrowsArgumentNullException()
+        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindConnectedComponents_WithNullState_ThenThrowsArgumentNullException()
         {
             var finder = new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
-            Action act = () => finder.FindStronglyConnectedComponents(null);
+            Action act = () => finder.FindStronglyConnectedComponents(null, ignoreDummies: false);
             act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
-        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithEmptyState_ThenReturnsEmpty()
+        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindConnectedComponents_WithEmptyState_ThenReturnsEmpty()
         {
             var state = new VertexGraphState<int, int, int, Activity<int, int, int>>();
             var finder = new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
 
             output.ShouldBeEmpty();
         }
 
         [Fact]
-        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithAcyclicGraph_ThenNoCircularDependencyContainsMoreThanOneNode()
+        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindConnectedComponents_WithAcyclicGraph_ThenNoCircularDependencyContainsMoreThanOneNode()
         {
             var state = BuildAcyclicVertexState();
             var finder = new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
 
             output.All(x => x.Dependencies.Count <= 1).ShouldBeTrue();
         }
 
         [Fact]
-        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithCyclicGraph_ThenReturnsCircularDependencyContainingAllNodesInCycle()
+        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindConnectedComponents_WithCyclicGraph_ThenReturnsCircularDependencyContainingAllNodesInCycle()
         {
             var state = BuildCyclicVertexState();
             var finder = new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
 
             ICircularDependency<int> cycle = output.FirstOrDefault(x => x.Dependencies.Count > 1);
             cycle.ShouldNotBeNull();
@@ -54,16 +54,31 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindStronglyConnectedComponents_WithRemovableNodeInCycle_ThenCircularDependencyExcludesRemovableNode()
+        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindConnectedComponentsIgnoringDummies_WithRemovableNodeInCycle_ThenCircularDependencyExcludesRemovableNode()
         {
             var state = BuildCyclicVertexStateWithRemovableNode();
             var finder = new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
 
-            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state);
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: true);
 
             ICircularDependency<int> cycle = output.FirstOrDefault(x => x.Dependencies.Count > 1);
             cycle.ShouldNotBeNull();
             cycle.Dependencies.ShouldNotContain(2);
+            cycle.Dependencies.ShouldContain(1);
+            cycle.Dependencies.ShouldContain(3);
+        }
+
+        [Fact]
+        public void VertexTarjanStronglyConnectedComponentsFinder_GivenFindConnectedComponents_WithRemovableNodeInCycle_ThenCircularDependencyIncludesRemovableNode()
+        {
+            var state = BuildCyclicVertexStateWithRemovableNode();
+            var finder = new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
+
+            IList<ICircularDependency<int>> output = finder.FindStronglyConnectedComponents(state, ignoreDummies: false);
+
+            ICircularDependency<int> cycle = output.FirstOrDefault(x => x.Dependencies.Count > 1);
+            cycle.ShouldNotBeNull();
+            cycle.Dependencies.ShouldContain(2);
             cycle.Dependencies.ShouldContain(1);
             cycle.Dependencies.ShouldContain(3);
         }

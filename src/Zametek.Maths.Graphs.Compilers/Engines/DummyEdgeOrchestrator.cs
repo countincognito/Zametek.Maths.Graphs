@@ -18,7 +18,7 @@ namespace Zametek.Maths.Graphs
 
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
         private readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> m_DummyActivityGenerator;
-        private readonly Func<IList<ICircularDependency<T>>> m_FindStrongCircularDependencies;
+        private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_StronglyConnectedComponentsFinder;
         private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
 
         #endregion
@@ -28,12 +28,12 @@ namespace Zametek.Maths.Graphs
         internal DummyEdgeOrchestrator(
             IIdGenerator<T> edgeIdGenerator,
             IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
-            Func<List<ICircularDependency<T>>> findStrongCircularDependencies,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> stronglyConnectedComponentsFinder,
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
             m_DummyActivityGenerator = dummyActivityGenerator ?? throw new ArgumentNullException(nameof(dummyActivityGenerator));
-            m_FindStrongCircularDependencies = findStrongCircularDependencies ?? throw new ArgumentNullException(nameof(findStrongCircularDependencies));
+            m_StronglyConnectedComponentsFinder = stronglyConnectedComponentsFinder ?? throw new ArgumentNullException(nameof(stronglyConnectedComponentsFinder));
             m_State = state ?? throw new ArgumentNullException(nameof(state));
         }
 
@@ -123,8 +123,11 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            IList<ICircularDependency<T>> circularDependencies = m_FindStrongCircularDependencies();
-            if (circularDependencies.Any())
+
+            List<ICircularDependency<T>> circularDependencies =
+                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+
+            if (circularDependencies.Count != 0)
             {
                 return false;
             }
@@ -199,8 +202,11 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
-            IList<ICircularDependency<T>> circularDependencies = m_FindStrongCircularDependencies();
-            if (circularDependencies.Any())
+
+            List<ICircularDependency<T>> circularDependencies =
+                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+
+            if (circularDependencies.Count != 0)
             {
                 return false;
             }
@@ -245,7 +251,9 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }
+
             Node<T, IEvent<T>> node = m_State.Node(nodeId);
+
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
             {
                 return;
@@ -302,7 +310,9 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(recordedEdges));
             }
+
             Node<T, IEvent<T>> node = m_State.Node(nodeId);
+
             if (node.NodeType == NodeType.End || node.NodeType == NodeType.Isolated)
             {
                 return;
