@@ -88,7 +88,7 @@ namespace Zametek.Maths.Graphs
             HashSet<T> started,
             HashSet<T> completed)
         {
-            var running = new HashSet<T>(builders
+            HashSet<T> running = new HashSet<T>(builders
                 .Select(x => x.ActivityAt(timeCounter))
                 .Where(x => x.HasValue)
                 .Select(x => x.GetValueOrDefault()));

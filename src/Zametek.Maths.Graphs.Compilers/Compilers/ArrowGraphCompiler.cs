@@ -30,6 +30,7 @@ namespace Zametek.Maths.Graphs
                 new PreviousIdGenerator<T>(edgeId),
                 new PreviousIdGenerator<T>(nodeId),
                 new DummyActivityGenerator<T, TResourceId, TWorkStreamId, TDependentActivity>(),
+                new EventGenerator<T>(),
                 new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TDependentActivity>(),
                 new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TDependentActivity>(),
                 new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>());

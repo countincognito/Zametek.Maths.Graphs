@@ -18,14 +18,10 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        private static readonly Func<T, IEvent<T>> s_EventGenerator = (id) =>
-        {
-            var output = new Event<T>(id);
-            output.SetAsRemovable();
-            return output;
-        };
+        private static readonly IEventGenerator<T> s_DefaultEventGenerator = new RemovableEventGenerator<T>();
 
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
+        private readonly IEventGenerator<T> m_EventGenerator;
 
         private readonly IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_SccFinder;
         private readonly IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
@@ -41,6 +37,7 @@ namespace Zametek.Maths.Graphs
         public VertexGraphBuilder(IIdGenerator<T> edgeIdGenerator)
             : this(
                   edgeIdGenerator,
+                  s_DefaultEventGenerator,
                   new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
                   new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
@@ -50,11 +47,13 @@ namespace Zametek.Maths.Graphs
         // Internal constructor — accepts injected engines for testability.
         internal VertexGraphBuilder(
             IIdGenerator<T> edgeIdGenerator,
+            IEventGenerator<T> eventGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine = null)
         {
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
+            m_EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
@@ -71,6 +70,7 @@ namespace Zametek.Maths.Graphs
             : this(
                   graph,
                   edgeIdGenerator,
+                  s_DefaultEventGenerator,
                   new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
                   new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
@@ -81,6 +81,7 @@ namespace Zametek.Maths.Graphs
         internal VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
             IIdGenerator<T> edgeIdGenerator,
+            IEventGenerator<T> eventGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
@@ -91,6 +92,7 @@ namespace Zametek.Maths.Graphs
             }
 
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
+            m_EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
@@ -255,7 +257,7 @@ namespace Zametek.Maths.Graphs
                 {
                     Node<T, TActivity> dependencyNode = m_State.Node(dependencyId);
                     T edgeId = m_EdgeIdGenerator.Generate();
-                    var edge = new Edge<T, IEvent<T>>(s_EventGenerator(edgeId));
+                    var edge = new Edge<T, IEvent<T>>(m_EventGenerator.Generate(edgeId));
                     node.IncomingEdges.Add(edgeId);
                     m_State.SetEdgeHeadNode(edgeId, node);
 
@@ -324,7 +326,7 @@ namespace Zametek.Maths.Graphs
             {
                 Node<T, TActivity> dependencyNode = m_State.Node(dependencyId);
                 T edgeId = m_EdgeIdGenerator.Generate();
-                var edge = new Edge<T, IEvent<T>>(s_EventGenerator(edgeId));
+                var edge = new Edge<T, IEvent<T>>(m_EventGenerator.Generate(edgeId));
                 node.IncomingEdges.Add(edgeId);
                 m_State.SetEdgeHeadNode(edgeId, node);
 
@@ -1178,7 +1180,7 @@ namespace Zametek.Maths.Graphs
                 foreach (Node<T, TActivity> successorNode in unsatisfiedSuccessorNodes)
                 {
                     T edgeId = m_EdgeIdGenerator.Generate();
-                    var edge = new Edge<T, IEvent<T>>(s_EventGenerator(edgeId));
+                    var edge = new Edge<T, IEvent<T>>(m_EventGenerator.Generate(edgeId));
                     dependencyNode.OutgoingEdges.Add(edgeId);
                     m_State.SetEdgeTailNode(edgeId, dependencyNode);
                     successorNode.IncomingEdges.Add(edgeId);
