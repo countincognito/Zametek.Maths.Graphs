@@ -29,8 +29,8 @@ namespace Zametek.Maths.Graphs
             m_Lock = new object();
         }
 
-        // Internal constructor for engine injection (testability).
-        internal VertexGraphCompiler(VertexGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity> vertexGraphBuilder)
+        // Builder-injecting constructor - accepts a builder configured with custom engines.
+        public VertexGraphCompiler(VertexGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity> vertexGraphBuilder)
         {
             m_VertexGraphBuilder = vertexGraphBuilder ?? throw new ArgumentNullException(nameof(vertexGraphBuilder));
             m_Lock = new object();
@@ -207,7 +207,7 @@ namespace Zametek.Maths.Graphs
 
                 if (infiniteResources)
                 {
-                    resourceSchedules = PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.ReplaceWithSyntheticResources(resourceSchedules);
+                    resourceSchedules = m_VertexGraphBuilder.ResourceSchedulingEngine.ReplaceWithSyntheticResources(resourceSchedules);
                 }
 
                 m_VertexGraphBuilder.AssignResourceDependencies(resourceSchedules);
@@ -230,13 +230,13 @@ namespace Zametek.Maths.Graphs
                 int finishTime = m_VertexGraphBuilder.FinishTime;
 
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> newSchedules =
-                    PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.RebuildAlignedResourceSchedules(
+                    m_VertexGraphBuilder.ResourceSchedulingEngine.RebuildAlignedResourceSchedules(
                         resourceSchedules, infiniteResources,
-                        id => m_VertexGraphBuilder.Activity(id),
+                        m_VertexGraphBuilder,
                         finalActivities, startTime, finishTime)
                     .ToList();
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectSchedules =
-                    PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.CollectIndirectResourceSchedules(
+                    m_VertexGraphBuilder.ResourceSchedulingEngine.CollectIndirectResourceSchedules(
                         filteredResources, newSchedules, finalActivities, startTime, finishTime)
                     .ToList();
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules =
@@ -244,7 +244,7 @@ namespace Zametek.Maths.Graphs
 
                 HashSet<TWorkStreamId> workstreamsUsed = finalActivities.SelectMany(x => x.TargetWorkStreams).Distinct().ToHashSet();
                 HashSet<TWorkStreamId> resourcePhasesUsed =
-                    PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.GetResourcePhasesUsed(totalSchedules, workstreamsUsed);
+                    m_VertexGraphBuilder.ResourceSchedulingEngine.GetResourcePhasesUsed(totalSchedules, workstreamsUsed);
 
                 return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
                     m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),

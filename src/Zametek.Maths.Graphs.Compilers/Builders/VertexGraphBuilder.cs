@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs
     // wires up default engine instances; the internal constructor accepts injected
     // engines for testability.
     public class VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
-        : ICloneObject
+        : ICloneObject, IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -33,7 +33,7 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
-        // Public constructor — stable API surface. Wires up default engine instances.
+        // Public constructor - stable API surface. Wires up default engine instances.
         public VertexGraphBuilder(IIdGenerator<T> edgeIdGenerator)
             : this(
                   edgeIdGenerator,
@@ -44,8 +44,8 @@ namespace Zametek.Maths.Graphs
         {
         }
 
-        // Internal constructor — accepts injected engines for testability.
-        internal VertexGraphBuilder(
+        // Engine-injecting constructor - supply custom engines + event generator.
+        public VertexGraphBuilder(
             IIdGenerator<T> edgeIdGenerator,
             IEventGenerator<T> eventGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
@@ -77,8 +77,8 @@ namespace Zametek.Maths.Graphs
         {
         }
 
-        // Internal graph-loading constructor with engine injection.
-        internal VertexGraphBuilder(
+        // Engine-injecting graph-loading constructor.
+        public VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
             IIdGenerator<T> edgeIdGenerator,
             IEventGenerator<T> eventGenerator,
@@ -690,6 +690,11 @@ namespace Zametek.Maths.Graphs
             return m_CriticalPathEngine.BackFillIsolatedNodes(m_State, constraints);
         }
 
+        // Exposes the injected resource scheduling engine so the compiler can run the
+        // surrounding scheduling pipeline (synthetic resources, aligned rebuild, etc.)
+        // through the same abstraction.
+        internal IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> ResourceSchedulingEngine => m_ResourceSchedulingEngine;
+
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
             List<IResource<TResourceId, TWorkStreamId>> resources)
         {
@@ -729,11 +734,22 @@ namespace Zametek.Maths.Graphs
                 priorityList,
                 filteredResources,
                 infiniteResources,
-                id => tmpGraphBuilder.Activity(id),
-                id => tmpGraphBuilder.StrongActivityDependencyIds(id),
-                () => tmpGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList())
+                tmpGraphBuilder)
                 .ToList();
         }
+
+        #region IResourceSchedulingGraph
+
+        IActivity<T, TResourceId, TWorkStreamId> IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>.Activity(T id) =>
+            Activity(id);
+
+        List<T> IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>.StrongActivityDependencyIds(T id) =>
+            StrongActivityDependencyIds(id);
+
+        List<IActivity<T, TResourceId, TWorkStreamId>> IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>.CloneActivities() =>
+            Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList();
+
+        #endregion
 
         private void ValidateActivitiesAgainstResources(List<IResource<TResourceId, TWorkStreamId>> filteredResources)
         {
@@ -863,7 +879,7 @@ namespace Zametek.Maths.Graphs
 
             TActivity activityObj = Activity(activityId);
 
-            // Cast to IDependentActivity to access ResourceDependencies — only valid for
+            // Cast to IDependentActivity to access ResourceDependencies - only valid for
             // TActivity subtypes that implement IDependentActivity (e.g. the compiler path).
             if (!(activityObj is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity))
             {
@@ -1115,7 +1131,7 @@ namespace Zametek.Maths.Graphs
             List<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
                 infiniteResources
                 ? new List<IUnavailableResources<T, TResourceId>>()
-                : PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>.GatherUnavailableResources(
+                : m_ResourceSchedulingEngine.GatherUnavailableResources(
                     activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList(), filteredResources)
                 .ToList();
             if (unavailableResourcesSet.Count != 0)
@@ -1227,9 +1243,15 @@ namespace Zametek.Maths.Graphs
             Graph<T, IEvent<T>, TActivity> vertexGraphCopy = ToGraph();
             T minEdgeId = vertexGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
             minEdgeId = minEdgeId.Previous();
+            // Preserve the injected (stateless) engines on the clone; only the id
+            // generator is recreated, since it carries a per-graph counter.
             return new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 vertexGraphCopy,
-                new PreviousIdGenerator<T>(minEdgeId));
+                new PreviousIdGenerator<T>(minEdgeId),
+                m_EventGenerator,
+                m_SccFinder,
+                m_CriticalPathEngine,
+                m_ResourceSchedulingEngine);
         }
 
         #endregion

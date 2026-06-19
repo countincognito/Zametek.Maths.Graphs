@@ -7,9 +7,10 @@ namespace Zametek.Maths.Graphs
     // Owns all mutable graph state for an Activity-on-Vertex graph: the five lookup
     // dictionaries. Both the builder and every Vertex engine (transitive reducer,
     // CPM engine, SCC finder) operate on a single instance of this class.
-    // No single Start/End node — vertex graphs allow multiple of each, exposed
+    // No single Start/End node - vertex graphs allow multiple of each, exposed
     // via StartNodes / EndNodes filtering Nodes by NodeType.
     internal sealed class VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>
+        : IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>

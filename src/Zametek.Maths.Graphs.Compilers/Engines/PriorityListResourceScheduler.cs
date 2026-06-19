@@ -5,12 +5,12 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     // Stateless priority-list resource scheduler.
-    // Receives the priority-ordered activity list and callbacks for graph state —
+    // Receives the priority-ordered activity list and callbacks for graph state -
     // works identically for both Arrow and Vertex builders.
     // Also owns the scheduling pipeline helpers used before and after the core loop:
     //   GatherUnavailableResources, ReplaceWithSyntheticResources,
     //   RebuildAlignedResourceSchedules, CollectIndirectResourceSchedules, GetResourcePhasesUsed.
-    internal sealed class PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>
+    public sealed class PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>
         : IResourceSchedulingEngine<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -20,9 +20,7 @@ namespace Zametek.Maths.Graphs
             List<T> priorityList,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
-            Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
-            Func<T, List<T>> strongDependencyLookup,
-            Func<List<IActivity<T, TResourceId, TWorkStreamId>>> finalActivitiesFactory)
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph)
         {
             if (priorityList is null)
             {
@@ -32,17 +30,9 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(filteredResources));
             }
-            if (activityLookup is null)
+            if (graph is null)
             {
-                throw new ArgumentNullException(nameof(activityLookup));
-            }
-            if (strongDependencyLookup is null)
-            {
-                throw new ArgumentNullException(nameof(strongDependencyLookup));
-            }
-            if (finalActivitiesFactory is null)
-            {
-                throw new ArgumentNullException(nameof(finalActivitiesFactory));
+                throw new ArgumentNullException(nameof(graph));
             }
 
             List<T?> workingList = priorityList.Select(x => new T?(x)).ToList();
@@ -60,13 +50,13 @@ namespace Zametek.Maths.Graphs
             while (workingList.Any(x => x.HasValue) || started.Count != 0 || ready.Any(x => x.HasValue))
             {
                 AdvanceCompletedActivities(resourceScheduleBuilders, timeCounter, started, completed);
-                PromoteReadyActivities(workingList, ready, completed, started, strongDependencyLookup);
-                AssignReadyActivitiesToResources(ready, resourceScheduleBuilders, activityLookup, filteredResources,
+                PromoteReadyActivities(workingList, ready, completed, started, graph);
+                AssignReadyActivitiesToResources(ready, resourceScheduleBuilders, graph, filteredResources,
                     infiniteResources, started, timeCounter);
                 timeCounter++;
             }
 
-            List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = finalActivitiesFactory();
+            List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = graph.CloneActivities();
 
             int startTime = resourceScheduleBuilders
                 .Select(x => x.ScheduledActivities.Select(y => y.StartTime).DefaultIfEmpty().Min())
@@ -105,7 +95,7 @@ namespace Zametek.Maths.Graphs
             List<T?> ready,
             HashSet<T> completed,
             HashSet<T> started,
-            Func<T, List<T>> strongDependencyLookup)
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph)
         {
             var indicesToRemove = new HashSet<int>();
             for (int i = 0; i < workingList.Count; i++)
@@ -115,7 +105,7 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
                 T activityId = workingList[i].GetValueOrDefault();
-                var directDependencies = new HashSet<T>(strongDependencyLookup(activityId));
+                var directDependencies = new HashSet<T>(graph.StrongActivityDependencyIds(activityId));
                 if (directDependencies.IsSubsetOf(completed)
                     && !completed.Contains(activityId)
                     && !started.Contains(activityId))
@@ -133,7 +123,7 @@ namespace Zametek.Maths.Graphs
         private static void AssignReadyActivitiesToResources(
             List<T?> ready,
             List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
-            Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
             HashSet<T> started,
@@ -152,7 +142,7 @@ namespace Zametek.Maths.Graphs
                         continue;
                     }
                     T activityId = ready[i].GetValueOrDefault();
-                    IActivity<T, TResourceId, TWorkStreamId> activity = activityLookup(activityId);
+                    IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(activityId);
                     activity.AllocatedToResources.Clear();
 
                     bool mustTargetSpecific = !infiniteResources && activity.TargetResources.Count != 0;
@@ -295,7 +285,7 @@ namespace Zametek.Maths.Graphs
         #region Scheduling Pipeline Helpers
 
         // Gathers the set of activities that reference resources not present in filteredResources.
-        internal static IList<IUnavailableResources<T, TResourceId>> GatherUnavailableResources(
+        public IList<IUnavailableResources<T, TResourceId>> GatherUnavailableResources(
             List<IActivity<T, TResourceId, TWorkStreamId>> activities,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources)
         {
@@ -329,7 +319,7 @@ namespace Zametek.Maths.Graphs
 
         // Replaces infinite-resource schedules with synthetic resource IDs so that resource-dependency
         // chaining works in the second compile pass.
-        internal static List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
+        public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
         {
             TResourceId resourceId = default;
@@ -353,11 +343,11 @@ namespace Zametek.Maths.Graphs
         }
 
         // Rebuilds resource schedules aligned to CPM-computed EarliestStartTime values.
-        // activityLookup is a delegate into the builder that resolves activity by ID.
-        internal static IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildAlignedResourceSchedules(
+        // The graph view resolves each scheduled activity by ID.
+        public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildAlignedResourceSchedules(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,
             bool infiniteResources,
-            Func<T, IActivity<T, TResourceId, TWorkStreamId>> activityLookup,
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
             List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
             int startTime,
             int finishTime)
@@ -372,7 +362,7 @@ namespace Zametek.Maths.Graphs
 
                 foreach (IScheduledActivity<T> scheduledActivity in oldSchedule.ScheduledActivities)
                 {
-                    IActivity<T, TResourceId, TWorkStreamId> activityObj = activityLookup(scheduledActivity.Id);
+                    IActivity<T, TResourceId, TWorkStreamId> activityObj = graph.Activity(scheduledActivity.Id);
                     builder.AppendActivityWithoutChecks(activityObj, activityObj.EarliestStartTime.GetValueOrDefault());
                 }
                 builders.Add(builder);
@@ -384,7 +374,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Returns schedules for Indirect resources that were not directly assigned any activities.
-        internal static IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CollectIndirectResourceSchedules(
+        public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CollectIndirectResourceSchedules(
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> scheduledResources,
             List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
@@ -402,7 +392,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Returns the set of work-stream phase IDs that appear on at least one resource schedule.
-        internal static HashSet<TWorkStreamId> GetResourcePhasesUsed(
+        public HashSet<TWorkStreamId> GetResourcePhasesUsed(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules,
             HashSet<TWorkStreamId> workstreamsUsed)
         {

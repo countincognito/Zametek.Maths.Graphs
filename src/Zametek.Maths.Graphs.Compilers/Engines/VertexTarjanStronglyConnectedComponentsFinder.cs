@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs
     //
     // Fix applied: companion HashSet<T> onStack replaces O(n) stack.Contains() calls,
     // giving the full O(V + E) complexity.
-    internal sealed class VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
+    public sealed class VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
         : IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -18,7 +18,7 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
         public List<ICircularDependency<T>> FindStronglyConnectedComponents(
-            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             bool ignoreDummies)
         {
             if (state is null)
@@ -28,7 +28,7 @@ namespace Zametek.Maths.Graphs
 
             int index = 0;
             var stack = new Stack<T>();
-            var onStack = new HashSet<T>();  // O(1) membership test — replaces O(n) stack.Contains()
+            var onStack = new HashSet<T>();  // O(1) membership test - replaces O(n) stack.Contains()
             var indexLookup = new Dictionary<T, int>();
             var lowLinkLookup = new Dictionary<T, int>();
             var circularDependencies = new List<ICircularDependency<T>>();
@@ -100,7 +100,7 @@ namespace Zametek.Maths.Graphs
         }
 
         public List<ICircularDependency<T>> FindStronglyCircularDependencies(
-            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             bool ignoreDummies)
         {
             return FindStronglyConnectedComponents(state, ignoreDummies)

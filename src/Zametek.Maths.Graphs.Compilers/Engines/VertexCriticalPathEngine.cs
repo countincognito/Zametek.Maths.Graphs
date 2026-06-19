@@ -8,7 +8,7 @@ namespace Zametek.Maths.Graphs
     // Calculates the critical path for Activity-on-Vertex graphs.
     // Implements the forward pass (earliest start times), backward pass (latest finish times),
     // free slack, and isolated node backfill. Operates on the shared VertexGraphState.
-    internal sealed class VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
+    public sealed class VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
         : IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -16,7 +16,7 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
         public bool CalculateCriticalPathForwardFlow(
-            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
@@ -287,7 +287,7 @@ namespace Zametek.Maths.Graphs
         }
 
         public bool CalculateCriticalPathBackwardFlow(
-            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints,
             bool shuffle)
         {
@@ -534,7 +534,7 @@ namespace Zametek.Maths.Graphs
         }
 
         public bool BackFillIsolatedNodes(
-            VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints)
         {
             if (state is null)

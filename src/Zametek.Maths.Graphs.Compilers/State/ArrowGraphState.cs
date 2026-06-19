@@ -10,6 +10,7 @@ namespace Zametek.Maths.Graphs
     // operate on a single instance of this class, so the same dictionaries are
     // never threaded through method calls as raw parameters.
     internal sealed class ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>
+        : IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>

@@ -5,7 +5,7 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     // Implements all dummy-edge operations for Activity-on-Arrow graphs.
-    // Operates on the shared ArrowGraphState supplied at construction time — the
+    // Operates on the shared ArrowGraphState supplied at construction time - the
     // orchestrator owns no graph state of its own.
     internal sealed class DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>
         : IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>

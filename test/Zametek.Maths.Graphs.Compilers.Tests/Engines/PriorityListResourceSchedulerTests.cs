@@ -8,17 +8,41 @@ namespace Zametek.Maths.Graphs.Tests
 {
     public class PriorityListResourceSchedulerTests
     {
+        // Test double for the read-only graph view the scheduler operates on,
+        // backed by simple delegates so each test can supply just what it needs.
+        private sealed class FakeSchedulingGraph : IResourceSchedulingGraph<int, int, int>
+        {
+            private readonly Func<int, IActivity<int, int, int>> m_Activity;
+            private readonly Func<int, List<int>> m_StrongDependencies;
+            private readonly Func<List<IActivity<int, int, int>>> m_CloneActivities;
+
+            public FakeSchedulingGraph(
+                Func<int, IActivity<int, int, int>> activity,
+                Func<int, List<int>> strongDependencies,
+                Func<List<IActivity<int, int, int>>> cloneActivities)
+            {
+                m_Activity = activity;
+                m_StrongDependencies = strongDependencies;
+                m_CloneActivities = cloneActivities;
+            }
+
+            public IActivity<int, int, int> Activity(int id) => m_Activity(id);
+
+            public List<int> StrongActivityDependencyIds(int id) => m_StrongDependencies(id);
+
+            public List<IActivity<int, int, int>> CloneActivities() => m_CloneActivities();
+        }
+
         [Fact]
         public void PriorityListResourceScheduler_GivenCalculateResourceSchedules_WithNullPriorityList_ThenThrowsArgumentNullException()
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
+            var graph = new FakeSchedulingGraph(id => null, id => [], () => []);
             Action act = () => scheduler.CalculateResourceSchedules(
                 null,
                 [],
                 infiniteResources: false,
-                id => null,
-                id => [],
-                () => []);
+                graph);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -26,55 +50,24 @@ namespace Zametek.Maths.Graphs.Tests
         public void PriorityListResourceScheduler_GivenCalculateResourceSchedules_WithNullFilteredResources_ThenThrowsArgumentNullException()
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
+            var graph = new FakeSchedulingGraph(id => null, id => [], () => []);
             Action act = () => scheduler.CalculateResourceSchedules(
                 [],
                 null,
                 infiniteResources: false,
-                id => null,
-                id => [],
-                () => []).ToList();
+                graph);
             act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
-        public void PriorityListResourceScheduler_GivenCalculateResourceSchedules_WithNullActivityLookup_ThenThrowsArgumentNullException()
+        public void PriorityListResourceScheduler_GivenCalculateResourceSchedules_WithNullGraph_ThenThrowsArgumentNullException()
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
             Action act = () => scheduler.CalculateResourceSchedules(
                 [],
                 [],
                 infiniteResources: false,
-                null,
-                id => [],
-                () => []).ToList();
-            act.ShouldThrow<ArgumentNullException>();
-        }
-
-        [Fact]
-        public void PriorityListResourceScheduler_GivenCalculateResourceSchedules_WithNullStrongDependencyLookup_ThenThrowsArgumentNullException()
-        {
-            var scheduler = new PriorityListResourceScheduler<int, int, int>();
-            Action act = () => scheduler.CalculateResourceSchedules(
-                [],
-                [],
-                infiniteResources: false,
-                id => null,
-                null,
-                () => []).ToList();
-            act.ShouldThrow<ArgumentNullException>();
-        }
-
-        [Fact]
-        public void PriorityListResourceScheduler_GivenCalculateResourceSchedules_WithNullFinalActivitiesFactory_ThenThrowsArgumentNullException()
-        {
-            var scheduler = new PriorityListResourceScheduler<int, int, int>();
-            Action act = () => scheduler.CalculateResourceSchedules(
-                [],
-                [],
-                infiniteResources: false,
-                id => null,
-                id => [],
-                null).ToList();
+                null);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -82,14 +75,13 @@ namespace Zametek.Maths.Graphs.Tests
         public void PriorityListResourceScheduler_GivenCalculateResourceSchedules_WithEmptyPriorityListAndNoResources_ThenReturnsEmpty()
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
+            var graph = new FakeSchedulingGraph(id => null, id => [], () => []);
 
             IEnumerable<IResourceSchedule<int, int, int>> output = scheduler.CalculateResourceSchedules(
                 [],
                 [],
                 infiniteResources: false,
-                id => null,
-                id => [],
-                () => []);
+                graph);
 
             output.ShouldBeEmpty();
         }
@@ -100,14 +92,13 @@ namespace Zametek.Maths.Graphs.Tests
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5) { EarliestStartTime = 0 };
             var resource = new Resource<int, int>(10, "R1", false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
 
             var schedules = scheduler.CalculateResourceSchedules(
                 [1],
                 [resource],
                 infiniteResources: false,
-                id => activity,
-                id => [],
-                () => [activity]).ToList();
+                graph).ToList();
 
             schedules.Count.ShouldBe(1);
             schedules[0].Resource.Id.ShouldBe(10);
@@ -126,14 +117,13 @@ namespace Zametek.Maths.Graphs.Tests
                 [1] = a1,
                 [2] = a2,
             };
+            var graph = new FakeSchedulingGraph(id => lookup[id], id => [], () => [a1, a2]);
 
             var schedules = scheduler.CalculateResourceSchedules(
                 [1, 2],
                 [],
                 infiniteResources: true,
-                id => lookup[id],
-                id => [],
-                () => [a1, a2]).ToList();
+                graph).ToList();
 
             schedules.Count.ShouldBeGreaterThanOrEqualTo(1);
             schedules.SelectMany(x => x.ScheduledActivities).Select(x => x.Id).OrderBy(x => x).ShouldBe([1, 2]);
@@ -142,11 +132,12 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenGatherUnavailableResources_WithNoTargetResources_ThenReturnsEmpty()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5);
             var resources = new List<IResource<int, int>>();
 
             IList<IUnavailableResources<int, int>> output =
-                PriorityListResourceScheduler<int, int, int>.GatherUnavailableResources([activity], resources);
+                scheduler.GatherUnavailableResources([activity], resources);
 
             output.ShouldBeEmpty();
         }
@@ -154,6 +145,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenGatherUnavailableResources_WithAndOperatorAndMissingResource_ThenReturnsActivityWithMissingIds()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5)
             {
                 TargetResourceOperator = LogicalOperator.AND,
@@ -166,7 +158,7 @@ namespace Zametek.Maths.Graphs.Tests
             };
 
             IList<IUnavailableResources<int, int>> output =
-                PriorityListResourceScheduler<int, int, int>.GatherUnavailableResources([activity], resources);
+                scheduler.GatherUnavailableResources([activity], resources);
 
             output.Count.ShouldBe(1);
             output[0].Id.ShouldBe(1);
@@ -177,6 +169,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenGatherUnavailableResources_WithOrOperatorAndAllMissing_ThenReturnsActivityWithAllIds()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5)
             {
                 TargetResourceOperator = LogicalOperator.OR,
@@ -189,7 +182,7 @@ namespace Zametek.Maths.Graphs.Tests
             };
 
             IList<IUnavailableResources<int, int>> output =
-                PriorityListResourceScheduler<int, int, int>.GatherUnavailableResources([activity], resources);
+                scheduler.GatherUnavailableResources([activity], resources);
 
             output.Count.ShouldBe(1);
             output[0].Id.ShouldBe(1);
@@ -200,6 +193,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenGatherUnavailableResources_WithOrOperatorAndPartialMatch_ThenReturnsEmpty()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5)
             {
                 TargetResourceOperator = LogicalOperator.OR,
@@ -212,7 +206,7 @@ namespace Zametek.Maths.Graphs.Tests
             };
 
             IList<IUnavailableResources<int, int>> output =
-                PriorityListResourceScheduler<int, int, int>.GatherUnavailableResources([activity], resources);
+                scheduler.GatherUnavailableResources([activity], resources);
 
             output.ShouldBeEmpty();
         }
@@ -220,8 +214,9 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenReplaceWithSyntheticResources_WithEmptyInput_ThenReturnsEmpty()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             List<IResourceSchedule<int, int, int>> output =
-                PriorityListResourceScheduler<int, int, int>.ReplaceWithSyntheticResources([]);
+                scheduler.ReplaceWithSyntheticResources([]);
 
             output.ShouldBeEmpty();
         }
@@ -229,6 +224,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenReplaceWithSyntheticResources_WithSchedules_ThenAssignsSyntheticResourceIds()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var resource = new Resource<int, int>(99, "Original", false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
             var schedule = new ResourceSchedule<int, int, int>(
                 resource,
@@ -240,7 +236,7 @@ namespace Zametek.Maths.Graphs.Tests
                 []);
 
             List<IResourceSchedule<int, int, int>> output =
-                PriorityListResourceScheduler<int, int, int>.ReplaceWithSyntheticResources(
+                scheduler.ReplaceWithSyntheticResources(
                     [schedule]);
 
             output.Count.ShouldBe(1);
@@ -251,10 +247,11 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenCollectIndirectResourceSchedules_WithUnscheduledIndirectResource_ThenIncludesIndirectResource()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var indirect = new Resource<int, int>(50, "I", false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
             var direct = new Resource<int, int>(60, "D", false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
-            var output = PriorityListResourceScheduler<int, int, int>.CollectIndirectResourceSchedules(
+            var output = scheduler.CollectIndirectResourceSchedules(
                 [indirect, direct],
                 [],
                 [],
@@ -267,6 +264,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenCollectIndirectResourceSchedules_WithAllIndirectAlreadyScheduled_ThenReturnsEmpty()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var indirect = new Resource<int, int>(50, "I", false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var scheduled = new ResourceSchedule<int, int, int>(
@@ -278,7 +276,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [],
                 []);
 
-            var output = PriorityListResourceScheduler<int, int, int>.CollectIndirectResourceSchedules(
+            var output = scheduler.CollectIndirectResourceSchedules(
                 [indirect],
                 [scheduled],
                 [],
@@ -290,6 +288,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenGetResourcePhasesUsed_WithIntersectingPhases_ThenReturnsIntersection()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var resource = new Resource<int, int>(50, "R", false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, [ 1, 2, 3 ]);
             var schedule = new ResourceSchedule<int, int, int>(
                 resource,
@@ -302,7 +301,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var workstreamsUsed = new HashSet<int> { 2, 3, 4 };
 
-            HashSet<int> output = PriorityListResourceScheduler<int, int, int>.GetResourcePhasesUsed(
+            HashSet<int> output = scheduler.GetResourcePhasesUsed(
                 [schedule],
                 workstreamsUsed);
 
@@ -315,6 +314,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenGetResourcePhasesUsed_WithNoSchedulesHavingResource_ThenReturnsEmpty()
         {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var schedule = new ResourceSchedule<int, int, int>(
                 null,
                 [],
@@ -324,7 +324,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [],
                 []);
 
-            HashSet<int> output = PriorityListResourceScheduler<int, int, int>.GetResourcePhasesUsed(
+            HashSet<int> output = scheduler.GetResourcePhasesUsed(
                 [schedule],
                 [1, 2]);
 
@@ -334,10 +334,12 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void PriorityListResourceScheduler_GivenRebuildAlignedResourceSchedules_WithEmptyInput_ThenReturnsEmpty()
         {
-            var output = PriorityListResourceScheduler<int, int, int>.RebuildAlignedResourceSchedules(
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
+            var graph = new FakeSchedulingGraph(id => null, id => [], () => []);
+            var output = scheduler.RebuildAlignedResourceSchedules(
                 [],
                 infiniteResources: false,
-                id => null,
+                graph,
                 [],
                 0, 10).ToList();
 

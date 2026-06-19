@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs
     // reducer). The public constructors wire up default engine instances; the
     // internal constructors accept injected engines for testability.
     public class ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
-        : ICloneObject
+        : ICloneObject, IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
-        // Public constructor — stable API surface. Wires up default engine instances.
+        // Public constructor - stable API surface. Wires up default engine instances.
         public ArrowGraphBuilder(
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator)
@@ -52,8 +52,8 @@ namespace Zametek.Maths.Graphs
         {
         }
 
-        // Internal constructor — accepts all engines + dummy/event generators for testability.
-        internal ArrowGraphBuilder(
+        // Engine-injecting constructor - supply custom engines + dummy/event generators.
+        public ArrowGraphBuilder(
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator,
             IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
@@ -92,8 +92,8 @@ namespace Zametek.Maths.Graphs
         {
         }
 
-        // Internal graph-loading constructor with full engine injection.
-        internal ArrowGraphBuilder(
+        // Engine-injecting graph-loading constructor.
+        public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator,
@@ -472,11 +472,22 @@ namespace Zametek.Maths.Graphs
                 priorityList,
                 filteredResources,
                 infiniteResources,
-                id => tmpGraphBuilder.Activity(id),
-                id => tmpGraphBuilder.StrongActivityDependencyIds(id),
-                () => tmpGraphBuilder.Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList())
+                tmpGraphBuilder)
                 .ToList();
         }
+
+        #region IResourceSchedulingGraph
+
+        IActivity<T, TResourceId, TWorkStreamId> IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>.Activity(T id) =>
+            Activity(id);
+
+        List<T> IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>.StrongActivityDependencyIds(T id) =>
+            StrongActivityDependencyIds(id);
+
+        List<IActivity<T, TResourceId, TWorkStreamId>> IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>.CloneActivities() =>
+            Activities.Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList();
+
+        #endregion
 
         public Graph<T, TActivity, IEvent<T>> ToGraph()
         {

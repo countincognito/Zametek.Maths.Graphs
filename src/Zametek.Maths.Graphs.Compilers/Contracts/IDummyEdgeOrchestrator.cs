@@ -4,9 +4,9 @@ using System.Collections.Generic;
 namespace Zametek.Maths.Graphs
 {
     // Orchestrates all dummy-edge operations for an Activity-on-Arrow graph.
-    // The orchestrator holds no graph state of its own — it operates on the dictionaries
+    // The orchestrator holds no graph state of its own - it operates on the dictionaries
     // owned by ArrowGraphBuilder, which are supplied at construction time.
-    internal interface IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>
+    public interface IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>

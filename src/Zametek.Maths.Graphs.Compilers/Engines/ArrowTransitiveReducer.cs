@@ -6,7 +6,7 @@ namespace Zametek.Maths.Graphs
 {
     // Transitive reducer for Activity-on-Arrow graphs.
     // Computes the ancestor-node lookup and delegates dummy-edge removal to the
-    // IDummyEdgeOrchestrator — only dummy edges are reduced in arrow graphs.
+    // IDummyEdgeOrchestrator - only dummy edges are reduced in arrow graphs.
     // Operates on the shared ArrowGraphState.
     internal sealed class ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>
         : ITransitiveReducer<T>

@@ -5,7 +5,7 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     // Compiler for Activity-on-Arrow graphs. Owns the ArrowGraphBuilder directly.
-    // No inheritance from any compiler base class — all coordination logic is inlined.
+    // No inheritance from any compiler base class - all coordination logic is inlined.
     public class ArrowGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
         where TDependentActivity : class, IDependentActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -37,8 +37,8 @@ namespace Zametek.Maths.Graphs
             m_Lock = new object();
         }
 
-        // Internal constructor for testability — accepts injected builder.
-        internal ArrowGraphCompiler(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity> arrowGraphBuilder)
+        // Builder-injecting constructor - accepts a builder configured with custom engines.
+        public ArrowGraphCompiler(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity> arrowGraphBuilder)
         {
             m_ArrowGraphBuilder = arrowGraphBuilder ?? throw new ArgumentNullException(nameof(arrowGraphBuilder));
             m_Lock = new object();
