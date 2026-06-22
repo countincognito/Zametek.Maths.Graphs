@@ -21,3 +21,9 @@ Every engine the builders rely on sits behind a public interface and can be supp
 - `IResourceSchedulingEngine<…>` — resource scheduling and its surrounding pipeline.
 
 Custom engines read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts; the concrete, mutable state stays internal to the library.
+
+## Breaking changes
+
+### 3.0.0
+
+- `ICanBeRemoved` now declares `SetAsReadOnly()` and `SetAsRemovable()`. Previously these mutators lived only on `IActivity<…>` and the concrete `Event` / `Activity` types, leaving `IEvent<T>` asymmetric. Any external type implementing `IEvent<T>` — or `ICanBeRemoved` directly — must now provide both methods. This makes events symmetric with activities and allows `RemovableEventGenerator<T>` to decorate any `IEventGenerator<T>` (defaulting to `EventGenerator<T>`) instead of constructing events directly.

@@ -20,6 +20,7 @@ namespace Zametek.Maths.Graphs
         private readonly IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator;
         private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_StronglyConnectedComponentsFinder;
         private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
+        private readonly IAncestorGraphView<T> m_AncestorGraphView;
 
         #endregion
 
@@ -33,6 +34,7 @@ namespace Zametek.Maths.Graphs
             m_DummyEdgeOrchestrator = dummyEdgeOrchestrator ?? throw new ArgumentNullException(nameof(dummyEdgeOrchestrator));
             m_StronglyConnectedComponentsFinder = stronglyConnectedComponentsFinder ?? throw new ArgumentNullException(nameof(stronglyConnectedComponentsFinder));
             m_State = state ?? throw new ArgumentNullException(nameof(state));
+            m_AncestorGraphView = new ArrowAncestorGraphView<T, TResourceId, TWorkStreamId, TActivity>(m_State);
         }
 
         #endregion
@@ -49,21 +51,7 @@ namespace Zametek.Maths.Graphs
             List<ICircularDependency<T>> circularDependencies =
                 m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
 
-            if (circularDependencies.Count != 0)
-            {
-                return null;
-            }
-
-            var nodeIdAncestorLookup = new Dictionary<T, HashSet<T>>();
-            List<T> endNodeIds = m_State.EndNodes.Select(x => x.Id).ToList();
-
-            foreach (T endNodeId in endNodeIds)
-            {
-                HashSet<T> totalAncestorNodes = GetAncestorNodes(endNodeId, nodeIdAncestorLookup);
-                nodeIdAncestorLookup.Add(endNodeId, totalAncestorNodes);
-            }
-
-            return nodeIdAncestorLookup;
+            return AncestorNodeCalculator.GetAncestorNodesLookup(m_AncestorGraphView, circularDependencies);
         }
 
         public bool ReduceGraph()
@@ -83,44 +71,6 @@ namespace Zametek.Maths.Graphs
             }
 
             return true;
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private HashSet<T> GetAncestorNodes(T nodeId, Dictionary<T, HashSet<T>> nodeIdAncestorLookup)
-        {
-            if (nodeIdAncestorLookup is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
-            }
-
-            Node<T, IEvent<T>> node = m_State.Node(nodeId);
-            var totalAncestorNodes = new HashSet<T>();
-
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
-            {
-                return totalAncestorNodes;
-            }
-
-            // Go through each incoming edge and find the nodes
-            // to which they connect.
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
-            {
-                totalAncestorNodes.Add(tailNodeId);
-                // If the lookup holds the ancestor nodes for the tail
-                // node then add them to the ancestor nodes. Otherwise
-                // calculate the ancestor nodes for the tail node too.
-                if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
-                {
-                    tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);
-                    nodeIdAncestorLookup.Add(tailNodeId, tailNodeAncestorNodes);
-                }
-                totalAncestorNodes.UnionWith(tailNodeAncestorNodes);
-            }
-
-            return totalAncestorNodes;
         }
 
         #endregion
