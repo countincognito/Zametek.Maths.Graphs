@@ -54,6 +54,7 @@ namespace Zametek.Maths.Graphs
 
         public bool RemoveDummyActivity(T activityId)
         {
+            // Retrieve the activity's edge.
             if (!m_State.TryGetEdge(activityId, out Edge<T, TActivity> edge))
             {
                 return false;
@@ -70,6 +71,8 @@ namespace Zametek.Maths.Graphs
             Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
             Node<T, IEvent<T>> headNode = m_State.EdgeHeadNode(activityId);
 
+            // Check to make sure that no other edges will be made parallel
+            // by removing this edge.
             if (HaveDescendantOrAncestorOverlap(tailNode, headNode) && !ShareMoreThanOneEdge(tailNode, headNode))
             {
                 return false;
@@ -86,6 +89,8 @@ namespace Zametek.Maths.Graphs
             // Remove the edge completely.
             m_State.RemoveEdge(activityId);
 
+            // If the head node is not the End node, and it has no more incoming
+            // edges, then transfer the head node's outgoing edges to the tail node.
             if (headNode.NodeType != NodeType.End
                 && headNode.NodeType != NodeType.Isolated
                 && headNode.IncomingEdges.Count == 0)
@@ -104,6 +109,8 @@ namespace Zametek.Maths.Graphs
                 && tailNode.NodeType != NodeType.Isolated
                 && tailNode.OutgoingEdges.Count == 0)
             {
+                // If the tail node is not the Start node, and it has no more outgoing
+                // edges, then transfer the tail node's incoming edges to the head node.
                 IList<T> tailNodeIncomingEdgeIds = tailNode.IncomingEdges.ToList();
                 foreach (T tailNodeIncomingEdgeId in tailNodeIncomingEdgeIds)
                 {
@@ -132,6 +139,7 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
+            // Go through each node that is not an End or Isolated node.
             List<Node<T, IEvent<T>>> nodes = m_State.Nodes
                 .Where(x => x.NodeType != NodeType.End && x.NodeType != NodeType.Isolated)
                 .OrderByDescending(x => x.Content.EarliestFinishTime)
@@ -139,6 +147,7 @@ namespace Zametek.Maths.Graphs
 
             foreach (Node<T, IEvent<T>> node in nodes)
             {
+                // Get the outgoing dummy edges and their head nodes.
                 var outgoingDummyEdgeIdLookup = new HashSet<T>(
                     node.OutgoingEdges.Select(x => m_State.Edge(x))
                     .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved).Select(x => x.Id));
@@ -146,6 +155,12 @@ namespace Zametek.Maths.Graphs
                 IList<Node<T, IEvent<T>>> dummyEdgeSuccessorNodes =
                     outgoingDummyEdgeIdLookup.Select(x => m_State.EdgeHeadNode(x)).ToList();
 
+                // Now from the successor nodes, work backwards to find
+                // all the dependency nodes that share the same successor
+                // nodes via dummy edges.
+
+                // First find all the removable dummy edges that have the
+                // successor nodes as head nodes.
                 IList<IEnumerable<T>> dummyEdgeIdsToSuccessorNodes =
                     dummyEdgeSuccessorNodes
                     .Select(x => x.IncomingEdges.Select(y => m_State.Edge(y))
@@ -158,17 +173,25 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
 
+                // Now find the subset of dependency nodes that are common
+                // to all the successor nodes via removable dummy edges.
                 IList<T> commonDependencyNodes =
                     dummyEdgeIdsToSuccessorNodes.Select(x => x.Select(y => m_State.EdgeTailNode(y).Id))
                     .Aggregate((previous, next) => previous.Intersect(next)).ToList();
 
                 var commonDependencyNodeLookup = new HashSet<T>(commonDependencyNodes);
 
+                // Now filter the dummy edges by whether they originate from
+                // the common dependency nodes.
                 IList<T> commonDependencyEdgeIds =
                     dummyEdgeIdsToSuccessorNodes.SelectMany(x => x)
                     .Where(x => commonDependencyNodeLookup.Contains(m_State.EdgeTailNode(x).Id))
                     .ToList();
 
+                // In order to redirect any common dependencies to the original
+                // node, it cannot have any successor nodes other than the common
+                // successor nodes (i.e. its successor nodes must be a subset of
+                // the common successor nodes).
                 var allSuccessorNodeLookup = new HashSet<T>(node.OutgoingEdges.Select(x => m_State.EdgeHeadNode(x).Id));
                 var commonSuccessorNodeLookup = new HashSet<T>(commonDependencyEdgeIds.Select(x => m_State.EdgeHeadNode(x).Id));
 
@@ -177,6 +200,7 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
 
+                // Redirect all common dependencies towards the original node.
                 List<T> commonDependencyEdgeIdsForOriginalNode = commonDependencyEdgeIds
                     .Where(x => !outgoingDummyEdgeIdLookup.Contains(x))
                     .OrderBy(x => x)
@@ -211,6 +235,9 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
+            // Go through and remove all the dummy edges that are
+            // the only outgoing edge of their tail node, and also
+            // the only incoming edge of their head node.
             foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
             {
                 Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(edge.Id);
@@ -221,6 +248,8 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
+            // Next, go through and remove all the dummy edges that
+            // are the only incoming edge of their head node.
             foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
             {
                 if (m_State.EdgeHeadNode(edge.Id).IncomingEdges.Count == 1)
@@ -229,6 +258,8 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
+            // Next, go through and remove all the dummy edges that
+            // are the only outgoing edge of their tail node.
             foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
             {
                 if (m_State.EdgeTailNode(edge.Id).OutgoingEdges.Count == 1)
@@ -237,6 +268,7 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
+            // Remove parallel dummy edges (if they exist).
             foreach (Node<T, IEvent<T>> node in m_State.Nodes.ToList())
             {
                 RemoveParallelIncomingDummyEdges(node);
@@ -259,10 +291,15 @@ namespace Zametek.Maths.Graphs
                 return;
             }
 
+            // Go through all the incoming edges and collate the
+            // ancestors of their tail nodes.
             var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
                 .Select(x => m_State.EdgeTailNode(x).Id)
                 .SelectMany(x => nodeIdAncestorLookup[x]));
 
+            // Go through the incoming dummy edges and remove any that
+            // connect directly to any ancestors of the non-dummy edges'
+            // tail nodes.
             List<T> incomingDummyEdges = node.IncomingEdges
                 .Select(x => m_State.Edge(x))
                 .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
@@ -278,6 +315,7 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
+            // Go through all the remaining incoming edges and repeat.
             List<T> remainingIncomingEdges = node.IncomingEdges
                 .Select(x => m_State.EdgeTailNode(x).Id)
                 .ToList();
@@ -318,6 +356,8 @@ namespace Zametek.Maths.Graphs
                 return;
             }
 
+            // Go through each of the node's outgoing edges, record them,
+            // then do the same to their head nodes.
             foreach (Edge<T, TActivity> outgoingEdge in node.OutgoingEdges.Select(x => m_State.Edge(x)))
             {
                 if (!recordedEdges.Contains(outgoingEdge.Id))
@@ -329,6 +369,15 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Check to make sure that no other edges will be made parallel
+        /// by removing this edge. If there is an intersection between
+        /// the ancestor/descendant nodes of the edge's tail node, and the
+        /// ancestor/descendant nodes of the head node, then do not remove it.
+        /// </summary>
+        /// <param name="tailNode"></param>
+        /// <param name="headNode"></param>
+        /// <returns></returns>
         private bool HaveDescendantOrAncestorOverlap(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode)
         {
             if (tailNode is null)
@@ -341,20 +390,24 @@ namespace Zametek.Maths.Graphs
             }
 
             var tailNeighbours = new HashSet<T>();
+            // First the descendants of the tail node.
             if (tailNode.NodeType != NodeType.End && tailNode.NodeType != NodeType.Isolated)
             {
                 tailNeighbours.UnionWith(tailNode.OutgoingEdges.Select(x => m_State.EdgeHeadNode(x).Id).Except(new[] { headNode.Id }));
             }
+            // Then the ancestors of the tail node.
             if (tailNode.NodeType != NodeType.Start && tailNode.NodeType != NodeType.Isolated)
             {
                 tailNeighbours.UnionWith(tailNode.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).Except(new[] { headNode.Id }));
             }
 
             var headNeighbours = new HashSet<T>();
+            // Next the ancestors of the head node.
             if (headNode.NodeType != NodeType.Start && headNode.NodeType != NodeType.Isolated)
             {
                 headNeighbours.UnionWith(headNode.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).Except(new[] { tailNode.Id }));
             }
+            // Then the descendants of the head node.
             if (headNode.NodeType != NodeType.End && headNode.NodeType != NodeType.Isolated)
             {
                 headNeighbours.UnionWith(headNode.OutgoingEdges.Select(x => m_State.EdgeHeadNode(x).Id).Except(new[] { tailNode.Id }));
@@ -388,11 +441,13 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(node));
             }
+            // Clean up any dummy edges that are parallel coming into the head node.
             if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
             {
                 return;
             }
 
+            // First, find the tail nodes that connect to this node via dummy edges.
             var tailNodeParallelDummyEdgesLookup = new Dictionary<T, HashSet<T>>();
             IEnumerable<T> removableIncomingDummyEdgeIds = node.IncomingEdges
                 .Select(x => m_State.Edge(x))
@@ -411,6 +466,7 @@ namespace Zametek.Maths.Graphs
                 dummyEdgeIds.Add(incomingDummyEdgeId);
             }
 
+            // Now find the tail nodes that connect to this node via multiple dummy edges.
             List<T> setsOfMoreThanOneDummyEdge = tailNodeParallelDummyEdgesLookup
                 .Where(x => x.Value.Count > 1).Select(x => x.Key).ToList();
 
@@ -418,6 +474,7 @@ namespace Zametek.Maths.Graphs
             {
                 List<T> dummyEdgeIds = tailNodeParallelDummyEdgesLookup[tailNodeId].ToList();
                 int length = dummyEdgeIds.Count;
+                // Leave one dummy edge behind.
                 for (int i = 1; i < length; i++)
                 {
                     RemoveDummyActivity(dummyEdgeIds[i]);
@@ -427,22 +484,28 @@ namespace Zametek.Maths.Graphs
 
         private bool ChangeEdgeTailNodeWithoutCleanup(T edgeId, T newTailNodeId)
         {
+            // Do not attend this unless all dependencies are satisfied.
             if (!m_State.AllDependenciesSatisfied)
             {
                 return false;
             }
+            // Retrieve the activity edge.
             if (!m_State.ContainsEdge(edgeId))
             {
                 return false;
             }
+            // Retrieve the new tail event node.
             if (!m_State.TryGetNode(newTailNodeId, out Node<T, IEvent<T>> newTailNode))
             {
                 return false;
             }
 
+            // Remove the connection from the current tail node.
             Node<T, IEvent<T>> oldTailNode = m_State.EdgeTailNode(edgeId);
             oldTailNode.OutgoingEdges.Remove(edgeId);
             m_State.RemoveEdgeTailNode(edgeId);
+
+            // Attach to the new tail node.
             newTailNode.OutgoingEdges.Add(edgeId);
             m_State.SetEdgeTailNode(edgeId, newTailNode);
             return true;
@@ -450,22 +513,28 @@ namespace Zametek.Maths.Graphs
 
         private bool ChangeEdgeHeadNodeWithoutCleanup(T edgeId, T newHeadNodeId)
         {
+            // Do not attend this unless all dependencies are satisfied.
             if (!m_State.AllDependenciesSatisfied)
             {
                 return false;
             }
+            // Retrieve the activity edge.
             if (!m_State.ContainsEdge(edgeId))
             {
                 return false;
             }
+            // Retrieve the new head event node.
             if (!m_State.TryGetNode(newHeadNodeId, out Node<T, IEvent<T>> newHeadNode))
             {
                 return false;
             }
 
+            // Remove the connection from the current head node.
             Node<T, IEvent<T>> currentHeadNode = m_State.EdgeHeadNode(edgeId);
             currentHeadNode.IncomingEdges.Remove(edgeId);
             m_State.RemoveEdgeHeadNode(edgeId);
+
+            // Attach to the new head node.
             newHeadNode.IncomingEdges.Add(edgeId);
             m_State.SetEdgeHeadNode(edgeId, newHeadNode);
             return true;
@@ -485,6 +554,8 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Unable to change tail node of edge {edgeId} to node {newTailNodeId} without cleanup");
             }
 
+            // If the old tail node has no other outgoing edges, then
+            // connect its incoming edges to the current head node.
             IList<T> oldTailNodeOutgoingEdgeIds = oldTailNode.OutgoingEdges.ToList();
             if (!oldTailNodeOutgoingEdgeIds.Any())
             {
@@ -500,6 +571,8 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
+            // Final check to see if the tail node has no incoming or outgoing edges.
+            // If it does not then remove it.
             if (oldTailNode.NodeType != NodeType.Start
                 && oldTailNode.NodeType != NodeType.Isolated
                 && oldTailNode.IncomingEdges.Count == 0
@@ -512,6 +585,7 @@ namespace Zametek.Maths.Graphs
 
         private bool ChangeEdgeHeadNode(T edgeId, T newHeadNodeId)
         {
+            // Do not attend this unless all dependencies are satisfied.
             if (!m_State.AllDependenciesSatisfied)
             {
                 return false;
@@ -524,6 +598,8 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException($@"Unable to change head node of edge {edgeId} to node {newHeadNodeId} without cleanup");
             }
 
+            // If the old head node has no other incoming edges, then
+            // connect its outgoing edges to the current tail node.
             IList<T> oldHeadNodeIncomingEdgeIds = oldHeadNode.IncomingEdges.ToList();
             if (!oldHeadNodeIncomingEdgeIds.Any())
             {
@@ -539,6 +615,8 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
+            // Final check to see if the head node has no incoming or outgoing edges.
+            // If it does not then remove it.
             if (oldHeadNode.NodeType != NodeType.End
                 && oldHeadNode.NodeType != NodeType.Isolated
                 && oldHeadNode.IncomingEdges.Count == 0

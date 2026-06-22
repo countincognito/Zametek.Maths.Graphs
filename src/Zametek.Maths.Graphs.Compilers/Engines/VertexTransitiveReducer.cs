@@ -99,9 +99,14 @@ namespace Zametek.Maths.Graphs
                 return totalAncestorNodes;
             }
 
+            // Go through each incoming edge and find the nodes
+            // to which they connect.
             foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
             {
                 totalAncestorNodes.Add(tailNodeId);
+                // If the lookup holds the ancestor nodes for the tail
+                // node then add them to the ancestor nodes. Otherwise
+                // calculate the ancestor nodes for the tail node too.
                 if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
                 {
                     tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);
@@ -127,10 +132,14 @@ namespace Zametek.Maths.Graphs
                 return;
             }
 
+            // Go through all the incoming edges and collate the
+            // ancestors of their tail nodes.
             var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
                 .Select(x => m_State.EdgeTailNode(x).Id)
                 .SelectMany(x => nodeIdAncestorLookup[x]));
 
+            // Go through the incoming edges and remove any that connect
+            // directly to any ancestors of the edges' tail nodes.
             // In a vertex graph, all edges are removable.
             foreach (T edgeId in node.IncomingEdges
                 .Select(x => m_State.Edge(x))
@@ -141,14 +150,20 @@ namespace Zametek.Maths.Graphs
                 Node<T, TActivity> tailNode = m_State.EdgeTailNode(edgeId);
                 if (tailNodeAncestors.Contains(tailNode.Id))
                 {
+                    // Remove the edge from the tail node.
                     tailNode.OutgoingEdges.Remove(edgeId);
                     m_State.RemoveEdgeTailNode(edgeId);
+
+                    // Remove the edge from the node itself.
                     node.IncomingEdges.Remove(edgeId);
                     m_State.RemoveEdgeHeadNode(edgeId);
+
+                    // Remove the edge completely.
                     m_State.RemoveEdge(edgeId);
                 }
             }
 
+            // Go through all the remaining incoming edges and repeat.
             foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
             {
                 RemoveRedundantIncomingEdges(tailNodeId, nodeIdAncestorLookup);

@@ -267,20 +267,27 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
+            // Create a new edge for the activity.
             var edge = new Edge<T, TActivity>(activity);
             m_State.AddEdge(edge);
 
+            // We expect dependencies at some point.
             if (dependencies.Count != 0)
             {
+                // Since we use dummy edges to connect all tail nodes, we can create
+                // a new tail node for this edge.
                 T tailEventId = m_NodeIdGenerator.Generate();
                 var tailNode = new Node<T, IEvent<T>>(m_EventGenerator.Generate(tailEventId));
                 tailNode.OutgoingEdges.Add(edge.Id);
                 m_State.SetEdgeTailNode(edge.Id, tailNode);
                 m_State.AddNode(tailNode);
 
+                // Check which of the expected dependencies currently exist.
                 IList<T> existingDependencies = m_State.EdgeIds.Intersect(dependencies).ToList();
                 IList<T> nonExistingDependencies = dependencies.Except(existingDependencies).ToList();
 
+                // If any expected dependencies currently exist, then hook up their head
+                // node to this edge's tail node with dummy edges.
                 foreach (T dependencyId in existingDependencies)
                 {
                     Node<T, IEvent<T>> dependencyHeadNode = m_State.EdgeHeadNode(dependencyId);
@@ -288,6 +295,7 @@ namespace Zametek.Maths.Graphs
                     var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator.Generate(dummyEdgeId));
                     tailNode.IncomingEdges.Add(dummyEdgeId);
                     m_State.SetEdgeHeadNode(dummyEdgeId, tailNode);
+                    // If the head node of the dependency is the End node, then convert it.
                     if (dependencyHeadNode.NodeType == NodeType.End)
                     {
                         dependencyHeadNode.SetNodeType(NodeType.Normal);
@@ -297,6 +305,8 @@ namespace Zametek.Maths.Graphs
                     m_State.AddEdge(dummyEdge);
                 }
 
+                // If any expected dependencies currently do not exist, then record their
+                // IDs and add this edge's tail node as an unsatisfied successor.
                 foreach (T dependencyId in nonExistingDependencies)
                 {
                     m_State.AddUnsatisfiedSuccessor(dependencyId, tailNode);
@@ -304,6 +314,7 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
+                // No dependencies, so attach it directly to the start node.
                 m_State.StartNode.OutgoingEdges.Add(edge.Id);
                 m_State.SetEdgeTailNode(edge.Id, m_State.StartNode);
             }
@@ -563,6 +574,7 @@ namespace Zametek.Maths.Graphs
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
         {
+            // Check to make sure the edge really exists.
             if (!m_State.ContainsEdge(activityId))
             {
                 return;
@@ -574,6 +586,9 @@ namespace Zametek.Maths.Graphs
             m_State.SetEdgeHeadNode(activityId, headNode);
             m_State.AddNode(headNode);
 
+            // Check to see if any existing activities were expecting this activity
+            // as a dependency. If so, then then hook up their tail nodes to this
+            // activity's head node with a dummy edge.
             if (m_State.TryGetUnsatisfiedSuccessors(activityId, out HashSet<Node<T, IEvent<T>>> unsatisfiedSuccessorTailNodes))
             {
                 foreach (Node<T, IEvent<T>> tailNode in unsatisfiedSuccessorTailNodes)
@@ -584,6 +599,8 @@ namespace Zametek.Maths.Graphs
             }
             else
             {
+                // No existing activities were expecting this activity as a dependency,
+                // so attach it directly to the end node via a dummy.
                 m_DummyEdgeOrchestrator.ConnectWithDummyEdge(headNode, m_State.EndNode);
             }
         }
@@ -640,6 +657,7 @@ namespace Zametek.Maths.Graphs
             {
                 graphBuilder.CalculateCriticalPath();
 
+                // Get the critical path in order of earliest start time.
                 int minFloat = graphBuilder.Activities
                     .Where(x => !x.IsDummy && x.TotalSlack.HasValue)
                     .Select(x => x.TotalSlack.Value)
@@ -655,6 +673,7 @@ namespace Zametek.Maths.Graphs
                 {
                     T criticalActivityId = criticalActivityIds.First();
                     priorityList.Add(criticalActivityId);
+                    // Set the processed activity to dummy.
                     graphBuilder.Activity(criticalActivityId).Duration = 0;
                 }
                 else

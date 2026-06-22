@@ -44,6 +44,7 @@ namespace Zametek.Maths.Graphs
             }
 
             Node<T, IEvent<T>> startNode = state.StartNode;
+            // For later when checking the Maximum LFT.
             Node<T, IEvent<T>> endNode = state.EndNode;
 
             var completedNodeIds = new HashSet<T>();
@@ -56,6 +57,7 @@ namespace Zametek.Maths.Graphs
             }
 
             // Complete the Start node first to ensure the completed node IDs contains something.
+            // Earliest Start Time.
             startNode.Content.EarliestFinishTime = 0;
             completedNodeIds.Add(startNode.Id);
             remainingNodeIds.Remove(startNode.Id);
@@ -102,6 +104,7 @@ namespace Zametek.Maths.Graphs
 
                                 proposedEarliestFinishTime += incomingEdge.Content.MinimumFreeSlack.GetValueOrDefault();
 
+                                // Augment the earliest finish time artificially (if required).
                                 if (proposedEarliestFinishTime > earliestFinishTime)
                                 {
                                     earliestFinishTime = proposedEarliestFinishTime;
@@ -112,6 +115,7 @@ namespace Zametek.Maths.Graphs
                             {
                                 int proposedEarliestFinishTime = incomingEdge.Content.MinimumEarliestStartTime.Value + incomingEdge.Content.Duration;
 
+                                // Augment the earliest finish time artificially (if required).
                                 if (proposedEarliestFinishTime > earliestFinishTime)
                                 {
                                     earliestFinishTime = proposedEarliestFinishTime;
@@ -120,12 +124,16 @@ namespace Zametek.Maths.Graphs
 
                             // It is only necessary to check the Maximum LFT if the head node is not the
                             // EndNode, and if the tail node is not the StartNode.
+                            // Otherwise, it ends up imposing an LFT value that is unnecessarily constrained
+                            // without any good reason (i.e. there is nothing before the StartNode or after
+                            // the EndNode to be impacted by the constraint).
                             if (node != endNode && incomingEdgeTailNode != startNode)
                             {
                                 if (incomingEdge.Content.MaximumLatestFinishTime.HasValue)
                                 {
                                     int proposedLatestFinishTime = incomingEdge.Content.MaximumLatestFinishTime.Value;
 
+                                    // Diminish the earliest finish time artificially (if required).
                                     if (proposedLatestFinishTime < earliestFinishTime)
                                     {
                                         earliestFinishTime = proposedLatestFinishTime;
@@ -137,10 +145,14 @@ namespace Zametek.Maths.Graphs
                         node.Content.EarliestFinishTime = earliestFinishTime;
                         completedNodeIds.Add(nodeId);
                         remainingNodeIds.Remove(nodeId);
+                        // Note we are making progress.
                         progress = true;
                     }
                 }
 
+                // If we have not made any progress then a cycle must exist in
+                // the graph and we will not be able to calculate the earliest
+                // finish times.
                 if (!progress)
                 {
                     throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency);
@@ -183,11 +195,13 @@ namespace Zametek.Maths.Graphs
             var completedNodeIds = new HashSet<T>();
             var remainingNodeIds = new HashSet<T>(state.NodeIds);
 
+            // Make sure the remainingNodeIds contain the End node.
             if (!remainingNodeIds.Contains(endNode.Id))
             {
                 return false;
             }
 
+            // Complete the End node first to ensure the completed node IDs contains something.
             endNode.Content.LatestFinishTime = endNode.Content.EarliestFinishTime;
 
             if (!endNode.Content.LatestFinishTime.HasValue)
@@ -237,6 +251,7 @@ namespace Zametek.Maths.Graphs
                             {
                                 int proposedLatestFinishTime = outgoingEdgeHeadNode.Content.LatestFinishTime.Value - outgoingEdge.Content.Duration;
 
+                                // Diminish the latest finish time artificially (if required).
                                 if (proposedLatestFinishTime < latestFinishTime)
                                 {
                                     latestFinishTime = proposedLatestFinishTime;
@@ -247,6 +262,7 @@ namespace Zametek.Maths.Graphs
                             {
                                 int proposedLatestFinishTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
 
+                                // Diminish the latest finish time artificially (if required).
                                 if (proposedLatestFinishTime < latestFinishTime)
                                 {
                                     latestFinishTime = proposedLatestFinishTime;
@@ -257,10 +273,14 @@ namespace Zametek.Maths.Graphs
                         node.Content.LatestFinishTime = latestFinishTime;
                         completedNodeIds.Add(nodeId);
                         remainingNodeIds.Remove(nodeId);
+                        // Note we are making progress.
                         progress = true;
                     }
                 }
 
+                // If we have not made any progress then a cycle must exist in
+                // the graph and we will not be able to calculate the latest
+                // finish times.
                 if (!progress)
                 {
                     throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateLatestFinishTimesDueToCyclicDependency);
@@ -299,6 +319,8 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
+            // We can assume at this point that all the activity constraints are valid.
+
             // Earliest Start Times and Latest Finish Times.
             foreach (T edgeId in state.EdgeIds.ToList())
             {
@@ -310,6 +332,7 @@ namespace Zametek.Maths.Graphs
                 {
                     int proposedEarliestStartTime = edge.Content.MinimumEarliestStartTime.Value;
 
+                    // Augment the earliest start time artificially (if required).
                     if (proposedEarliestStartTime > earliestStartTime)
                     {
                         earliestStartTime = proposedEarliestStartTime;
@@ -320,6 +343,7 @@ namespace Zametek.Maths.Graphs
                 {
                     int proposedLatestStartTime = edge.Content.MaximumLatestFinishTime.Value - edge.Content.Duration;
 
+                    // Diminish the earliest start time artificially (if required).
                     if (proposedLatestStartTime < earliestStartTime)
                     {
                         earliestStartTime = proposedLatestStartTime;
@@ -334,6 +358,7 @@ namespace Zametek.Maths.Graphs
                 {
                     int proposedLatestFinishTime = edge.Content.MaximumLatestFinishTime.Value;
 
+                    // Diminish the latest finish time artificially (if required).
                     if (proposedLatestFinishTime < latestFinishTime)
                     {
                         latestFinishTime = proposedLatestFinishTime;
@@ -360,6 +385,7 @@ namespace Zametek.Maths.Graphs
                         {
                             int proposedFreeSlack = edge.Content.MaximumLatestFinishTime.Value - edge.Content.EarliestFinishTime.Value;
 
+                            // Diminish the free slack artificially (if required).
                             if (proposedFreeSlack < freeSlack)
                             {
                                 freeSlack = proposedFreeSlack;
@@ -408,6 +434,7 @@ namespace Zametek.Maths.Graphs
                     {
                         int proposedFreeSlack = edge.Content.MaximumLatestFinishTime.Value - edge.Content.EarliestFinishTime.Value;
 
+                        // Diminish the free slack artificially (if required).
                         if (proposedFreeSlack < freeSlack)
                         {
                             freeSlack = proposedFreeSlack;

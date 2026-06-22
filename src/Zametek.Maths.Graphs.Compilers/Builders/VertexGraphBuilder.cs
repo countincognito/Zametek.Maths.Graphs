@@ -356,6 +356,7 @@ namespace Zametek.Maths.Graphs
 
         public bool RemoveActivity(T activityId)
         {
+            // Retrieve the activity's node.
             if (!m_State.TryGetNode(activityId, out Node<T, TActivity> node))
             {
                 return false;
@@ -391,6 +392,7 @@ namespace Zametek.Maths.Graphs
             {
                 Node<T, TActivity> tailNode = m_State.EdgeTailNode(edgeId);
 
+                // Remove the edge from the tail node.
                 tailNode.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
                 if (tailNode.OutgoingEdges.Count == 0)
@@ -398,6 +400,7 @@ namespace Zametek.Maths.Graphs
                     DowngradeOutboundNodeType(tailNode);
                 }
 
+                // Remove the edge from the head node.
                 node.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
                 if (node.IncomingEdges.Count == 0)
@@ -405,6 +408,7 @@ namespace Zametek.Maths.Graphs
                     DowngradeInboundNodeType(node);
                 }
 
+                // Remove the edge completely.
                 m_State.RemoveEdge(edgeId);
             }
         }
@@ -415,6 +419,7 @@ namespace Zametek.Maths.Graphs
             {
                 Node<T, TActivity> headNode = m_State.EdgeHeadNode(edgeId);
 
+                // Remove the edge from the head node.
                 headNode.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
                 if (headNode.IncomingEdges.Count == 0)
@@ -422,6 +427,7 @@ namespace Zametek.Maths.Graphs
                     DowngradeInboundNodeType(headNode);
                 }
 
+                // Remove the edge from the tail node.
                 node.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
                 if (node.OutgoingEdges.Count == 0)
@@ -429,6 +435,7 @@ namespace Zametek.Maths.Graphs
                     DowngradeOutboundNodeType(node);
                 }
 
+                // Remove the edge completely.
                 m_State.RemoveEdge(edgeId);
             }
         }
@@ -492,6 +499,7 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
 
+                // Remove the edge from the tail node.
                 tailNode.OutgoingEdges.Remove(edgeId);
                 m_State.RemoveEdgeTailNode(edgeId);
                 if (tailNode.OutgoingEdges.Count == 0)
@@ -499,8 +507,10 @@ namespace Zametek.Maths.Graphs
                     DowngradeOutboundNodeType(tailNode);
                 }
 
+                // Remove the edge from the head node.
                 node.IncomingEdges.Remove(edgeId);
                 m_State.RemoveEdgeHeadNode(edgeId);
+                // Remove the edge completely.
                 m_State.RemoveEdge(edgeId);
             }
 
@@ -812,6 +822,7 @@ namespace Zametek.Maths.Graphs
             {
                 graphBuilder.CalculateCriticalPath();
 
+                // Get the critical path in order of earliest start time.
                 int minFloat = graphBuilder.Activities
                     .Where(x => !x.IsDummy && x.TotalSlack.HasValue)
                     .Select(x => x.TotalSlack.Value)
@@ -829,6 +840,7 @@ namespace Zametek.Maths.Graphs
                 {
                     T criticalActivityId = criticalActivityIds.First();
                     priorityList.Add(criticalActivityId);
+                    // Set the processed activity to dummy.
                     graphBuilder.Activity(criticalActivityId).Duration = 0;
                 }
                 else
@@ -1089,6 +1101,7 @@ namespace Zametek.Maths.Graphs
             List<ICircularDependency<T>> circularDependencies = FindStrongCircularDependencies();
             List<IInvalidConstraint<T>> invalidPrecompilationConstraints = FindInvalidPreCompilationConstraints();
 
+            // P0010
             if (invalidDependencies.Count != 0)
             {
                 List<IDependentActivity<T, TResourceId, TWorkStreamId>> dependentActivities =
@@ -1098,6 +1111,7 @@ namespace Zametek.Maths.Graphs
                         .BuildInvalidDependenciesErrorMessage(invalidDependencies, dependentActivities)));
             }
 
+            // P0020
             if (circularDependencies.Count != 0)
             {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0020,
@@ -1105,6 +1119,7 @@ namespace Zametek.Maths.Graphs
                         .BuildCircularDependenciesErrorMessage(circularDependencies)));
             }
 
+            // P0030
             if (invalidPrecompilationConstraints.Count != 0)
             {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0030,
@@ -1112,6 +1127,7 @@ namespace Zametek.Maths.Graphs
                         .BuildInvalidConstraintsErrorMessage(invalidPrecompilationConstraints)));
             }
 
+            // P0040
             bool allResourcesExplicitButNotAllActivitiesTargeted =
                 !infiniteResources
                 && filteredResources.All(x => x.IsExplicitTarget)
@@ -1122,18 +1138,22 @@ namespace Zametek.Maths.Graphs
                     $@"{Properties.Resources.Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted}{Environment.NewLine}"));
             }
 
+            // P0050
             if (!CleanUpEdges())
             {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0050,
                     $@"{Properties.Resources.Message_UnableToRemoveUnnecessaryEdges}{Environment.NewLine}"));
             }
 
+            // Check if any activities are obliged to use only explicit target resources
+            // that are unavailable.
             List<IUnavailableResources<T, TResourceId>> unavailableResourcesSet =
                 infiniteResources
                 ? new List<IUnavailableResources<T, TResourceId>>()
                 : m_ResourceSchedulingEngine.GatherUnavailableResources(
                     activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList(), filteredResources)
                 .ToList();
+            // P0060
             if (unavailableResourcesSet.Count != 0)
             {
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0060,
@@ -1146,6 +1166,7 @@ namespace Zametek.Maths.Graphs
         public void AddPostCompilationErrors(List<GraphCompilationError> errors)
         {
             List<IInvalidConstraint<T>> invalidPostcompilationConstraints = FindInvalidPostCompilationConstraints();
+            // C0010
             if (invalidPostcompilationConstraints.Count != 0)
             {
                 errors.Add(new GraphCompilationError(
@@ -1215,6 +1236,7 @@ namespace Zametek.Maths.Graphs
                 return;
             }
 
+            // If the activity was an unsatisfied successor, then remove it from the lookup.
             if (node.NodeType == NodeType.End || node.NodeType == NodeType.Normal)
             {
                 m_State.RemoveActivityFromAllUnsatisfiedSuccessors(activityId);
@@ -1228,6 +1250,8 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(dependencies));
             }
 
+            // If the activity was an unsatisfied successor for these dependencies,
+            // then remove them from the lookup.
             foreach (T dependencyId in dependencies)
             {
                 m_State.RemoveActivityFromUnsatisfiedSuccessor(dependencyId, activityId);

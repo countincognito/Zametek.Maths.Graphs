@@ -104,9 +104,14 @@ namespace Zametek.Maths.Graphs
                 return totalAncestorNodes;
             }
 
+            // Go through each incoming edge and find the nodes
+            // to which they connect.
             foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
             {
                 totalAncestorNodes.Add(tailNodeId);
+                // If the lookup holds the ancestor nodes for the tail
+                // node then add them to the ancestor nodes. Otherwise
+                // calculate the ancestor nodes for the tail node too.
                 if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
                 {
                     tailNodeAncestorNodes = GetAncestorNodes(tailNodeId, nodeIdAncestorLookup);

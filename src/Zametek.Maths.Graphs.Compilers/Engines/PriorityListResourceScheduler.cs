@@ -78,14 +78,17 @@ namespace Zametek.Maths.Graphs
             HashSet<T> started,
             HashSet<T> completed)
         {
+            // Any started activities that are currently not running must now be completed.
             HashSet<T> running = new HashSet<T>(builders
                 .Select(x => x.ActivityAt(timeCounter))
                 .Where(x => x.HasValue)
                 .Select(x => x.GetValueOrDefault()));
 
+            // Now work out which of the started jobs are now completed.
             IList<T> notYetCompleted = started.Intersect(running).ToList();
             started.ExceptWith(notYetCompleted);
             completed.UnionWith(started);
+            // Refresh the started set.
             started.Clear();
             started.UnionWith(notYetCompleted);
         }
@@ -97,6 +100,8 @@ namespace Zametek.Maths.Graphs
             HashSet<T> started,
             IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph)
         {
+            // Get the activities that have completed direct dependencies.
+            // Add these to the ready queue since there is nothing preventing them from starting.
             var indicesToRemove = new HashSet<int>();
             for (int i = 0; i < workingList.Count; i++)
             {
@@ -114,6 +119,7 @@ namespace Zametek.Maths.Graphs
                     indicesToRemove.Add(i);
                 }
             }
+            // Now clear the activities that have been added to the ready queue.
             foreach (int idx in indicesToRemove)
             {
                 workingList[idx] = null;
@@ -129,6 +135,7 @@ namespace Zametek.Maths.Graphs
             HashSet<T> started,
             int timeCounter)
         {
+            // Cycle through each ready activity and find the first currently available schedule builder.
             bool keepLooking = true;
             while (ready.Any(x => x.HasValue) && keepLooking)
             {
@@ -145,6 +152,8 @@ namespace Zametek.Maths.Graphs
                     IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(activityId);
                     activity.AllocatedToResources.Clear();
 
+                    // Check to see if the activity has to be targeted to specific resources,
+                    // and that this resource is one of those specific targets.
                     bool mustTargetSpecific = !infiniteResources && activity.TargetResources.Count != 0;
 
                     if (!mustTargetSpecific)
@@ -247,12 +256,14 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
 
+                // Find just one resource that can accommodate the activity.
                 if (activity.TargetResourceOperator == LogicalOperator.OR)
                 {
                     builder.AppendActivity(activity, timeCounter);
                     started.Add(activityId);
                     return true;
                 }
+                // Find all the resources that must accommodate the activity.
                 else if (activity.TargetResourceOperator == LogicalOperator.AND)
                 {
                     available.Add(builder);
@@ -263,9 +274,11 @@ namespace Zametek.Maths.Graphs
                         return true;
                     }
                 }
+                // Find all the active resources that must accommodate the activity.
                 else if (activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                 {
                     available.Add(builder);
+                    // Check intersection of TargetResources and filtered Resources.
                     var intersection = new HashSet<TResourceId>(
                         activity.TargetResources.Intersect(filteredResources.Select(x => x.Id)));
                     if (intersection.SetEquals(available.Select(x => x.ResourceId.GetValueOrDefault())))
@@ -296,17 +309,21 @@ namespace Zametek.Maths.Graphs
                 {
                     continue;
                 }
+                // When all explicit target resources must be available.
                 if (activity.TargetResourceOperator == LogicalOperator.AND)
                 {
+                    // Ids in TargetResources that are not in filtered Resources.
                     IEnumerable<TResourceId> unavailable = activity.TargetResources.Except(filteredResources.Select(x => x.Id));
                     if (unavailable.Any())
                     {
                         output.Add(new UnavailableResources<T, TResourceId>(activity.Id, unavailable));
                     }
                 }
+                // When at least one explicit target resource must be available.
                 else if (activity.TargetResourceOperator == LogicalOperator.OR
                          || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                 {
+                    // Check intersection of TargetResources and filtered Resources.
                     IEnumerable<TResourceId> intersection = activity.TargetResources.Intersect(filteredResources.Select(x => x.Id));
                     if (!intersection.Any())
                     {
@@ -322,6 +339,7 @@ namespace Zametek.Maths.Graphs
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
         {
+            // Remember to wipe the resources if we assume infinite resources.
             TResourceId resourceId = default;
             var replacements = new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
             foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> schedule in resourceSchedules)
@@ -363,6 +381,7 @@ namespace Zametek.Maths.Graphs
                 foreach (IScheduledActivity<T> scheduledActivity in oldSchedule.ScheduledActivities)
                 {
                     IActivity<T, TResourceId, TWorkStreamId> activityObj = graph.Activity(scheduledActivity.Id);
+                    // This add needs to be without checks because the alignment may not be perfect.
                     builder.AppendActivityWithoutChecks(activityObj, activityObj.EarliestStartTime.GetValueOrDefault());
                 }
                 builders.Add(builder);

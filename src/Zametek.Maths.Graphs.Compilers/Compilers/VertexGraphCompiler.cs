@@ -104,6 +104,7 @@ namespace Zametek.Maths.Graphs
             lock (m_Lock)
             {
                 {
+                    // Clear out the activity from compiled dependencies.
                     IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
                         .Activities.Where(x => x.Dependencies.Contains(activityId)).Select(x => x.Id);
                     foreach (T id in dependentActivityIds)
@@ -112,6 +113,7 @@ namespace Zametek.Maths.Graphs
                     }
                 }
                 {
+                    // Clear out the activity from planning dependencies.
                     IEnumerable<T> dependentActivityIds = m_VertexGraphBuilder
                         .Activities.Where(x => x.PlanningDependencies.Contains(activityId)).Select(x => x.Id);
                     foreach (T id in dependentActivityIds)
@@ -133,6 +135,7 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotPerformTransitiveReduction);
                 }
 
+                // Now set the compiled and planning dependencies to match the actual remaining dependencies.
                 foreach (T activityId in m_VertexGraphBuilder.ActivityIds)
                 {
                     TDependentActivity activity = m_VertexGraphBuilder.Activity(activityId);
@@ -183,7 +186,9 @@ namespace Zametek.Maths.Graphs
 
             lock (m_Lock)
             {
+                // If resources are 0, assume infinite resources.
                 bool infiniteResources = resources.Count == 0;
+                // Filter out disabled resources.
                 List<IResource<TResourceId, TWorkStreamId>> filteredResources = resources.Where(x => !x.IsInactive).ToList();
 
                 m_VertexGraphBuilder.ResetResourceState(m_VertexGraphBuilder.Activities.ToList());
@@ -205,11 +210,15 @@ namespace Zametek.Maths.Graphs
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules =
                     m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources).ToList();
 
+                // If the previous calculation was performed with infinite resources, then it will not be possible
+                // to handle resource dependencies. So here we need to create fake resources for resource dependencies
+                // to work in the next step.
                 if (infiniteResources)
                 {
                     resourceSchedules = m_VertexGraphBuilder.ResourceSchedulingEngine.ReplaceWithSyntheticResources(resourceSchedules);
                 }
 
+                // Determine the resource dependencies and add them to the compiled dependencies.
                 m_VertexGraphBuilder.AssignResourceDependencies(resourceSchedules);
                 m_VertexGraphBuilder.CalculateCriticalPath();
 
@@ -242,6 +251,7 @@ namespace Zametek.Maths.Graphs
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules =
                     newSchedules.Union(indirectSchedules).ToList();
 
+                // Now calculate the used work streams.
                 HashSet<TWorkStreamId> workstreamsUsed = finalActivities.SelectMany(x => x.TargetWorkStreams).Distinct().ToHashSet();
                 HashSet<TWorkStreamId> resourcePhasesUsed =
                     m_VertexGraphBuilder.ResourceSchedulingEngine.GetResourcePhasesUsed(totalSchedules, workstreamsUsed);
