@@ -396,10 +396,7 @@ namespace Zametek.Maths.Graphs
             return m_TransitiveReducer.GetAncestorNodesLookup();
         }
 
-        public bool TransitiveReduction()
-        {
-            return m_TransitiveReducer.ReduceGraph();
-        }
+        public bool TransitiveReduction() => m_TransitiveReducer.ReduceGraph();
 
         public bool RedirectEdges() => m_DummyEdgeOrchestrator.RedirectDummyEdges();
 
@@ -411,18 +408,20 @@ namespace Zametek.Maths.Graphs
             {
                 return false;
             }
+
             if (!RemoveRedundantEdges())
             {
                 return false;
             }
+
             return true;
         }
 
         public void CalculateCriticalPath()
         {
-            if (!CleanUpEdges())
+            if (!RemoveRedundantEdges())
             {
-                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotRemoveRedundantEdges);
             }
 
             ClearCriticalPathVariables();
@@ -435,13 +434,20 @@ namespace Zametek.Maths.Graphs
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventEarliestFinishTimes);
             }
+
             if (!m_CriticalPathEngine.CalculateEventLatestFinishTimes(m_State, constraints, WhenTesting))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventLatestFinishTimes);
             }
+
             if (!m_CriticalPathEngine.CalculateCriticalPathVariables(m_State, constraints))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPath);
+            }
+
+            if (!RedirectEdges())
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeRedirection);
             }
         }
 
@@ -692,7 +698,7 @@ namespace Zametek.Maths.Graphs
 
         #region ICloneObject
 
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             Graph<T, TActivity, IEvent<T>> arrowGraphCopy = ToGraph();
             T minNodeId = arrowGraphCopy.Nodes.Select(x => x.Id).DefaultIfEmpty().Min();

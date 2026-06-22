@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -162,9 +162,6 @@
   <data name="Message_CannotConstructArrowGraphDueToInvalidDependencies" xml:space="preserve">
     <value>Cannot construct arrow graph due to invalid dependencies</value>
   </data>
-  <data name="Message_CannotPerformEdgeCleanUp" xml:space="preserve">
-    <value>Cannot perform edge clean up</value>
-  </data>
   <data name="Message_CannotPerformTransitiveReduction" xml:space="preserve">
     <value>Cannot perform transitive reduction</value>
   </data>
@@ -236,5 +233,11 @@
   </data>
   <data name="Message_LatestFinishTimeMoreThanMaximumLatestFinishTime" xml:space="preserve">
     <value>LatestFinishTime cannot be more than MaximumLatestFinishTime</value>
+  </data>
+  <data name="Message_CannotPerformEdgeRedirection" xml:space="preserve">
+    <value>Cannot perform edge redirection</value>
+  </data>
+  <data name="Message_CannotRemoveRedundantEdges" xml:space="preserve">
+    <value>Cannot remove redundant edges</value>
   </data>
 </root>

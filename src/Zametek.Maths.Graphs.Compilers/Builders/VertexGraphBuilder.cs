@@ -598,16 +598,16 @@ namespace Zametek.Maths.Graphs
 
         public bool CleanUpEdges()
         {
-            bool edgesRedirected = RedirectEdges();
-            if (!edgesRedirected)
+            if (!RedirectEdges())
             {
                 return false;
             }
-            bool redundantEdgesRemoved = RemoveRedundantEdges();
-            if (!redundantEdgesRemoved)
+
+            if (!RemoveRedundantEdges())
             {
                 return false;
             }
+
             return true;
         }
 
@@ -670,10 +670,9 @@ namespace Zametek.Maths.Graphs
 
         public void CalculateCriticalPath()
         {
-            bool edgesCleaned = CleanUpEdges();
-            if (!edgesCleaned)
+            if (!RemoveRedundantEdges())
             {
-                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeCleanUp);
+                throw new InvalidOperationException(Properties.Resources.Message_CannotRemoveRedundantEdges);
             }
 
             ClearCriticalPathVariables();
@@ -686,9 +685,15 @@ namespace Zametek.Maths.Graphs
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathForwardFlow);
             }
+
             if (!m_CriticalPathEngine.CalculateCriticalPathBackwardFlow(m_State, constraints, WhenTesting))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathBackwardFlow);
+            }
+
+            if (!RedirectEdges())
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_CannotPerformEdgeRedirection);
             }
         }
 
@@ -1262,7 +1267,7 @@ namespace Zametek.Maths.Graphs
 
         #region ICloneObject
 
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             Graph<T, IEvent<T>, TActivity> vertexGraphCopy = ToGraph();
             T minEdgeId = vertexGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
