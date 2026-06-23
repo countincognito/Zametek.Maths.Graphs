@@ -9,7 +9,7 @@ namespace Zametek.Maths.Graphs.Tests
     public class ArrowGraphBuilderTests
     {
         [Fact]
-        public void ArrowGraphBuilder_GivenGivenCtor_ThenThenNoException()
+        public void ArrowGraphBuilder_GivenCtor_ThenNoException()
         {
             int eventId = 0;
             int dummyActivityId = 0;
@@ -23,7 +23,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilder_GivenGivenCtorCalledWithNullEdgeIdGenerator_ThenThenShouldThrowArgumentNullException()
+        public void ArrowGraphBuilder_GivenCtorCalledWithNullEdgeIdGenerator_ThenShouldThrowArgumentNullException()
         {
             int eventId = 0;
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(null, new NextIdGenerator<int>(eventId));
@@ -31,7 +31,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilder_GivenGivenCtorCalledWithNullNodeIdGenerator_ThenThenShouldThrowArgumentNullException()
+        public void ArrowGraphBuilder_GivenCtorCalledWithNullNodeIdGenerator_ThenShouldThrowArgumentNullException()
         {
             int dummyActivityId = 0;
             Action act = () => new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), null);
@@ -39,7 +39,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilder_GivenGivenAccessOutgoingEdgesOfEndNode_ThenThenShouldThrowInvalidOperationException()
+        public void ArrowGraphBuilder_GivenAccessOutgoingEdgesOfEndNode_ThenShouldThrowInvalidOperationException()
         {
             int eventId = 0;
             int dummyActivityId = 0;
