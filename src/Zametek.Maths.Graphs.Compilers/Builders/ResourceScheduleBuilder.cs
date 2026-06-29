@@ -256,9 +256,7 @@ namespace Zametek.Maths.Graphs
 
                     if (startIndex == finishIndex)
                     {
-                        distribution[startIndex] |=
-                            TimeType.PhaseStart |
-                            TimeType.PhaseFinish;
+                        distribution[startIndex] |= TimeType.PhaseStart | TimeType.PhaseFinish;
                     }
                     else
                     {
@@ -313,32 +311,28 @@ namespace Zametek.Maths.Graphs
 
                 if (startIndex == finishIndex)
                 {
-                    distribution[startIndex] |=
-                        TimeType.ResourceStart | TimeType.ResourceFinish |
-                        TimeType.PhaseStart | TimeType.PhaseFinish |
-                        TimeType.ActivityAllocated;
+                    distribution[startIndex] |= TimeType.ResourceStart | TimeType.ResourceFinish
+                        | TimeType.PhaseStart | TimeType.PhaseFinish
+                        | TimeType.ActivityAllocated;
                 }
                 else
                 {
-                    distribution[startIndex] |=
-                        TimeType.ResourceStart |
-                        TimeType.PhaseStart |
-                        TimeType.ActivityAllocated;
+                    distribution[startIndex] |= TimeType.ResourceStart
+                        | TimeType.PhaseStart
+                        | TimeType.ActivityAllocated;
 
-                    distribution[finishIndex] |=
-                        TimeType.ResourceFinish |
-                        TimeType.PhaseFinish |
-                        TimeType.ActivityAllocated;
+                    distribution[finishIndex] |= TimeType.ResourceFinish
+                        | TimeType.PhaseFinish
+                        | TimeType.ActivityAllocated;
                 }
 
                 for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                 {
                     if ((distribution[timeIndex] & TimeType.ResourceAllocated) == 0)
                     {
-                        distribution[timeIndex] |=
-                            TimeType.ResourceMiddle |
-                            TimeType.PhaseMiddle |
-                            TimeType.ActivityAllocated;
+                        distribution[timeIndex] |= TimeType.ResourceMiddle
+                            | TimeType.PhaseMiddle
+                            | TimeType.ActivityAllocated;
                     }
                 }
             }
@@ -433,24 +427,6 @@ namespace Zametek.Maths.Graphs
                     }
                 }
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
 
         private static void AllocationForNoneType(
@@ -489,7 +465,9 @@ namespace Zametek.Maths.Graphs
 
                 if (startIndex == finishIndex)
                 {
-                    distribution[startIndex] |= TimeType.ResourceStart | TimeType.ResourceFinish | TimeType.ActivityAllocated;
+                    distribution[startIndex] |= TimeType.ResourceStart
+                        | TimeType.ResourceFinish
+                        | TimeType.ActivityAllocated;
                 }
                 else
                 {
@@ -694,9 +672,8 @@ namespace Zametek.Maths.Graphs
             BillingIgnored = 1 << 10,
             EffortIgnored = 1 << 11,
 
-            ResourceAllocated =
-                ResourceStart | ResourceMiddle | ResourceBetween | ResourceFinish |
-                PhaseStart | PhaseMiddle | PhaseBetween | PhaseFinish,
+            ResourceAllocated = ResourceStart | ResourceMiddle | ResourceBetween | ResourceFinish
+                | PhaseStart | PhaseMiddle | PhaseBetween | PhaseFinish,
         }
 
         #endregion
