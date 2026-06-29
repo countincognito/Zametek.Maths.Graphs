@@ -30,7 +30,7 @@ namespace Zametek.Maths.Graphs.Tests
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
-            rs.ActivityAllocation.ShouldBeEmpty();
+            rs.ResourceAllocation.ShouldBeEmpty();
             rs.FinishTime.ShouldBe(finishTime);
             rs.Resource.ShouldBe(resource);
             rs.ScheduledActivities.ShouldBeEmpty();
@@ -48,7 +48,7 @@ namespace Zametek.Maths.Graphs.Tests
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
-            rs.ActivityAllocation.Count().ShouldBe(10);
+            rs.ResourceAllocation.Count().ShouldBe(10);
             rs.FinishTime.ShouldBe(finishTime);
             rs.Resource.ShouldBe(resource);
             rs.ScheduledActivities.ShouldBeEmpty();
@@ -76,9 +76,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
-            var first = rs.ActivityAllocation.Take(start).Distinct();
-            var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
-            var third = rs.ActivityAllocation.Skip(finish).Distinct();
+            var first = rs.ResourceAllocation.Take(start).Distinct();
+            var second = rs.ResourceAllocation.Skip(start).Take(finish - start).Distinct();
+            var third = rs.ResourceAllocation.Skip(finish).Distinct();
 
             first.Count().ShouldBe(1);
             first.Single().ShouldBe(false);
@@ -110,9 +110,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var rs = rsb.ToResourceSchedule([], startTime, finishTime);
 
-            var first = rs.ActivityAllocation.Take(start).Distinct();
-            var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
-            var third = rs.ActivityAllocation.Skip(finish).Distinct();
+            var first = rs.ResourceAllocation.Take(start).Distinct();
+            var second = rs.ResourceAllocation.Skip(start).Take(finish - start).Distinct();
+            var third = rs.ResourceAllocation.Skip(finish).Distinct();
 
             first.Count().ShouldBe(1);
             first.Single().ShouldBe(false);
@@ -148,9 +148,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var rs = rsb.ToResourceSchedule([.. dependentActivities.Cast<IActivity<int, int, int>>()], startTime, finishTime);
 
-            var first = rs.ActivityAllocation.Take(start).Distinct();
-            var second = rs.ActivityAllocation.Skip(start).Take(finish - start).Distinct();
-            var third = rs.ActivityAllocation.Skip(finish).Distinct();
+            var first = rs.ResourceAllocation.Take(start).Distinct();
+            var second = rs.ResourceAllocation.Skip(start).Take(finish - start).Distinct();
+            var third = rs.ResourceAllocation.Skip(finish).Distinct();
 
             first.Count().ShouldBe(firstCount);
             if (firstCount > 0)

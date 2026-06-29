@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
@@ -13,13 +13,15 @@ namespace Zametek.Maths.Graphs
 
         IEnumerable<IScheduledActivity<T>> ScheduledActivities { get; }
 
-        IEnumerable<bool> ActivityAllocation { get; }
+        IEnumerable<bool> ResourceAllocation { get; }
 
         IEnumerable<bool> CostAllocation { get; }
 
         IEnumerable<bool> BillingAllocation { get; }
 
         IEnumerable<bool> EffortAllocation { get; }
+
+        IEnumerable<bool> ActivityAllocation { get; }
 
         int StartTime { get; }
 

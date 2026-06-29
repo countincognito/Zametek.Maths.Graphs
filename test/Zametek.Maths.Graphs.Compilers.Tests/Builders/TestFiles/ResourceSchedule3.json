@@ -1,4 +1,4 @@
-﻿{
+{
   "DependentActivities": [
     {
       "AllocatedToResources": [
@@ -644,7 +644,7 @@
   ],
   "ResourceSchedules": [
     {
-      "ActivityAllocation": [
+      "ResourceAllocation": [
         true,
         true,
         true,
@@ -717,6 +717,30 @@
         true
       ],
       "EffortAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "ActivityAllocation": [
         true,
         true,
         true,
@@ -825,7 +849,7 @@
       ]
     },
     {
-      "ActivityAllocation": [
+      "ResourceAllocation": [
         true,
         true,
         true,
@@ -906,6 +930,30 @@
         false,
         false,
         false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "ActivityAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
         true,
         true,
         true,
@@ -996,7 +1044,7 @@
       ]
     },
     {
-      "ActivityAllocation": [
+      "ResourceAllocation": [
         true,
         true,
         true,
@@ -1081,6 +1129,30 @@
         true,
         true,
         true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "ActivityAllocation": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
         false,
         false,
         false,

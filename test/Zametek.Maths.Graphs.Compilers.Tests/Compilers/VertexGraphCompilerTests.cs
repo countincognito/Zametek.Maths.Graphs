@@ -1370,7 +1370,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1398,6 +1398,14 @@ namespace Zametek.Maths.Graphs.Tests
                 new bool[] {
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
                 });
@@ -1445,7 +1453,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1462,6 +1470,14 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, false, false, false,
+                });
+
+            resourceSchedules[1].EffortAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1681,7 +1697,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1720,6 +1736,17 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, false,
                     false, false, false, false, false, false, false, false, false, false,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
@@ -1959,7 +1986,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1984,6 +2011,14 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -2034,7 +2069,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -2064,6 +2099,14 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
+                });
+
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, false, false, false,
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
@@ -2757,7 +2800,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -2785,6 +2828,14 @@ namespace Zametek.Maths.Graphs.Tests
                 new bool[] {
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
                 });
@@ -2832,7 +2883,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -2849,6 +2900,14 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, false, false, false,
+                });
+
+            resourceSchedules[1].EffortAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3068,7 +3127,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3107,6 +3166,17 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, false,
                     false, false, false, false, false, false, false, false, false, false,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
@@ -3346,7 +3416,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3371,6 +3441,14 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3421,7 +3499,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3451,6 +3529,14 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
+                });
+
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, false, false, false,
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
@@ -4145,7 +4231,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4173,6 +4259,14 @@ namespace Zametek.Maths.Graphs.Tests
                 new bool[] {
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true,
+                });
+
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
                 });
@@ -4220,7 +4314,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4237,6 +4331,14 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, false, false, false,
+                });
+
+            resourceSchedules[1].EffortAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4456,7 +4558,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4495,6 +4597,17 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, false,
                     false, false, false, false, false, false, false, false, false, false,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
@@ -4734,7 +4847,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4759,6 +4872,14 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4809,7 +4930,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(34);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4839,6 +4960,14 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
+                });
+
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, false, false, false,
                 });
 
             var resourceSchedule1 = resourceSchedules[1];
@@ -5020,10 +5149,11 @@ namespace Zametek.Maths.Graphs.Tests
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
-            resourceSchedules[0].ActivityAllocation.ShouldBeEmpty();
+            resourceSchedules[0].ResourceAllocation.ShouldBeEmpty();
             resourceSchedules[0].CostAllocation.ShouldBeEmpty();
             resourceSchedules[0].BillingAllocation.ShouldBeEmpty();
             resourceSchedules[0].EffortAllocation.ShouldBeEmpty();
+            resourceSchedules[0].ActivityAllocation.ShouldBeEmpty();
         }
 
         [Fact]
@@ -5062,7 +5192,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -5086,6 +5216,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -5101,7 +5237,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5125,6 +5261,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -5140,7 +5282,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5159,6 +5301,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5215,7 +5363,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -5239,6 +5387,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -5254,7 +5408,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5278,6 +5432,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -5293,7 +5453,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5312,6 +5472,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5368,7 +5534,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -5392,6 +5558,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -5407,7 +5579,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5431,6 +5603,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -5446,7 +5624,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5465,6 +5643,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5521,7 +5705,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -5545,6 +5729,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -5560,7 +5750,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5584,6 +5774,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -5599,7 +5795,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5618,6 +5814,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5674,7 +5876,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -5698,6 +5900,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -5713,7 +5921,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5737,6 +5945,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -5752,7 +5966,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5771,6 +5985,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5827,7 +6047,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -5851,6 +6071,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -5866,7 +6092,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5890,6 +6116,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -5905,7 +6137,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5924,6 +6156,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -5980,7 +6218,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -6004,6 +6242,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -6019,7 +6263,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6043,6 +6287,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -6058,7 +6308,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6077,6 +6327,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6133,7 +6389,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -6157,6 +6413,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -6172,7 +6434,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6196,6 +6458,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -6211,7 +6479,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6230,6 +6498,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6286,7 +6560,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -6310,6 +6584,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -6325,7 +6605,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6349,6 +6629,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -6364,7 +6650,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6386,6 +6672,12 @@ namespace Zametek.Maths.Graphs.Tests
                 new bool[] {
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
                 });
 
             var resourceSchedule2 = resourceSchedules[2];
@@ -6439,7 +6731,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
@@ -6463,6 +6755,12 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false,
                 });
 
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
             var scheduledActivities0 = resourceSchedule0.ScheduledActivities.ToList();
@@ -6478,7 +6776,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(5);
 
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6502,6 +6800,12 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, false, false, false, false, false, false, false,
+                    false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -6517,7 +6821,7 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(3);
 
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6536,6 +6840,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
@@ -6587,7 +6897,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6606,6 +6916,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6671,7 +6987,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6692,6 +7008,12 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[0].EffortAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
@@ -6755,7 +7077,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6774,6 +7096,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6839,7 +7167,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6858,6 +7186,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6923,7 +7257,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -6944,6 +7278,12 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[0].EffortAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
@@ -7007,7 +7347,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7026,6 +7366,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7091,7 +7437,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7110,6 +7456,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7175,7 +7527,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7197,6 +7549,12 @@ namespace Zametek.Maths.Graphs.Tests
                 new bool[] {
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -7259,7 +7617,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7278,6 +7636,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7343,7 +7707,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7362,6 +7726,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7427,7 +7797,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7446,6 +7816,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7511,7 +7887,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7530,6 +7906,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7595,7 +7977,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7614,6 +7996,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7679,7 +8067,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7698,6 +8086,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7763,7 +8157,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7782,6 +8176,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7847,7 +8247,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7866,6 +8266,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7931,7 +8337,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -7950,6 +8356,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8015,7 +8427,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8034,6 +8446,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8099,7 +8517,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8118,6 +8536,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8183,7 +8607,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8204,6 +8628,12 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[0].EffortAllocation.ShouldBe(
                 new bool[] {
                     false, false, false, false, false, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
@@ -8267,7 +8697,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8286,6 +8716,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8351,7 +8787,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8370,6 +8806,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8435,7 +8877,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8456,6 +8898,12 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[0].EffortAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, false, false, false, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
@@ -8519,7 +8967,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8538,6 +8986,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8603,7 +9057,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8622,6 +9076,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8687,7 +9147,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8709,6 +9169,12 @@ namespace Zametek.Maths.Graphs.Tests
                 new bool[] {
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                 });
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -8771,7 +9237,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8790,6 +9256,12 @@ namespace Zametek.Maths.Graphs.Tests
                 });
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8931,7 +9403,7 @@ namespace Zametek.Maths.Graphs.Tests
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
-            resourceSchedules[0].ActivityAllocation.ShouldBe(
+            resourceSchedules[0].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -8956,6 +9428,13 @@ namespace Zametek.Maths.Graphs.Tests
                 new bool[] {
                     true, true, true, true, true, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
+                    true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[0].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                 });
 
@@ -8987,7 +9466,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities0.Last().FinishTime.ShouldBe(30);
 
-            resourceSchedules[1].ActivityAllocation.ShouldBe(
+            resourceSchedules[1].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     false, false, false, false, false, false, false, false, false, false,
@@ -9015,6 +9494,13 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false, false, false, false, false, false, false, false, false,
                 });
 
+            resourceSchedules[1].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false, false, false, false,
+                });
+
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
             var scheduledActivities1 = resourceSchedule1.ScheduledActivities.ToList();
@@ -9029,7 +9515,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             scheduledActivities1.Last().FinishTime.ShouldBe(10);
 
-            resourceSchedules[2].ActivityAllocation.ShouldBe(
+            resourceSchedules[2].ResourceAllocation.ShouldBe(
                 new bool[] {
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -9055,6 +9541,13 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
+                });
+
+            resourceSchedules[2].ActivityAllocation.ShouldBe(
+                new bool[] {
+                    true, true, true, true, true, true, true, true, true, true,
+                    false, false, false, false, false, false, false, false, false, false,
+                    false, false, false, false, false, false, false, false, false, false,
                 });
 
             var resourceSchedule2 = resourceSchedules[2];

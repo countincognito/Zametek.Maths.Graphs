@@ -352,10 +352,11 @@ namespace Zametek.Maths.Graphs
                     schedule.ScheduledActivities,
                     schedule.StartTime,
                     schedule.FinishTime,
-                    schedule.ActivityAllocation,
+                    schedule.ResourceAllocation,
                     schedule.CostAllocation,
                     schedule.BillingAllocation,
-                    schedule.EffortAllocation));
+                    schedule.EffortAllocation,
+                    schedule.ActivityAllocation));
             }
             return replacements;
         }

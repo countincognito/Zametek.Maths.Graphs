@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,10 +17,11 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int startTime,
             int finishTime,
-            IEnumerable<bool> activityAllocation,
+            IEnumerable<bool> resourceAllocation,
             IEnumerable<bool> costAllocation,
             IEnumerable<bool> billingAllocation,
-            IEnumerable<bool> effortAllocation)
+            IEnumerable<bool> effortAllocation,
+            IEnumerable<bool> activityAllocation)
         {
             if (scheduledActivities is null)
             {
@@ -30,21 +31,23 @@ namespace Zametek.Maths.Graphs
             ScheduledActivities = scheduledActivities.ToList();
             StartTime = startTime;
             FinishTime = finishTime;
-            ActivityAllocation = activityAllocation.ToList();
+            ResourceAllocation = resourceAllocation.ToList();
             CostAllocation = costAllocation.ToList();
             BillingAllocation = billingAllocation.ToList();
             EffortAllocation = effortAllocation.ToList();
+            ActivityAllocation = activityAllocation.ToList();
         }
 
         public ResourceSchedule(
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int startTime,
             int finishTime,
-            IEnumerable<bool> activityAllocation,
+            IEnumerable<bool> resourceAllocation,
             IEnumerable<bool> costAllocation,
             IEnumerable<bool> billingAllocation,
-            IEnumerable<bool> effortAllocation)
-            : this(null, scheduledActivities, startTime, finishTime, activityAllocation, costAllocation, billingAllocation, effortAllocation)
+            IEnumerable<bool> effortAllocation,
+            IEnumerable<bool> activityAllocation)
+            : this(null, scheduledActivities, startTime, finishTime, resourceAllocation, costAllocation, billingAllocation, effortAllocation, activityAllocation)
         {
         }
 
@@ -62,7 +65,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public IEnumerable<bool> ActivityAllocation
+        public IEnumerable<bool> ResourceAllocation
         {
             get;
         }
@@ -78,6 +81,11 @@ namespace Zametek.Maths.Graphs
         }
 
         public IEnumerable<bool> EffortAllocation
+        {
+            get;
+        }
+
+        public IEnumerable<bool> ActivityAllocation
         {
             get;
         }
@@ -104,10 +112,11 @@ namespace Zametek.Maths.Graphs
                 ScheduledActivities.Select(x => (IScheduledActivity<T>)x.CloneObject()),
                 StartTime,
                 FinishTime,
-                ActivityAllocation,
+                ResourceAllocation,
                 CostAllocation,
                 BillingAllocation,
-                EffortAllocation);
+                EffortAllocation,
+                ActivityAllocation);
         }
 
         #endregion

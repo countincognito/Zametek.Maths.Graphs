@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private static (List<bool> activityAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation) ExtractAllocations(
+        private static (List<bool> resourceAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation, List<bool> activityAllocation) ExtractAllocations(
             IResource<TResourceId, TWorkStreamId> resource,
             List<IScheduledActivity<T>> scheduledActivities,
             List<IActivity<T, TResourceId, TWorkStreamId>> activities,
@@ -89,43 +89,46 @@ namespace Zametek.Maths.Graphs
             // Indirect.
             if (interActivityAllocationType == InterActivityAllocationType.Indirect)
             {
-                AllocationForIndirectType(resource, activities, scheduledActivities, distribution);
-                AllocationForScheduledActivitiesType(scheduledActivities, distribution);
+                AllocationForUnscheduledActivityTypes(resource, activities, scheduledActivities, distribution);
+                AllocationForScheduledActivitiesTypes(scheduledActivities, distribution);
             }
             // None.
             else if (interActivityAllocationType == InterActivityAllocationType.None)
             {
                 AllocationForNoneType(scheduledActivities, distribution);
-                AllocationForNoCostOrEffortActivities(scheduledActivities, distribution);
+                AllocationForNoCostOrBillingOrEffortActivities(scheduledActivities, distribution);
             }
             // Direct.
             else if (interActivityAllocationType == InterActivityAllocationType.Direct)
             {
-                AllocationForScheduledActivitiesType(scheduledActivities, distribution);
-                AllocationForNoCostOrEffortActivities(scheduledActivities, distribution);
+                AllocationForScheduledActivitiesTypes(scheduledActivities, distribution);
+                AllocationForNoCostOrBillingOrEffortActivities(scheduledActivities, distribution);
             }
             else
             {
                 throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
             }
 
-            List<bool> activityAllocation = distribution
-                .Select(x => (x & TimeType.Allocated) != 0)
+            List<bool> resourceAllocation = distribution
+                .Select(x => (x & TimeType.ResourceAllocated) != 0)
                 .ToList();
             List<bool> costAllocation = distribution
-                .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.CostIgnored))
+                .Select(x => (x & TimeType.ResourceAllocated) != 0 && !x.HasFlag(TimeType.CostIgnored))
                 .ToList();
             List<bool> billingAllocation = distribution
-                .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.BillingIgnored))
+                .Select(x => (x & TimeType.ResourceAllocated) != 0 && !x.HasFlag(TimeType.BillingIgnored))
                 .ToList();
             List<bool> effortAllocation = distribution
-                .Select(x => (x & TimeType.Allocated) != 0 && !x.HasFlag(TimeType.EffortIgnored))
+                .Select(x => (x & TimeType.ResourceAllocated) != 0 && !x.HasFlag(TimeType.EffortIgnored))
+                .ToList();
+            List<bool> activityAllocation = distribution
+                .Select(x => (x & TimeType.ActivityAllocated) != 0)
                 .ToList();
 
-            return (activityAllocation, costAllocation, billingAllocation, effortAllocation);
+            return (resourceAllocation, costAllocation, billingAllocation, effortAllocation, activityAllocation);
         }
 
-        private static void AllocationForIndirectType(
+        private static void AllocationForUnscheduledActivityTypes(
             IResource<TResourceId, TWorkStreamId> resource,
             List<IActivity<T, TResourceId, TWorkStreamId>> activities,
             List<IScheduledActivity<T>> scheduledActivities,
@@ -167,14 +170,14 @@ namespace Zametek.Maths.Graphs
             // entire time span as costed, from start to finish
             if (resourcePhases.Count == 0)
             {
-                distribution[0] |= TimeType.Start;
-                distribution[^1] |= TimeType.Finish;
+                distribution[0] |= TimeType.PhaseStart;
+                distribution[^1] |= TimeType.PhaseFinish;
 
                 for (int i = 0; i < distribution.Count; i++)
                 {
-                    if ((distribution[i] & TimeType.Allocated) == 0)
+                    if ((distribution[i] & TimeType.ResourceAllocated) == 0)
                     {
-                        distribution[i] |= TimeType.Middle;
+                        distribution[i] |= TimeType.PhaseMiddle;
                     }
                 }
             }
@@ -253,26 +256,28 @@ namespace Zametek.Maths.Graphs
 
                     if (startIndex == finishIndex)
                     {
-                        distribution[startIndex] |= TimeType.Start | TimeType.Finish;
+                        distribution[startIndex] |=
+                            TimeType.PhaseStart |
+                            TimeType.PhaseFinish;
                     }
                     else
                     {
-                        distribution[startIndex] |= TimeType.Start;
-                        distribution[finishIndex] |= TimeType.Finish;
+                        distribution[startIndex] |= TimeType.PhaseStart;
+                        distribution[finishIndex] |= TimeType.PhaseFinish;
                     }
 
                     for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                     {
-                        if ((distribution[timeIndex] & TimeType.Allocated) == 0)
+                        if ((distribution[timeIndex] & TimeType.ResourceAllocated) == 0)
                         {
-                            distribution[timeIndex] |= TimeType.Middle;
+                            distribution[timeIndex] |= TimeType.PhaseMiddle;
                         }
                     }
                 }
             }
         }
 
-        private static void AllocationForScheduledActivitiesType(
+        private static void AllocationForScheduledActivitiesTypes(
             List<IScheduledActivity<T>> scheduledActivities,
             List<TimeType> distribution)
         {
@@ -308,62 +313,144 @@ namespace Zametek.Maths.Graphs
 
                 if (startIndex == finishIndex)
                 {
-                    distribution[startIndex] |= TimeType.Start | TimeType.Finish;
+                    distribution[startIndex] |=
+                        TimeType.ResourceStart | TimeType.ResourceFinish |
+                        TimeType.PhaseStart | TimeType.PhaseFinish |
+                        TimeType.ActivityAllocated;
                 }
                 else
                 {
-                    distribution[startIndex] |= TimeType.Start;
-                    distribution[finishIndex] |= TimeType.Finish;
+                    distribution[startIndex] |=
+                        TimeType.ResourceStart |
+                        TimeType.PhaseStart |
+                        TimeType.ActivityAllocated;
+
+                    distribution[finishIndex] |=
+                        TimeType.ResourceFinish |
+                        TimeType.PhaseFinish |
+                        TimeType.ActivityAllocated;
                 }
 
                 for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                 {
-                    if ((distribution[timeIndex] & TimeType.Allocated) == 0)
+                    if ((distribution[timeIndex] & TimeType.ResourceAllocated) == 0)
                     {
-                        distribution[timeIndex] |= TimeType.Middle;
+                        distribution[timeIndex] |=
+                            TimeType.ResourceMiddle |
+                            TimeType.PhaseMiddle |
+                            TimeType.ActivityAllocated;
                     }
                 }
             }
 
             // Find the first Start and the last Finish, then fill in the gaps between them.
-            int firstStartIndex = 0;
-            int lastFinishIndex = distribution.Count - 1;
+            // But just for scheduled activities.
 
-            bool startFound = false;
-            for (int i = 0; i < distribution.Count; i++)
             {
-                if (distribution[i].HasFlag(TimeType.Start)
-                    || distribution[i].HasFlag(TimeType.Finish))
-                {
-                    firstStartIndex = i;
-                    startFound = true;
-                    break;
-                }
-            }
+                int firstStartIndex = 0;
+                int lastFinishIndex = distribution.Count - 1;
 
-            bool endFound = false;
-            for (int i = lastFinishIndex; i >= 0; i--)
-            {
-                if (distribution[i].HasFlag(TimeType.Start)
-                    || distribution[i].HasFlag(TimeType.Finish))
+                bool startFound = false;
+                for (int i = 0; i < distribution.Count; i++)
                 {
-                    lastFinishIndex = i;
-                    endFound = true;
-                    break;
-                }
-            }
-
-            if (startFound
-                || endFound)
-            {
-                for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
-                {
-                    if ((distribution[i] & TimeType.Allocated) == 0)
+                    if (distribution[i].HasFlag(TimeType.ResourceStart)
+                        || distribution[i].HasFlag(TimeType.ResourceFinish))
                     {
-                        distribution[i] |= TimeType.Between;
+                        firstStartIndex = i;
+                        startFound = true;
+                        break;
+                    }
+                }
+
+                bool endFound = false;
+                for (int i = lastFinishIndex; i >= 0; i--)
+                {
+                    if (distribution[i].HasFlag(TimeType.ResourceStart)
+                        || distribution[i].HasFlag(TimeType.ResourceFinish))
+                    {
+                        lastFinishIndex = i;
+                        endFound = true;
+                        break;
+                    }
+                }
+
+                if (startFound
+                    || endFound)
+                {
+                    for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
+                    {
+                        if ((distribution[i] & TimeType.ResourceAllocated) == 0)
+                        {
+                            distribution[i] |= TimeType.ResourceBetween;
+                        }
+                        else
+                        {
+                            distribution[i] |= TimeType.ActivityAllocated;
+                        }
                     }
                 }
             }
+
+            // Now do the same for phases.
+
+            {
+                int firstStartIndex = 0;
+                int lastFinishIndex = distribution.Count - 1;
+
+                bool startFound = false;
+                for (int i = 0; i < distribution.Count; i++)
+                {
+                    if (distribution[i].HasFlag(TimeType.PhaseStart)
+                        || distribution[i].HasFlag(TimeType.PhaseFinish))
+                    {
+                        firstStartIndex = i;
+                        startFound = true;
+                        break;
+                    }
+                }
+
+                bool endFound = false;
+                for (int i = lastFinishIndex; i >= 0; i--)
+                {
+                    if (distribution[i].HasFlag(TimeType.PhaseStart)
+                        || distribution[i].HasFlag(TimeType.PhaseFinish))
+                    {
+                        lastFinishIndex = i;
+                        endFound = true;
+                        break;
+                    }
+                }
+
+                if (startFound
+                    || endFound)
+                {
+                    for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
+                    {
+                        if ((distribution[i] & TimeType.ResourceAllocated) == 0)
+                        {
+                            distribution[i] |= TimeType.PhaseBetween;
+                        }
+                    }
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
 
         private static void AllocationForNoneType(
@@ -402,25 +489,25 @@ namespace Zametek.Maths.Graphs
 
                 if (startIndex == finishIndex)
                 {
-                    distribution[startIndex] |= TimeType.Start | TimeType.Finish;
+                    distribution[startIndex] |= TimeType.ResourceStart | TimeType.ResourceFinish | TimeType.ActivityAllocated;
                 }
                 else
                 {
-                    distribution[startIndex] |= TimeType.Start;
-                    distribution[finishIndex] |= TimeType.Finish;
+                    distribution[startIndex] |= TimeType.ResourceStart | TimeType.ActivityAllocated;
+                    distribution[finishIndex] |= TimeType.ResourceFinish | TimeType.ActivityAllocated;
                 }
 
                 for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                 {
-                    if ((distribution[timeIndex] & TimeType.Allocated) == 0)
+                    if ((distribution[timeIndex] & TimeType.ResourceAllocated) == 0)
                     {
-                        distribution[timeIndex] |= TimeType.Middle;
+                        distribution[timeIndex] |= TimeType.ResourceMiddle | TimeType.ActivityAllocated;
                     }
                 }
             }
         }
 
-        private static void AllocationForNoCostOrEffortActivities(
+        private static void AllocationForNoCostOrBillingOrEffortActivities(
             List<IScheduledActivity<T>> scheduledActivities,
             List<TimeType> distribution)
         {
@@ -568,7 +655,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(activities));
             }
 
-            (List<bool> activityAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation) =
+            (List<bool> resourceAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation, List<bool> activityAllocation) =
                 ExtractAllocations(m_Resource, m_ScheduledActivities.ToList(), activities, finishTime);
 
             return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
@@ -576,10 +663,11 @@ namespace Zametek.Maths.Graphs
                 m_ScheduledActivities,
                 startTime,
                 finishTime,
-                activityAllocation,
+                resourceAllocation,
                 costAllocation,
                 billingAllocation,
-                effortAllocation);
+                effortAllocation,
+                activityAllocation);
         }
 
         #endregion
@@ -590,16 +678,25 @@ namespace Zametek.Maths.Graphs
         private enum TimeType
         {
             None = 0,
-            Start = 1 << 0,
-            Middle = 1 << 1,
-            Between = 1 << 2,
-            Finish = 1 << 3,
+            ResourceStart = 1 << 0,
+            ResourceMiddle = 1 << 1,
+            ResourceBetween = 1 << 2,
+            ResourceFinish = 1 << 3,
 
-            CostIgnored = 1 << 4,
-            BillingIgnored = 1 << 5,
-            EffortIgnored = 1 << 6,
+            PhaseStart = 1 << 4,
+            PhaseMiddle = 1 << 5,
+            PhaseBetween = 1 << 6,
+            PhaseFinish = 1 << 7,
 
-            Allocated = Start | Middle | Between | Finish,
+            ActivityAllocated = 1 << 8,
+
+            CostIgnored = 1 << 9,
+            BillingIgnored = 1 << 10,
+            EffortIgnored = 1 << 11,
+
+            ResourceAllocated =
+                ResourceStart | ResourceMiddle | ResourceBetween | ResourceFinish |
+                PhaseStart | PhaseMiddle | PhaseBetween | PhaseFinish,
         }
 
         #endregion

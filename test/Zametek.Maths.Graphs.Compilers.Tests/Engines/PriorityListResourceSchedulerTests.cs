@@ -233,6 +233,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [],
                 [],
                 [],
+                [],
                 []);
 
             List<IResourceSchedule<int, int, int>> output =
@@ -274,6 +275,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [],
                 [],
                 [],
+                [],
                 []);
 
             var output = scheduler.CollectIndirectResourceSchedules(
@@ -294,6 +296,7 @@ namespace Zametek.Maths.Graphs.Tests
                 resource,
                 [],
                 0, 10,
+                [],
                 [],
                 [],
                 [],
@@ -319,6 +322,7 @@ namespace Zametek.Maths.Graphs.Tests
                 null,
                 [],
                 0, 10,
+                [],
                 [],
                 [],
                 [],
