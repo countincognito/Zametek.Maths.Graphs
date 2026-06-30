@@ -175,10 +175,7 @@ namespace Zametek.Maths.Graphs
 
                 for (int i = 0; i < distribution.Count; i++)
                 {
-                    if ((distribution[i] & TimeType.ResourceAllocated) == 0)
-                    {
-                        distribution[i] |= TimeType.PhaseMiddle;
-                    }
+                    distribution[i] |= TimeType.PhaseMiddle;
                 }
             }
             // Otherwise, we have to go through each activity and find where the
@@ -254,22 +251,12 @@ namespace Zametek.Maths.Graphs
                         finishIndex = 0;
                     }
 
-                    if (startIndex == finishIndex)
-                    {
-                        distribution[startIndex] |= TimeType.PhaseStart | TimeType.PhaseFinish;
-                    }
-                    else
-                    {
-                        distribution[startIndex] |= TimeType.PhaseStart;
-                        distribution[finishIndex] |= TimeType.PhaseFinish;
-                    }
+                    distribution[startIndex] |= TimeType.PhaseStart;
+                    distribution[finishIndex] |= TimeType.PhaseFinish;
 
                     for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                     {
-                        if ((distribution[timeIndex] & TimeType.ResourceAllocated) == 0)
-                        {
-                            distribution[timeIndex] |= TimeType.PhaseMiddle;
-                        }
+                        distribution[timeIndex] |= TimeType.PhaseMiddle;
                     }
                 }
             }
@@ -309,31 +296,14 @@ namespace Zametek.Maths.Graphs
                     finishIndex = 0;
                 }
 
-                if (startIndex == finishIndex)
-                {
-                    distribution[startIndex] |= TimeType.ResourceStart | TimeType.ResourceFinish
-                        | TimeType.PhaseStart | TimeType.PhaseFinish
-                        | TimeType.ActivityAllocated;
-                }
-                else
-                {
-                    distribution[startIndex] |= TimeType.ResourceStart
-                        | TimeType.PhaseStart
-                        | TimeType.ActivityAllocated;
-
-                    distribution[finishIndex] |= TimeType.ResourceFinish
-                        | TimeType.PhaseFinish
-                        | TimeType.ActivityAllocated;
-                }
+                distribution[startIndex] |= TimeType.ResourceStart | TimeType.PhaseStart;
+                distribution[finishIndex] |= TimeType.ResourceFinish | TimeType.PhaseFinish;
 
                 for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                 {
-                    if ((distribution[timeIndex] & TimeType.ResourceAllocated) == 0)
-                    {
-                        distribution[timeIndex] |= TimeType.ResourceMiddle
-                            | TimeType.PhaseMiddle
-                            | TimeType.ActivityAllocated;
-                    }
+                    distribution[timeIndex] |= TimeType.ResourceMiddle
+                        | TimeType.PhaseMiddle
+                        | TimeType.ActivityAllocated;
                 }
             }
 
@@ -373,14 +343,7 @@ namespace Zametek.Maths.Graphs
                 {
                     for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
                     {
-                        if ((distribution[i] & TimeType.ResourceAllocated) == 0)
-                        {
-                            distribution[i] |= TimeType.ResourceBetween;
-                        }
-                        else
-                        {
-                            distribution[i] |= TimeType.ActivityAllocated;
-                        }
+                        distribution[i] |= TimeType.ResourceBetween;
                     }
                 }
             }
@@ -420,10 +383,7 @@ namespace Zametek.Maths.Graphs
                 {
                     for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
                     {
-                        if ((distribution[i] & TimeType.ResourceAllocated) == 0)
-                        {
-                            distribution[i] |= TimeType.PhaseBetween;
-                        }
+                        distribution[i] |= TimeType.PhaseBetween;
                     }
                 }
             }
@@ -463,24 +423,12 @@ namespace Zametek.Maths.Graphs
                     finishIndex = 0;
                 }
 
-                if (startIndex == finishIndex)
-                {
-                    distribution[startIndex] |= TimeType.ResourceStart
-                        | TimeType.ResourceFinish
-                        | TimeType.ActivityAllocated;
-                }
-                else
-                {
-                    distribution[startIndex] |= TimeType.ResourceStart | TimeType.ActivityAllocated;
-                    distribution[finishIndex] |= TimeType.ResourceFinish | TimeType.ActivityAllocated;
-                }
+                distribution[startIndex] |= TimeType.ResourceStart;
+                distribution[finishIndex] |= TimeType.ResourceFinish;
 
                 for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
                 {
-                    if ((distribution[timeIndex] & TimeType.ResourceAllocated) == 0)
-                    {
-                        distribution[timeIndex] |= TimeType.ResourceMiddle | TimeType.ActivityAllocated;
-                    }
+                    distribution[timeIndex] |= TimeType.ResourceMiddle | TimeType.ActivityAllocated;
                 }
             }
         }
