@@ -30,15 +30,35 @@ jobs:
         run: |
           dotnet build --no-restore --configuration Release
 
+      # No continue-on-error here: a failing test suite must fail the build.
       - name: Run tests
-        continue-on-error: true
         run: |
           dotnet test --no-build --configuration Release --verbosity normal \
-            --logger "trx;LogFileName=results.trx" --results-directory ./TestResults
+            --logger "trx;LogFileName=results.trx" --results-directory ./TestResults \
+            --collect:"XPlat Code Coverage"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
-          path: ./TestResults/*.trx
+          path: ./TestResults/**/*.trx
+
+      - name: Generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        if: always()
+        with:
+          reports: ./TestResults/**/coverage.cobertura.xml
+          targetdir: ./CoverageReport
+          reporttypes: HtmlInline;MarkdownSummaryGithub
+
+      - name: Publish coverage summary
+        if: always()
+        run: cat ./CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: ./CoverageReport

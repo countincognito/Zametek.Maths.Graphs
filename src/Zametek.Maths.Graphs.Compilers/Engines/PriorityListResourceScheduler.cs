@@ -402,7 +402,7 @@ namespace Zametek.Maths.Graphs
             int finishTime)
         {
             HashSet<TResourceId> scheduledIds = scheduledResources
-                .Where(x => x.Resource != null).Select(x => x.Resource.Id).ToHashSet();
+                .Where(x => x.Resource != null).Select(x => x.Resource!.Id).ToHashSet();
             return filteredResources
                 .Where(x => x.InterActivityAllocationType == InterActivityAllocationType.Indirect
                             && !scheduledIds.Contains(x.Id))
@@ -417,7 +417,7 @@ namespace Zametek.Maths.Graphs
             HashSet<TWorkStreamId> workstreamsUsed)
         {
             HashSet<TWorkStreamId> resourcePhases = totalSchedules
-                .Where(x => x.Resource != null).SelectMany(x => x.Resource.InterActivityPhases).Distinct().ToHashSet();
+                .Where(x => x.Resource != null).SelectMany(x => x.Resource!.InterActivityPhases).Distinct().ToHashSet();
             return resourcePhases.Intersect(workstreamsUsed).ToHashSet();
         }
 

@@ -36,7 +36,7 @@ namespace Zametek.Maths.Graphs
 
         #region ITransitiveReducer
 
-        public Dictionary<T, HashSet<T>> GetAncestorNodesLookup()
+        public Dictionary<T, HashSet<T>>? GetAncestorNodesLookup()
         {
             if (!m_State.AllDependenciesSatisfied)
             {
@@ -51,7 +51,7 @@ namespace Zametek.Maths.Graphs
 
         public bool ReduceGraph()
         {
-            IDictionary<T, HashSet<T>> ancestorNodesLookup = GetAncestorNodesLookup();
+            IDictionary<T, HashSet<T>>? ancestorNodesLookup = GetAncestorNodesLookup();
 
             if (ancestorNodesLookup is null)
             {

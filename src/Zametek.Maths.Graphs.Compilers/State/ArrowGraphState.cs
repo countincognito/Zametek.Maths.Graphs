@@ -28,9 +28,11 @@ namespace Zametek.Maths.Graphs
 
         #region Properties
 
-        public Node<T, IEvent<T>> StartNode { get; set; }
+        // Set by the builder's Initialize()/graph assimilation immediately after
+        // construction (and re-set after every Clear), so consumers never observe null.
+        public Node<T, IEvent<T>> StartNode { get; set; } = null!;
 
-        public Node<T, IEvent<T>> EndNode { get; set; }
+        public Node<T, IEvent<T>> EndNode { get; set; } = null!;
 
         public IEnumerable<T> EdgeIds => m_EdgeLookup.Keys;
 
@@ -184,8 +186,8 @@ namespace Zametek.Maths.Graphs
             m_UnsatisfiedSuccessorsLookup.Clear();
             m_EdgeHeadNodeLookup.Clear();
             m_EdgeTailNodeLookup.Clear();
-            StartNode = null;
-            EndNode = null;
+            StartNode = null!;
+            EndNode = null!;
         }
 
         // Validation helpers used by the graph-loading builder constructor.

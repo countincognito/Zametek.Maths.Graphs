@@ -11,7 +11,7 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        private readonly IResource<TResourceId, TWorkStreamId> m_Resource;
+        private readonly IResource<TResourceId, TWorkStreamId>? m_Resource;
         private readonly LinkedList<IScheduledActivity<T>> m_ScheduledActivities;
 
         #endregion
@@ -60,7 +60,7 @@ namespace Zametek.Maths.Graphs
         #region Private Methods
 
         private static (List<bool> resourceAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation, List<bool> activityAllocation) ExtractAllocations(
-            IResource<TResourceId, TWorkStreamId> resource,
+            IResource<TResourceId, TWorkStreamId>? resource,
             List<IScheduledActivity<T>> scheduledActivities,
             List<IActivity<T, TResourceId, TWorkStreamId>> activities,
             int finishTime)
@@ -89,7 +89,8 @@ namespace Zametek.Maths.Graphs
             // Indirect.
             if (interActivityAllocationType == InterActivityAllocationType.Indirect)
             {
-                AllocationForUnscheduledActivityTypes(resource, activities, scheduledActivities, distribution);
+                // The Indirect allocation type can only come from a non-null resource.
+                AllocationForUnscheduledActivityTypes(resource!, activities, scheduledActivities, distribution);
                 AllocationForScheduledActivitiesTypes(scheduledActivities, distribution);
             }
             // None.

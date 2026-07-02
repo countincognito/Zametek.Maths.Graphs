@@ -60,7 +60,7 @@ namespace Zametek.Maths.Graphs
         }
 
         public DependentActivity(
-            T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
+            T id, string? name, string? notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
             IEnumerable<T> dependencies, IEnumerable<T> planningDependencies, IEnumerable<T> resourceDependencies, IEnumerable<T> successors,
             LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoBilling, bool hasNoEffort,
             int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime, int? maximumLatestFinishTime)

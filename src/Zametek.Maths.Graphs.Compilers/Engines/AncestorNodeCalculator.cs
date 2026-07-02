@@ -9,7 +9,7 @@ namespace Zametek.Maths.Graphs
     // dependency checks and supply this calculation with a node-space view of the graph.
     internal static class AncestorNodeCalculator
     {
-        public static Dictionary<T, HashSet<T>> GetAncestorNodesLookup<T>(
+        public static Dictionary<T, HashSet<T>>? GetAncestorNodesLookup<T>(
             IAncestorGraphView<T> view,
             IReadOnlyCollection<ICircularDependency<T>> circularDependencies)
             where T : struct, IComparable<T>, IEquatable<T>

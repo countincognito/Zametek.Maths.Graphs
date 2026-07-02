@@ -27,7 +27,7 @@ namespace Zametek.Maths.Graphs
         }
 
         public Activity(
-            T id, string name, string notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
+            T id, string? name, string? notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
             LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoBilling,
             bool hasNoEffort, int duration, int? freeSlack, int? earliestStartTime, int? latestFinishTime, int? minimumFreeSlack, int? minimumEarliestStartTime,
             int? maximumLatestFinishTime)
@@ -69,13 +69,13 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public string Name
+        public string? Name
         {
             get;
             set;
         }
 
-        public string Notes
+        public string? Notes
         {
             get;
             set;

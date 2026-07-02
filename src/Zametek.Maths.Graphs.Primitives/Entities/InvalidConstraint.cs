@@ -39,7 +39,7 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as InvalidConstraint<T>);
         }
@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
-        public bool Equals(InvalidConstraint<T> other)
+        public bool Equals(InvalidConstraint<T>? other)
         {
             if (other is null)
             {

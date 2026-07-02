@@ -1,17 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>Zametek.Maths.Graphs</RootNamespace>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Authors>countincognito</Authors>
-    <Company>countincognito</Company>
-    <Copyright>Copyright (c) 2026 Riccardo M Bennett-Lovsey</Copyright>
-    <PackageProjectUrl>https://github.com/countincognito/Zametek.Maths.Graphs</PackageProjectUrl>
     <Description>Base and basic builders, compilers and extensions for creating vertex and arrow directed graphs. Includes the following capabilities: dynamic dependency resolution for activities; transitive reduction; edge redirection; critical path calculation; activity priority calculation; mapped and unmapped resource scheduling.</Description>
-    <Version>3.0.1</Version>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <NeutralLanguage>en-GB</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,13 +12,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Zametek.Utility" Version="3.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

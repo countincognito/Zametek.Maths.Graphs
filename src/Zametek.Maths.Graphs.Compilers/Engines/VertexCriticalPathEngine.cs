@@ -69,7 +69,7 @@ namespace Zametek.Maths.Graphs
                 node.Content.EarliestStartTime = earliestStartTime;
 
                 // Latest Finish Time.
-                int latestFinishTime = node.Content.EarliestFinishTime.Value;
+                int latestFinishTime = node.Content.EarliestFinishTime!.Value;
 
                 if (node.Content.MaximumLatestFinishTime.HasValue)
                 {
@@ -127,7 +127,7 @@ namespace Zametek.Maths.Graphs
                 foreach (T outgoingEdgeId in node.OutgoingEdges)
                 {
                     Edge<T, IEvent<T>> outgoingEdge = state.Edge(outgoingEdgeId);
-                    int earliestFinishTime = node.Content.EarliestFinishTime.Value;
+                    int earliestFinishTime = node.Content.EarliestFinishTime!.Value;
 
                     if (node.Content.MinimumFreeSlack.HasValue)
                     {
@@ -173,7 +173,7 @@ namespace Zametek.Maths.Graphs
                         {
                             int earliestStartTime = dependencyNodeIncomingEdgeIds
                                 .Select(x => state.Edge(x))
-                                .Max(x => x.Content.EarliestFinishTime.Value);
+                                .Max(x => x.Content.EarliestFinishTime!.Value);
 
                             if (dependencyNode.Content.MinimumEarliestStartTime.HasValue)
                             {
@@ -200,7 +200,7 @@ namespace Zametek.Maths.Graphs
                             dependencyNode.Content.EarliestStartTime = earliestStartTime;
                         }
 
-                        int earliestFinishTime = dependencyNode.Content.EarliestFinishTime.Value;
+                        int earliestFinishTime = dependencyNode.Content.EarliestFinishTime!.Value;
 
                         if (dependencyNode.Content.MaximumLatestFinishTime.HasValue)
                         {
@@ -253,7 +253,7 @@ namespace Zametek.Maths.Graphs
                 {
                     int earliestStartTime = nodeIncomingEdgeIds
                         .Select(x => state.Edge(x))
-                        .Max(x => x.Content.EarliestFinishTime.Value);
+                        .Max(x => x.Content.EarliestFinishTime!.Value);
 
                     if (node.Content.MinimumEarliestStartTime.HasValue)
                     {
@@ -282,7 +282,7 @@ namespace Zametek.Maths.Graphs
 
                 if (!node.Content.LatestFinishTime.HasValue)
                 {
-                    int latestFinishTime = node.Content.EarliestFinishTime.Value;
+                    int latestFinishTime = node.Content.EarliestFinishTime!.Value;
 
                     if (node.Content.MaximumLatestFinishTime.HasValue)
                     {
@@ -357,8 +357,8 @@ namespace Zametek.Maths.Graphs
             var completedEdgeIds = new HashSet<T>();
             var remainingEdgeIds = new HashSet<T>(state.EdgeIds);
 
-            int endNodesEndTime = endNodesList.Select(x => x.Content.LatestFinishTime.Value).DefaultIfEmpty().Max();
-            int isolatedNodesEndTime = isolatedNodesList.Select(x => x.Content.LatestFinishTime.Value).DefaultIfEmpty().Max();
+            int endNodesEndTime = endNodesList.Select(x => x.Content.LatestFinishTime!.Value).DefaultIfEmpty().Max();
+            int isolatedNodesEndTime = isolatedNodesList.Select(x => x.Content.LatestFinishTime!.Value).DefaultIfEmpty().Max();
             int endTime = Math.Max(endNodesEndTime, isolatedNodesEndTime);
 
             // Complete the End nodes first.
@@ -434,7 +434,7 @@ namespace Zametek.Maths.Graphs
                         {
                             int latestFinishTime = successorNodeOutgoingEdgeIds
                                 .Select(x => state.Edge(x))
-                                .Min(x => x.Content.LatestFinishTime.Value);
+                                .Min(x => x.Content.LatestFinishTime!.Value);
 
                             if (successorNode.Content.MaximumLatestFinishTime.HasValue)
                             {
@@ -454,7 +454,7 @@ namespace Zametek.Maths.Graphs
                         {
                             int latestFinishTime = successorNodeOutgoingEdgeIds
                                 .Select(x => state.EdgeHeadNode(x))
-                                .Min(x => x.Content.EarliestStartTime.Value);
+                                .Min(x => x.Content.EarliestStartTime!.Value);
 
                             if (successorNode.Content.LatestFinishTime.HasValue)
                             {
@@ -512,7 +512,7 @@ namespace Zametek.Maths.Graphs
                 {
                     int latestFinishTime = nodeOutgoingEdgeIds
                         .Select(x => state.Edge(x))
-                        .Select(x => x.Content.LatestFinishTime.Value)
+                        .Select(x => x.Content.LatestFinishTime!.Value)
                         .DefaultIfEmpty()
                         .Min();
 
@@ -545,7 +545,7 @@ namespace Zametek.Maths.Graphs
                 {
                     int latestFinishTime = nodeOutgoingEdgeIds
                         .Select(x => state.EdgeHeadNode(x))
-                        .Select(x => x.Content.EarliestStartTime.Value)
+                        .Select(x => x.Content.EarliestStartTime!.Value)
                         .DefaultIfEmpty()
                         .Min();
 
@@ -610,8 +610,8 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
-            int endNodesEndTime = endNodesList.Select(x => x.Content.LatestFinishTime.Value).DefaultIfEmpty().Max();
-            int isolatedNodesEndTime = isolatedNodesList.Select(x => x.Content.LatestFinishTime.Value).DefaultIfEmpty().Max();
+            int endNodesEndTime = endNodesList.Select(x => x.Content.LatestFinishTime!.Value).DefaultIfEmpty().Max();
+            int isolatedNodesEndTime = isolatedNodesList.Select(x => x.Content.LatestFinishTime!.Value).DefaultIfEmpty().Max();
             int endTime = Math.Max(endNodesEndTime, isolatedNodesEndTime);
 
             // Now backfill the Isolated Nodes.

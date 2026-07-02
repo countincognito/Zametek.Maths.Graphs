@@ -8,7 +8,7 @@ namespace Zametek.Maths.Graphs
     {
         #region Ctors
 
-        public ScheduledActivity(T id, string name, bool hasNoCost, bool hasNoBilling, bool hasNoEffort, int duration, int startTime, int finishTime)
+        public ScheduledActivity(T id, string? name, bool hasNoCost, bool hasNoBilling, bool hasNoEffort, int duration, int startTime, int finishTime)
         {
             Id = id;
             Name = name;
@@ -29,7 +29,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public string Name
+        public string? Name
         {
             get;
         }

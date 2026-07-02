@@ -92,7 +92,7 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as Node<T, TContent>);
         }
@@ -112,7 +112,7 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
-        public bool Equals(Node<T, TContent> other)
+        public bool Equals(Node<T, TContent>? other)
         {
             if (other is null)
             {

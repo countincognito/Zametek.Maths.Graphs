@@ -50,7 +50,7 @@ namespace Zametek.Maths.Graphs
             IEventGenerator<T> eventGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
-            IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine = null)
+            IResourceSchedulingEngine<T, TResourceId, TWorkStreamId>? resourceSchedulingEngine = null)
         {
             m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
             m_EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
 
             m_State = new VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>();
-            WhenTesting = false;
+            ShuffleProcessingOrder = false;
             m_TransitiveReducer = CreateTransitiveReducer();
         }
 
@@ -98,7 +98,7 @@ namespace Zametek.Maths.Graphs
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
             m_State = new VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>();
-            WhenTesting = false;
+            ShuffleProcessingOrder = false;
 
             foreach (Edge<T, IEvent<T>> edge in graph.Edges)
             {
@@ -198,7 +198,10 @@ namespace Zametek.Maths.Graphs
         public int FinishTime =>
             Activities.Select(x => x.LatestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
 
-        public bool WhenTesting { get; set; }
+        // When true, the critical-path passes process remaining edges in a random
+        // order on each iteration. The results must be identical either way; tests
+        // enable this to prove the calculation is order-independent.
+        public bool ShuffleProcessingOrder { get; set; }
 
         #endregion
 
@@ -574,7 +577,7 @@ namespace Zametek.Maths.Graphs
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(
                 Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
 
-        public Dictionary<T, HashSet<T>> GetAncestorNodesLookup()
+        public Dictionary<T, HashSet<T>>? GetAncestorNodesLookup()
         {
             return m_TransitiveReducer.GetAncestorNodesLookup();
         }
@@ -641,7 +644,7 @@ namespace Zametek.Maths.Graphs
             return m_CriticalPathEngine.CalculateCriticalPathForwardFlow(
                 m_State,
                 new List<IInvalidConstraint<T>>(),
-                WhenTesting);
+                ShuffleProcessingOrder);
         }
 
         // Returns bool (vs throwing) so tests can assert the return value directly.
@@ -658,7 +661,7 @@ namespace Zametek.Maths.Graphs
             return m_CriticalPathEngine.CalculateCriticalPathBackwardFlow(
                 m_State,
                 new List<IInvalidConstraint<T>>(),
-                WhenTesting);
+                ShuffleProcessingOrder);
         }
 
         // Exposes the priority list calculation used internally by CalculateResourceSchedulesByPriorityList.
@@ -681,12 +684,12 @@ namespace Zametek.Maths.Graphs
                 ? FindInvalidPreCompilationConstraints()
                 : new List<IInvalidConstraint<T>>();
 
-            if (!m_CriticalPathEngine.CalculateCriticalPathForwardFlow(m_State, constraints, WhenTesting))
+            if (!m_CriticalPathEngine.CalculateCriticalPathForwardFlow(m_State, constraints, ShuffleProcessingOrder))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathForwardFlow);
             }
 
-            if (!m_CriticalPathEngine.CalculateCriticalPathBackwardFlow(m_State, constraints, WhenTesting))
+            if (!m_CriticalPathEngine.CalculateCriticalPathBackwardFlow(m_State, constraints, ShuffleProcessingOrder))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPathBackwardFlow);
             }
@@ -830,7 +833,7 @@ namespace Zametek.Maths.Graphs
                 // Get the critical path in order of earliest start time.
                 int minFloat = graphBuilder.Activities
                     .Where(x => !x.IsDummy && x.TotalSlack.HasValue)
-                    .Select(x => x.TotalSlack.Value)
+                    .Select(x => x.TotalSlack!.Value)
                     .DefaultIfEmpty()
                     .Min();
 
@@ -865,7 +868,9 @@ namespace Zametek.Maths.Graphs
             bool edgesCleanedUp = CleanUpEdges();
             if (!edgesCleanedUp)
             {
-                return null;
+                // Throw rather than silently return null: a graph that cannot be
+                // cleaned up cannot be faithfully exported.
+                throw new InvalidOperationException(Properties.Resources.Message_UnableToRemoveUnnecessaryEdges);
             }
             return new Graph<T, IEvent<T>, TActivity>(
                 m_State.Edges.Select(x => (Edge<T, IEvent<T>>)x.CloneObject()),
@@ -1028,7 +1033,7 @@ namespace Zametek.Maths.Graphs
         {
             foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> schedule in resourceSchedules)
             {
-                IResource<TResourceId, TWorkStreamId> resource = schedule.Resource;
+                IResource<TResourceId, TWorkStreamId>? resource = schedule.Resource;
                 T previousId = default;
                 bool first = true;
 

@@ -56,7 +56,7 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as Graph<T, TEdgeContent, TNodeContent>);
         }
@@ -76,7 +76,7 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
-        public bool Equals(Graph<T, TEdgeContent, TNodeContent> other)
+        public bool Equals(Graph<T, TEdgeContent, TNodeContent>? other)
         {
             if (other is null)
             {

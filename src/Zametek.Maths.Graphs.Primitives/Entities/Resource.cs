@@ -11,7 +11,7 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         public Resource(
-            T id, string name, bool isExplicitTarget, bool isInactive,
+            T id, string? name, bool isExplicitTarget, bool isInactive,
             InterActivityAllocationType interActivityAllocationType,
             double unitCost, double unitBilling, int allocationOrder,
             IEnumerable<TWorkStreamId> interActivityPhases)
@@ -40,7 +40,7 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
-        public string Name
+        public string? Name
         {
             get;
         }

@@ -8,6 +8,7 @@
         public GraphCompilationError(GraphCompilationErrorCode errorCode)
         {
             ErrorCode = errorCode;
+            ErrorMessage = string.Empty;
         }
 
         public GraphCompilationError(

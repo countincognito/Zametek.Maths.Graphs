@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Zametek.Maths.Graphs
 {
@@ -60,7 +60,10 @@ namespace Zametek.Maths.Graphs
 
         public object CloneObject()
         {
-            return new Event<T>(Id, EarliestFinishTime, LatestFinishTime);
+            return new Event<T>(Id, EarliestFinishTime, LatestFinishTime)
+            {
+                CanBeRemoved = CanBeRemoved,
+            };
         }
 
         #endregion

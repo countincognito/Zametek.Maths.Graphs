@@ -42,7 +42,7 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as UnavailableResources<T, TResourceId>);
         }
@@ -62,7 +62,7 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
-        public bool Equals(UnavailableResources<T, TResourceId> other)
+        public bool Equals(UnavailableResources<T, TResourceId>? other)
         {
             if (other is null)
             {

@@ -11,7 +11,8 @@ namespace Zametek.Maths.Graphs
     {
         public TActivity Generate(T id)
         {
-            return new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TActivity;
+            return new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TActivity
+                ?? throw new InvalidOperationException($@"Unable to create a dummy activity assignable to type {typeof(TActivity).FullName}");
         }
     }
 }

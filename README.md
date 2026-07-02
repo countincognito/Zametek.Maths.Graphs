@@ -376,6 +376,13 @@ Custom engines read graph state through the read-only `IArrowGraphState<…>` / 
 
 ## Breaking changes
 
+### Unreleased
+
+- The builders' `WhenTesting` property is renamed to `ShuffleProcessingOrder`, which is what it actually does: when true, the critical-path passes process remaining edges in a random order on each iteration (results are identical either way; tests use it to prove order-independence).
+- `ArrowGraphBuilder.ToGraph()` and `VertexGraphBuilder.ToGraph()` now throw `InvalidOperationException` when the graph cannot be cleaned up, instead of silently returning `null`.
+- Both packages now compile with **nullable reference types** enabled and the public API is annotated. Notable contract changes for consumers with nullable enabled: `IActivity.Name`/`Notes`, `IResource.Name` and `IScheduledActivity.Name` are `string?`; `IResourceSchedule.Resource` is nullable (unmapped/synthetic schedules carry no resource); `ITransitiveReducer.GetAncestorNodesLookup()` and the builders' `GetAncestorNodesLookup()` are declared nullable (they return `null` for unsatisfied or circular dependencies, as before).
+- `DummyActivityGenerator<…>.Generate` now throws `InvalidOperationException` if the created dummy activity is not assignable to `TActivity`, instead of returning `null`.
+
 ### 3.0.0
 
 - `ICanBeRemoved` now declares `SetAsReadOnly()` and `SetAsRemovable()`. Previously these mutators lived only on `IActivity<…>` and the concrete `Event` / `Activity` types, leaving `IEvent<T>` asymmetric. Any external type implementing `IEvent<T>` - or `ICanBeRemoved` directly - must now provide both methods. This makes events symmetric with activities and allows `RemovableEventGenerator<T>` to decorate any `IEventGenerator<T>` (defaulting to `EventGenerator<T>`) instead of constructing events directly.

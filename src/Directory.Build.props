@@ -1,0 +1,44 @@
+<Project>
+
+  <!-- Shared metadata for all packable src projects. Version lives here so the
+       two packages can never drift apart. -->
+  <PropertyGroup>
+    <Version>3.0.1</Version>
+    <Authors>countincognito</Authors>
+    <Company>countincognito</Company>
+    <Copyright>Copyright (c) 2026 Riccardo M Bennett-Lovsey</Copyright>
+    <NeutralLanguage>en-GB</NeutralLanguage>
+    <PackageProjectUrl>https://github.com/countincognito/Zametek.Maths.Graphs</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/countincognito/Zametek.Maths.Graphs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>graph;scheduling;critical-path;cpm;pert;project-planning;resource-scheduling</PackageTags>
+  </PropertyGroup>
+
+  <!-- Deterministic builds, SourceLink and symbol packages for debuggability. -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Ship IntelliSense docs. CS1591 (missing XML comment) is suppressed until
+       the public surface is fully documented; remove the NoWarn once it is. -->
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

@@ -13,7 +13,7 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         public ResourceSchedule(
-            IResource<TResourceId, TWorkStreamId> resource,
+            IResource<TResourceId, TWorkStreamId>? resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int startTime,
             int finishTime,
@@ -55,7 +55,7 @@ namespace Zametek.Maths.Graphs
 
         #region IResourceSchedule<T> Members
 
-        public IResource<TResourceId, TWorkStreamId> Resource
+        public IResource<TResourceId, TWorkStreamId>? Resource
         {
             get;
         }
@@ -102,7 +102,7 @@ namespace Zametek.Maths.Graphs
 
         public object CloneObject()
         {
-            IResource<TResourceId, TWorkStreamId> resource = null;
+            IResource<TResourceId, TWorkStreamId>? resource = null;
             if (Resource != null)
             {
                 resource = (IResource<TResourceId, TWorkStreamId>)Resource.CloneObject();

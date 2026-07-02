@@ -30,8 +30,9 @@ namespace Zametek.Maths.Graphs
         private readonly IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
         private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
         private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
-        private IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator;
-        private ITransitiveReducer<T> m_TransitiveReducer;
+        // Assigned in Initialize()/graph assimilation, which every constructor calls.
+        private IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator = null!;
+        private ITransitiveReducer<T> m_TransitiveReducer = null!;
 
         #endregion
 
@@ -71,7 +72,7 @@ namespace Zametek.Maths.Graphs
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
             m_State = new ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>();
-            WhenTesting = false;
+            ShuffleProcessingOrder = false;
             Initialize();
         }
 
@@ -117,7 +118,7 @@ namespace Zametek.Maths.Graphs
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
 
             m_State = new ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>();
-            WhenTesting = false;
+            ShuffleProcessingOrder = false;
 
             foreach (Edge<T, TActivity> edge in graph.Edges)
             {
@@ -225,7 +226,10 @@ namespace Zametek.Maths.Graphs
         public int FinishTime =>
             Activities.Select(x => x.LatestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
 
-        public bool WhenTesting { get; set; }
+        // When true, the critical-path passes process remaining edges in a random
+        // order on each iteration. The results must be identical either way; tests
+        // enable this to prove the calculation is order-independent.
+        public bool ShuffleProcessingOrder { get; set; }
 
         #endregion
 
@@ -391,7 +395,7 @@ namespace Zametek.Maths.Graphs
         public List<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
 
-        public Dictionary<T, HashSet<T>> GetAncestorNodesLookup()
+        public Dictionary<T, HashSet<T>>? GetAncestorNodesLookup()
         {
             return m_TransitiveReducer.GetAncestorNodesLookup();
         }
@@ -430,12 +434,12 @@ namespace Zametek.Maths.Graphs
             List<IInvalidConstraint<T>> constraints = allDependenciesSatisfied
                 ? FindInvalidPreCompilationConstraints() : new List<IInvalidConstraint<T>>();
 
-            if (!m_CriticalPathEngine.CalculateEventEarliestFinishTimes(m_State, constraints, WhenTesting))
+            if (!m_CriticalPathEngine.CalculateEventEarliestFinishTimes(m_State, constraints, ShuffleProcessingOrder))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventEarliestFinishTimes);
             }
 
-            if (!m_CriticalPathEngine.CalculateEventLatestFinishTimes(m_State, constraints, WhenTesting))
+            if (!m_CriticalPathEngine.CalculateEventLatestFinishTimes(m_State, constraints, ShuffleProcessingOrder))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventLatestFinishTimes);
             }
@@ -510,7 +514,9 @@ namespace Zametek.Maths.Graphs
         {
             if (!CleanUpEdges())
             {
-                return null;
+                // Throw rather than silently return null: a graph that cannot be
+                // cleaned up cannot be faithfully exported.
+                throw new InvalidOperationException(Properties.Resources.Message_UnableToRemoveUnnecessaryEdges);
             }
             return new Graph<T, TActivity, IEvent<T>>(
                 m_State.Edges.Select(x => (Edge<T, TActivity>)x.CloneObject()),
@@ -666,7 +672,7 @@ namespace Zametek.Maths.Graphs
                 // Get the critical path in order of earliest start time.
                 int minFloat = graphBuilder.Activities
                     .Where(x => !x.IsDummy && x.TotalSlack.HasValue)
-                    .Select(x => x.TotalSlack.Value)
+                    .Select(x => x.TotalSlack!.Value)
                     .DefaultIfEmpty().Min();
 
                 IList<T> criticalActivityIds = graphBuilder.Activities
