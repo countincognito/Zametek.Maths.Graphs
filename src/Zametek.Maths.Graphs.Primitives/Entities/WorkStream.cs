@@ -34,6 +34,12 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        /// <inheritdoc/>
+        public IWorkStream<T> Clone()
+        {
+            return (IWorkStream<T>)CloneObject();
+        }
+
         public object CloneObject()
         {
             return new WorkStream<T>(Id, Name, IsPhase);

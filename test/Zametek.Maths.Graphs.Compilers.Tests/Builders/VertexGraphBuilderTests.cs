@@ -24,7 +24,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphBuilder_GivenCtorCalledWithNullEdgeIdGenerator_ThenShouldThrowArgumentNullException()
         {
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(null);
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>((IIdGenerator<int>)null);
             act.ShouldThrow<ArgumentNullException>();
         }
 

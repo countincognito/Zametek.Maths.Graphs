@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs
     /// <typeparam name="T">The resource ID type.</typeparam>
     /// <typeparam name="TWorkStreamId">The work-stream ID type.</typeparam>
     public interface IResource<out T, TWorkStreamId>
-        : IHaveId<T>, ICloneObject
+        : IHaveId<T>, ICloneObject<IResource<T, TWorkStreamId>>
         where T : struct, IComparable<T>, IEquatable<T>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {

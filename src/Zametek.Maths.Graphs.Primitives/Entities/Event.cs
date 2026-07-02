@@ -58,6 +58,12 @@ namespace Zametek.Maths.Graphs
             CanBeRemoved = true;
         }
 
+        /// <inheritdoc/>
+        public IEvent<T> Clone()
+        {
+            return (IEvent<T>)CloneObject();
+        }
+
         public object CloneObject()
         {
             return new Event<T>(Id, EarliestFinishTime, LatestFinishTime)

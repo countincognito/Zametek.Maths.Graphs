@@ -64,6 +64,12 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        /// <inheritdoc/>
+        public IScheduledActivity<T> Clone()
+        {
+            return (IScheduledActivity<T>)CloneObject();
+        }
+
         public object CloneObject()
         {
             return new ScheduledActivity<T>(Id, Name, HasNoCost, HasNoBilling, HasNoEffort, Duration, StartTime, FinishTime);

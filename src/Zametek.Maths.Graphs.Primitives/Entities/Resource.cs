@@ -80,6 +80,12 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        /// <inheritdoc/>
+        public IResource<T, TWorkStreamId> Clone()
+        {
+            return (IResource<T, TWorkStreamId>)CloneObject();
+        }
+
         public object CloneObject()
         {
             return new Resource<T, TWorkStreamId>(

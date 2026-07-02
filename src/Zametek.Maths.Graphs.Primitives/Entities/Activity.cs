@@ -247,6 +247,12 @@ namespace Zametek.Maths.Graphs
             CanBeRemoved = true;
         }
 
+        /// <inheritdoc/>
+        public IActivity<T, TResourceId, TWorkStreamId> Clone()
+        {
+            return (IActivity<T, TResourceId, TWorkStreamId>)CloneObject();
+        }
+
         public virtual object CloneObject()
         {
             return new Activity<T, TResourceId, TWorkStreamId>(

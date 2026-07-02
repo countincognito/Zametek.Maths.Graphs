@@ -28,6 +28,9 @@ namespace Zametek.Maths.Graphs
         private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
         private readonly VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
         private readonly ITransitiveReducer<T> m_TransitiveReducer;
+        // Default factory; overwritten by the engines-bundle constructors.
+        private readonly IVertexTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity> m_TransitiveReducerFactory =
+            new VertexTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity>();
 
         #endregion
 
@@ -42,6 +45,37 @@ namespace Zametek.Maths.Graphs
                   new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
+        }
+
+        // Engines-bundle constructor - every engine/factory defaults to the standard
+        // implementation; set only the bundle properties to customise. Additions to
+        // the bundle do not break this signature.
+        public VertexGraphBuilder(VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
+            : this(
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
+                  engines.EventGenerator,
+                  engines.SccFinder,
+                  engines.CriticalPathEngine,
+                  engines.ResourceSchedulingEngine)
+        {
+            m_TransitiveReducerFactory = engines.TransitiveReducerFactory ?? throw new ArgumentNullException(nameof(engines));
+            m_TransitiveReducer = CreateTransitiveReducer();
+        }
+
+        // Engines-bundle graph-loading constructor.
+        public VertexGraphBuilder(
+            Graph<T, IEvent<T>, TActivity> graph,
+            VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
+            : this(
+                  graph,
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
+                  engines.EventGenerator,
+                  engines.SccFinder,
+                  engines.CriticalPathEngine,
+                  engines.ResourceSchedulingEngine)
+        {
+            m_TransitiveReducerFactory = engines.TransitiveReducerFactory ?? throw new ArgumentNullException(nameof(engines));
+            m_TransitiveReducer = CreateTransitiveReducer();
         }
 
         // Engine-injecting constructor - supply custom engines + event generator.
@@ -1197,9 +1231,7 @@ namespace Zametek.Maths.Graphs
 
         private ITransitiveReducer<T> CreateTransitiveReducer()
         {
-            return new VertexTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>(
-                m_SccFinder,
-                m_State);
+            return m_TransitiveReducerFactory.Create(m_SccFinder, m_State);
         }
 
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
@@ -1277,15 +1309,19 @@ namespace Zametek.Maths.Graphs
             Graph<T, IEvent<T>, TActivity> vertexGraphCopy = ToGraph();
             T minEdgeId = vertexGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
             minEdgeId = minEdgeId.Previous();
-            // Preserve the injected (stateless) engines on the clone; only the id
-            // generator is recreated, since it carries a per-graph counter.
+            // Preserve the injected (stateless) engines and factories on the clone;
+            // only the id generator is recreated, since it carries a per-graph counter.
             return new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 vertexGraphCopy,
-                new PreviousIdGenerator<T>(minEdgeId),
-                m_EventGenerator,
-                m_SccFinder,
-                m_CriticalPathEngine,
-                m_ResourceSchedulingEngine);
+                new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                {
+                    EdgeIdGenerator = new PreviousIdGenerator<T>(minEdgeId),
+                    EventGenerator = m_EventGenerator,
+                    SccFinder = m_SccFinder,
+                    CriticalPathEngine = m_CriticalPathEngine,
+                    ResourceSchedulingEngine = m_ResourceSchedulingEngine,
+                    TransitiveReducerFactory = m_TransitiveReducerFactory,
+                });
         }
 
         #endregion

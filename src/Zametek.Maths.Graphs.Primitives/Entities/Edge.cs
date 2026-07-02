@@ -3,7 +3,7 @@
 namespace Zametek.Maths.Graphs
 {
     public class Edge<T, TContent>
-        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Edge<T, TContent>>, ICloneObject
+        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Edge<T, TContent>>, ICloneObject<Edge<T, TContent>>
         where T : struct, IComparable<T>, IEquatable<T>
         where TContent : IHaveId<T>, ICloneObject
     {
@@ -71,6 +71,12 @@ namespace Zametek.Maths.Graphs
         #endregion
 
         #region ICloneObject
+
+        /// <inheritdoc/>
+        public Edge<T, TContent> Clone()
+        {
+            return (Edge<T, TContent>)CloneObject();
+        }
 
         public object CloneObject()
         {

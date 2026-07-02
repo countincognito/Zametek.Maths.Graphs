@@ -8,7 +8,7 @@ namespace Zametek.Maths.Graphs
     /// </summary>
     /// <typeparam name="T">The activity ID type.</typeparam>
     public interface IScheduledActivity<out T>
-        : IHaveId<T>, ICloneObject
+        : IHaveId<T>, ICloneObject<IScheduledActivity<T>>
         where T : struct, IComparable<T>, IEquatable<T>
     {
         /// <summary>

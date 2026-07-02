@@ -5,7 +5,7 @@ using System.Linq;
 namespace Zametek.Maths.Graphs
 {
     public class Node<T, TContent>
-        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Node<T, TContent>>, ICloneObject
+        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Node<T, TContent>>, ICloneObject<Node<T, TContent>>
         where T : struct, IComparable<T>, IEquatable<T>
         where TContent : IHaveId<T>, ICloneObject
     {
@@ -127,6 +127,12 @@ namespace Zametek.Maths.Graphs
         #endregion
 
         #region ICloneObject
+
+        /// <inheritdoc/>
+        public Node<T, TContent> Clone()
+        {
+            return (Node<T, TContent>)CloneObject();
+        }
 
         public object CloneObject()
         {

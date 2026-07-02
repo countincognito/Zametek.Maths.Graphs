@@ -100,6 +100,12 @@ namespace Zametek.Maths.Graphs
             get;
         }
 
+        /// <inheritdoc/>
+        public IResourceSchedule<T, TResourceId, TWorkStreamId> Clone()
+        {
+            return (IResourceSchedule<T, TResourceId, TWorkStreamId>)CloneObject();
+        }
+
         public object CloneObject()
         {
             IResource<TResourceId, TWorkStreamId>? resource = null;

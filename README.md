@@ -371,8 +371,20 @@ Every engine the builders rely on sits behind a public interface and can be supp
 - `IArrowCriticalPathEngine<…>` / `IVertexCriticalPathEngine<…>` - critical path calculation.
 - `IArrowStronglyConnectedComponentsFinder<…>` / `IVertexStronglyConnectedComponentsFinder<…>` - cycle detection.
 - `IResourceSchedulingEngine<…>` - resource scheduling and its surrounding pipeline.
+- `IArrowTransitiveReducerFactory<…>` / `IVertexTransitiveReducerFactory<…>` / `IDummyEdgeOrchestratorFactory<…>` - creation of the state-bound engines (transitive reducers and the dummy-edge orchestrator). These engines are bound to a builder's graph state at construction time, so the *factory* is the injection seam; custom factories typically decorate the engine produced by the default factory (`ArrowTransitiveReducerFactory`, `VertexTransitiveReducerFactory`, `DummyEdgeOrchestratorFactory`).
 
-Custom engines read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts; the concrete, mutable state stays internal to the library.
+Rather than the telescoping constructors, engines can also be supplied through an **engines bundle** - `ArrowGraphBuilderEngines<…>` / `VertexGraphBuilderEngines<…>` - where every property defaults to the standard implementation and only the customised ones need setting. The bundle constructors are the stable injection surface: new engines are added as new bundle properties without breaking the signature.
+
+```csharp
+var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
+    new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
+    {
+        CriticalPathEngine = new MyInstrumentedCpmEngine(),   // everything else defaults
+    });
+var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>(builder);
+```
+
+Custom engines read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts; the concrete, mutable state stays internal to the library. Injected engines and factories are preserved through `CloneObject()`.
 
 ## Breaking changes
 
@@ -382,6 +394,7 @@ Custom engines read graph state through the read-only `IArrowGraphState<…>` / 
 - `ArrowGraphBuilder.ToGraph()` and `VertexGraphBuilder.ToGraph()` now throw `InvalidOperationException` when the graph cannot be cleaned up, instead of silently returning `null`.
 - Both packages now compile with **nullable reference types** enabled and the public API is annotated. Notable contract changes for consumers with nullable enabled: `IActivity.Name`/`Notes`, `IResource.Name` and `IScheduledActivity.Name` are `string?`; `IResourceSchedule.Resource` is nullable (unmapped/synthetic schedules carry no resource); `ITransitiveReducer.GetAncestorNodesLookup()` and the builders' `GetAncestorNodesLookup()` are declared nullable (they return `null` for unsatisfied or circular dependencies, as before).
 - `DummyActivityGenerator<…>.Generate` now throws `InvalidOperationException` if the created dummy activity is not assignable to `TActivity`, instead of returning `null`.
+- A strongly-typed `ICloneObject<out T>` (with `T Clone()`) now sits alongside `ICloneObject`, and `IActivity<…>`, `IEvent<…>`, `IResource<…>`, `IWorkStream<…>`, `IScheduledActivity<…>` and `IResourceSchedule<…>` extend it (as do `Edge<…>` and `Node<…>`). Consumers can call `Clone()` instead of casting `CloneObject()`. External types implementing those interfaces must now also provide the typed `Clone()` member.
 
 ### 3.0.0
 

@@ -8,7 +8,7 @@ namespace Zametek.Maths.Graphs
     /// </summary>
     /// <typeparam name="T">The work-stream ID type.</typeparam>
     public interface IWorkStream<out T>
-        : IHaveId<T>, ICloneObject
+        : IHaveId<T>, ICloneObject<IWorkStream<T>>
         where T : struct, IComparable<T>, IEquatable<T>
     {
         /// <summary>

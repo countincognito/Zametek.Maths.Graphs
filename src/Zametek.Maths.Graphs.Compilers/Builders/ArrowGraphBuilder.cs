@@ -33,6 +33,11 @@ namespace Zametek.Maths.Graphs
         // Assigned in Initialize()/graph assimilation, which every constructor calls.
         private IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator = null!;
         private ITransitiveReducer<T> m_TransitiveReducer = null!;
+        // Default factories; overwritten by the engines-bundle constructors.
+        private readonly IDummyEdgeOrchestratorFactory<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestratorFactory =
+            new DummyEdgeOrchestratorFactory<T, TResourceId, TWorkStreamId, TActivity>();
+        private readonly IArrowTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity> m_TransitiveReducerFactory =
+            new ArrowTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity>();
 
         #endregion
 
@@ -51,6 +56,45 @@ namespace Zametek.Maths.Graphs
                   new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
                   new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
         {
+        }
+
+        // Engines-bundle constructor - every engine/factory defaults to the standard
+        // implementation; set only the bundle properties to customise. Additions to
+        // the bundle do not break this signature.
+        public ArrowGraphBuilder(ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
+            : this(
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
+                  engines.NodeIdGenerator,
+                  engines.DummyActivityGenerator,
+                  engines.EventGenerator,
+                  engines.SccFinder,
+                  engines.CriticalPathEngine,
+                  engines.ResourceSchedulingEngine)
+        {
+            m_DummyEdgeOrchestratorFactory = engines.DummyEdgeOrchestratorFactory ?? throw new ArgumentNullException(nameof(engines));
+            m_TransitiveReducerFactory = engines.TransitiveReducerFactory ?? throw new ArgumentNullException(nameof(engines));
+            m_DummyEdgeOrchestrator = CreateOrchestrator();
+            m_TransitiveReducer = CreateTransitiveReducer();
+        }
+
+        // Engines-bundle graph-loading constructor.
+        public ArrowGraphBuilder(
+            Graph<T, TActivity, IEvent<T>> graph,
+            ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
+            : this(
+                  graph,
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
+                  engines.NodeIdGenerator,
+                  engines.DummyActivityGenerator,
+                  engines.EventGenerator,
+                  engines.SccFinder,
+                  engines.CriticalPathEngine,
+                  engines.ResourceSchedulingEngine)
+        {
+            m_DummyEdgeOrchestratorFactory = engines.DummyEdgeOrchestratorFactory ?? throw new ArgumentNullException(nameof(engines));
+            m_TransitiveReducerFactory = engines.TransitiveReducerFactory ?? throw new ArgumentNullException(nameof(engines));
+            m_DummyEdgeOrchestrator = CreateOrchestrator();
+            m_TransitiveReducer = CreateTransitiveReducer();
         }
 
         // Engine-injecting constructor - supply custom engines + dummy/event generators.
@@ -549,7 +593,7 @@ namespace Zametek.Maths.Graphs
 
         private IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> CreateOrchestrator()
         {
-            return new DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>(
+            return m_DummyEdgeOrchestratorFactory.Create(
                 m_EdgeIdGenerator,
                 m_DummyActivityGenerator,
                 m_SccFinder,
@@ -558,7 +602,7 @@ namespace Zametek.Maths.Graphs
 
         private ITransitiveReducer<T> CreateTransitiveReducer()
         {
-            return new ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>(
+            return m_TransitiveReducerFactory.Create(
                 m_DummyEdgeOrchestrator,
                 m_SccFinder,
                 m_State);
@@ -711,15 +755,22 @@ namespace Zametek.Maths.Graphs
             minNodeId = minNodeId.Previous();
             T minEdgeId = arrowGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
             minEdgeId = minEdgeId.Previous();
+            // Preserve the injected (stateless) engines and factories on the clone;
+            // only the id generators are recreated, since they carry per-graph counters.
             return new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 arrowGraphCopy,
-                new PreviousIdGenerator<T>(minEdgeId),
-                new PreviousIdGenerator<T>(minNodeId),
-                m_DummyActivityGenerator,
-                m_EventGenerator,
-                m_SccFinder,
-                m_CriticalPathEngine,
-                m_ResourceSchedulingEngine);
+                new ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                {
+                    EdgeIdGenerator = new PreviousIdGenerator<T>(minEdgeId),
+                    NodeIdGenerator = new PreviousIdGenerator<T>(minNodeId),
+                    DummyActivityGenerator = m_DummyActivityGenerator,
+                    EventGenerator = m_EventGenerator,
+                    SccFinder = m_SccFinder,
+                    CriticalPathEngine = m_CriticalPathEngine,
+                    ResourceSchedulingEngine = m_ResourceSchedulingEngine,
+                    DummyEdgeOrchestratorFactory = m_DummyEdgeOrchestratorFactory,
+                    TransitiveReducerFactory = m_TransitiveReducerFactory,
+                });
         }
 
         #endregion
