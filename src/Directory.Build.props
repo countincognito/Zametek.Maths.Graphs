@@ -26,11 +26,10 @@
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <!-- Ship IntelliSense docs. CS1591 (missing XML comment) is suppressed until
-       the public surface is fully documented; remove the NoWarn once it is. -->
+  <!-- Ship IntelliSense docs. The whole public surface is documented, so a
+       missing XML comment (CS1591) is a warning. -->
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

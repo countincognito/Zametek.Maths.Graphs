@@ -9,6 +9,9 @@ namespace Zametek.Maths.Graphs
     // injected engines (SCC finder, CPM engine, dummy-edge orchestrator, transitive
     // reducer). The public constructors wire up default engine instances; the
     // internal constructors accept injected engines for testability.
+    /// <summary>
+    /// Builds and maintains an Activity-on-Arrow graph (activities on edges, events on nodes): dynamic dependency resolution via dummy edges, transitive reduction and critical-path calculation. Prefer driving it through <see cref="ArrowGraphCompiler{T, TResourceId, TWorkStreamId, TDependentActivity}"/>.
+    /// </summary>
     public class ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>
         : ICloneObject, IResourceSchedulingGraph<T, TResourceId, TWorkStreamId>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
@@ -44,6 +47,9 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         // Public constructor - stable API surface. Wires up default engine instances.
+        /// <summary>
+        /// Creates a builder with default engines, using the given edge (activity) and node (event) ID generators.
+        /// </summary>
         public ArrowGraphBuilder(
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator)
@@ -61,6 +67,9 @@ namespace Zametek.Maths.Graphs
         // Engines-bundle constructor - every engine/factory defaults to the standard
         // implementation; set only the bundle properties to customise. Additions to
         // the bundle do not break this signature.
+        /// <summary>
+        /// Creates a builder from an engines bundle; every bundle property defaults to the standard implementation.
+        /// </summary>
         public ArrowGraphBuilder(ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
             : this(
                   (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
@@ -78,6 +87,9 @@ namespace Zametek.Maths.Graphs
         }
 
         // Engines-bundle graph-loading constructor.
+        /// <summary>
+        /// Creates a builder by assimilating an existing graph, from an engines bundle.
+        /// </summary>
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
             ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
@@ -98,6 +110,9 @@ namespace Zametek.Maths.Graphs
         }
 
         // Engine-injecting constructor - supply custom engines + dummy/event generators.
+        /// <summary>
+        /// Creates a builder with custom engines and generators.
+        /// </summary>
         public ArrowGraphBuilder(
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator,
@@ -121,6 +136,9 @@ namespace Zametek.Maths.Graphs
         }
 
         // Public graph-loading constructor (from existing Graph<T, TActivity, IEvent<T>>).
+        /// <summary>
+        /// Creates a builder by assimilating an existing graph, with default engines.
+        /// </summary>
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
             IIdGenerator<T> edgeIdGenerator,
@@ -138,6 +156,9 @@ namespace Zametek.Maths.Graphs
         }
 
         // Engine-injecting graph-loading constructor.
+        /// <summary>
+        /// Creates a builder by assimilating an existing graph, with custom engines and generators.
+        /// </summary>
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
             IIdGenerator<T> edgeIdGenerator,
@@ -232,70 +253,151 @@ namespace Zametek.Maths.Graphs
 
         #region Properties
 
+        /// <summary>
+        /// The single start node of the arrow graph.
+        /// </summary>
         public Node<T, IEvent<T>> StartNode => m_State.StartNode;
 
+        /// <summary>
+        /// The single end node of the arrow graph.
+        /// </summary>
         public Node<T, IEvent<T>> EndNode => m_State.EndNode;
 
+        /// <summary>
+        /// The nodes with only outgoing edges.
+        /// </summary>
         public IEnumerable<Node<T, IEvent<T>>> StartNodes => m_State.StartNodes;
 
+        /// <summary>
+        /// The nodes with only incoming edges.
+        /// </summary>
         public IEnumerable<Node<T, IEvent<T>>> EndNodes => m_State.EndNodes;
 
+        /// <summary>
+        /// The nodes with both incoming and outgoing edges.
+        /// </summary>
         public IEnumerable<Node<T, IEvent<T>>> NormalNodes => m_State.NormalNodes;
 
+        /// <summary>
+        /// The nodes with no edges at all.
+        /// </summary>
         public IEnumerable<Node<T, IEvent<T>>> IsolatedNodes => m_State.IsolatedNodes;
 
+        /// <summary>
+        /// The IDs of all edges (activities).
+        /// </summary>
         public IEnumerable<T> EdgeIds => m_State.EdgeIds;
 
+        /// <summary>
+        /// The IDs of all nodes (events).
+        /// </summary>
         public IEnumerable<T> NodeIds => m_State.NodeIds;
 
+        /// <summary>
+        /// The activities carried on the edges (including dummy activities).
+        /// </summary>
         public IEnumerable<TActivity> Activities => m_State.Activities;
 
+        /// <summary>
+        /// The events carried on the nodes.
+        /// </summary>
         public IEnumerable<IEvent<T>> Events => m_State.Events;
 
+        /// <summary>
+        /// The IDs of all activities.
+        /// </summary>
         public IEnumerable<T> ActivityIds => Activities.Select(x => x.Id);
 
+        /// <summary>
+        /// The IDs of all events.
+        /// </summary>
         public IEnumerable<T> EventIds => Events.Select(x => x.Id);
 
+        /// <summary>
+        /// All edges (activities).
+        /// </summary>
         public IEnumerable<Edge<T, TActivity>> Edges => m_State.Edges;
 
+        /// <summary>
+        /// All nodes (events).
+        /// </summary>
         public IEnumerable<Node<T, IEvent<T>>> Nodes => m_State.Nodes;
 
+        /// <summary>
+        /// The IDs of dependencies that are referenced but not yet present in the graph.
+        /// </summary>
         public IEnumerable<T> InvalidDependencies => m_State.InvalidDependencies;
 
+        /// <summary>
+        /// Whether every referenced dependency is present in the graph.
+        /// </summary>
         public bool AllDependenciesSatisfied => m_State.AllDependenciesSatisfied;
 
+        /// <summary>
+        /// The earliest start time across all activities.
+        /// </summary>
         public int StartTime =>
             Activities.Select(x => x.EarliestStartTime.GetValueOrDefault()).DefaultIfEmpty().Min();
 
+        /// <summary>
+        /// The latest finish time across all activities.
+        /// </summary>
         public int FinishTime =>
             Activities.Select(x => x.LatestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
 
         // When true, the critical-path passes process remaining edges in a random
         // order on each iteration. The results must be identical either way; tests
         // enable this to prove the calculation is order-independent.
+        /// <summary>
+        /// When true, the critical-path passes process remaining elements in a random order on each iteration (results are identical either way; used to prove order-independence).
+        /// </summary>
         public bool ShuffleProcessingOrder { get; set; }
 
         #endregion
 
         #region Public Methods
 
+        /// <summary>
+        /// Resolves the activity with the given ID.
+        /// </summary>
         public TActivity Activity(T key) => m_State.Edge(key).Content;
 
+        /// <summary>
+        /// Resolves the event with the given ID.
+        /// </summary>
         public IEvent<T> Event(T key) => m_State.Node(key).Content;
 
+        /// <summary>
+        /// Resolves the edge with the given ID.
+        /// </summary>
         public Edge<T, TActivity> Edge(T key) => m_State.Edge(key);
 
+        /// <summary>
+        /// Resolves the node with the given ID.
+        /// </summary>
         public Node<T, IEvent<T>> Node(T key) => m_State.Node(key);
 
+        /// <summary>
+        /// Resolves the node the given edge points to.
+        /// </summary>
         public Node<T, IEvent<T>> EdgeHeadNode(T key) => m_State.EdgeHeadNode(key);
 
+        /// <summary>
+        /// Resolves the node the given edge starts from.
+        /// </summary>
         public Node<T, IEvent<T>> EdgeTailNode(T key) => m_State.EdgeTailNode(key);
 
+        /// <summary>
+        /// Adds an activity with no dependencies. Returns false if the ID already exists.
+        /// </summary>
         public bool AddActivity(TActivity activity)
         {
             return AddActivity(activity, new HashSet<T>());
         }
 
+        /// <summary>
+        /// Adds an activity and wires up the given dependencies. Returns false if the ID already exists.
+        /// </summary>
         public bool AddActivity(TActivity activity, HashSet<T> dependencies)
         {
             if (activity == null)
@@ -370,26 +472,41 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
+        /// <summary>
+        /// Adds the given dependencies to an existing activity.
+        /// </summary>
         public bool AddActivityDependencies(T activityId, HashSet<T> dependencies)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Removes the activity with the given ID. Returns false if it cannot be removed.
+        /// </summary>
         public bool RemoveActivity(T activityId)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Removes the given dependencies from an existing activity.
+        /// </summary>
         public bool RemoveActivityDependencies(T activityId, HashSet<T> dependencies)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Removes a dummy activity edge, merging adjacent nodes where possible.
+        /// </summary>
         public bool RemoveDummyActivity(T activityId)
         {
             return m_DummyEdgeOrchestrator.RemoveDummyActivity(activityId);
         }
 
+        /// <summary>
+        /// Returns the IDs of the activities the given activity currently depends on within the graph.
+        /// </summary>
         public List<T> ActivityDependencyIds(T activityId)
         {
             Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
@@ -405,6 +522,9 @@ namespace Zametek.Maths.Graphs
             return output;
         }
 
+        /// <summary>
+        /// Returns the strong (resolved) dependency IDs for the given activity ID.
+        /// </summary>
         public List<T> StrongActivityDependencyIds(T activityId)
         {
             Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
@@ -427,29 +547,53 @@ namespace Zametek.Maths.Graphs
             return output;
         }
 
+        /// <summary>
+        /// Finds the strongly-connected circular dependencies in the graph.
+        /// </summary>
         public List<ICircularDependency<T>> FindStrongCircularDependencies()
         {
             return m_SccFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: true);
         }
 
+        /// <summary>
+        /// Finds activity constraints that are self-contradictory before compilation.
+        /// </summary>
         public List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPreCompilationConstraints(
                 Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
 
+        /// <summary>
+        /// Finds activity constraints violated by the computed times after compilation.
+        /// </summary>
         public List<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
 
+        /// <summary>
+        /// Builds a lookup from each node ID to the full set of its ancestor node IDs. Returns null if the graph has unsatisfied or circular dependencies.
+        /// </summary>
         public Dictionary<T, HashSet<T>>? GetAncestorNodesLookup()
         {
             return m_TransitiveReducer.GetAncestorNodesLookup();
         }
 
+        /// <summary>
+        /// Performs transitive reduction, removing all redundant dummy edges. Returns false if it cannot be performed.
+        /// </summary>
         public bool TransitiveReduction() => m_TransitiveReducer.ReduceGraph();
 
+        /// <summary>
+        /// Redirects redundant dummy edges (canonical arrow-graph normalisation).
+        /// </summary>
         public bool RedirectEdges() => m_DummyEdgeOrchestrator.RedirectDummyEdges();
 
+        /// <summary>
+        /// Removes dummy edges that are transitively implied.
+        /// </summary>
         public bool RemoveRedundantEdges() => m_DummyEdgeOrchestrator.RemoveRedundantDummyEdges();
 
+        /// <summary>
+        /// Redirects and then removes redundant dummy edges until the graph is minimal.
+        /// </summary>
         public bool CleanUpEdges()
         {
             if (!RedirectEdges())
@@ -465,6 +609,9 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
+        /// <summary>
+        /// Calculates the critical path across the whole graph.
+        /// </summary>
         public void CalculateCriticalPath()
         {
             if (!RemoveRedundantEdges())
@@ -499,12 +646,18 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Returns the activity IDs in scheduling priority order (most critical first).
+        /// </summary>
         public List<T> CalculateCriticalPathPriorityList()
         {
             var tmpGraphBuilder = (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)CloneObject();
             return CalculateCriticalPathPriorityList(tmpGraphBuilder);
         }
 
+        /// <summary>
+        /// Schedules the activities onto the given resources in priority order and returns the per-resource schedules.
+        /// </summary>
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
             List<IResource<TResourceId, TWorkStreamId>> resources)
         {
@@ -554,6 +707,9 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
+        /// <summary>
+        /// Exports the graph structure (cloned edges and nodes). Throws <see cref="InvalidOperationException"/> if the graph cannot be cleaned up.
+        /// </summary>
         public Graph<T, TActivity, IEvent<T>> ToGraph()
         {
             if (!CleanUpEdges())
@@ -567,6 +723,9 @@ namespace Zametek.Maths.Graphs
                 m_State.Nodes.Select(x => (Node<T, IEvent<T>>)x.CloneObject()));
         }
 
+        /// <summary>
+        /// Clears the graph and returns the builder to its initial state.
+        /// </summary>
         public void Reset()
         {
             m_State.Clear();
@@ -748,6 +907,7 @@ namespace Zametek.Maths.Graphs
 
         #region ICloneObject
 
+        /// <inheritdoc/>
         public virtual object CloneObject()
         {
             Graph<T, TActivity, IEvent<T>> arrowGraphCopy = ToGraph();

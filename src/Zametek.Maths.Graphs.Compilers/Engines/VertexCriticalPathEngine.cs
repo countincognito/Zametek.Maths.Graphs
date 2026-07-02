@@ -8,6 +8,9 @@ namespace Zametek.Maths.Graphs
     // Calculates the critical path for Activity-on-Vertex graphs.
     // Implements the forward pass (earliest start times), backward pass (latest finish times),
     // free slack, and isolated node backfill. Operates on the shared VertexGraphState.
+    /// <summary>
+    /// Default critical-path engine for Activity-on-Vertex graphs.
+    /// </summary>
     public sealed class VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
         : IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -15,6 +18,7 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
+        /// <inheritdoc/>
         public bool CalculateCriticalPathForwardFlow(
             IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints,
@@ -311,6 +315,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
+        /// <inheritdoc/>
         public bool CalculateCriticalPathBackwardFlow(
             IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints,
@@ -583,6 +588,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
+        /// <inheritdoc/>
         public bool BackFillIsolatedNodes(
             IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints)

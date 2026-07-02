@@ -10,12 +10,16 @@ namespace Zametek.Maths.Graphs
     // Also owns the scheduling pipeline helpers used before and after the core loop:
     //   GatherUnavailableResources, ReplaceWithSyntheticResources,
     //   RebuildAlignedResourceSchedules, CollectIndirectResourceSchedules, GetResourcePhasesUsed.
+    /// <summary>
+    /// Default resource scheduling engine: priority-list allocation plus the surrounding scheduling pipeline.
+    /// </summary>
     public sealed class PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>
         : IResourceSchedulingEngine<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
+        /// <inheritdoc/>
         public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedules(
             List<T> priorityList,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
@@ -298,6 +302,7 @@ namespace Zametek.Maths.Graphs
         #region Scheduling Pipeline Helpers
 
         // Gathers the set of activities that reference resources not present in filteredResources.
+        /// <inheritdoc/>
         public IList<IUnavailableResources<T, TResourceId>> GatherUnavailableResources(
             List<IActivity<T, TResourceId, TWorkStreamId>> activities,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources)
@@ -336,6 +341,7 @@ namespace Zametek.Maths.Graphs
 
         // Replaces infinite-resource schedules with synthetic resource IDs so that resource-dependency
         // chaining works in the second compile pass.
+        /// <inheritdoc/>
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
         {
@@ -363,6 +369,7 @@ namespace Zametek.Maths.Graphs
 
         // Rebuilds resource schedules aligned to CPM-computed EarliestStartTime values.
         // The graph view resolves each scheduled activity by ID.
+        /// <inheritdoc/>
         public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildAlignedResourceSchedules(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,
             bool infiniteResources,
@@ -394,6 +401,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Returns schedules for Indirect resources that were not directly assigned any activities.
+        /// <inheritdoc/>
         public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CollectIndirectResourceSchedules(
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> scheduledResources,
@@ -412,6 +420,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // Returns the set of work-stream phase IDs that appear on at least one resource schedule.
+        /// <inheritdoc/>
         public HashSet<TWorkStreamId> GetResourcePhasesUsed(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> totalSchedules,
             HashSet<TWorkStreamId> workstreamsUsed)

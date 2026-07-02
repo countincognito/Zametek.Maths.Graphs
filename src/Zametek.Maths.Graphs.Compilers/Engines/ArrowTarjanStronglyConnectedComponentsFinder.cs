@@ -7,6 +7,9 @@ namespace Zametek.Maths.Graphs
     // Activities are edges; the algorithm traverses edge-space. This is a thin facade that
     // wraps the graph state in an ArrowGraphTraversal and delegates to the shared algorithm.
     // https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+    /// <summary>
+    /// Default Tarjan strongly-connected-components finder for Activity-on-Arrow graphs (edge-space traversal).
+    /// </summary>
     public sealed class ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
         : IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -14,6 +17,7 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
+        /// <inheritdoc/>
         public List<ICircularDependency<T>> FindStronglyConnectedComponents(
             IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             bool ignoreDummies)
@@ -28,6 +32,7 @@ namespace Zametek.Maths.Graphs
                 ignoreDummies);
         }
 
+        /// <inheritdoc/>
         public List<ICircularDependency<T>> FindStronglyCircularDependencies(
             IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             bool ignoreDummies)

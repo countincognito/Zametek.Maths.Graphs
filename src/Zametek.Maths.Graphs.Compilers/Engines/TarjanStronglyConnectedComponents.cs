@@ -11,6 +11,10 @@ namespace Zametek.Maths.Graphs
     //
     // Fix applied: companion HashSet<T> onStack replaces O(n) stack.Contains() calls,
     // giving the full O(V + E) complexity.
+    //
+    // Fix applied: the depth-first search is implemented iteratively with an explicit
+    // frame stack rather than recursion, so very deep graphs (e.g. a dependency chain
+    // of tens of thousands of activities) cannot overflow the call stack.
     internal static class TarjanStronglyConnectedComponents
     {
         public static List<ICircularDependency<T>> FindStronglyConnectedComponents<T>(
@@ -38,43 +42,79 @@ namespace Zametek.Maths.Graphs
                 lowLinkLookup.Add(id, -1);
             }
 
-            void StrongConnect(T referenceId)
+            // Each frame is one in-flight StrongConnect "call": the key being
+            // visited plus the enumerator over its remaining predecessors.
+            var frames = new Stack<(T ReferenceId, IEnumerator<T> Predecessors)>();
+
+            void BeginStrongConnect(T referenceId)
             {
                 indexLookup[referenceId] = index;
                 lowLinkLookup[referenceId] = index;
                 index++;
                 stack.Push(referenceId);
                 onStack.Add(referenceId);
+                frames.Push((referenceId, traversal.PredecessorKeys(referenceId).GetEnumerator()));
+            }
 
-                foreach (T predecessorId in traversal.PredecessorKeys(referenceId))
+            void StrongConnect(T rootId)
+            {
+                BeginStrongConnect(rootId);
+
+                while (frames.Count != 0)
                 {
-                    if (indexLookup[predecessorId] < 0)
-                    {
-                        StrongConnect(predecessorId);
-                        lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], lowLinkLookup[predecessorId]);
-                    }
-                    else if (onStack.Contains(predecessorId))  // O(1) instead of O(n)
-                    {
-                        lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], indexLookup[predecessorId]);
-                    }
-                }
+                    (T referenceId, IEnumerator<T> predecessors) = frames.Peek();
+                    bool descended = false;
 
-                if (lowLinkLookup[referenceId] == indexLookup[referenceId])
-                {
-                    var circularDependency = new CircularDependency<T>(Enumerable.Empty<T>());
-                    T currentId;
-                    do
+                    while (predecessors.MoveNext())
                     {
-                        currentId = stack.Pop();
-                        onStack.Remove(currentId);
-
-                        bool isDummy = traversal.IsRemovable(currentId);
-                        if (!ignoreDummies || !isDummy)
+                        T predecessorId = predecessors.Current;
+                        if (indexLookup[predecessorId] < 0)
                         {
-                            circularDependency.Dependencies.Add(currentId);
+                            // Descend into the unvisited predecessor (the recursive call).
+                            BeginStrongConnect(predecessorId);
+                            descended = true;
+                            break;
                         }
-                    } while (!referenceId.Equals(currentId));
-                    circularDependencies.Add(circularDependency);
+                        else if (onStack.Contains(predecessorId))  // O(1) instead of O(n)
+                        {
+                            lowLinkLookup[referenceId] = Math.Min(lowLinkLookup[referenceId], indexLookup[predecessorId]);
+                        }
+                    }
+
+                    if (descended)
+                    {
+                        continue;
+                    }
+
+                    // All predecessors handled - the "call" for referenceId returns.
+                    frames.Pop();
+                    predecessors.Dispose();
+
+                    if (lowLinkLookup[referenceId] == indexLookup[referenceId])
+                    {
+                        var circularDependency = new CircularDependency<T>(Enumerable.Empty<T>());
+                        T currentId;
+                        do
+                        {
+                            currentId = stack.Pop();
+                            onStack.Remove(currentId);
+
+                            bool isDummy = traversal.IsRemovable(currentId);
+                            if (!ignoreDummies || !isDummy)
+                            {
+                                circularDependency.Dependencies.Add(currentId);
+                            }
+                        } while (!referenceId.Equals(currentId));
+                        circularDependencies.Add(circularDependency);
+                    }
+
+                    // Propagate the low-link back to the caller frame (the update the
+                    // recursive version performs after the call returns).
+                    if (frames.Count != 0)
+                    {
+                        T parentId = frames.Peek().ReferenceId;
+                        lowLinkLookup[parentId] = Math.Min(lowLinkLookup[parentId], lowLinkLookup[referenceId]);
+                    }
                 }
             }
 

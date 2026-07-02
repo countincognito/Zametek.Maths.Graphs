@@ -9,6 +9,9 @@ namespace Zametek.Maths.Graphs
     // Implements the forward pass (earliest event finish times), backward pass
     // (latest event finish times), and per-activity critical path variable calculation.
     // Operates on the shared ArrowGraphState passed to each method.
+    /// <summary>
+    /// Default critical-path engine for Activity-on-Arrow graphs.
+    /// </summary>
     public sealed class ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
         : IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -16,6 +19,7 @@ namespace Zametek.Maths.Graphs
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
+        /// <inheritdoc/>
         public bool CalculateEventEarliestFinishTimes(
             IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints,
@@ -161,6 +165,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
+        /// <inheritdoc/>
         public bool CalculateEventLatestFinishTimes(
             IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints,
@@ -289,6 +294,7 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
+        /// <inheritdoc/>
         public bool CalculateCriticalPathVariables(
             IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints)

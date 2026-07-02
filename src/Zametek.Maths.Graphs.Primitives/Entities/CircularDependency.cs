@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Default implementation of <see cref="ICircularDependency{T}"/>.
+    /// </summary>
     public class CircularDependency<T>
         : ICircularDependency<T>, IEquatable<CircularDependency<T>>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -17,6 +20,9 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
+        /// <summary>
+        /// Creates a circular dependency from the given IDs.
+        /// </summary>
         public CircularDependency(IEnumerable<T> circularDependencies)
         {
             Dependencies = new HashSet<T>(circularDependencies);
@@ -26,6 +32,7 @@ namespace Zametek.Maths.Graphs
 
         #region ICircularDependency<T> Members
 
+        /// <inheritdoc/>
         public HashSet<T> Dependencies
         {
             get;
@@ -35,11 +42,13 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
+        /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
             return Equals(obj as CircularDependency<T>);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
@@ -54,6 +63,7 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
+        /// <inheritdoc/>
         public bool Equals(CircularDependency<T>? other)
         {
             if (other is null)

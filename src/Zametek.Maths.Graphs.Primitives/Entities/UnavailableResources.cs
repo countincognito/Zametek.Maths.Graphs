@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Default implementation of <see cref="IUnavailableResources{T, TResourceId}"/>.
+    /// </summary>
     public class UnavailableResources<T, TResourceId>
         : IUnavailableResources<T, TResourceId>, IEquatable<UnavailableResources<T, TResourceId>>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -18,6 +21,9 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
+        /// <summary>
+        /// Records the given unavailable resource IDs for an activity.
+        /// </summary>
         public UnavailableResources(T id, IEnumerable<TResourceId> unavailableResourceIds)
         {
             Id = id;
@@ -28,11 +34,13 @@ namespace Zametek.Maths.Graphs
 
         #region IUnavailableResources<T, TResourceId> Members
 
+        /// <inheritdoc/>
         public T Id
         {
             get;
         }
 
+        /// <inheritdoc/>
         public HashSet<TResourceId> ResourceIds
         {
             get;
@@ -42,11 +50,13 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
+        /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
             return Equals(obj as UnavailableResources<T, TResourceId>);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
@@ -62,6 +72,7 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
+        /// <inheritdoc/>
         public bool Equals(UnavailableResources<T, TResourceId>? other)
         {
             if (other is null)

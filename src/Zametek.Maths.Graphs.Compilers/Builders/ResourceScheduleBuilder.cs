@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Accumulates the activities scheduled onto a single resource and produces the finished <see cref="IResourceSchedule{T, TResourceId, TWorkStreamId}"/> with its allocation streams.
+    /// </summary>
     public class ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
@@ -18,12 +21,18 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
+        /// <summary>
+        /// Creates a builder for the given resource.
+        /// </summary>
         public ResourceScheduleBuilder(IResource<TResourceId, TWorkStreamId> resource)
             : this()
         {
             m_Resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
+        /// <summary>
+        /// Creates a builder for an unmapped (infinite-resources) schedule with no resource.
+        /// </summary>
         public ResourceScheduleBuilder()
         {
             m_ScheduledActivities = new LinkedList<IScheduledActivity<T>>();
@@ -33,14 +42,29 @@ namespace Zametek.Maths.Graphs
 
         #region Properties
 
+        /// <summary>
+        /// The ID of the resource, or null for an unmapped schedule.
+        /// </summary>
         public TResourceId? ResourceId => m_Resource?.Id;
 
+        /// <summary>
+        /// Whether the resource is opt-in only (false for unmapped schedules).
+        /// </summary>
         public bool IsExplicitTarget => m_Resource != null && m_Resource.IsExplicitTarget;
 
+        /// <summary>
+        /// Whether the resource is disabled (false for unmapped schedules).
+        /// </summary>
         public bool IsInactive => m_Resource != null && m_Resource.IsInactive;
 
+        /// <summary>
+        /// The activities scheduled so far.
+        /// </summary>
         public IEnumerable<IScheduledActivity<T>> ScheduledActivities => m_ScheduledActivities.ToList();
 
+        /// <summary>
+        /// The finish time of the last scheduled activity, or zero when empty.
+        /// </summary>
         public int LastActivityFinishTime
         {
             get
@@ -53,6 +77,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// The earliest time the next activity could start on this resource.
+        /// </summary>
         public int EarliestAvailableStartTimeForNextActivity => LastActivityFinishTime;
 
         #endregion
@@ -506,6 +533,9 @@ namespace Zametek.Maths.Graphs
 
         #region Public Methods
 
+        /// <summary>
+        /// Appends an already-scheduled activity, validating that it starts no earlier than the resource is available.
+        /// </summary>
         public void AppendActivity(IScheduledActivity<T> scheduledActivity)
         {
             if (scheduledActivity is null)
@@ -520,6 +550,9 @@ namespace Zametek.Maths.Graphs
             AppendActivityWithoutChecks(scheduledActivity);
         }
 
+        /// <summary>
+        /// Appends an already-scheduled activity without validation.
+        /// </summary>
         public void AppendActivityWithoutChecks(IScheduledActivity<T> scheduledActivity)
         {
             if (scheduledActivity is null)
@@ -529,6 +562,9 @@ namespace Zametek.Maths.Graphs
             AddActivity(scheduledActivity);
         }
 
+        /// <summary>
+        /// Schedules the activity at the given start time, validating availability.
+        /// </summary>
         public void AppendActivity(IActivity<T, TResourceId, TWorkStreamId> activity, int startTime)
         {
             if (activity is null)
@@ -542,6 +578,9 @@ namespace Zametek.Maths.Graphs
             AppendActivityWithoutChecks(activity, startTime);
         }
 
+        /// <summary>
+        /// Schedules the activity at the given start time without validation.
+        /// </summary>
         public void AppendActivityWithoutChecks(IActivity<T, TResourceId, TWorkStreamId> activity, int startTime)
         {
             if (activity is null)
@@ -554,11 +593,17 @@ namespace Zametek.Maths.Graphs
             AddActivity(scheduledActivity);
         }
 
+        /// <summary>
+        /// Removes all scheduled activities.
+        /// </summary>
         public void ClearActivities()
         {
             m_ScheduledActivities.Clear();
         }
 
+        /// <summary>
+        /// Returns the ID of the activity occupying the given time, or null if the resource is idle.
+        /// </summary>
         public T? ActivityAt(int time)
         {
             foreach (IScheduledActivity<T> scheduledActivity in m_ScheduledActivities)
@@ -572,6 +617,9 @@ namespace Zametek.Maths.Graphs
             return null;
         }
 
+        /// <summary>
+        /// Produces the finished resource schedule, deriving the per-time-unit allocation streams.
+        /// </summary>
         public IResourceSchedule<T, TResourceId, TWorkStreamId> ToResourceSchedule(
             List<IActivity<T, TResourceId, TWorkStreamId>> activities,
             int startTime,

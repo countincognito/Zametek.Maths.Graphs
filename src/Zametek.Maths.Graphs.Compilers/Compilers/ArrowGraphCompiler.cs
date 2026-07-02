@@ -6,6 +6,9 @@ namespace Zametek.Maths.Graphs
 {
     // Compiler for Activity-on-Arrow graphs. Owns the ArrowGraphBuilder directly.
     // No inheritance from any compiler base class - all coordination logic is inlined.
+    /// <summary>
+    /// Compiler for Activity-on-Arrow graphs: a thread-safe coordinator around an <see cref="ArrowGraphBuilder{T, TResourceId, TWorkStreamId, TActivity}"/>. Intended for rendering - it prepares the network for <see cref="ToGraph"/> and performs no resource scheduling (use <see cref="VertexGraphCompiler{T, TResourceId, TWorkStreamId, TDependentActivity}"/> for analysis).
+    /// </summary>
     public class ArrowGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
         where TDependentActivity : class, IDependentActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -21,6 +24,9 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
+        /// <summary>
+        /// Creates a compiler wired with the default engines.
+        /// </summary>
         public ArrowGraphCompiler()
         {
             T edgeId = default;
@@ -38,6 +44,9 @@ namespace Zametek.Maths.Graphs
         }
 
         // Builder-injecting constructor - accepts a builder configured with custom engines.
+        /// <summary>
+        /// Creates a compiler around the given (possibly custom-engined) builder.
+        /// </summary>
         public ArrowGraphCompiler(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity> arrowGraphBuilder)
         {
             m_ArrowGraphBuilder = arrowGraphBuilder ?? throw new ArgumentNullException(nameof(arrowGraphBuilder));
@@ -48,6 +57,9 @@ namespace Zametek.Maths.Graphs
 
         #region Properties
 
+        /// <summary>
+        /// The earliest start time across all activities.
+        /// </summary>
         public int StartTime
         {
             get
@@ -59,6 +71,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// The latest finish time across all activities.
+        /// </summary>
         public int FinishTime
         {
             get
@@ -71,6 +86,9 @@ namespace Zametek.Maths.Graphs
         }
 
         // https://en.wikipedia.org/wiki/Cyclomatic_complexity
+        /// <summary>
+        /// The cyclomatic complexity of the network (a measure of its parallelism).
+        /// </summary>
         public int CyclomaticComplexity
         {
             get
@@ -100,6 +118,9 @@ namespace Zametek.Maths.Graphs
 
         #region Public Methods
 
+        /// <summary>
+        /// Returns an unused activity ID.
+        /// </summary>
         public T GetNextActivityId()
         {
             lock (m_Lock)
@@ -108,6 +129,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Clears all activities and returns the compiler to its initial state.
+        /// </summary>
         public void Reset()
         {
             lock (m_Lock)
@@ -116,6 +140,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Adds an activity, wiring its compiled and planning dependencies into the graph. Returns false if the ID already exists.
+        /// </summary>
         public bool AddActivity(TDependentActivity activity)
         {
             lock (m_Lock)
@@ -126,6 +153,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Removes an activity and detaches it from its dependents.
+        /// </summary>
         public bool RemoveActivity(T activityId)
         {
             lock (m_Lock)
@@ -162,6 +192,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Strips redundant dependencies, keeping only the minimal edge set. Throws <see cref="InvalidOperationException"/> if the reduction cannot be performed.
+        /// </summary>
         public void TransitiveReduction()
         {
             lock (m_Lock)
@@ -174,6 +207,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Validates the graph, applies transitive reduction and runs the critical-path calculation so the network can be laid out. Performs no resource scheduling.
+        /// </summary>
         public void Compile()
         {
             lock (m_Lock)
@@ -189,6 +225,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <summary>
+        /// Exports the compiled Activity-on-Arrow structure for rendering.
+        /// </summary>
         public Graph<T, TDependentActivity, IEvent<T>> ToGraph()
         {
             lock (m_Lock)

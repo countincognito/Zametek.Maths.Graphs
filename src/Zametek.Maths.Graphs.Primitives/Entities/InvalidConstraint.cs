@@ -2,6 +2,9 @@
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Default implementation of <see cref="IInvalidConstraint{T}"/>.
+    /// </summary>
     public class InvalidConstraint<T>
         : IInvalidConstraint<T>, IEquatable<InvalidConstraint<T>>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -15,6 +18,9 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
+        /// <summary>
+        /// Creates a constraint violation for the given activity ID.
+        /// </summary>
         public InvalidConstraint(T id, string message)
         {
             Id = id;
@@ -25,11 +31,13 @@ namespace Zametek.Maths.Graphs
 
         #region IInvalidConstraint<T> Members
 
+        /// <inheritdoc/>
         public T Id
         {
             get;
         }
 
+        /// <inheritdoc/>
         public string Message
         {
             get;
@@ -39,11 +47,13 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
+        /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
             return Equals(obj as InvalidConstraint<T>);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
@@ -59,6 +69,7 @@ namespace Zametek.Maths.Graphs
 
         #region IEquatable
 
+        /// <inheritdoc/>
         public bool Equals(InvalidConstraint<T>? other)
         {
             if (other is null)

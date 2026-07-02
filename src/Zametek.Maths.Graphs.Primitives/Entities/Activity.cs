@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Default implementation of <see cref="IActivity{T, TResourceId, TWorkStreamId}"/>.
+    /// </summary>
     public class Activity<T, TResourceId, TWorkStreamId>
         : IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -11,6 +14,9 @@ namespace Zametek.Maths.Graphs
     {
         #region Ctors
 
+        /// <summary>
+        /// Creates an activity with the given ID and duration.
+        /// </summary>
         public Activity(T id, int duration)
         {
             Id = id;
@@ -20,12 +26,18 @@ namespace Zametek.Maths.Graphs
             AllocatedToResources = new HashSet<TResourceId>();
         }
 
+        /// <summary>
+        /// Creates an activity with the given ID, duration and removability flag.
+        /// </summary>
         public Activity(T id, int duration, bool canBeRemoved)
             : this(id, duration)
         {
             CanBeRemoved = canBeRemoved;
         }
 
+        /// <summary>
+        /// Creates a fully-specified activity (used by cloning).
+        /// </summary>
         public Activity(
             T id, string? name, string? notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
             LogicalOperator targetLogicalOperator, IEnumerable<TResourceId> allocatedToResources, bool canBeRemoved, bool hasNoCost, bool hasNoBilling,
@@ -64,76 +76,90 @@ namespace Zametek.Maths.Graphs
 
         #region IActivity<T> Members
 
+        /// <inheritdoc/>
         public T Id
         {
             get;
         }
 
+        /// <inheritdoc/>
         public string? Name
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public string? Notes
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public HashSet<TWorkStreamId> TargetWorkStreams
         {
             get;
         }
 
+        /// <inheritdoc/>
         public HashSet<TResourceId> TargetResources
         {
             get;
         }
 
+        /// <inheritdoc/>
         public LogicalOperator TargetResourceOperator
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public HashSet<TResourceId> AllocatedToResources
         {
             get;
         }
 
+        /// <inheritdoc/>
         public bool CanBeRemoved
         {
             get;
             private set;
         }
 
+        /// <inheritdoc/>
         public bool IsDummy => Duration <= 0;
 
+        /// <inheritdoc/>
         public bool HasNoCost
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public bool HasNoBilling
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public bool HasNoEffort
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public int Duration
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public int? TotalSlack
         {
             get
@@ -149,12 +175,14 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <inheritdoc/>
         public int? FreeSlack
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public int? InterferingSlack
         {
             get
@@ -170,6 +198,7 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <inheritdoc/>
         public bool IsCritical
         {
             get
@@ -179,12 +208,14 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <inheritdoc/>
         public int? EarliestStartTime
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public int? LatestStartTime
         {
             get
@@ -199,6 +230,7 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <inheritdoc/>
         public int? EarliestFinishTime
         {
             get
@@ -213,35 +245,41 @@ namespace Zametek.Maths.Graphs
             }
         }
 
+        /// <inheritdoc/>
         public int? LatestFinishTime
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public int? MinimumFreeSlack
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public int? MinimumEarliestStartTime
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public int? MaximumLatestFinishTime
         {
             get;
             set;
         }
 
+        /// <inheritdoc/>
         public void SetAsReadOnly()
         {
             CanBeRemoved = false;
         }
 
+        /// <inheritdoc/>
         public void SetAsRemovable()
         {
             CanBeRemoved = true;
@@ -253,6 +291,7 @@ namespace Zametek.Maths.Graphs
             return (IActivity<T, TResourceId, TWorkStreamId>)CloneObject();
         }
 
+        /// <inheritdoc/>
         public virtual object CloneObject()
         {
             return new Activity<T, TResourceId, TWorkStreamId>(

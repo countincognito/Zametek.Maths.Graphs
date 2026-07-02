@@ -2,12 +2,18 @@
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Default implementation of <see cref="IWorkStream{T}"/>.
+    /// </summary>
     public class WorkStream<T>
         : IWorkStream<T>
         where T : struct, IComparable<T>, IEquatable<T>
     {
         #region Ctors
 
+        /// <summary>
+        /// Creates a work stream with the given ID, name and phase flag.
+        /// </summary>
         public WorkStream(T id, string name, bool isPhase)
         {
             Id = id;
@@ -19,16 +25,19 @@ namespace Zametek.Maths.Graphs
 
         #region IWorkStream<T> Members
 
+        /// <inheritdoc/>
         public T Id
         {
             get;
         }
 
+        /// <inheritdoc/>
         public string Name
         {
             get;
         }
 
+        /// <inheritdoc/>
         public bool IsPhase
         {
             get;
@@ -40,6 +49,7 @@ namespace Zametek.Maths.Graphs
             return (IWorkStream<T>)CloneObject();
         }
 
+        /// <inheritdoc/>
         public object CloneObject()
         {
             return new WorkStream<T>(Id, Name, IsPhase);

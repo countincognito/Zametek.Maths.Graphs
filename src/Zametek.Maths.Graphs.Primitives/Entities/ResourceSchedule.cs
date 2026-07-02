@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Default implementation of <see cref="IResourceSchedule{T, TResourceId, TWorkStreamId}"/>.
+    /// </summary>
     public class ResourceSchedule<T, TResourceId, TWorkStreamId>
         : IResourceSchedule<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -12,6 +15,9 @@ namespace Zametek.Maths.Graphs
     {
         #region Ctors
 
+        /// <summary>
+        /// Creates a schedule for the given resource (null for an unmapped schedule).
+        /// </summary>
         public ResourceSchedule(
             IResource<TResourceId, TWorkStreamId>? resource,
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
@@ -38,6 +44,9 @@ namespace Zametek.Maths.Graphs
             ActivityAllocation = activityAllocation.ToList();
         }
 
+        /// <summary>
+        /// Creates an unmapped schedule with no resource.
+        /// </summary>
         public ResourceSchedule(
             IEnumerable<IScheduledActivity<T>> scheduledActivities,
             int startTime,
@@ -55,46 +64,55 @@ namespace Zametek.Maths.Graphs
 
         #region IResourceSchedule<T> Members
 
+        /// <inheritdoc/>
         public IResource<TResourceId, TWorkStreamId>? Resource
         {
             get;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<IScheduledActivity<T>> ScheduledActivities
         {
             get;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<bool> ResourceAllocation
         {
             get;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<bool> CostAllocation
         {
             get;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<bool> BillingAllocation
         {
             get;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<bool> EffortAllocation
         {
             get;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<bool> ActivityAllocation
         {
             get;
         }
 
+        /// <inheritdoc/>
         public int StartTime
         {
             get;
         }
 
+        /// <inheritdoc/>
         public int FinishTime
         {
             get;
@@ -106,6 +124,7 @@ namespace Zametek.Maths.Graphs
             return (IResourceSchedule<T, TResourceId, TWorkStreamId>)CloneObject();
         }
 
+        /// <inheritdoc/>
         public object CloneObject()
         {
             IResource<TResourceId, TWorkStreamId>? resource = null;

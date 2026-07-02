@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
 {
+    /// <summary>
+    /// Default implementation of <see cref="IDependentActivity{T, TResourceId, TWorkStreamId}"/>. This is the input type the graph compilers consume.
+    /// </summary>
     public class DependentActivity<T, TResourceId, TWorkStreamId>
         : Activity<T, TResourceId, TWorkStreamId>, IDependentActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -11,6 +14,9 @@ namespace Zametek.Maths.Graphs
     {
         #region Ctors
 
+        /// <summary>
+        /// Creates an activity with the given ID and duration, and no dependencies.
+        /// </summary>
         public DependentActivity(T id, int duration)
             : base(id, duration)
         {
@@ -20,6 +26,9 @@ namespace Zametek.Maths.Graphs
             Successors = new HashSet<T>();
         }
 
+        /// <summary>
+        /// Creates an activity with the given ID, duration and removability flag.
+        /// </summary>
         public DependentActivity(T id, int duration, bool canBeRemoved)
             : base(id, duration, canBeRemoved)
         {
@@ -29,6 +38,9 @@ namespace Zametek.Maths.Graphs
             Successors = new HashSet<T>();
         }
 
+        /// <summary>
+        /// Creates an activity with the given ID, duration and dependencies.
+        /// </summary>
         public DependentActivity(T id, int duration, IEnumerable<T> dependencies)
             : base(id, duration)
         {
@@ -42,6 +54,9 @@ namespace Zametek.Maths.Graphs
             Successors = new HashSet<T>();
         }
 
+        /// <summary>
+        /// Creates an activity with the given ID, duration, dependencies and planning dependencies.
+        /// </summary>
         public DependentActivity(T id, int duration, IEnumerable<T> dependencies, IEnumerable<T> planningDependencies)
             : base(id, duration)
         {
@@ -59,6 +74,9 @@ namespace Zametek.Maths.Graphs
             Successors = new HashSet<T>();
         }
 
+        /// <summary>
+        /// Creates a fully-specified activity (used by cloning).
+        /// </summary>
         public DependentActivity(
             T id, string? name, string? notes, IEnumerable<TWorkStreamId> targetWorkStreams, IEnumerable<TResourceId> targetResources,
             IEnumerable<T> dependencies, IEnumerable<T> planningDependencies, IEnumerable<T> resourceDependencies, IEnumerable<T> successors,
@@ -94,21 +112,25 @@ namespace Zametek.Maths.Graphs
 
         #region IDependentActivity<T> Members
 
+        /// <inheritdoc/>
         public HashSet<T> Dependencies
         {
             get;
         }
 
+        /// <inheritdoc/>
         public HashSet<T> PlanningDependencies
         {
             get;
         }
 
+        /// <inheritdoc/>
         public HashSet<T> ResourceDependencies
         {
             get;
         }
 
+        /// <inheritdoc/>
         public HashSet<T> Successors
         {
             get;
@@ -118,6 +140,7 @@ namespace Zametek.Maths.Graphs
 
         #region Overrides
 
+        /// <inheritdoc/>
         public override object CloneObject()
         {
             return new DependentActivity<T, TResourceId, TWorkStreamId>(
