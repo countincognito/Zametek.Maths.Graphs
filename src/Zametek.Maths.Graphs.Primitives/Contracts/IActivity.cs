@@ -12,7 +12,7 @@ namespace Zametek.Maths.Graphs
     /// <typeparam name="TResourceId">The resource ID type.</typeparam>
     /// <typeparam name="TWorkStreamId">The work-stream ID type.</typeparam>
     public interface IActivity<out T, TResourceId, TWorkStreamId>
-        : IHaveId<T>, ICanBeRemoved, ICloneObject<IActivity<T, TResourceId, TWorkStreamId>>
+        : IHaveId<T>, ICanBeRemoved, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>

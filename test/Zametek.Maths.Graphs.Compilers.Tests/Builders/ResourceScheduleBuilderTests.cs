@@ -25,7 +25,7 @@ namespace Zametek.Maths.Graphs.Tests
             const int finishTime = 0;
 
             int resourceId1 = 1;
-            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule([], startTime, finishTime);
@@ -43,7 +43,7 @@ namespace Zametek.Maths.Graphs.Tests
             const int finishTime = 10;
 
             int resourceId1 = 1;
-            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var rsb = new ResourceScheduleBuilder<int, int, int>(resource);
             var rs = rsb.ToResourceSchedule([], startTime, finishTime);
@@ -189,8 +189,8 @@ namespace Zametek.Maths.Graphs.Tests
             }
 
             var output = graphCompiler.Compile(
-                resources.Cast<IResource<int, int>>().ToList(),
-                workStreams.Cast<IWorkStream<int>>().ToList());
+                [.. resources.Cast<IResource<int, int>>()],
+                [.. workStreams.Cast<IWorkStream<int>>()]);
 
             var rs1 = resourceSchedules.First(x => x.Resource.Id == 1).AsBase();
             var rs2 = resourceSchedules.First(x => x.Resource.Id == 2).AsBase();

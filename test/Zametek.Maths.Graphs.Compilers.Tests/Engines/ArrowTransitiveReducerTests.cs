@@ -155,7 +155,7 @@ namespace Zametek.Maths.Graphs.Tests
             return state;
         }
 
-        private static IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> BuildOrchestrator(
+        private static DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> BuildOrchestrator(
             ArrowGraphState<int, int, int, Activity<int, int, int>> state)
         {
             int nextId = 9000;

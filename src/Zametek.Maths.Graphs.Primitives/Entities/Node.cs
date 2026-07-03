@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,7 +8,7 @@ namespace Zametek.Maths.Graphs
     /// A directed-graph node carrying a content payload (an event in arrow graphs; an activity in vertex graphs). Equality is by ID only.
     /// </summary>
     public class Node<T, TContent>
-        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Node<T, TContent>>, ICloneObject<Node<T, TContent>>
+        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Node<T, TContent>>, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
         where TContent : IHaveId<T>, ICloneObject
     {
@@ -17,8 +17,8 @@ namespace Zametek.Maths.Graphs
         private readonly HashSet<T> m_IncomingEdges;
         private readonly HashSet<T> m_OutgoingEdges;
 
-        private const int HashFactorOne = 17;
-        private const int HashFactorTwo = 23;
+        private const int c_HashFactorOne = 17;
+        private const int c_HashFactorTwo = 23;
 
         #endregion
 
@@ -126,9 +126,9 @@ namespace Zametek.Maths.Graphs
         {
             unchecked
             {
-                int hash = HashFactorOne;
-                hash = hash * HashFactorTwo + Id.GetHashCode();
-                hash = hash * HashFactorTwo + NodeType.GetHashCode();
+                int hash = c_HashFactorOne;
+                hash = hash * c_HashFactorTwo + Id.GetHashCode();
+                hash = hash * c_HashFactorTwo + NodeType.GetHashCode();
                 return hash;
             }
         }
@@ -155,13 +155,7 @@ namespace Zametek.Maths.Graphs
         #region ICloneObject
 
         /// <inheritdoc/>
-        public Node<T, TContent> Clone()
-        {
-            return (Node<T, TContent>)CloneObject();
-        }
-
-        /// <inheritdoc/>
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             var output = new Node<T, TContent>(NodeType, (TContent)Content.CloneObject());
             foreach (T edgeId in m_IncomingEdges)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Zametek.Maths.Graphs
 {
@@ -79,13 +79,7 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <inheritdoc/>
-        public IScheduledActivity<T> Clone()
-        {
-            return (IScheduledActivity<T>)CloneObject();
-        }
-
-        /// <inheritdoc/>
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             return new ScheduledActivity<T>(Id, Name, HasNoCost, HasNoBilling, HasNoEffort, Duration, StartTime, FinishTime);
         }

@@ -21,7 +21,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             Action act = () => new Graph<int, Event<int>, Activity<int, int, int>>(
                 null,
-                Array.Empty<Node<int, Activity<int, int, int>>>());
+                []);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -29,7 +29,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void Graph_GivenCtor_WithNullNodes_ThenThrowsArgumentNullException()
         {
             Action act = () => new Graph<int, Event<int>, Activity<int, int, int>>(
-                Array.Empty<Edge<int, Event<int>>>(),
+                [],
                 null);
             act.ShouldThrow<ArgumentNullException>();
         }

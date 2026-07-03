@@ -11,14 +11,14 @@ namespace Zametek.Maths.Graphs.Tests
         {
             return new ResourceSchedule<int, int, int>(
                 resource,
-                new IScheduledActivity<int>[] { new ScheduledActivity<int>(1, "a", false, false, false, 5, 0, 5) },
+                [new ScheduledActivity<int>(1, "a", false, false, false, 5, 0, 5)],
                 startTime: 0,
                 finishTime: 5,
-                resourceAllocation: new[] { true, true, true, true, true },
-                costAllocation: new[] { true, true, true, false, false },
-                billingAllocation: new[] { false, true, true, true, false },
-                effortAllocation: new[] { true, false, true, false, true },
-                activityAllocation: new[] { true, true, false, false, true });
+                resourceAllocation: [true, true, true, true, true],
+                costAllocation: [true, true, true, false, false],
+                billingAllocation: [false, true, true, true, false],
+                effortAllocation: [true, false, true, false, true],
+                activityAllocation: [true, true, false, false, true]);
         }
 
         [Fact]
@@ -26,8 +26,8 @@ namespace Zametek.Maths.Graphs.Tests
         {
             Action act = () => new ResourceSchedule<int, int, int>(
                 null, 0, 5,
-                Enumerable.Empty<bool>(), Enumerable.Empty<bool>(), Enumerable.Empty<bool>(),
-                Enumerable.Empty<bool>(), Enumerable.Empty<bool>());
+                [], [], [],
+                [], []);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -45,7 +45,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void ResourceSchedule_GivenCloneObject_ThenAllPropertiesPreserved()
         {
             var resource = new Resource<int, int>(
-                10, "R1", false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Array.Empty<int>());
+                10, "R1", false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
             var schedule = BuildSchedule(resource);
 
             var clone = (ResourceSchedule<int, int, int>)schedule.CloneObject();

@@ -16,8 +16,7 @@ namespace Zametek.Maths.Graphs.Tests
         private sealed class CountingVertexTransitiveReducerFactory
             : IVertexTransitiveReducerFactory<int, int, int, IDependentActivity<int, int, int>>
         {
-            private readonly VertexTransitiveReducerFactory<int, int, int, IDependentActivity<int, int, int>> m_Inner =
-                new VertexTransitiveReducerFactory<int, int, int, IDependentActivity<int, int, int>>();
+            private readonly VertexTransitiveReducerFactory<int, int, int, IDependentActivity<int, int, int>> m_Inner = new();
 
             public int CreateCallCount { get; private set; }
 
@@ -34,8 +33,7 @@ namespace Zametek.Maths.Graphs.Tests
         private sealed class CountingDummyEdgeOrchestratorFactory
             : IDummyEdgeOrchestratorFactory<int, int, int, IDependentActivity<int, int, int>>
         {
-            private readonly DummyEdgeOrchestratorFactory<int, int, int, IDependentActivity<int, int, int>> m_Inner =
-                new DummyEdgeOrchestratorFactory<int, int, int, IDependentActivity<int, int, int>>();
+            private readonly DummyEdgeOrchestratorFactory<int, int, int, IDependentActivity<int, int, int>> m_Inner = new();
 
             public int CreateCallCount { get; private set; }
 
@@ -58,7 +56,7 @@ namespace Zametek.Maths.Graphs.Tests
             var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>(builder);
 
             compiler.AddActivity(new DependentActivity<int, int, int>(1, 3));
-            compiler.AddActivity(new DependentActivity<int, int, int>(2, 5, new[] { 1 }));
+            compiler.AddActivity(new DependentActivity<int, int, int>(2, 5, [1]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> output = compiler.Compile();
 
@@ -80,14 +78,14 @@ namespace Zametek.Maths.Graphs.Tests
             factory.CreateCallCount.ShouldBeGreaterThan(0);
 
             // The reducer produced by the injected factory performs the reduction.
-            builder.AddActivity((IDependentActivity<int, int, int>)new DependentActivity<int, int, int>(1, 1), new HashSet<int>());
-            builder.AddActivity((IDependentActivity<int, int, int>)new DependentActivity<int, int, int>(2, 1), new HashSet<int> { 1 });
-            builder.AddActivity((IDependentActivity<int, int, int>)new DependentActivity<int, int, int>(3, 1), new HashSet<int> { 1, 2 });
+            builder.AddActivity(new DependentActivity<int, int, int>(1, 1), []);
+            builder.AddActivity(new DependentActivity<int, int, int>(2, 1), [1]);
+            builder.AddActivity(new DependentActivity<int, int, int>(3, 1), [1, 2]);
 
             builder.TransitiveReduction().ShouldBeTrue();
 
             // The direct 1 -> 3 dependency is redundant (implied via 2) and is removed.
-            builder.ActivityDependencyIds(3).ShouldBe(new[] { 2 });
+            builder.ActivityDependencyIds(3).ShouldBe([2]);
         }
 
         [Fact]
@@ -115,8 +113,8 @@ namespace Zametek.Maths.Graphs.Tests
             var builder = new ArrowGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
                 new ArrowGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>());
 
-            builder.AddActivity((IDependentActivity<int, int, int>)new DependentActivity<int, int, int>(1, 3), new HashSet<int>());
-            builder.AddActivity((IDependentActivity<int, int, int>)new DependentActivity<int, int, int>(2, 5), new HashSet<int> { 1 });
+            builder.AddActivity(new DependentActivity<int, int, int>(1, 3), []);
+            builder.AddActivity(new DependentActivity<int, int, int>(2, 5), [1]);
 
             // The arrow builder also mints dummy activities, so check containment.
             builder.ActivityIds.ShouldContain(1);
@@ -137,8 +135,8 @@ namespace Zametek.Maths.Graphs.Tests
             factory.CreateCallCount.ShouldBeGreaterThan(0);
 
             // The orchestrator produced by the injected factory wires up the dummy edges.
-            builder.AddActivity((IDependentActivity<int, int, int>)new DependentActivity<int, int, int>(1, 3), new HashSet<int>());
-            builder.AddActivity((IDependentActivity<int, int, int>)new DependentActivity<int, int, int>(2, 5), new HashSet<int> { 1 });
+            builder.AddActivity(new DependentActivity<int, int, int>(1, 3), []);
+            builder.AddActivity(new DependentActivity<int, int, int>(2, 5), [1]);
 
             builder.EdgeIds.Count().ShouldBeGreaterThan(2);
         }

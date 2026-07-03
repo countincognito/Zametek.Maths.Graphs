@@ -74,13 +74,7 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <inheritdoc/>
-        public IEvent<T> Clone()
-        {
-            return (IEvent<T>)CloneObject();
-        }
-
-        /// <inheritdoc/>
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             return new Event<T>(Id, EarliestFinishTime, LatestFinishTime)
             {

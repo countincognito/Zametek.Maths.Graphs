@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Zametek.Maths.Graphs
@@ -96,13 +96,7 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <inheritdoc/>
-        public IResource<T, TWorkStreamId> Clone()
-        {
-            return (IResource<T, TWorkStreamId>)CloneObject();
-        }
-
-        /// <inheritdoc/>
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             return new Resource<T, TWorkStreamId>(
                 Id, Name, IsExplicitTarget, IsInactive, InterActivityAllocationType,

@@ -357,6 +357,39 @@ P0030: Invalid activity constraints:
 
 The `ErrorMessage` text lists the specific activities involved, so it can be shown directly to a user.
 
+### Error message reference
+
+Every `ErrorMessage` opens with a fixed header line for its code, followed by one line per offending activity (all offenders for a code are gathered into that one message so they can be shown together):
+
+| Code | `ErrorMessage` header | Per-activity detail line |
+| - | - | - |
+| `P0010` | `Invalid activity dependencies:` | `<dependencyId> is invalid but referenced by: <id>, <id>, ...` |
+| `P0020` | `Circular activity dependencies:` | `<id> -> <id> -> ...` (one line per cycle) |
+| `P0030` | `Invalid activity constraints:` | `<id> -> <reason>` (reasons below) |
+| `P0040` | `All resources are explicit targets, but not all activities have targeted resources` | *(header only)* |
+| `P0050` | `Unable to remove unnecessary edges` | *(header only)* |
+| `P0060` | `Unavailable resources for activities:` | `<id> -> <resourceId>, <resourceId>, ...` |
+| `C0010` | `Invalid activity constraints:` | `<id> -> <reason>` (reasons below) |
+
+`P0030` and `C0010` share the same header - they are the same constraint checks run at different times (`P` before scheduling, `C` after), so the `ErrorCode` is what tells them apart.
+
+**`P0030` (pre-compilation)** reports, per activity, whichever applies first:
+
+- `Cannot set MinimumFreeSlack and MaximumLatestFinishTime at the same time`
+- `(MinimumEarliestStartTime + Duration) must be greater than MaximumLatestFinishTime`
+
+**`C0010` (post-compilation)** reports, per activity, any of these once the scheduled times are known:
+
+- `EarliestStartTime cannot be less than zero`
+- `EarliestFinishTime cannot be less than zero`
+- `LatestStartTime cannot be less than zero`
+- `LatestFinishTime cannot be less than zero`
+- `LatestStartTime cannot be less than EarliestStartTime`
+- `LatestFinishTime cannot be less than EarliestFinishTime`
+- `EarliestStartTime cannot be less than MinimumEarliestStartTime`
+- `LatestFinishTime cannot be more than MaximumLatestFinishTime`
+- `FreeSlack cannot be less than MinimumFreeSlack`
+
 ## Where this is used
 
 These packages are the scheduling engine behind [Zametek.ProjectPlan](https://github.com/countincognito/Zametek.ProjectPlan) - a free, open-source, cross-platform desktop alternative to Microsoft Project. Its [wiki](https://github.com/countincognito/Zametek.ProjectPlan/wiki) is a good application-level tour of how activities, resources, work streams, Gantt charts and arrow-graph diagrams come together for end users, and shows the "analyse as vertex, render as arrow" split in practice.
@@ -394,7 +427,6 @@ Custom engines read graph state through the read-only `IArrowGraphState<…>` / 
 - `ArrowGraphBuilder.ToGraph()` and `VertexGraphBuilder.ToGraph()` now throw `InvalidOperationException` when the graph cannot be cleaned up, instead of silently returning `null`.
 - Both packages now compile with **nullable reference types** enabled and the public API is annotated. Notable contract changes for consumers with nullable enabled: `IActivity.Name`/`Notes`, `IResource.Name` and `IScheduledActivity.Name` are `string?`; `IResourceSchedule.Resource` is nullable (unmapped/synthetic schedules carry no resource); `ITransitiveReducer.GetAncestorNodesLookup()` and the builders' `GetAncestorNodesLookup()` are declared nullable (they return `null` for unsatisfied or circular dependencies, as before).
 - `DummyActivityGenerator<…>.Generate` now throws `InvalidOperationException` if the created dummy activity is not assignable to `TActivity`, instead of returning `null`.
-- A strongly-typed `ICloneObject<out T>` (with `T Clone()`) now sits alongside `ICloneObject`, and `IActivity<…>`, `IEvent<…>`, `IResource<…>`, `IWorkStream<…>`, `IScheduledActivity<…>` and `IResourceSchedule<…>` extend it (as do `Edge<…>` and `Node<…>`). Consumers can call `Clone()` instead of casting `CloneObject()`. External types implementing those interfaces must now also provide the typed `Clone()` member.
 
 ### 3.0.0
 

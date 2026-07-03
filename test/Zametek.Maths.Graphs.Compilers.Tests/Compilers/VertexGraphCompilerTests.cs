@@ -64,7 +64,7 @@ namespace Zametek.Maths.Graphs.Tests
             bool result2 = graphCompiler.AddActivity(activity2);
             result2.ShouldBeTrue();
 
-            var output = graphCompiler.Compile();
+            graphCompiler.Compile();
 
             graphBuilder.EdgeIds.Any().ShouldBeFalse();
             graphBuilder.NodeIds.Count().ShouldBe(2);
@@ -104,12 +104,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 11, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 8, new HashSet<int> { 1, 2, 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 7, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 4, new HashSet<int> { 4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 4, new HashSet<int> { 4, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 11, [2]) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 17 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 8, [1, 2, 3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 7, [3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 4, [4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 4, [4, 6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, [5]) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -134,14 +134,14 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, new HashSet<int> { 7 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, [7]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, new HashSet<int> { 2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, new HashSet<int> { 4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, [2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, [1, 2, 3, 8]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, [3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, [4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, [9, 6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, [5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -166,13 +166,13 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, new HashSet<int> { 7 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10, new HashSet<int> { 21 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, new HashSet<int> { 2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, new HashSet<int> { 22 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, [7]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10, [21]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, [2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, [1, 2, 3, 8]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, [3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, [22]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, [9, 6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -197,14 +197,14 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(1, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, new HashSet<int> { 7 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10, new HashSet<int> { 21 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, new HashSet<int> { 2 }) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 16 });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, new HashSet<int> { 1, 2, 3, 8 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, new HashSet<int> { 4, 22 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, new HashSet<int> { 9, 6, 22 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, new HashSet<int> { 5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(2, 10, [7]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(3, 10, [21]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(4, 10, [2]) { MinimumEarliestStartTime = 7, MaximumLatestFinishTime = 16 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(5, 10, [1, 2, 3, 8]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(6, 10, [3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(7, 10, [4, 22]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, [9, 6, 22]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, [5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -259,12 +259,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { 2 }) { MaximumLatestFinishTime = 5 });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { 1, 2, 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { 3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { 4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { 4, 6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { 5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [2]) { MaximumLatestFinishTime = 5 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [1, 2, 3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [4, 6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -485,7 +485,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 10) { MinimumFreeSlack = 10 });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 10, new HashSet<int> { activityId1 }) { MaximumLatestFinishTime = 20 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 10, [activityId1]) { MaximumLatestFinishTime = 20 });
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -649,12 +649,11 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity16);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.ResourceSchedules.ShouldBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -690,9 +689,9 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int> { activityId1 });
-            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 });
-            var activity4 = new DependentActivity<int, int, int>(activityId4, 4, new HashSet<int> { activityId3 });
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, [activityId1]);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, [activityId2]);
+            var activity4 = new DependentActivity<int, int, int>(activityId4, 4, [activityId3]);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -721,13 +720,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity4);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -781,9 +779,9 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int> { activityId1 });
-            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 });
-            var activity4 = new DependentActivity<int, int, int>(activityId4, 4, new HashSet<int> { activityId3 });
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, [activityId1]);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, [activityId2]);
+            var activity4 = new DependentActivity<int, int, int>(activityId4, 4, [activityId3]);
 
             int resourceId1 = 1;
 
@@ -797,7 +795,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
             graphCompiler.AddActivity(activity4);
 
-            foreach (LogicalOperator logicalOperator in Enum.GetValues(typeof(LogicalOperator)))
+            foreach (LogicalOperator logicalOperator in Enum.GetValues<LogicalOperator>())
             {
                 foreach (IDependentActivity<int, int, int> activity in graphCompiler.Builder.Activities)
                 {
@@ -805,10 +803,9 @@ namespace Zametek.Maths.Graphs.Tests
                 }
 
                 IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                    new List<IResource<int, int>>(new[]
-                    {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    }));
+                    new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    ]));
 
                 compilation.ResourceSchedules.ShouldNotBeEmpty();
                 compilation.CompilationErrors.ShouldBeEmpty();
@@ -858,12 +855,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2, activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -1068,8 +1065,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int> { activityId1 });
-            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 });
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, [activityId1]);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, [activityId2]);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -1135,12 +1132,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { MinimumFreeSlack = 15 });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2, activityId3]) { MinimumFreeSlack = 15 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -1350,65 +1347,64 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2, activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, false,
                     false, false, false, false, false, false, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -1454,44 +1450,44 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, true, true, true,
                     true, true, true, false, false, false, false, false, false, false,
                     false, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -1538,8 +1534,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -1552,7 +1548,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -1566,7 +1562,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -1580,8 +1576,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -1597,8 +1593,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -1611,8 +1607,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -1625,8 +1621,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
@@ -1639,8 +1635,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
@@ -1652,8 +1648,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -1674,31 +1670,30 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2, activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1706,10 +1701,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, true, true, true, true, true,
                     true, false, false, false, false, false, false, false, false, true,
@@ -1717,10 +1712,10 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false, false, false, false, false, false, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1728,10 +1723,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, false,
@@ -1739,10 +1734,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -1750,7 +1745,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId2);
@@ -1830,8 +1825,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(21);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -1843,8 +1838,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(15);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -1858,7 +1853,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -1872,8 +1867,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -1889,8 +1884,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -1903,8 +1898,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -1917,8 +1912,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId9 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId9], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(61);
@@ -1931,8 +1926,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(47);
@@ -1944,8 +1939,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -1966,65 +1961,64 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2, activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -2070,44 +2064,44 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -2154,8 +2148,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -2168,7 +2162,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -2182,7 +2176,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -2196,8 +2190,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -2213,8 +2207,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -2227,8 +2221,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Dependencies.Contains(activityId3).ShouldBeTrue();
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -2241,8 +2235,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
@@ -2255,8 +2249,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId6).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
@@ -2268,8 +2262,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).Dependencies.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -2290,12 +2284,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), [activityId1, activityId2, activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -2498,8 +2492,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int>(), new HashSet<int> { activityId1 });
-            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int>(), new HashSet<int> { activityId2 });
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int>(), [activityId1]);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int>(), [activityId2]);
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -2565,12 +2559,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }) { MinimumFreeSlack = 15 });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), [activityId1, activityId2, activityId3]) { MinimumFreeSlack = 15 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -2780,65 +2774,64 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), [activityId1, activityId2, activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, false,
                     false, false, false, false, false, false, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -2884,44 +2877,44 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, true, true, true,
                     true, true, true, false, false, false, false, false, false, false,
                     false, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -2968,8 +2961,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -2982,7 +2975,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -2996,7 +2989,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -3010,8 +3003,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -3027,8 +3020,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -3041,8 +3034,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -3055,8 +3048,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
@@ -3069,8 +3062,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
@@ -3082,8 +3075,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -3104,31 +3097,30 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), [activityId1, activityId2, activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3136,10 +3128,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, true, true, true, true, true,
                     true, false, false, false, false, false, false, false, false, true,
@@ -3147,10 +3139,10 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false, false, false, false, false, false, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3158,10 +3150,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, false,
@@ -3169,10 +3161,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -3180,7 +3172,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId2);
@@ -3260,8 +3252,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(21);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -3273,8 +3265,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(15);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -3288,7 +3280,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -3302,8 +3294,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -3319,8 +3311,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -3333,8 +3325,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -3347,8 +3339,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId9 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId9], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(61);
@@ -3361,8 +3353,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(47);
@@ -3374,8 +3366,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -3396,65 +3388,64 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int>(), [activityId1, activityId2, activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int>(), [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -3500,44 +3491,44 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -3584,8 +3575,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -3598,7 +3589,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -3612,7 +3603,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -3626,8 +3617,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -3643,8 +3634,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId1).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -3657,8 +3648,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -3671,8 +3662,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
@@ -3685,8 +3676,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(2);
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
@@ -3698,8 +3689,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -3720,12 +3711,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }, new HashSet<int>()));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4 }, new HashSet<int> { activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2], [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4], new HashSet<int>()));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4], [activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -3928,8 +3919,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 6);
-            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int>(), new HashSet<int> { activityId1 });
-            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, new HashSet<int> { activityId2 }, new HashSet<int>());
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 7, new HashSet<int>(), [activityId1]);
+            var activity3 = new DependentActivity<int, int, int>(activityId3, 4, [activityId2], new HashSet<int>());
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
@@ -3995,12 +3986,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }) { MinimumFreeSlack = 15 });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }, new HashSet<int>()));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4 }, new HashSet<int> { activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2], [activityId3]) { MinimumFreeSlack = 15 });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4], new HashSet<int>()));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4], [activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
 
@@ -4211,65 +4202,64 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }, new HashSet<int>()));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4 }, new HashSet<int> { activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2], [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4], new HashSet<int>()));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4], [activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, false,
                     false, false, false, false, false, false, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -4315,44 +4305,44 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, true, true, true,
                     true, true, true, false, false, false, false, false, false, false,
                     false, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -4399,8 +4389,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -4413,7 +4403,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -4427,7 +4417,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -4441,8 +4431,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -4458,8 +4448,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -4472,8 +4462,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -4486,8 +4476,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
@@ -4500,8 +4490,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
@@ -4513,8 +4503,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -4535,31 +4525,30 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7) { HasNoCost = true });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }, new HashSet<int>()));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4 }, new HashSet<int> { activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2], [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4], new HashSet<int>()));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4], [activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4567,10 +4556,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, true, true, true, true, true,
                     true, false, false, false, false, false, false, false, false, true,
@@ -4578,10 +4567,10 @@ namespace Zametek.Maths.Graphs.Tests
                     false, false, false, false, false, false, false, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4589,10 +4578,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, false,
@@ -4600,10 +4589,10 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
@@ -4611,7 +4600,7 @@ namespace Zametek.Maths.Graphs.Tests
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId2);
@@ -4691,8 +4680,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(21);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -4704,8 +4693,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(15);
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -4719,7 +4708,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -4733,8 +4722,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -4750,8 +4739,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -4764,8 +4753,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -4778,8 +4767,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId9 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId9], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(61);
@@ -4792,8 +4781,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(47);
@@ -4805,8 +4794,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -4827,65 +4816,64 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8) { HasNoCost = true, HasNoEffort = true, HasNoBilling = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), new HashSet<int> { activityId2 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), new HashSet<int> { activityId3 }) { HasNoCost = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }, new HashSet<int>()));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4 }, new HashSet<int> { activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int>(), [activityId2]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2], [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int>(), [activityId3]) { HasNoCost = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4], new HashSet<int>()));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4], [activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(2);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -4931,44 +4919,44 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, false, false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -5015,8 +5003,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(16);
             graphBuilder.Activity(activityId1).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId1).Successors.Contains(activityId5).ShouldBeTrue();
 
@@ -5029,7 +5017,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId2).Successors.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId2).Successors.Contains(activityId5).ShouldBeTrue();
@@ -5043,7 +5031,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId3).Successors.Contains(activityId5).ShouldBeTrue();
             graphBuilder.Activity(activityId3).Successors.Contains(activityId6).ShouldBeTrue();
@@ -5057,8 +5045,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId4).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId4).PlanningDependencies.Contains(activityId2).ShouldBeTrue();
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId4).Successors.Count.ShouldBe(2);
             graphBuilder.Activity(activityId4).Successors.Contains(activityId7).ShouldBeTrue();
             graphBuilder.Activity(activityId4).Successors.Contains(activityId8).ShouldBeTrue();
@@ -5074,8 +5062,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId5).Dependencies.Contains(activityId2).ShouldBeTrue();
             graphBuilder.Activity(activityId5).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId5).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId5).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId5).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId5).Successors.Contains(activityId9).ShouldBeTrue();
 
@@ -5088,8 +5076,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId6).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId6).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).PlanningDependencies.Contains(activityId3).ShouldBeTrue();
-            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId4 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId6).ResourceDependencies.ShouldBe([activityId4], ignoreOrder: true);
+            graphBuilder.Activity(activityId6).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId6).Successors.Count.ShouldBe(1);
             graphBuilder.Activity(activityId6).Successors.Contains(activityId8).ShouldBeTrue();
 
@@ -5102,8 +5090,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId7).Dependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId7).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId7).PlanningDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId6 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId7).ResourceDependencies.ShouldBe([activityId6], ignoreOrder: true);
+            graphBuilder.Activity(activityId7).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId7).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId8).EarliestStartTime.ShouldBe(30);
@@ -5116,8 +5104,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId8).Dependencies.Contains(activityId4).ShouldBeTrue();
             graphBuilder.Activity(activityId8).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId8).PlanningDependencies.Contains(activityId6).ShouldBeTrue();
-            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId7 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId8).ResourceDependencies.ShouldBe([activityId7], ignoreOrder: true);
+            graphBuilder.Activity(activityId8).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
             graphBuilder.Activity(activityId8).Successors.Count.ShouldBe(0);
 
             graphBuilder.Activity(activityId9).EarliestStartTime.ShouldBe(21);
@@ -5129,8 +5117,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId9).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId9).PlanningDependencies.Count.ShouldBe(1);
             graphBuilder.Activity(activityId9).PlanningDependencies.Contains(activityId5).ShouldBeTrue();
-            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId5 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId9).ResourceDependencies.ShouldBe([activityId5], ignoreOrder: true);
+            graphBuilder.Activity(activityId9).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
             graphBuilder.Activity(activityId9).Successors.Count.ShouldBe(0);
         }
 
@@ -5141,10 +5129,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             int resourceId1 = 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -5169,9 +5156,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5186,41 +5173,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -5238,34 +5225,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -5283,34 +5270,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -5340,9 +5327,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -5357,41 +5344,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -5409,34 +5396,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -5454,34 +5441,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -5511,9 +5498,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -5528,41 +5515,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -5580,34 +5567,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -5625,34 +5612,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -5682,9 +5669,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
             activity1.TargetResources.Add(resourceId1);
@@ -5699,41 +5686,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -5751,34 +5738,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -5796,34 +5783,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -5853,9 +5840,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -5870,41 +5857,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -5922,34 +5909,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -5967,34 +5954,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -6024,9 +6011,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6041,41 +6028,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -6093,34 +6080,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -6138,34 +6125,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -6195,9 +6182,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6212,41 +6199,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -6264,34 +6251,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -6309,34 +6296,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -6366,9 +6353,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6383,41 +6370,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -6435,34 +6422,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -6480,34 +6467,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -6537,9 +6524,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6554,41 +6541,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -6606,34 +6593,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -6651,34 +6638,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -6708,9 +6695,9 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
-            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
+            var resource2 = new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
+            var resource3 = new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -6725,41 +6712,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1, resource2, resource3 }));
+                new List<IResource<int, int>>([resource1, resource2, resource3]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -6777,34 +6764,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -6822,34 +6809,34 @@ namespace Zametek.Maths.Graphs.Tests
 
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, false, false, false, false, false,
                     false, false,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -6877,7 +6864,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -6891,41 +6878,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -6967,7 +6954,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -6981,41 +6968,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7057,7 +7044,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
             activity1.TargetResources.Add(resourceId1);
@@ -7071,41 +7058,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7147,7 +7134,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -7161,41 +7148,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7237,7 +7224,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -7251,41 +7238,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7327,7 +7314,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -7341,41 +7328,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7417,7 +7404,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -7431,41 +7418,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7507,7 +7494,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -7521,41 +7508,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7597,7 +7584,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -7611,41 +7598,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7687,7 +7674,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -7701,41 +7688,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7777,7 +7764,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -7791,41 +7778,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7867,7 +7854,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
             activity1.TargetResources.Add(resourceId1);
@@ -7881,41 +7868,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -7957,7 +7944,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -7971,41 +7958,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8047,7 +8034,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8061,41 +8048,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8137,7 +8124,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8151,41 +8138,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8227,7 +8214,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8241,41 +8228,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8317,7 +8304,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8331,41 +8318,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8407,7 +8394,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8421,41 +8408,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8497,7 +8484,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoCost = true };
             activity1.TargetResources.Add(resourceId1);
@@ -8511,41 +8498,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8587,7 +8574,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoEffort = true };
             activity1.TargetResources.Add(resourceId1);
@@ -8601,41 +8588,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8677,7 +8664,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5) { HasNoBilling = true };
             activity1.TargetResources.Add(resourceId1);
@@ -8691,41 +8678,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     false, false, false, false, false, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8767,7 +8754,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8781,41 +8768,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8857,7 +8844,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8871,41 +8858,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -8947,7 +8934,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -8961,41 +8948,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -9037,7 +9024,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -9051,41 +9038,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -9127,7 +9114,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -9141,41 +9128,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -9217,7 +9204,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>());
+            var resource1 = new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []);
 
             var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
             activity1.TargetResources.Add(resourceId1);
@@ -9231,41 +9218,41 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[] { resource1 }));
+                new List<IResource<int, int>>([resource1]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(1);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -9320,12 +9307,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2, activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
             graphCompiler.Compile();
 
@@ -9345,9 +9332,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
 
             graphCompiler.Compile();
 
@@ -9365,7 +9352,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId1]));
 
             graphCompiler.Compile();
 
@@ -9384,59 +9371,58 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 5));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 10));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 15, new HashSet<int> { activityId1 }) { HasNoEffort = true });
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 10, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 15, [activityId1]) { HasNoEffort = true });
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 10, [activityId3]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 10) { HasNoEffort = true, HasNoCost = true, HasNoBilling = true });
 
             int resourceId1 = 1;
             int resourceId2 = resourceId1 + 1;
             int resourceId3 = resourceId2 + 1;
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>(new[]
-                {
-                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                    new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, Enumerable.Empty<int>()),
-                }));
+                new List<IResource<int, int>>([
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
+                ]));
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
             resourceSchedules.Count.ShouldBe(3);
 
             resourceSchedules[0].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[0].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             var resourceSchedule0 = resourceSchedules[0];
             resourceSchedule0.Resource.Id.ShouldBe(resourceId1);
@@ -9467,39 +9453,39 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities0.Last().FinishTime.ShouldBe(30);
 
             resourceSchedules[1].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             resourceSchedules[1].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             var resourceSchedule1 = resourceSchedules[1];
             resourceSchedule1.Resource.Id.ShouldBe(resourceId2);
@@ -9516,39 +9502,39 @@ namespace Zametek.Maths.Graphs.Tests
             scheduledActivities1.Last().FinishTime.ShouldBe(10);
 
             resourceSchedules[2].ResourceAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[2].CostAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[2].BillingAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[2].EffortAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
                     true, true, true, true, true, true, true, true, true, true,
-                });
+                ]);
 
             resourceSchedules[2].ActivityAllocation.ShouldBe(
-                new bool[] {
+                [
                     true, true, true, true, true, true, true, true, true, true,
                     false, false, false, false, false, false, false, false, false, false,
                     false, false, false, false, false, false, false, false, false, false,
-                });
+                ]);
 
             var resourceSchedule2 = resourceSchedules[2];
             resourceSchedule2.Resource.Id.ShouldBe(resourceId3);
@@ -9573,7 +9559,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).LatestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).LatestFinishTime.ShouldBe(5);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
 
             graphBuilder.Activity(activityId2).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId2).EarliestFinishTime.ShouldBe(10);
@@ -9582,7 +9568,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId2).LatestStartTime.ShouldBe(20);
             graphBuilder.Activity(activityId2).LatestFinishTime.ShouldBe(30);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(0);
-            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).AllocatedToResources.ShouldBe([resourceId2], ignoreOrder: true);
 
             graphBuilder.Activity(activityId3).EarliestStartTime.ShouldBe(5);
             graphBuilder.Activity(activityId3).EarliestFinishTime.ShouldBe(20);
@@ -9590,8 +9576,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).TotalSlack.ShouldBe(0);
             graphBuilder.Activity(activityId3).LatestStartTime.ShouldBe(5);
             graphBuilder.Activity(activityId3).LatestFinishTime.ShouldBe(20);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
+            graphBuilder.Activity(activityId3).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
 
             graphBuilder.Activity(activityId4).EarliestStartTime.ShouldBe(20);
             graphBuilder.Activity(activityId4).EarliestFinishTime.ShouldBe(30);
@@ -9599,8 +9585,8 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId4).TotalSlack.ShouldBe(0);
             graphBuilder.Activity(activityId4).LatestStartTime.ShouldBe(20);
             graphBuilder.Activity(activityId4).LatestFinishTime.ShouldBe(30);
-            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe(new List<int>(new int[] { resourceId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId4).ResourceDependencies.ShouldBe([activityId3], ignoreOrder: true);
+            graphBuilder.Activity(activityId4).AllocatedToResources.ShouldBe([resourceId1], ignoreOrder: true);
         }
 
         [Fact]
@@ -9612,8 +9598,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -9624,21 +9610,21 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe([activityId2], ignoreOrder: true);
 
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Dependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Dependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe([activityId3], ignoreOrder: true);
 
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
         }
 
@@ -9651,8 +9637,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), new HashSet<int> { activityId1, activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -9663,21 +9649,21 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe([activityId2], ignoreOrder: true);
 
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe([activityId3], ignoreOrder: true);
 
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).PlanningDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
         }
 
@@ -9690,8 +9676,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -9702,21 +9688,21 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe([activityId2], ignoreOrder: true);
 
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe([activityId3], ignoreOrder: true);
 
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
         }
 
@@ -9729,8 +9715,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), new HashSet<int> { activityId1, activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -9741,21 +9727,21 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe([activityId2], ignoreOrder: true);
 
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Dependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Dependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe([activityId3], ignoreOrder: true);
 
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).PlanningDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
         }
 
@@ -9768,8 +9754,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId1, activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int>(), [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2], [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -9780,21 +9766,21 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe([activityId2], ignoreOrder: true);
 
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).PlanningDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe([activityId3], ignoreOrder: true);
 
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
         }
 
@@ -9807,8 +9793,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             var graphBuilder = graphCompiler.Builder;
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 1));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int> { activityId1, activityId2 }, new HashSet<int> { activityId1, activityId2 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 2, [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2], [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
@@ -9819,21 +9805,21 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId1).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).ResourceDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId1).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId1).Successors.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId1).Successors.ShouldBe([activityId2], ignoreOrder: true);
 
             graphBuilder.Activity(activityId2).Dependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Dependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Dependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).PlanningDependencies.Count.ShouldBe(0);
             graphBuilder.Activity(activityId2).ResourceDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId1 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).ResourceDependencies.ShouldBe([activityId1], ignoreOrder: true);
             graphBuilder.Activity(activityId2).Successors.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId2).Successors.ShouldBe(new List<int>(new int[] { activityId3 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId2).Successors.ShouldBe([activityId3], ignoreOrder: true);
 
             graphBuilder.Activity(activityId3).Dependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).Dependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).Dependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).PlanningDependencies.Count.ShouldBe(1);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
-            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe(new List<int>(new int[] { activityId2 }), ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
+            graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
         }
     }

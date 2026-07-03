@@ -286,12 +286,6 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <inheritdoc/>
-        public IActivity<T, TResourceId, TWorkStreamId> Clone()
-        {
-            return (IActivity<T, TResourceId, TWorkStreamId>)CloneObject();
-        }
-
-        /// <inheritdoc/>
         public virtual object CloneObject()
         {
             return new Activity<T, TResourceId, TWorkStreamId>(

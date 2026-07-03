@@ -30,12 +30,12 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId1, activityId2, activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, new HashSet<int> { activityId4 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int> { activityId4, activityId6 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int> { activityId5 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId1, activityId2, activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId7, 4, [activityId4]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
             graphCompiler.Compile();
 
@@ -55,9 +55,9 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, new HashSet<int> { activityId2 }));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, new HashSet<int> { activityId3 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId1]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId2]));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
 
             graphCompiler.Compile();
 
@@ -75,7 +75,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 6));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 7));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
-            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, new HashSet<int> { activityId1 }));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId1]));
 
             graphCompiler.Compile();
 

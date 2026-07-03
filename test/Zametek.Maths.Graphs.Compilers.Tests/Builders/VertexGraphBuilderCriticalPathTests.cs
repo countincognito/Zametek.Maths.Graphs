@@ -1951,7 +1951,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             List<int> priorityList = graphBuilder.CalculateCriticalPathPriorityList();
 
-            priorityList.ShouldBeEquivalentTo(new List<int>([3, 2, 1, 5, 4, 6, 9, 7, 8]));
+            priorityList.ShouldBeEquivalentTo(new List<int> { 3, 2, 1, 5, 4, 6, 9, 7, 8 });
         }
 
         [Fact]

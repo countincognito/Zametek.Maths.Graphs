@@ -8,7 +8,7 @@ namespace Zametek.Maths.Graphs
     /// </summary>
     /// <typeparam name="T">The event ID type.</typeparam>
     public interface IEvent<out T>
-        : IHaveId<T>, ICanBeRemoved, ICloneObject<IEvent<T>>
+        : IHaveId<T>, ICanBeRemoved, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
     {
         /// <summary>

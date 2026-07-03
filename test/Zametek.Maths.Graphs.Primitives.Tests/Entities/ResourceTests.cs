@@ -20,7 +20,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var resource = new Resource<int, int>(
                 1, "R1", isExplicitTarget: true, isInactive: true,
-                InterActivityAllocationType.Indirect, 2.5, 3.5, 7, new[] { 11, 12 });
+                InterActivityAllocationType.Indirect, 2.5, 3.5, 7, [11, 12]);
 
             resource.Id.ShouldBe(1);
             resource.Name.ShouldBe("R1");
@@ -38,7 +38,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var resource = new Resource<int, int>(
                 1, "R1", isExplicitTarget: true, isInactive: false,
-                InterActivityAllocationType.Direct, 2.5, 3.5, 7, new[] { 11 });
+                InterActivityAllocationType.Direct, 2.5, 3.5, 7, [11]);
 
             var clone = (Resource<int, int>)resource.CloneObject();
 
@@ -57,7 +57,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void Resource_GivenCloneObject_ThenPhasesAreIndependentCopies()
         {
             var resource = new Resource<int, int>(
-                1, "R1", false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, new[] { 11 });
+                1, "R1", false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [11]);
 
             var clone = (Resource<int, int>)resource.CloneObject();
             clone.InterActivityPhases.Add(12);

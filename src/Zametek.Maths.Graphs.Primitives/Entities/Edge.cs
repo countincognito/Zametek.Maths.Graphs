@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Zametek.Maths.Graphs
 {
@@ -6,14 +6,14 @@ namespace Zametek.Maths.Graphs
     /// A directed-graph edge carrying a content payload (an activity in arrow graphs; an event in vertex graphs). Equality is by ID only.
     /// </summary>
     public class Edge<T, TContent>
-        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Edge<T, TContent>>, ICloneObject<Edge<T, TContent>>
+        : IHaveId<T>, IHaveContent<TContent>, IEquatable<Edge<T, TContent>>, ICloneObject
         where T : struct, IComparable<T>, IEquatable<T>
         where TContent : IHaveId<T>, ICloneObject
     {
         #region Fields
 
-        private const int HashFactorOne = 17;
-        private const int HashFactorTwo = 23;
+        private const int c_HashFactorOne = 17;
+        private const int c_HashFactorTwo = 23;
 
         #endregion
 
@@ -59,8 +59,8 @@ namespace Zametek.Maths.Graphs
         {
             unchecked
             {
-                int hash = HashFactorOne;
-                hash = hash * HashFactorTwo + Id.GetHashCode();
+                int hash = c_HashFactorOne;
+                hash = hash * c_HashFactorTwo + Id.GetHashCode();
                 return hash;
             }
         }
@@ -84,13 +84,7 @@ namespace Zametek.Maths.Graphs
         #region ICloneObject
 
         /// <inheritdoc/>
-        public Edge<T, TContent> Clone()
-        {
-            return (Edge<T, TContent>)CloneObject();
-        }
-
-        /// <inheritdoc/>
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             return new Edge<T, TContent>((TContent)Content.CloneObject());
         }

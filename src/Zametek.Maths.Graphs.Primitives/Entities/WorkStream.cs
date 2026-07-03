@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Zametek.Maths.Graphs
 {
@@ -44,13 +44,7 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <inheritdoc/>
-        public IWorkStream<T> Clone()
-        {
-            return (IWorkStream<T>)CloneObject();
-        }
-
-        /// <inheritdoc/>
-        public object CloneObject()
+        public virtual object CloneObject()
         {
             return new WorkStream<T>(Id, Name, IsPhase);
         }

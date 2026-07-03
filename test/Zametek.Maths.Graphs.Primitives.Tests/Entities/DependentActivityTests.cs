@@ -20,7 +20,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void DependentActivity_GivenCtor_WithDependencies_ThenDependenciesCopied()
         {
-            var activity = new DependentActivity<int, int, int>(3, 8, new[] { 1, 2 });
+            var activity = new DependentActivity<int, int, int>(3, 8, [1, 2]);
 
             activity.Dependencies.ShouldBe([1, 2], ignoreOrder: true);
         }
@@ -35,7 +35,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void DependentActivity_GivenCloneObject_ThenDependencySetsPreserved()
         {
-            var activity = new DependentActivity<int, int, int>(3, 8, new[] { 1, 2 });
+            var activity = new DependentActivity<int, int, int>(3, 8, [1, 2]);
             activity.PlanningDependencies.Add(4);
             activity.ResourceDependencies.Add(5);
             activity.Successors.Add(6);
@@ -51,7 +51,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void DependentActivity_GivenCloneObject_ThenDependencySetsAreIndependentCopies()
         {
-            var activity = new DependentActivity<int, int, int>(3, 8, new[] { 1 });
+            var activity = new DependentActivity<int, int, int>(3, 8, [1]);
 
             var clone = (DependentActivity<int, int, int>)activity.CloneObject();
             clone.Dependencies.Add(2);

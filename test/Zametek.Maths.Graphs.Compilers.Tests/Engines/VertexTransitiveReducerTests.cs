@@ -60,7 +60,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
                 state);
 
-            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            Dictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
 
             output.ShouldNotBeNull();
             output[3].ShouldContain(1);

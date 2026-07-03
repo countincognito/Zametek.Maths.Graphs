@@ -112,7 +112,7 @@ namespace Zametek.Maths.Graphs.Tests
             var a1 = new Activity<int, int, int>(1, 5) { EarliestStartTime = 0 };
             var a2 = new Activity<int, int, int>(2, 5) { EarliestStartTime = 0 };
 
-            IDictionary<int, IActivity<int, int, int>> lookup = new Dictionary<int, IActivity<int, int, int>>
+            Dictionary<int, IActivity<int, int, int>> lookup = new()
             {
                 [1] = a1,
                 [2] = a2,
