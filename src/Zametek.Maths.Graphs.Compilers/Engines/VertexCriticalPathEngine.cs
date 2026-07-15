@@ -165,17 +165,16 @@ namespace Zametek.Maths.Graphs
                 {
                     Edge<T, IEvent<T>> edge = state.Edge(edgeId);
 
-                    // Get the dependency node and its incoming edges IDs.
+                    // Get the dependency node (the edge's tail).
                     var dependencyNode = state.EdgeTailNode(edgeId);
-                    var dependencyNodeIncomingEdgeIds = new HashSet<T>(dependencyNode.IncomingEdges);
 
-                    // If calculations for all the dependency edges have been completed, then use them
-                    // to complete the calculations for this edge.
-                    if (dependencyNodeIncomingEdgeIds.IsSubsetOf(completedEdgeIds))
+                    // If calculations for all the dependency node's incoming edges have been
+                    // completed, then use them to complete the calculations for this edge.
+                    if (AllCompleted(dependencyNode.IncomingEdges, completedEdgeIds))
                     {
                         if (!dependencyNode.Content.EarliestStartTime.HasValue)
                         {
-                            int earliestStartTime = dependencyNodeIncomingEdgeIds
+                            int earliestStartTime = dependencyNode.IncomingEdges
                                 .Select(x => state.Edge(x))
                                 .Max(x => x.Content.EarliestFinishTime!.Value);
 
@@ -247,15 +246,14 @@ namespace Zametek.Maths.Graphs
             // Now complete the End nodes.
             foreach (Node<T, TActivity> node in state.EndNodes)
             {
-                var nodeIncomingEdgeIds = new HashSet<T>(node.IncomingEdges);
-                if (!nodeIncomingEdgeIds.IsSubsetOf(completedEdgeIds))
+                if (!AllCompleted(node.IncomingEdges, completedEdgeIds))
                 {
                     throw new InvalidOperationException($@"Cannot calculate EST for activity {node.Id} as not all dependency events have EFT values.");
                 }
 
                 if (!node.Content.EarliestStartTime.HasValue)
                 {
-                    int earliestStartTime = nodeIncomingEdgeIds
+                    int earliestStartTime = node.IncomingEdges
                         .Select(x => state.Edge(x))
                         .Max(x => x.Content.EarliestFinishTime!.Value);
 
@@ -427,17 +425,16 @@ namespace Zametek.Maths.Graphs
                 {
                     Edge<T, IEvent<T>> edge = state.Edge(edgeId);
 
-                    // Get the successor node and its outgoing edges IDs.
+                    // Get the successor node (the edge's head).
                     var successorNode = state.EdgeHeadNode(edgeId);
-                    var successorNodeOutgoingEdgeIds = new HashSet<T>(successorNode.OutgoingEdges);
 
-                    // If calculations for all the successor edges have been completed, then use them
-                    // to complete the calculations for this edge.
-                    if (successorNodeOutgoingEdgeIds.IsSubsetOf(completedEdgeIds))
+                    // If calculations for all the successor node's outgoing edges have been
+                    // completed, then use them to complete the calculations for this edge.
+                    if (AllCompleted(successorNode.OutgoingEdges, completedEdgeIds))
                     {
                         if (!successorNode.Content.LatestFinishTime.HasValue)
                         {
-                            int latestFinishTime = successorNodeOutgoingEdgeIds
+                            int latestFinishTime = successorNode.OutgoingEdges
                                 .Select(x => state.Edge(x))
                                 .Min(x => x.Content.LatestFinishTime!.Value);
 
@@ -457,7 +454,7 @@ namespace Zametek.Maths.Graphs
 
                         if (!successorNode.Content.FreeSlack.HasValue)
                         {
-                            int latestFinishTime = successorNodeOutgoingEdgeIds
+                            int latestFinishTime = successorNode.OutgoingEdges
                                 .Select(x => state.EdgeHeadNode(x))
                                 .Min(x => x.Content.EarliestStartTime!.Value);
 
@@ -507,15 +504,14 @@ namespace Zametek.Maths.Graphs
             // Now complete the Start nodes.
             foreach (Node<T, TActivity> node in startNodesList)
             {
-                var nodeOutgoingEdgeIds = new HashSet<T>(node.OutgoingEdges);
-                if (!nodeOutgoingEdgeIds.IsSubsetOf(completedEdgeIds))
+                if (!AllCompleted(node.OutgoingEdges, completedEdgeIds))
                 {
                     throw new InvalidOperationException($@"Cannot calculate LFT for activity {node.Id} as not all dependency events have LFT values.");
                 }
 
                 if (!node.Content.LatestFinishTime.HasValue)
                 {
-                    int latestFinishTime = nodeOutgoingEdgeIds
+                    int latestFinishTime = node.OutgoingEdges
                         .Select(x => state.Edge(x))
                         .Select(x => x.Content.LatestFinishTime!.Value)
                         .DefaultIfEmpty()
@@ -548,7 +544,7 @@ namespace Zametek.Maths.Graphs
 
                 if (!node.Content.FreeSlack.HasValue)
                 {
-                    int latestFinishTime = nodeOutgoingEdgeIds
+                    int latestFinishTime = node.OutgoingEdges
                         .Select(x => state.EdgeHeadNode(x))
                         .Select(x => x.Content.EarliestStartTime!.Value)
                         .DefaultIfEmpty()
@@ -643,6 +639,20 @@ namespace Zametek.Maths.Graphs
                 node.Content.FreeSlack = node.Content.LatestFinishTime - node.Content.EarliestFinishTime;
             }
 
+            return true;
+        }
+
+        // Zero-allocation "are all of these edges completed" test - replaces building a
+        // throwaway HashSet from the node's edge set and calling IsSubsetOf on the hot path.
+        private static bool AllCompleted(HashSet<T> edgeIds, HashSet<T> completedEdgeIds)
+        {
+            foreach (T edgeId in edgeIds)
+            {
+                if (!completedEdgeIds.Contains(edgeId))
+                {
+                    return false;
+                }
+            }
             return true;
         }
     }

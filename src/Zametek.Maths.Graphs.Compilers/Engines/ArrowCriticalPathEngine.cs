@@ -89,11 +89,21 @@ namespace Zametek.Maths.Graphs
                         incomingEdges.Shuffle();
                     }
 
-                    var dependencyNodeIds = new HashSet<T>(incomingEdges.Select(x => state.EdgeTailNode(x).Id));
+                    // If calculations for all the dependency nodes (the incoming edges' tail
+                    // nodes) have been completed, then use them to complete the calculations
+                    // for this node. (Zero-allocation subset test - avoids building a HashSet
+                    // per node per pass.)
+                    bool allDependencyNodesCompleted = true;
+                    foreach (T incomingEdgeId in incomingEdges)
+                    {
+                        if (!completedNodeIds.Contains(state.EdgeTailNode(incomingEdgeId).Id))
+                        {
+                            allDependencyNodesCompleted = false;
+                            break;
+                        }
+                    }
 
-                    // If calculations for all the dependency nodes have been completed, then use them
-                    // to complete the calculations for this node.
-                    if (dependencyNodeIds.IsSubsetOf(completedNodeIds))
+                    if (allDependencyNodesCompleted)
                     {
                         int earliestFinishTime = 0;
 
@@ -241,9 +251,19 @@ namespace Zametek.Maths.Graphs
                         outgoingEdges.Shuffle();
                     }
 
-                    var successorNodeIds = new HashSet<T>(outgoingEdges.Select(x => state.EdgeHeadNode(x).Id));
+                    // Zero-allocation subset test: are all the successor nodes (the outgoing
+                    // edges' head nodes) completed?
+                    bool allSuccessorNodesCompleted = true;
+                    foreach (T outgoingEdgeId in outgoingEdges)
+                    {
+                        if (!completedNodeIds.Contains(state.EdgeHeadNode(outgoingEdgeId).Id))
+                        {
+                            allSuccessorNodesCompleted = false;
+                            break;
+                        }
+                    }
 
-                    if (successorNodeIds.IsSubsetOf(completedNodeIds))
+                    if (allSuccessorNodesCompleted)
                     {
                         int latestFinishTime = endNodeLatestFinishTime;
 

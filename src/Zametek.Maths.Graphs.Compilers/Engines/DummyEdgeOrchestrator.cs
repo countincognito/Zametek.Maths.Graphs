@@ -284,45 +284,63 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }
 
-            Node<T, IEvent<T>> node = m_State.Node(nodeId);
+            // Iterative (was recursive) so a deep dependency chain cannot overflow the
+            // stack. A visited set means each node's incoming edges are processed once:
+            // every node removes only its own incoming dummy edges, using the static
+            // ancestor lookup, so the operation is independent of visit order and
+            // idempotent per node.
+            var visited = new HashSet<T>();
+            var stack = new Stack<T>();
+            stack.Push(nodeId);
 
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+            while (stack.Count != 0)
             {
-                return;
-            }
-
-            // Go through all the incoming edges and collate the
-            // ancestors of their tail nodes.
-            var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
-                .Select(x => m_State.EdgeTailNode(x).Id)
-                .SelectMany(x => nodeIdAncestorLookup[x]));
-
-            // Go through the incoming dummy edges and remove any that
-            // connect directly to any ancestors of the non-dummy edges'
-            // tail nodes.
-            List<T> incomingDummyEdges = node.IncomingEdges
-                .Select(x => m_State.Edge(x))
-                .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
-                .Select(x => x.Id)
-                .ToList();
-
-            foreach (T dummyEdgeId in incomingDummyEdges)
-            {
-                T dummyEdgeTailNodeId = m_State.EdgeTailNode(dummyEdgeId).Id;
-                if (tailNodeAncestors.Contains(dummyEdgeTailNodeId))
+                T currentNodeId = stack.Pop();
+                if (!visited.Add(currentNodeId))
                 {
-                    RemoveDummyActivity(dummyEdgeId);
+                    continue;
                 }
-            }
 
-            // Go through all the remaining incoming edges and repeat.
-            List<T> remainingIncomingEdges = node.IncomingEdges
-                .Select(x => m_State.EdgeTailNode(x).Id)
-                .ToList();
+                Node<T, IEvent<T>> node = m_State.Node(currentNodeId);
 
-            foreach (T tailNodeId in remainingIncomingEdges)
-            {
-                RemoveRedundantIncomingDummyEdges(tailNodeId, nodeIdAncestorLookup);
+                if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+                {
+                    continue;
+                }
+
+                // Go through all the incoming edges and collate the
+                // ancestors of their tail nodes.
+                var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
+                    .Select(x => m_State.EdgeTailNode(x).Id)
+                    .SelectMany(x => nodeIdAncestorLookup[x]));
+
+                // Go through the incoming dummy edges and remove any that
+                // connect directly to any ancestors of the non-dummy edges'
+                // tail nodes.
+                List<T> incomingDummyEdges = node.IncomingEdges
+                    .Select(x => m_State.Edge(x))
+                    .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
+                    .Select(x => x.Id)
+                    .ToList();
+
+                foreach (T dummyEdgeId in incomingDummyEdges)
+                {
+                    T dummyEdgeTailNodeId = m_State.EdgeTailNode(dummyEdgeId).Id;
+                    if (tailNodeAncestors.Contains(dummyEdgeTailNodeId))
+                    {
+                        RemoveDummyActivity(dummyEdgeId);
+                    }
+                }
+
+                // Continue with all the remaining incoming edges' tail nodes.
+                List<T> remainingIncomingEdges = node.IncomingEdges
+                    .Select(x => m_State.EdgeTailNode(x).Id)
+                    .ToList();
+
+                foreach (T tailNodeId in remainingIncomingEdges)
+                {
+                    stack.Push(tailNodeId);
+                }
             }
         }
 

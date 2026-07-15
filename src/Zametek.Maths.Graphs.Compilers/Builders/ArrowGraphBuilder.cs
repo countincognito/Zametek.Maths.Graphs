@@ -532,16 +532,36 @@ namespace Zametek.Maths.Graphs
             {
                 return new List<T>();
             }
+            // Iterative walk (dummy edges are transparent, real edges terminate the walk)
+            // so a long dummy chain cannot overflow the stack. Each node's incoming edges
+            // are walked once; the resulting set of real dependency IDs is unaffected
+            // (callers use it as a set).
             var output = new List<T>();
-            foreach (Edge<T, TActivity> incomingEdge in tailNode.IncomingEdges.Select(x => m_State.Edge(x)))
+            var visitedNodes = new HashSet<T>();
+            var stack = new Stack<T>();
+            stack.Push(tailNode.Id);
+            while (stack.Count != 0)
             {
-                if (incomingEdge.Content.IsDummy)
+                T currentNodeId = stack.Pop();
+                if (!visitedNodes.Add(currentNodeId))
                 {
-                    output.AddRange(StrongActivityDependencyIds(incomingEdge.Id));
+                    continue;
                 }
-                else
+                Node<T, IEvent<T>> currentNode = m_State.Node(currentNodeId);
+                if (currentNode.NodeType == NodeType.Start || currentNode.NodeType == NodeType.Isolated)
                 {
-                    output.Add(incomingEdge.Id);
+                    continue;
+                }
+                foreach (Edge<T, TActivity> incomingEdge in currentNode.IncomingEdges.Select(x => m_State.Edge(x)))
+                {
+                    if (incomingEdge.Content.IsDummy)
+                    {
+                        stack.Push(m_State.EdgeTailNode(incomingEdge.Id).Id);
+                    }
+                    else
+                    {
+                        output.Add(incomingEdge.Id);
+                    }
                 }
             }
             return output;

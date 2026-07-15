@@ -58,12 +58,7 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
-            List<T> endNodeIds = m_State.EndNodes.Select(x => x.Id).ToList();
-
-            foreach (T endNodeId in endNodeIds)
-            {
-                RemoveRedundantIncomingEdges(endNodeId, ancestorNodesLookup);
-            }
+            RemoveRedundantIncomingEdges(m_State.EndNodes.Select(x => x.Id), ancestorNodesLookup);
 
             return true;
         }
@@ -72,55 +67,76 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private void RemoveRedundantIncomingEdges(T nodeId, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
+        // Iterative (was recursive) so a deep dependency chain cannot overflow the
+        // stack. A single shared visited set means each node's incoming edges are
+        // reduced exactly once: every node removes only its own incoming edges, using
+        // the static ancestor lookup, so the operation is independent of visit order
+        // and idempotent per node.
+        private void RemoveRedundantIncomingEdges(IEnumerable<T> rootNodeIds, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
         {
             if (nodeIdAncestorLookup is null)
             {
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }
 
-            Node<T, TActivity> node = m_State.Node(nodeId);
-
-            if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+            var visited = new HashSet<T>();
+            var stack = new Stack<T>();
+            foreach (T rootNodeId in rootNodeIds)
             {
-                return;
+                stack.Push(rootNodeId);
             }
 
-            // Go through all the incoming edges and collate the
-            // ancestors of their tail nodes.
-            var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
-                .Select(x => m_State.EdgeTailNode(x).Id)
-                .SelectMany(x => nodeIdAncestorLookup[x]));
-
-            // Go through the incoming edges and remove any that connect
-            // directly to any ancestors of the edges' tail nodes.
-            // In a vertex graph, all edges are removable.
-            foreach (T edgeId in node.IncomingEdges
-                .Select(x => m_State.Edge(x))
-                .Where(x => x.Content.CanBeRemoved)
-                .Select(x => x.Id)
-                .ToList())
+            while (stack.Count != 0)
             {
-                Node<T, TActivity> tailNode = m_State.EdgeTailNode(edgeId);
-                if (tailNodeAncestors.Contains(tailNode.Id))
+                T nodeId = stack.Pop();
+                if (!visited.Add(nodeId))
                 {
-                    // Remove the edge from the tail node.
-                    tailNode.OutgoingEdges.Remove(edgeId);
-                    m_State.RemoveEdgeTailNode(edgeId);
-
-                    // Remove the edge from the node itself.
-                    node.IncomingEdges.Remove(edgeId);
-                    m_State.RemoveEdgeHeadNode(edgeId);
-
-                    // Remove the edge completely.
-                    m_State.RemoveEdge(edgeId);
+                    continue;
                 }
-            }
 
-            // Go through all the remaining incoming edges and repeat.
-            foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
-            {
-                RemoveRedundantIncomingEdges(tailNodeId, nodeIdAncestorLookup);
+                Node<T, TActivity> node = m_State.Node(nodeId);
+
+                if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+                {
+                    continue;
+                }
+
+                // Go through all the incoming edges and collate the
+                // ancestors of their tail nodes.
+                var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
+                    .Select(x => m_State.EdgeTailNode(x).Id)
+                    .SelectMany(x => nodeIdAncestorLookup[x]));
+
+                // Go through the incoming edges and remove any that connect
+                // directly to any ancestors of the edges' tail nodes.
+                // In a vertex graph, all edges are removable.
+                foreach (T edgeId in node.IncomingEdges
+                    .Select(x => m_State.Edge(x))
+                    .Where(x => x.Content.CanBeRemoved)
+                    .Select(x => x.Id)
+                    .ToList())
+                {
+                    Node<T, TActivity> tailNode = m_State.EdgeTailNode(edgeId);
+                    if (tailNodeAncestors.Contains(tailNode.Id))
+                    {
+                        // Remove the edge from the tail node.
+                        tailNode.OutgoingEdges.Remove(edgeId);
+                        m_State.RemoveEdgeTailNode(edgeId);
+
+                        // Remove the edge from the node itself.
+                        node.IncomingEdges.Remove(edgeId);
+                        m_State.RemoveEdgeHeadNode(edgeId);
+
+                        // Remove the edge completely.
+                        m_State.RemoveEdge(edgeId);
+                    }
+                }
+
+                // Continue with all the remaining incoming edges' tail nodes.
+                foreach (T tailNodeId in node.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).ToList())
+                {
+                    stack.Push(tailNodeId);
+                }
             }
         }
 

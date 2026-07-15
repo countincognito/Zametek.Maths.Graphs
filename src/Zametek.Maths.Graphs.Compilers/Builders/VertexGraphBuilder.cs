@@ -693,17 +693,36 @@ namespace Zametek.Maths.Graphs
             {
                 return new List<T>();
             }
+            // Iterative walk (dummy tails are transparent, real tails terminate the
+            // walk) so a long dummy chain cannot overflow the stack. Expanded dummy
+            // node IDs are tracked so a shared dummy sub-path is walked only once; the
+            // resulting set of real dependency IDs is unaffected (callers use it as a set).
             var output = new List<T>();
-            foreach (Edge<T, IEvent<T>> incomingEdge in node.IncomingEdges.Select(x => m_State.Edge(x)))
+            var expandedDummies = new HashSet<T>();
+            var stack = new Stack<T>();
+            stack.Push(activityId);
+            while (stack.Count != 0)
             {
-                Node<T, TActivity> tailNode = m_State.EdgeTailNode(incomingEdge.Id);
-                if (tailNode.Content.IsDummy)
+                Node<T, TActivity> currentNode = m_State.Node(stack.Pop());
+                // Start/Isolated nodes have no incoming edges to follow.
+                if (currentNode.NodeType == NodeType.Start || currentNode.NodeType == NodeType.Isolated)
                 {
-                    output.AddRange(StrongActivityDependencyIds(tailNode.Id));
+                    continue;
                 }
-                else
+                foreach (T incomingEdgeId in currentNode.IncomingEdges)
                 {
-                    output.Add(tailNode.Id);
+                    Node<T, TActivity> tailNode = m_State.EdgeTailNode(incomingEdgeId);
+                    if (tailNode.Content.IsDummy)
+                    {
+                        if (expandedDummies.Add(tailNode.Id))
+                        {
+                            stack.Push(tailNode.Id);
+                        }
+                    }
+                    else
+                    {
+                        output.Add(tailNode.Id);
+                    }
                 }
             }
             return output;
@@ -1093,7 +1112,8 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(planningDependencies));
             }
-            if (!ActivityIds.Contains(activityId))
+            // O(1) node-key lookup instead of an O(A) scan over ActivityIds.
+            if (!m_State.ContainsNode(activityId))
             {
                 return false;
             }

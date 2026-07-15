@@ -41,6 +41,19 @@ namespace Zametek.Maths.Graphs
 
             List<T?> workingList = priorityList.Select(x => new T?(x)).ToList();
 
+            // Each activity's strong (resolved) dependency set is invariant for the duration
+            // of scheduling - the loop only mutates resource allocations, never the graph
+            // structure - so resolve it once here rather than re-walking the graph (which
+            // recurses through dummy chains) for every pending activity on every time tick.
+            var strongDependencyLookup = new Dictionary<T, HashSet<T>>();
+            foreach (T activityId in priorityList)
+            {
+                if (!strongDependencyLookup.ContainsKey(activityId))
+                {
+                    strongDependencyLookup.Add(activityId, new HashSet<T>(graph.StrongActivityDependencyIds(activityId)));
+                }
+            }
+
             List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> resourceScheduleBuilders = filteredResources
                 .OrderBy(x => x.AllocationOrder)
                 .Select(x => new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(x))
@@ -54,7 +67,7 @@ namespace Zametek.Maths.Graphs
             while (workingList.Any(x => x.HasValue) || started.Count != 0 || ready.Any(x => x.HasValue))
             {
                 AdvanceCompletedActivities(resourceScheduleBuilders, timeCounter, started, completed);
-                PromoteReadyActivities(workingList, ready, completed, started, graph);
+                PromoteReadyActivities(workingList, ready, completed, started, strongDependencyLookup);
                 AssignReadyActivitiesToResources(ready, resourceScheduleBuilders, graph, filteredResources,
                     infiniteResources, started, timeCounter);
                 timeCounter++;
@@ -102,7 +115,7 @@ namespace Zametek.Maths.Graphs
             List<T?> ready,
             HashSet<T> completed,
             HashSet<T> started,
-            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph)
+            IReadOnlyDictionary<T, HashSet<T>> strongDependencyLookup)
         {
             // Get the activities that have completed direct dependencies.
             // Add these to the ready queue since there is nothing preventing them from starting.
@@ -114,7 +127,8 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
                 T activityId = workingList[i].GetValueOrDefault();
-                var directDependencies = new HashSet<T>(graph.StrongActivityDependencyIds(activityId));
+                // Cached set; IsSubsetOf only reads it, so sharing across ticks is safe.
+                HashSet<T> directDependencies = strongDependencyLookup[activityId];
                 if (directDependencies.IsSubsetOf(completed)
                     && !completed.Contains(activityId)
                     && !started.Contains(activityId))
