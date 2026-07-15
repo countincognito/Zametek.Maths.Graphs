@@ -7,6 +7,11 @@ namespace Zametek.Maths.Graphs
     // Shared ancestor-node calculation for both arrow and vertex transitive reducers.
     // The reducers handle the (graph-flavour specific) dependency-satisfied and circular
     // dependency checks and supply this calculation with a node-space view of the graph.
+    //
+    // The traversal is iterative (an explicit post-order stack) rather than recursive, so a
+    // deep dependency chain cannot overflow the call stack. This does not change the O(N^2)
+    // memory of the lookup itself - each node stores the set of all of its ancestors, which
+    // is inherent to this reduction algorithm and remains a separate scaling limit.
     internal static class AncestorNodeCalculator
     {
         public static Dictionary<T, HashSet<T>>? GetAncestorNodesLookup<T>(
@@ -29,52 +34,74 @@ namespace Zametek.Maths.Graphs
             }
 
             var nodeIdAncestorLookup = new Dictionary<T, HashSet<T>>();
-            List<T> endNodeIds = view.EndNodeIds.ToList();
 
-            foreach (T endNodeId in endNodeIds)
+            foreach (T endNodeId in view.EndNodeIds.ToList())
             {
-                HashSet<T> totalAncestorNodes = GetAncestorNodes(view, endNodeId, nodeIdAncestorLookup);
-                nodeIdAncestorLookup.Add(endNodeId, totalAncestorNodes);
+                FillAncestorNodes(view, endNodeId, nodeIdAncestorLookup);
             }
 
             return nodeIdAncestorLookup;
         }
 
-        private static HashSet<T> GetAncestorNodes<T>(
+        // Iterative post-order traversal: a node's ancestor set is the union of its parents'
+        // ancestor sets plus the parents themselves, so every parent must be resolved before
+        // the node itself. A node is (re)visited via the stack until all its parents are in the
+        // lookup, then computed and popped. The graph is known to be acyclic here (circular
+        // dependencies are rejected above), so this always terminates.
+        private static void FillAncestorNodes<T>(
             IAncestorGraphView<T> view,
-            T nodeId,
+            T rootNodeId,
             Dictionary<T, HashSet<T>> nodeIdAncestorLookup)
             where T : struct, IComparable<T>, IEquatable<T>
         {
-            if (nodeIdAncestorLookup is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
-            }
+            var stack = new Stack<T>();
+            stack.Push(rootNodeId);
 
-            var totalAncestorNodes = new HashSet<T>();
-
-            if (view.IsRootNode(nodeId))
+            while (stack.Count != 0)
             {
-                return totalAncestorNodes;
-            }
+                T nodeId = stack.Peek();
 
-            // Go through each incoming edge and find the nodes
-            // to which they connect.
-            foreach (T tailNodeId in view.ParentNodeIds(nodeId).ToList())
-            {
-                totalAncestorNodes.Add(tailNodeId);
-                // If the lookup holds the ancestor nodes for the tail
-                // node then add them to the ancestor nodes. Otherwise
-                // calculate the ancestor nodes for the tail node too.
-                if (!nodeIdAncestorLookup.TryGetValue(tailNodeId, out HashSet<T> tailNodeAncestorNodes))
+                if (nodeIdAncestorLookup.ContainsKey(nodeId))
                 {
-                    tailNodeAncestorNodes = GetAncestorNodes(view, tailNodeId, nodeIdAncestorLookup);
-                    nodeIdAncestorLookup.Add(tailNodeId, tailNodeAncestorNodes);
+                    stack.Pop();
+                    continue;
                 }
-                totalAncestorNodes.UnionWith(tailNodeAncestorNodes);
-            }
 
-            return totalAncestorNodes;
+                if (view.IsRootNode(nodeId))
+                {
+                    nodeIdAncestorLookup[nodeId] = new HashSet<T>();
+                    stack.Pop();
+                    continue;
+                }
+
+                // Push any parents that are not yet resolved; the node stays on the stack and is
+                // only computed on a later visit, once every parent is present in the lookup.
+                List<T> parentNodeIds = view.ParentNodeIds(nodeId).ToList();
+                bool allParentsResolved = true;
+                foreach (T parentNodeId in parentNodeIds)
+                {
+                    if (!nodeIdAncestorLookup.ContainsKey(parentNodeId))
+                    {
+                        stack.Push(parentNodeId);
+                        allParentsResolved = false;
+                    }
+                }
+
+                if (!allParentsResolved)
+                {
+                    continue;
+                }
+
+                var totalAncestorNodes = new HashSet<T>();
+                foreach (T parentNodeId in parentNodeIds)
+                {
+                    totalAncestorNodes.Add(parentNodeId);
+                    totalAncestorNodes.UnionWith(nodeIdAncestorLookup[parentNodeId]);
+                }
+
+                nodeIdAncestorLookup[nodeId] = totalAncestorNodes;
+                stack.Pop();
+            }
         }
     }
 }

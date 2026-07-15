@@ -40,13 +40,18 @@ Reassessed as **not** behaviour-safe and intentionally left as-is:
 
 ### Finding surfaced while adding regression tests
 
-Transitive reduction does **not** scale to very deep graphs, independently of the
-iterative reducer work above: `AncestorNodeCalculator` builds a per-node ancestor
-lookup that is **O(N^2)** in memory for a linear chain (each of N nodes stores the
-set of all its ancestors), and `GetAncestorNodes` is still recursive. A chain long
-enough to stress recursion depth (~20k) exhausts memory before the reducer's depth
-matters, so a deep-chain *reduction* test is not viable. A future item is to replace
-the O(N^2) ancestor materialisation (and make `GetAncestorNodes` iterative).
+Transitive reduction does **not** scale to very deep graphs. Two parts:
+
+- **Recursion (fixed).** `AncestorNodeCalculator.GetAncestorNodes` was recursive and
+  overflowed the stack on deep chains; it is now an iterative post-order traversal
+  (behaviour-identical). This removes the crash that a deep-reduction test hit.
+- **O(N^2) memory (open).** The ancestor lookup still stores, for each node, the set
+  of *all* its ancestors - O(N^2) for a linear chain. A chain long enough to matter
+  exhausts memory, so a deep-chain *reduction* regression test remains impractical
+  (it would be flaky). Making reduction scale needs a different approach that does not
+  materialise full ancestor sets - a genuine algorithmic redesign, out of scope for a
+  behaviour-preserving pass, and wants the benchmark harness.
+
 Separately, arrow-graph construction (`ArrowGraphBuilder.AddActivity` in a chain)
 appears super-linear (~20k activities takes ~90s), worth its own look.
 
