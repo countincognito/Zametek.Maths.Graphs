@@ -34,5 +34,24 @@ namespace Zametek.Maths.Graphs.Tests
 
             strongDependencies.ShouldBe([1]);
         }
+
+        [Fact]
+        public void ArrowGraphBuilder_GivenVeryDeepDependencyChain_ThenBuildsAndResolvesInLinearTime()
+        {
+            // Building a chain used to be O(N^2) (each AddActivity intersected the whole edge
+            // set); this exercises the linear path. The dummy-activity ID generator starts above
+            // the chain length so dummy edge IDs never collide with the real activity IDs.
+            var builder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
+                new NextIdGenerator<int>(c_ChainLength),
+                new NextIdGenerator<int>(0));
+
+            builder.AddActivity(new Activity<int, int, int>(1, 1));
+            for (int id = 2; id <= c_ChainLength; id++)
+            {
+                builder.AddActivity(new Activity<int, int, int>(id, 1), [id - 1]);
+            }
+
+            builder.StrongActivityDependencyIds(c_ChainLength).ShouldBe([c_ChainLength - 1]);
+        }
     }
 }

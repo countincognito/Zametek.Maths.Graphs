@@ -52,8 +52,13 @@ Transitive reduction does **not** scale to very deep graphs. Two parts:
   materialise full ancestor sets - a genuine algorithmic redesign, out of scope for a
   behaviour-preserving pass, and wants the benchmark harness.
 
-Separately, arrow-graph construction (`ArrowGraphBuilder.AddActivity` in a chain)
-appears super-linear (~20k activities takes ~90s), worth its own look.
+- **Arrow construction (fixed).** `ArrowGraphBuilder.AddActivity` intersected the whole
+  edge set against the dependencies on every call (`EdgeIds.Intersect(dependencies)`) -
+  O(E) per call, so O(N^2) building a chain (~90s for 20k activities). It now probes each
+  dependency against the O(1) edge lookup, which is linear (~120ms for 20k). Behaviour is
+  unchanged (verified against the arrow builder tests, which assert dummy-edge/event IDs).
+  Its recursive `GetEdgesInDescendingOrder` (arrow edge-cleanup path) is still recursive
+  and remains a candidate for the same iterative treatment if deep arrow graphs are used.
 
 The remaining sections are the original plan for reference.
 

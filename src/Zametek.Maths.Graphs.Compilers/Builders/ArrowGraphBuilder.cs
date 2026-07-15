@@ -432,9 +432,11 @@ namespace Zametek.Maths.Graphs
                 m_State.SetEdgeTailNode(edge.Id, tailNode);
                 m_State.AddNode(tailNode);
 
-                // Check which of the expected dependencies currently exist.
-                IList<T> existingDependencies = m_State.EdgeIds.Intersect(dependencies).ToList();
-                IList<T> nonExistingDependencies = dependencies.Except(existingDependencies).ToList();
+                // Check which of the expected dependencies currently exist. Probe each
+                // dependency against the O(1) edge lookup rather than intersecting the whole
+                // edge set (which is O(E) per call, i.e. O(N^2) when building a long chain).
+                IList<T> existingDependencies = dependencies.Where(m_State.ContainsEdge).ToList();
+                IList<T> nonExistingDependencies = dependencies.Where(x => !m_State.ContainsEdge(x)).ToList();
 
                 // If any expected dependencies currently exist, then hook up their head
                 // node to this edge's tail node with dummy edges.
