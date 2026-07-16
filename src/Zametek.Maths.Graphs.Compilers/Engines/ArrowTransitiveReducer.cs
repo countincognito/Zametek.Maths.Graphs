@@ -56,21 +56,52 @@ namespace Zametek.Maths.Graphs
 
         public bool ReduceGraph()
         {
-            Dictionary<T, HashSet<T>>? ancestorNodesLookup = GetAncestorNodesLookup();
+            AncestorBitSets<T>? ancestorBitSets = GetAncestorBitSets();
 
-            if (ancestorNodesLookup is null)
+            if (ancestorBitSets is null)
             {
                 return false;
             }
 
             List<T> endNodeIds = m_State.EndNodes.Select(x => x.Id).ToList();
 
-            foreach (T endNodeId in endNodeIds)
+            // The default orchestrator understands the compact bitset form directly; a
+            // custom orchestrator only knows the public dictionary contract, so the
+            // lookup is materialised for it on demand.
+            if (m_DummyEdgeOrchestrator is DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> defaultOrchestrator)
             {
-                m_DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges(endNodeId, ancestorNodesLookup);
+                defaultOrchestrator.RemoveRedundantIncomingDummyEdges(endNodeIds, ancestorBitSets);
+            }
+            else
+            {
+                Dictionary<T, HashSet<T>> ancestorNodesLookup = ancestorBitSets.ToDictionary();
+                foreach (T endNodeId in endNodeIds)
+                {
+                    m_DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges(endNodeId, ancestorNodesLookup);
+                }
             }
 
             return true;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        // Same checks as GetAncestorNodesLookup, but the ancestors stay in their compact
+        // bitset form - ReduceGraph never materialises the dictionary-of-hashsets for the
+        // default orchestrator.
+        private AncestorBitSets<T>? GetAncestorBitSets()
+        {
+            if (!m_State.AllDependenciesSatisfied)
+            {
+                return null;
+            }
+
+            List<ICircularDependency<T>> circularDependencies =
+                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+
+            return AncestorNodeCalculator.GetAncestorBitSets(m_AncestorGraphView, circularDependencies);
         }
 
         #endregion

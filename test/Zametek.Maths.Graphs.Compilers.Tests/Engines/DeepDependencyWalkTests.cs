@@ -7,11 +7,9 @@ namespace Zametek.Maths.Graphs.Tests
     // Regression test for the iterative strong-dependency walk: a dummy chain deep enough
     // to overflow the call stack under the old recursive implementation must still resolve.
     //
-    // Note: there is deliberately no deep-chain *transitive reduction* test here. Reduction
-    // builds an ancestor-node lookup that is O(N^2) in the number of nodes for a linear
-    // chain (each node stores the set of all its ancestors), so a chain long enough to
-    // stress recursion depth exhausts memory first - that is a property of the reduction
-    // algorithm, not of the (now iterative) traversal, and cannot be guarded cheaply.
+    // Deep-chain *transitive reduction* is covered separately in
+    // DeepTransitiveReductionTests, made viable by the compact bitset ancestor
+    // representation (AncestorBitSets).
     public class DeepDependencyWalkTests
     {
         private const int c_ChainLength = 20000;

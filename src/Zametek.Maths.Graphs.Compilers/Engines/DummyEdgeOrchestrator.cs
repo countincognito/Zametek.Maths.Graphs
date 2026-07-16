@@ -283,15 +283,39 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
             }
+            RemoveRedundantIncomingDummyEdgesCore(new[] { nodeId }, new DictionaryAncestorUnion(nodeIdAncestorLookup));
+        }
 
-            // Iterative (was recursive) so a deep dependency chain cannot overflow the
-            // stack. A visited set means each node's incoming edges are processed once:
-            // every node removes only its own incoming dummy edges, using the static
-            // ancestor lookup, so the operation is independent of visit order and
-            // idempotent per node.
+        // Bitset entry used by the default ArrowTransitiveReducer: the compact ancestor
+        // form plus a single shared visited set across all root nodes (each node's
+        // removal is node-local and idempotent - see the core's comments - so merging
+        // the walks does not change the outcome).
+        internal void RemoveRedundantIncomingDummyEdges(IEnumerable<T> nodeIds, AncestorBitSets<T> ancestorBitSets)
+        {
+            if (nodeIds is null)
+            {
+                throw new ArgumentNullException(nameof(nodeIds));
+            }
+            if (ancestorBitSets is null)
+            {
+                throw new ArgumentNullException(nameof(ancestorBitSets));
+            }
+            RemoveRedundantIncomingDummyEdgesCore(nodeIds, new BitSetAncestorUnion(ancestorBitSets));
+        }
+
+        // Iterative (was recursive) so a deep dependency chain cannot overflow the
+        // stack. A visited set means each node's incoming edges are processed once:
+        // every node removes only its own incoming dummy edges, using the static
+        // ancestor lookup, so the operation is independent of visit order and
+        // idempotent per node.
+        private void RemoveRedundantIncomingDummyEdgesCore(IEnumerable<T> rootNodeIds, IAncestorUnion ancestorUnion)
+        {
             var visited = new HashSet<T>();
             var stack = new Stack<T>();
-            stack.Push(nodeId);
+            foreach (T rootNodeId in rootNodeIds)
+            {
+                stack.Push(rootNodeId);
+            }
 
             while (stack.Count != 0)
             {
@@ -310,9 +334,11 @@ namespace Zametek.Maths.Graphs
 
                 // Go through all the incoming edges and collate the
                 // ancestors of their tail nodes.
-                var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
-                    .Select(x => m_State.EdgeTailNode(x).Id)
-                    .SelectMany(x => nodeIdAncestorLookup[x]));
+                ancestorUnion.Reset();
+                foreach (T incomingEdgeId in node.IncomingEdges)
+                {
+                    ancestorUnion.UnionAncestorsOf(m_State.EdgeTailNode(incomingEdgeId).Id);
+                }
 
                 // Go through the incoming dummy edges and remove any that
                 // connect directly to any ancestors of the non-dummy edges'
@@ -326,7 +352,7 @@ namespace Zametek.Maths.Graphs
                 foreach (T dummyEdgeId in incomingDummyEdges)
                 {
                     T dummyEdgeTailNodeId = m_State.EdgeTailNode(dummyEdgeId).Id;
-                    if (tailNodeAncestors.Contains(dummyEdgeTailNodeId))
+                    if (ancestorUnion.Contains(dummyEdgeTailNodeId))
                     {
                         RemoveDummyActivity(dummyEdgeId);
                     }
@@ -342,6 +368,53 @@ namespace Zametek.Maths.Graphs
                     stack.Push(tailNodeId);
                 }
             }
+        }
+
+        // Abstraction over "union of ancestor sets + membership" so the dictionary form
+        // (the public contract, kept for custom orchestrators) and the bitset form (the
+        // default fast path) share the single traversal above.
+        private interface IAncestorUnion
+        {
+            void Reset();
+            void UnionAncestorsOf(T nodeId);
+            bool Contains(T nodeId);
+        }
+
+        private sealed class DictionaryAncestorUnion
+            : IAncestorUnion
+        {
+            private readonly Dictionary<T, HashSet<T>> m_Lookup;
+            private readonly HashSet<T> m_Union = new HashSet<T>();
+
+            internal DictionaryAncestorUnion(Dictionary<T, HashSet<T>> lookup)
+            {
+                m_Lookup = lookup;
+            }
+
+            public void Reset() => m_Union.Clear();
+
+            public void UnionAncestorsOf(T nodeId) => m_Union.UnionWith(m_Lookup[nodeId]);
+
+            public bool Contains(T nodeId) => m_Union.Contains(nodeId);
+        }
+
+        private sealed class BitSetAncestorUnion
+            : IAncestorUnion
+        {
+            private readonly AncestorBitSets<T> m_AncestorBitSets;
+            private readonly ulong[] m_Scratch;
+
+            internal BitSetAncestorUnion(AncestorBitSets<T> ancestorBitSets)
+            {
+                m_AncestorBitSets = ancestorBitSets;
+                m_Scratch = ancestorBitSets.CreateScratch();
+            }
+
+            public void Reset() => AncestorBitSets<T>.ClearScratch(m_Scratch);
+
+            public void UnionAncestorsOf(T nodeId) => m_AncestorBitSets.UnionAncestorsInto(m_Scratch, nodeId);
+
+            public bool Contains(T nodeId) => m_AncestorBitSets.ScratchContains(m_Scratch, nodeId);
         }
 
         public List<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder()

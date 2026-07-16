@@ -45,12 +45,16 @@ Transitive reduction does **not** scale to very deep graphs. Two parts:
 - **Recursion (fixed).** `AncestorNodeCalculator.GetAncestorNodes` was recursive and
   overflowed the stack on deep chains; it is now an iterative post-order traversal
   (behaviour-identical). This removes the crash that a deep-reduction test hit.
-- **O(N^2) memory (open).** The ancestor lookup still stores, for each node, the set
-  of *all* its ancestors - O(N^2) for a linear chain. A chain long enough to matter
-  exhausts memory, so a deep-chain *reduction* regression test remains impractical
-  (it would be flaky). Making reduction scale needs a different approach that does not
-  materialise full ancestor sets - a genuine algorithmic redesign, out of scope for a
-  behaviour-preserving pass, and wants the benchmark harness.
+- **O(N^2) memory (addressed).** The reducers now compute ancestors as compact bitsets
+  (`AncestorBitSets`: dense node indexes, one bit per potential ancestor - N^2/8 bytes
+  instead of N^2 HashSet entries at tens of bytes each), and `ReduceGraph` never
+  materialises the dictionary-of-hashsets. A 20k-deep vertex chain (with a redundant
+  shortcut edge that must be removed) now reduces in ~1s where it previously exhausted
+  memory; `DeepTransitiveReductionTests` guards both flavours. The public
+  `GetAncestorNodesLookup()` / `IDummyEdgeOrchestrator` dictionary contract is
+  unchanged - it is derived from the same bitset computation on demand, so its contents
+  are identical (that API remains O(N^2) *entries* by contract), and custom
+  `IDummyEdgeOrchestrator` implementations still receive the dictionary form.
 
 - **Arrow construction (fixed).** `ArrowGraphBuilder.AddActivity` intersected the whole
   edge set against the dependencies on every call (`EdgeIds.Intersect(dependencies)`) -

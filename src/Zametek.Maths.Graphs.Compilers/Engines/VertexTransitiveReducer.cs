@@ -51,14 +51,14 @@ namespace Zametek.Maths.Graphs
 
         public bool ReduceGraph()
         {
-            IDictionary<T, HashSet<T>>? ancestorNodesLookup = GetAncestorNodesLookup();
+            AncestorBitSets<T>? ancestorBitSets = GetAncestorBitSets();
 
-            if (ancestorNodesLookup is null)
+            if (ancestorBitSets is null)
             {
                 return false;
             }
 
-            RemoveRedundantIncomingEdges(m_State.EndNodes.Select(x => x.Id), ancestorNodesLookup);
+            RemoveRedundantIncomingEdges(m_State.EndNodes.Select(x => x.Id), ancestorBitSets);
 
             return true;
         }
@@ -67,16 +67,31 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
+        // Same checks as GetAncestorNodesLookup, but the ancestors stay in their compact
+        // bitset form - ReduceGraph never materialises the dictionary-of-hashsets.
+        private AncestorBitSets<T>? GetAncestorBitSets()
+        {
+            if (!m_State.AllDependenciesSatisfied)
+            {
+                return null;
+            }
+
+            List<ICircularDependency<T>> circularDependencies =
+                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+
+            return AncestorNodeCalculator.GetAncestorBitSets(m_AncestorGraphView, circularDependencies);
+        }
+
         // Iterative (was recursive) so a deep dependency chain cannot overflow the
         // stack. A single shared visited set means each node's incoming edges are
         // reduced exactly once: every node removes only its own incoming edges, using
-        // the static ancestor lookup, so the operation is independent of visit order
+        // the static ancestor bitsets, so the operation is independent of visit order
         // and idempotent per node.
-        private void RemoveRedundantIncomingEdges(IEnumerable<T> rootNodeIds, IDictionary<T, HashSet<T>> nodeIdAncestorLookup)
+        private void RemoveRedundantIncomingEdges(IEnumerable<T> rootNodeIds, AncestorBitSets<T> ancestorBitSets)
         {
-            if (nodeIdAncestorLookup is null)
+            if (ancestorBitSets is null)
             {
-                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
+                throw new ArgumentNullException(nameof(ancestorBitSets));
             }
 
             var visited = new HashSet<T>();
@@ -85,6 +100,8 @@ namespace Zametek.Maths.Graphs
             {
                 stack.Push(rootNodeId);
             }
+
+            ulong[] scratch = ancestorBitSets.CreateScratch();
 
             while (stack.Count != 0)
             {
@@ -102,10 +119,12 @@ namespace Zametek.Maths.Graphs
                 }
 
                 // Go through all the incoming edges and collate the
-                // ancestors of their tail nodes.
-                var tailNodeAncestors = new HashSet<T>(node.IncomingEdges
-                    .Select(x => m_State.EdgeTailNode(x).Id)
-                    .SelectMany(x => nodeIdAncestorLookup[x]));
+                // ancestors of their tail nodes into the scratch bitset.
+                AncestorBitSets<T>.ClearScratch(scratch);
+                foreach (T incomingEdgeId in node.IncomingEdges)
+                {
+                    ancestorBitSets.UnionAncestorsInto(scratch, m_State.EdgeTailNode(incomingEdgeId).Id);
+                }
 
                 // Go through the incoming edges and remove any that connect
                 // directly to any ancestors of the edges' tail nodes.
@@ -117,7 +136,7 @@ namespace Zametek.Maths.Graphs
                     .ToList())
                 {
                     Node<T, TActivity> tailNode = m_State.EdgeTailNode(edgeId);
-                    if (tailNodeAncestors.Contains(tailNode.Id))
+                    if (ancestorBitSets.ScratchContains(scratch, tailNode.Id))
                     {
                         // Remove the edge from the tail node.
                         tailNode.OutgoingEdges.Remove(edgeId);
