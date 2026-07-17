@@ -1,0 +1,678 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Zametek.Maths.Graphs
+{
+    /// <summary>
+    /// Accumulates the activities scheduled onto a single resource and produces the finished <see cref="IResourceSchedule{T, TResourceId, TWorkStreamId}"/> with its allocation streams.
+    /// </summary>
+    public class ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>
+        where T : struct, IComparable<T>, IEquatable<T>
+        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
+        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
+    {
+        #region Fields
+
+        private readonly IResource<TResourceId, TWorkStreamId>? m_Resource;
+        private readonly LinkedList<IScheduledActivity<T>> m_ScheduledActivities;
+
+        #endregion
+
+        #region Ctors
+
+        /// <summary>
+        /// Creates a builder for the given resource.
+        /// </summary>
+        public ResourceScheduleBuilder(IResource<TResourceId, TWorkStreamId> resource)
+            : this()
+        {
+            m_Resource = resource ?? throw new ArgumentNullException(nameof(resource));
+        }
+
+        /// <summary>
+        /// Creates a builder for an unmapped (infinite-resources) schedule with no resource.
+        /// </summary>
+        public ResourceScheduleBuilder()
+        {
+            m_ScheduledActivities = new LinkedList<IScheduledActivity<T>>();
+        }
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// The ID of the resource, or null for an unmapped schedule.
+        /// </summary>
+        public TResourceId? ResourceId => m_Resource?.Id;
+
+        /// <summary>
+        /// Whether the resource is opt-in only (false for unmapped schedules).
+        /// </summary>
+        public bool IsExplicitTarget => m_Resource != null && m_Resource.IsExplicitTarget;
+
+        /// <summary>
+        /// Whether the resource is disabled (false for unmapped schedules).
+        /// </summary>
+        public bool IsInactive => m_Resource != null && m_Resource.IsInactive;
+
+        /// <summary>
+        /// The activities scheduled so far.
+        /// </summary>
+        public IEnumerable<IScheduledActivity<T>> ScheduledActivities => m_ScheduledActivities.ToList();
+
+        /// <summary>
+        /// The finish time of the last scheduled activity, or zero when empty.
+        /// </summary>
+        public int LastActivityFinishTime
+        {
+            get
+            {
+                if (m_ScheduledActivities.Count == 0)
+                {
+                    return 0;
+                }
+                return m_ScheduledActivities.Last.Value.FinishTime;
+            }
+        }
+
+        /// <summary>
+        /// The earliest time the next activity could start on this resource.
+        /// </summary>
+        public int EarliestAvailableStartTimeForNextActivity => LastActivityFinishTime;
+
+        #endregion
+
+        #region Private Methods
+
+        private static (List<bool> resourceAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation, List<bool> activityAllocation) ExtractAllocations(
+            IResource<TResourceId, TWorkStreamId>? resource,
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            int finishTime)
+        {
+            if (scheduledActivities is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivities));
+            }
+            if (activities is null)
+            {
+                throw new ArgumentNullException(nameof(activities));
+            }
+            int resourceFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
+            if (resourceFinishTime > finishTime)
+            {
+                throw new InvalidOperationException($@"Requested finish time ({finishTime}) cannot be less than the actual finish time ({resourceFinishTime})");
+            }
+            var interActivityAllocationType = InterActivityAllocationType.None;
+            if (resource != null)
+            {
+                interActivityAllocationType = resource.InterActivityAllocationType;
+            }
+
+            List<TimeType> distribution = Enumerable.Repeat(TimeType.None, finishTime).ToList();
+
+            // Indirect.
+            if (interActivityAllocationType == InterActivityAllocationType.Indirect)
+            {
+                // The Indirect allocation type can only come from a non-null resource.
+                AllocationForUnscheduledActivityTypes(resource!, activities, scheduledActivities, distribution);
+                AllocationForScheduledActivitiesTypes(scheduledActivities, distribution);
+            }
+            // None.
+            else if (interActivityAllocationType == InterActivityAllocationType.None)
+            {
+                AllocationForNoneType(scheduledActivities, distribution);
+                AllocationForNoCostOrBillingOrEffortActivities(scheduledActivities, distribution);
+            }
+            // Direct.
+            else if (interActivityAllocationType == InterActivityAllocationType.Direct)
+            {
+                AllocationForScheduledActivitiesTypes(scheduledActivities, distribution);
+                AllocationForNoCostOrBillingOrEffortActivities(scheduledActivities, distribution);
+            }
+            else
+            {
+                throw new InvalidOperationException($@"Unknown InterActivityAllocationType value ({interActivityAllocationType})");
+            }
+
+            List<bool> resourceAllocation = distribution
+                .Select(x => (x & TimeType.ResourceAllocated) != 0)
+                .ToList();
+            List<bool> costAllocation = distribution
+                .Select(x => (x & TimeType.ResourceAllocated) != 0 && !x.HasFlag(TimeType.CostIgnored))
+                .ToList();
+            List<bool> billingAllocation = distribution
+                .Select(x => (x & TimeType.ResourceAllocated) != 0 && !x.HasFlag(TimeType.BillingIgnored))
+                .ToList();
+            List<bool> effortAllocation = distribution
+                .Select(x => (x & TimeType.ResourceAllocated) != 0 && !x.HasFlag(TimeType.EffortIgnored))
+                .ToList();
+            List<bool> activityAllocation = distribution
+                .Select(x => (x & TimeType.ActivityAllocated) != 0)
+                .ToList();
+
+            return (resourceAllocation, costAllocation, billingAllocation, effortAllocation, activityAllocation);
+        }
+
+        private static void AllocationForUnscheduledActivityTypes(
+            IResource<TResourceId, TWorkStreamId> resource,
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
+        {
+            if (resource is null)
+            {
+                throw new ArgumentNullException(nameof(resource));
+            }
+            if (activities is null)
+            {
+                throw new ArgumentNullException(nameof(activities));
+            }
+            if (scheduledActivities is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivities));
+            }
+            if (distribution is null)
+            {
+                throw new ArgumentNullException(nameof(distribution));
+            }
+
+            if (distribution.Count == 0)
+            {
+                return;
+            }
+
+            int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
+            if (distribution.Count < latestActivityFinishTime)
+            {
+                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+            }
+
+            // If the type is Indirect, then the resource must exist.
+
+            HashSet<TWorkStreamId> resourcePhases = resource.InterActivityPhases.Distinct().ToHashSet();
+
+            // If the resource has no phases then assume the default and mark the
+            // entire time span as costed, from start to finish
+            if (resourcePhases.Count == 0)
+            {
+                distribution[0] |= TimeType.PhaseStart;
+                distribution[^1] |= TimeType.PhaseFinish;
+
+                for (int i = 0; i < distribution.Count; i++)
+                {
+                    distribution[i] |= TimeType.PhaseMiddle;
+                }
+            }
+            // Otherwise, we have to go through each activity and find where the
+            // associated phases start and end.
+            else
+            {
+                // Find the range for each resource phase (phased work stream).
+                HashSet<TWorkStreamId> workstreamsUsed = activities.SelectMany(x => x.TargetWorkStreams).Distinct().ToHashSet();
+
+                HashSet<TWorkStreamId> resourcePhasesUsed = resourcePhases.Intersect(workstreamsUsed).ToHashSet();
+
+                List<IActivity<T, TResourceId, TWorkStreamId>> orderedActivities =
+                    activities.OrderBy(x => x.EarliestStartTime).ThenBy(x => x.LatestStartTime).ToList();
+
+                var resourcePhaseStarts = new Dictionary<TWorkStreamId, int>();
+                var resourcePhaseEnds = new Dictionary<TWorkStreamId, int>();
+
+                foreach (IActivity<T, TResourceId, TWorkStreamId> activity in orderedActivities)
+                {
+                    foreach (TWorkStreamId workStream in activity.TargetWorkStreams.Where(resourcePhasesUsed.Contains))
+                    {
+                        int earliestStartTime = activity.EarliestStartTime.GetValueOrDefault();
+                        int earliestEndTime = activity.EarliestFinishTime.GetValueOrDefault();
+
+                        // Gather the start times.
+                        if (!resourcePhaseStarts.TryAdd(workStream, earliestStartTime))
+                        {
+                            // We do nothing here, since the activities are ordered
+                            // then we won't be interested in any later start times.
+                        }
+
+                        // Gather the end times.
+                        if (resourcePhaseEnds.TryGetValue(workStream, out int currentEndTime))
+                        {
+                            if (earliestEndTime > currentEndTime)
+                            {
+                                resourcePhaseEnds[workStream] = earliestEndTime;
+                            }
+                        }
+                        else
+                        {
+                            resourcePhaseEnds.Add(workStream, earliestEndTime);
+                        }
+                    }
+                }
+
+                // Check to make sure the key collections are the same.
+                if (!resourcePhaseStarts.Keys.SequenceEqual(resourcePhaseEnds.Keys))
+                {
+                    throw new InvalidOperationException($@"Keys for phase starting points does not match the keys for phase ending points for resouce {resource.Id}.");
+                }
+
+                // Now we find the earliest start and the latest end and use those
+                // to mark out the full range.
+
+                int startTime = resourcePhaseStarts.Values.DefaultIfEmpty().Min();
+                int endTime = resourcePhaseEnds.Values.DefaultIfEmpty().Max();
+
+                // If start and end times are both 0 then that means the
+                // specific phase was never used, so just leave the allocations
+                // as 'ignore'.
+                if (startTime != 0 || endTime != 0)
+                {
+                    int startIndex = startTime;
+                    int finishIndex = endTime - 1;
+
+                    if (startIndex < 0)
+                    {
+                        startIndex = 0;
+                    }
+                    if (finishIndex < 0)
+                    {
+                        finishIndex = 0;
+                    }
+
+                    distribution[startIndex] |= TimeType.PhaseStart;
+                    distribution[finishIndex] |= TimeType.PhaseFinish;
+
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
+                    {
+                        distribution[timeIndex] |= TimeType.PhaseMiddle;
+                    }
+                }
+            }
+        }
+
+        private static void AllocationForScheduledActivitiesTypes(
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
+        {
+            if (scheduledActivities is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivities));
+            }
+            if (distribution is null)
+            {
+                throw new ArgumentNullException(nameof(distribution));
+            }
+
+            int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
+            if (distribution.Count < latestActivityFinishTime)
+            {
+                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+            }
+
+            // Mark schedules as normal.
+            foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
+            {
+                int startIndex = scheduledActivity.StartTime;
+                int finishIndex = scheduledActivity.FinishTime - 1;
+
+                if (startIndex < 0)
+                {
+                    startIndex = 0;
+                }
+                if (finishIndex < 0)
+                {
+                    finishIndex = 0;
+                }
+
+                distribution[startIndex] |= TimeType.ResourceStart | TimeType.PhaseStart;
+                distribution[finishIndex] |= TimeType.ResourceFinish | TimeType.PhaseFinish;
+
+                for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
+                {
+                    distribution[timeIndex] |= TimeType.ResourceMiddle
+                        | TimeType.PhaseMiddle
+                        | TimeType.ActivityAllocated;
+                }
+            }
+
+            // Find the first Start and the last Finish, then fill in the gaps between them.
+            // But just for scheduled activities.
+
+            {
+                int firstStartIndex = 0;
+                int lastFinishIndex = distribution.Count - 1;
+
+                bool startFound = false;
+                for (int i = 0; i < distribution.Count; i++)
+                {
+                    if (distribution[i].HasFlag(TimeType.ResourceStart)
+                        || distribution[i].HasFlag(TimeType.ResourceFinish))
+                    {
+                        firstStartIndex = i;
+                        startFound = true;
+                        break;
+                    }
+                }
+
+                bool endFound = false;
+                for (int i = lastFinishIndex; i >= 0; i--)
+                {
+                    if (distribution[i].HasFlag(TimeType.ResourceStart)
+                        || distribution[i].HasFlag(TimeType.ResourceFinish))
+                    {
+                        lastFinishIndex = i;
+                        endFound = true;
+                        break;
+                    }
+                }
+
+                if (startFound
+                    || endFound)
+                {
+                    for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
+                    {
+                        distribution[i] |= TimeType.ResourceBetween;
+                    }
+                }
+            }
+
+            // Now do the same for phases.
+
+            {
+                int firstStartIndex = 0;
+                int lastFinishIndex = distribution.Count - 1;
+
+                bool startFound = false;
+                for (int i = 0; i < distribution.Count; i++)
+                {
+                    if (distribution[i].HasFlag(TimeType.PhaseStart)
+                        || distribution[i].HasFlag(TimeType.PhaseFinish))
+                    {
+                        firstStartIndex = i;
+                        startFound = true;
+                        break;
+                    }
+                }
+
+                bool endFound = false;
+                for (int i = lastFinishIndex; i >= 0; i--)
+                {
+                    if (distribution[i].HasFlag(TimeType.PhaseStart)
+                        || distribution[i].HasFlag(TimeType.PhaseFinish))
+                    {
+                        lastFinishIndex = i;
+                        endFound = true;
+                        break;
+                    }
+                }
+
+                if (startFound
+                    || endFound)
+                {
+                    for (int i = firstStartIndex + 1; i < lastFinishIndex; i++)
+                    {
+                        distribution[i] |= TimeType.PhaseBetween;
+                    }
+                }
+            }
+        }
+
+        private static void AllocationForNoneType(
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
+        {
+            if (scheduledActivities is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivities));
+            }
+            if (distribution is null)
+            {
+                throw new ArgumentNullException(nameof(distribution));
+            }
+
+            int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
+            if (distribution.Count < latestActivityFinishTime)
+            {
+                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+            }
+
+            // Mark schedules as normal.
+            foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
+            {
+                int startIndex = scheduledActivity.StartTime;
+                int finishIndex = scheduledActivity.FinishTime - 1;
+
+                if (startIndex < 0)
+                {
+                    startIndex = 0;
+                }
+                if (finishIndex < 0)
+                {
+                    finishIndex = 0;
+                }
+
+                distribution[startIndex] |= TimeType.ResourceStart;
+                distribution[finishIndex] |= TimeType.ResourceFinish;
+
+                for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
+                {
+                    distribution[timeIndex] |= TimeType.ResourceMiddle | TimeType.ActivityAllocated;
+                }
+            }
+        }
+
+        private static void AllocationForNoCostOrBillingOrEffortActivities(
+            List<IScheduledActivity<T>> scheduledActivities,
+            List<TimeType> distribution)
+        {
+            if (scheduledActivities is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivities));
+            }
+            if (distribution is null)
+            {
+                throw new ArgumentNullException(nameof(distribution));
+            }
+
+            int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
+            if (distribution.Count < latestActivityFinishTime)
+            {
+                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+            }
+
+            // Now mark the uncosted areas
+            foreach (IScheduledActivity<T> scheduledActivity in scheduledActivities)
+            {
+                int startIndex = scheduledActivity.StartTime;
+                int finishIndex = scheduledActivity.FinishTime - 1;
+
+                if (startIndex < 0)
+                {
+                    startIndex = 0;
+                }
+                if (finishIndex < 0)
+                {
+                    finishIndex = 0;
+                }
+
+                if (scheduledActivity.HasNoCost)
+                {
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
+                    {
+                        distribution[timeIndex] |= TimeType.CostIgnored;
+                    }
+                }
+                if (scheduledActivity.HasNoBilling)
+                {
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
+                    {
+                        distribution[timeIndex] |= TimeType.BillingIgnored;
+                    }
+                }
+                if (scheduledActivity.HasNoEffort)
+                {
+                    for (int timeIndex = startIndex; timeIndex <= finishIndex; timeIndex++)
+                    {
+                        distribution[timeIndex] |= TimeType.EffortIgnored;
+                    }
+                }
+            }
+        }
+
+        private void AddActivity(IScheduledActivity<T> scheduledActivity)
+        {
+            if (scheduledActivity is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivity));
+            }
+
+            m_ScheduledActivities.AddLast(scheduledActivity);
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Appends an already-scheduled activity, validating that it starts no earlier than the resource is available.
+        /// </summary>
+        public void AppendActivity(IScheduledActivity<T> scheduledActivity)
+        {
+            if (scheduledActivity is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivity));
+            }
+            int earliestAvailableStartTimeForNextActivity = EarliestAvailableStartTimeForNextActivity;
+            if (scheduledActivity.StartTime < earliestAvailableStartTimeForNextActivity)
+            {
+                throw new InvalidOperationException($@"Scheduled activity's start time {scheduledActivity.StartTime} is less than the earliest available start time for the next activity {earliestAvailableStartTimeForNextActivity}");
+            }
+            AppendActivityWithoutChecks(scheduledActivity);
+        }
+
+        /// <summary>
+        /// Appends an already-scheduled activity without validation.
+        /// </summary>
+        public void AppendActivityWithoutChecks(IScheduledActivity<T> scheduledActivity)
+        {
+            if (scheduledActivity is null)
+            {
+                throw new ArgumentNullException(nameof(scheduledActivity));
+            }
+            AddActivity(scheduledActivity);
+        }
+
+        /// <summary>
+        /// Schedules the activity at the given start time, validating availability.
+        /// </summary>
+        public void AppendActivity(IActivity<T, TResourceId, TWorkStreamId> activity, int startTime)
+        {
+            if (activity is null)
+            {
+                throw new ArgumentNullException(nameof(activity));
+            }
+            if (startTime < EarliestAvailableStartTimeForNextActivity)
+            {
+                startTime = EarliestAvailableStartTimeForNextActivity;
+            }
+            AppendActivityWithoutChecks(activity, startTime);
+        }
+
+        /// <summary>
+        /// Schedules the activity at the given start time without validation.
+        /// </summary>
+        public void AppendActivityWithoutChecks(IActivity<T, TResourceId, TWorkStreamId> activity, int startTime)
+        {
+            if (activity is null)
+            {
+                throw new ArgumentNullException(nameof(activity));
+            }
+            var scheduledActivity = new ScheduledActivity<T>(
+                activity.Id, activity.Name, activity.HasNoCost, activity.HasNoBilling,
+                activity.HasNoEffort, activity.Duration, startTime, startTime + activity.Duration);
+            AddActivity(scheduledActivity);
+        }
+
+        /// <summary>
+        /// Removes all scheduled activities.
+        /// </summary>
+        public void ClearActivities()
+        {
+            m_ScheduledActivities.Clear();
+        }
+
+        /// <summary>
+        /// Returns the ID of the activity occupying the given time, or null if the resource is idle.
+        /// </summary>
+        public T? ActivityAt(int time)
+        {
+            foreach (IScheduledActivity<T> scheduledActivity in m_ScheduledActivities)
+            {
+                if (time >= scheduledActivity.StartTime
+                    && time < scheduledActivity.FinishTime)
+                {
+                    return scheduledActivity.Id;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Produces the finished resource schedule, deriving the per-time-unit allocation streams.
+        /// </summary>
+        public IResourceSchedule<T, TResourceId, TWorkStreamId> ToResourceSchedule(
+            List<IActivity<T, TResourceId, TWorkStreamId>> activities,
+            int startTime,
+            int finishTime)
+        {
+            if (activities == null)
+            {
+                throw new ArgumentNullException(nameof(activities));
+            }
+
+            (List<bool> resourceAllocation, List<bool> costAllocation, List<bool> billingAllocation, List<bool> effortAllocation, List<bool> activityAllocation) =
+                ExtractAllocations(m_Resource, m_ScheduledActivities.ToList(), activities, finishTime);
+
+            return new ResourceSchedule<T, TResourceId, TWorkStreamId>(
+                m_Resource,
+                m_ScheduledActivities,
+                startTime,
+                finishTime,
+                resourceAllocation,
+                costAllocation,
+                billingAllocation,
+                effortAllocation,
+                activityAllocation);
+        }
+
+        #endregion
+
+        #region Private Types
+
+        [Flags]
+        private enum TimeType
+        {
+            None = 0,
+            ResourceStart = 1 << 0,
+            ResourceMiddle = 1 << 1,
+            ResourceBetween = 1 << 2,
+            ResourceFinish = 1 << 3,
+
+            PhaseStart = 1 << 4,
+            PhaseMiddle = 1 << 5,
+            PhaseBetween = 1 << 6,
+            PhaseFinish = 1 << 7,
+
+            ActivityAllocated = 1 << 8,
+
+            CostIgnored = 1 << 9,
+            BillingIgnored = 1 << 10,
+            EffortIgnored = 1 << 11,
+
+            ResourceAllocated = ResourceStart | ResourceMiddle | ResourceBetween | ResourceFinish
+                | PhaseStart | PhaseMiddle | PhaseBetween | PhaseFinish,
+        }
+
+        #endregion
+    }
+}

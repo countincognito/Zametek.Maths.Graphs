@@ -13,6 +13,9 @@ jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dotnet
 
     steps:
       - name: Checkout
@@ -37,19 +40,21 @@ jobs:
             --logger "trx;LogFileName=results.trx" --results-directory ./TestResults \
             --collect:"XPlat Code Coverage"
 
+      # Note: `uses:` action inputs resolve from the workspace root, not from
+      # the job's run working-directory, hence the dotnet/ prefixes below.
       - name: Upload test results
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results
-          path: ./TestResults/**/*.trx
+          path: dotnet/TestResults/**/*.trx
 
       - name: Generate coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5
         if: always()
         with:
-          reports: ./TestResults/**/coverage.cobertura.xml
-          targetdir: ./CoverageReport
+          reports: dotnet/TestResults/**/coverage.cobertura.xml
+          targetdir: dotnet/CoverageReport
           reporttypes: HtmlInline;MarkdownSummaryGithub
 
       - name: Publish coverage summary
@@ -61,4 +66,41 @@ jobs:
         if: always()
         with:
           name: coverage-report
-          path: ./CoverageReport
+          path: dotnet/CoverageReport
+
+  # The Rust port must stay at behavioural parity with the C# implementation:
+  # its golden tests mirror the C# expected values, so this job is the drift
+  # alarm for cross-language divergence.
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # The runner image ships rustup with a stable toolchain; make sure it is
+      # current and has the components the checks below need.
+      - name: Update Rust toolchain
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup component add clippy rustfmt
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      # Warnings are errors: any clippy finding must fail the build.
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run tests
+        run: cargo test
+
+      # The sample-project example self-asserts against a schedule computed by
+      # the C# implementation, so running it is an end-to-end parity check.
+      - name: Run parity example
+        run: cargo run --example sample_project
