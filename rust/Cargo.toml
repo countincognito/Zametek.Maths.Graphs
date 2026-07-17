@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.package]
-version = "2.5.0"
+version = "3.0.2"
 edition = "2021"
 license = "BSD-2-Clause"
 authors = ["Riccardo M Bennett-Lovsey"]
