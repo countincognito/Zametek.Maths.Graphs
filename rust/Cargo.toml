@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "primitives",
+    "compilers",
+]
+
+[workspace.package]
+version = "2.5.0"
+edition = "2021"
+license = "BSD-2-Clause"
+authors = ["Riccardo M Bennett-Lovsey"]
+repository = "https://github.com/countincognito/Zametek.Maths.Graphs"
+
+[workspace.dependencies]
+indexmap = "2"

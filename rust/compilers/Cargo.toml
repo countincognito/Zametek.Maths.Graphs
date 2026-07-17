@@ -1,0 +1,12 @@
+[package]
+name = "zametek-maths-graphs-compilers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Graph compilers for project planning: Activity-on-Vertex and Activity-on-Arrow builders, Critical Path Method, transitive reduction, cycle detection and priority-list resource scheduling. Rust port of Zametek.Maths.Graphs.Compilers."
+
+[dependencies]
+indexmap = { workspace = true }
+zametek-maths-graphs-primitives = { path = "../primitives" }
