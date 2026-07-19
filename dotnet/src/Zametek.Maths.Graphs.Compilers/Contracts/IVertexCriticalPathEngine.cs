@@ -4,53 +4,6 @@ using System.Collections.Generic;
 namespace Zametek.Maths.Graphs
 {
     /// <summary>
-    /// Calculates critical path variables for Activity-on-Arrow graphs. The engine
-    /// operates on the graph state supplied to its methods, plus the in-flight
-    /// constraint list for the current pass.
-    /// </summary>
-    /// <typeparam name="T">The activity/event ID type.</typeparam>
-    /// <typeparam name="TResourceId">The resource ID type.</typeparam>
-    /// <typeparam name="TWorkStreamId">The work-stream ID type.</typeparam>
-    /// <typeparam name="TActivity">The activity type.</typeparam>
-    public interface IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>
-        where T : struct, IComparable<T>, IEquatable<T>
-        where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
-        where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
-        where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
-    {
-        /// <summary>
-        /// The forward pass: computes the earliest finish time of every event node.
-        /// When <paramref name="shuffle"/> is true the remaining elements are
-        /// processed in a random order on each iteration (used to prove the
-        /// calculation is order-independent). Returns false when the pass cannot
-        /// complete; violations are appended to <paramref name="invalidConstraints"/>.
-        /// </summary>
-        bool CalculateEventEarliestFinishTimes(
-            IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            List<IInvalidConstraint<T>> invalidConstraints,
-            bool shuffle);
-
-        /// <summary>
-        /// The backward pass: computes the latest finish time of every event node.
-        /// When <paramref name="shuffle"/> is true the remaining elements are
-        /// processed in a random order on each iteration. Returns false when the
-        /// pass cannot complete; violations are appended to <paramref name="invalidConstraints"/>.
-        /// </summary>
-        bool CalculateEventLatestFinishTimes(
-            IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            List<IInvalidConstraint<T>> invalidConstraints,
-            bool shuffle);
-
-        /// <summary>
-        /// Derives the per-activity critical-path values (start/finish times and
-        /// slack) from the completed event passes.
-        /// </summary>
-        bool CalculateCriticalPathVariables(
-            IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
-            List<IInvalidConstraint<T>> invalidConstraints);
-    }
-
-    /// <summary>
     /// Calculates critical path variables for Activity-on-Vertex graphs. The
     /// engine operates on the graph state supplied to its methods, plus the
     /// in-flight constraint list for the current pass.
