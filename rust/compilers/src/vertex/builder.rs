@@ -1,13 +1,17 @@
-use super::state::{VertexState, VertexTraversal};
-use super::{cpm, reducer};
+use super::engines::VertexGraphBuilderEngines;
+use super::state::VertexGraphState;
 use crate::constraint_checker;
+use crate::contracts::{
+    IEventGenerator, IIdGenerator, IResourceSchedulingEngine, IResourceSchedulingGraph,
+    IVertexCriticalPathEngine, IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
+};
 use crate::error_formatter;
-use crate::id_gen::IdGenerator;
+use crate::id_gen::PreviousIdGenerator;
 use crate::messages;
-use crate::scheduling::{self, ResourceSchedulingGraph};
 use indexmap::{IndexMap, IndexSet};
+use std::sync::Arc;
 use zametek_maths_graphs_primitives::{
-    CircularDependency, DependentActivity, Edge, Event, Graph, GraphCompilationError,
+    Activity, CircularDependency, DependentActivity, Edge, Event, Graph, GraphCompilationError,
     GraphCompilationErrorCode, GraphError, InvalidConstraint, Key, LogicalOperator, Node, NodeType,
     Resource, ResourceSchedule, ScheduledActivity, UnavailableResources,
 };
@@ -21,8 +25,13 @@ use zametek_maths_graphs_primitives::{
 /// Events created by this builder are removable (the C# default
 /// `RemovableEventGenerator`).
 pub struct VertexGraphBuilder<K: Key, R: Key, W: Key> {
-    pub(crate) state: VertexState<K, R, W>,
-    edge_id_generator: IdGenerator<K>,
+    pub(crate) state: VertexGraphState<K, R, W>,
+    edge_id_generator: Box<dyn IIdGenerator<K>>,
+    event_generator: Arc<dyn IEventGenerator<K>>,
+    scc_finder: Arc<dyn IVertexStronglyConnectedComponentsFinder<K, R, W>>,
+    critical_path_engine: Arc<dyn IVertexCriticalPathEngine<K, R, W>>,
+    transitive_reducer: Arc<dyn IVertexTransitiveReducer<K, R, W>>,
+    resource_scheduling_engine: Arc<dyn IResourceSchedulingEngine<K, R, W>>,
     /// When true, the critical-path passes process remaining elements in a
     /// random order on each iteration (results are identical either way; used
     /// to prove order-independence).
@@ -30,21 +39,50 @@ pub struct VertexGraphBuilder<K: Key, R: Key, W: Key> {
 }
 
 impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
-    /// Creates a builder using the given edge (event) ID generator.
-    pub fn new(edge_id_generator: IdGenerator<K>) -> Self {
+    /// Creates a builder with default engines, using the given edge (event) ID
+    /// generator.
+    pub fn new(edge_id_generator: impl IIdGenerator<K> + 'static) -> Self {
+        Self::with_engines(VertexGraphBuilderEngines {
+            edge_id_generator: Box::new(edge_id_generator),
+            ..Default::default()
+        })
+    }
+
+    /// Creates a builder from an engines bundle; every unset bundle field
+    /// defaults to the standard implementation.
+    pub fn with_engines(engines: VertexGraphBuilderEngines<K, R, W>) -> Self {
         Self {
-            state: VertexState::new(),
-            edge_id_generator,
+            state: VertexGraphState::new(),
+            edge_id_generator: engines.edge_id_generator,
+            event_generator: engines.event_generator,
+            scc_finder: engines.scc_finder,
+            critical_path_engine: engines.critical_path_engine,
+            transitive_reducer: engines.transitive_reducer,
+            resource_scheduling_engine: engines.resource_scheduling_engine,
             shuffle_processing_order: false,
         }
     }
 
-    /// Creates a builder by assimilating an existing graph.
+    /// Creates a builder by assimilating an existing graph, with default engines.
     pub fn from_graph(
         graph: crate::VertexGraph<K, R, W>,
-        edge_id_generator: IdGenerator<K>,
+        edge_id_generator: impl IIdGenerator<K> + 'static,
     ) -> Result<Self, GraphError> {
-        let mut builder = Self::new(edge_id_generator);
+        Self::from_graph_with_engines(
+            graph,
+            VertexGraphBuilderEngines {
+                edge_id_generator: Box::new(edge_id_generator),
+                ..Default::default()
+            },
+        )
+    }
+
+    /// Creates a builder by assimilating an existing graph, from an engines bundle.
+    pub fn from_graph_with_engines(
+        graph: crate::VertexGraph<K, R, W>,
+        engines: VertexGraphBuilderEngines<K, R, W>,
+    ) -> Result<Self, GraphError> {
+        let mut builder = Self::with_engines(engines);
 
         for edge in graph.edges {
             builder.state.add_edge(edge);
@@ -123,10 +161,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
 
     fn generate_event(&mut self) -> Edge<K, Event<K>> {
         let edge_id = self.edge_id_generator.generate();
-        let mut event = Event::new(edge_id);
-        // Vertex-graph events live on structural edges, so they are removable.
-        event.set_as_removable();
-        Edge::new(event)
+        Edge::new(self.event_generator.generate(edge_id))
     }
 
     // -- Properties ---------------------------------------------------------
@@ -645,10 +680,8 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
 
     /// Finds the strongly-connected circular dependencies in the graph.
     pub fn find_strong_circular_dependencies(&self) -> Vec<CircularDependency<K>> {
-        crate::tarjan::find_strongly_circular_dependencies(
-            &VertexTraversal { state: &self.state },
-            true,
-        )
+        self.scc_finder
+            .find_strongly_circular_dependencies(&self.state, true)
     }
 
     /// Finds activity constraints that are self-contradictory before compilation.
@@ -668,13 +701,15 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
     /// Builds a lookup from each node ID to the full set of its ancestor node
     /// IDs. Returns `None` if the graph has unsatisfied or circular dependencies.
     pub fn get_ancestor_nodes_lookup(&self) -> Option<IndexMap<K, IndexSet<K>>> {
-        reducer::get_ancestor_nodes_lookup(&self.state)
+        self.transitive_reducer
+            .get_ancestor_nodes_lookup(&self.state)
     }
 
     /// Performs transitive reduction, removing all redundant edges. Returns
     /// false if it cannot be performed.
     pub fn transitive_reduction(&mut self) -> bool {
-        reducer::reduce_graph(&mut self.state)
+        let reducer = Arc::clone(&self.transitive_reducer);
+        reducer.reduce_graph(&mut self.state)
     }
 
     /// Redirects redundant edges; a documented no-op for vertex graphs.
@@ -721,7 +756,8 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         if !self.find_invalid_pre_compilation_constraints().is_empty() {
             return Ok(false);
         }
-        cpm::calculate_critical_path_forward_flow(
+        let engine = Arc::clone(&self.critical_path_engine);
+        engine.calculate_critical_path_forward_flow(
             &mut self.state,
             &[],
             self.shuffle_processing_order,
@@ -736,7 +772,8 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         if !self.find_invalid_pre_compilation_constraints().is_empty() {
             return Ok(false);
         }
-        cpm::calculate_critical_path_backward_flow(
+        let engine = Arc::clone(&self.critical_path_engine);
+        engine.calculate_critical_path_backward_flow(
             &mut self.state,
             &[],
             self.shuffle_processing_order,
@@ -757,7 +794,9 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
             Vec::new()
         };
 
-        if !cpm::calculate_critical_path_forward_flow(
+        let engine = Arc::clone(&self.critical_path_engine);
+
+        if !engine.calculate_critical_path_forward_flow(
             &mut self.state,
             &constraints,
             self.shuffle_processing_order,
@@ -767,7 +806,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
             ));
         }
 
-        if !cpm::calculate_critical_path_backward_flow(
+        if !engine.calculate_critical_path_backward_flow(
             &mut self.state,
             &constraints,
             self.shuffle_processing_order,
@@ -793,7 +832,8 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         } else {
             Vec::new()
         };
-        cpm::back_fill_isolated_nodes(&mut self.state, &constraints)
+        let engine = Arc::clone(&self.critical_path_engine);
+        engine.back_fill_isolated_nodes(&mut self.state, &constraints)
     }
 
     /// Returns the activity IDs in scheduling priority order (most critical first).
@@ -876,7 +916,8 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         let mut priority_clone = tmp_graph_builder.clone_builder()?;
         let priority_list = Self::calculate_critical_path_priority_list_on(&mut priority_clone)?;
 
-        scheduling::calculate_resource_schedules(
+        let engine = Arc::clone(&self.resource_scheduling_engine);
+        engine.calculate_resource_schedules(
             &priority_list,
             &filtered_resources,
             infinite_resources,
@@ -959,6 +1000,12 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         ))
     }
 
+    /// The resource-scheduling engine, so the compiler can run the surrounding
+    /// scheduling-pipeline steps through the same injected engine.
+    pub(crate) fn resource_scheduling_engine(&self) -> Arc<dyn IResourceSchedulingEngine<K, R, W>> {
+        Arc::clone(&self.resource_scheduling_engine)
+    }
+
     /// Clears the graph and returns the builder to its initial state.
     pub fn reset(&mut self) {
         self.state.clear();
@@ -976,7 +1023,19 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
             .min()
             .unwrap_or_default()
             .previous();
-        Self::from_graph(graph, IdGenerator::Previous(min_edge_id))
+        // Preserve the injected (stateless) engines on the clone; only the ID
+        // generator is recreated, since it carries a per-graph counter.
+        Self::from_graph_with_engines(
+            graph,
+            VertexGraphBuilderEngines {
+                edge_id_generator: Box::new(PreviousIdGenerator::new(min_edge_id)),
+                event_generator: Arc::clone(&self.event_generator),
+                scc_finder: Arc::clone(&self.scc_finder),
+                critical_path_engine: Arc::clone(&self.critical_path_engine),
+                transitive_reducer: Arc::clone(&self.transitive_reducer),
+                resource_scheduling_engine: Arc::clone(&self.resource_scheduling_engine),
+            },
+        )
     }
 
     /// Replaces an activity's compiled and planning dependencies, reconciling
@@ -1336,10 +1395,10 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         let unavailable_resources_set: Vec<UnavailableResources<K, R>> = if infinite_resources {
             Vec::new()
         } else {
-            scheduling::gather_unavailable_resources(
-                self.activities().map(|a| &a.activity),
-                filtered_resources,
-            )
+            let activities: Vec<&Activity<K, R, W>> =
+                self.activities().map(|a| &a.activity).collect();
+            let engine = Arc::clone(&self.resource_scheduling_engine);
+            engine.gather_unavailable_resources(&activities, filtered_resources)
         };
         // P0060
         if !unavailable_resources_set.is_empty() {
@@ -1409,7 +1468,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
     }
 }
 
-impl<K: Key, R: Key, W: Key> ResourceSchedulingGraph<K, R, W> for VertexGraphBuilder<K, R, W> {
+impl<K: Key, R: Key, W: Key> IResourceSchedulingGraph<K, R, W> for VertexGraphBuilder<K, R, W> {
     fn activity(&self, id: K) -> &DependentActivity<K, R, W> {
         VertexGraphBuilder::activity(self, id).expect("activity must exist")
     }

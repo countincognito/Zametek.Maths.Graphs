@@ -4,7 +4,7 @@
 //! same seeds), so the graph structure matches edge for edge.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{ArrowGraphBuilder, ArrowGraphCompiler, IdGenerator};
+use zametek_maths_graphs_compilers::{ArrowGraphBuilder, ArrowGraphCompiler, NextIdGenerator};
 use zametek_maths_graphs_primitives::{DependentActivity, NodeType};
 
 type Builder = ArrowGraphBuilder<i32, i32, i32>;
@@ -12,8 +12,8 @@ type Act = DependentActivity<i32, i32, i32>;
 
 fn new_builder(dummy_activity_id: i32, event_id: i32) -> Builder {
     Builder::new(
-        IdGenerator::Next(dummy_activity_id),
-        IdGenerator::Next(event_id),
+        NextIdGenerator::new(dummy_activity_id),
+        NextIdGenerator::new(event_id),
     )
 }
 

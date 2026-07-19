@@ -4,9 +4,15 @@ use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, Event, Key, Node, NodeType};
 
 /// All mutable graph state for an Activity-on-Arrow graph — the counterpart of
-/// the C# `ArrowGraphState`. Activities live on edges; events live on nodes.
-/// There is a single Start node and a single End node.
-pub(crate) struct ArrowState<K: Key, R: Key, W: Key> {
+/// the C# `ArrowGraphState` (and its public `IArrowGraphState` contract).
+/// Activities live on edges; events live on nodes. There is a single Start node
+/// and a single End node.
+///
+/// The struct is public so injected engines can operate on it, but its fields
+/// are crate-private: only the builder constructs and owns the raw lookups, and
+/// external engines go through the method surface below (mirroring the way the
+/// C# state is an `internal sealed` class behind a public interface).
+pub struct ArrowGraphState<K: Key, R: Key, W: Key> {
     pub(crate) edges: IndexMap<K, Edge<K, DependentActivity<K, R, W>>>,
     pub(crate) nodes: IndexMap<K, Node<K, Event<K>>>,
     /// Dependency activity ID -> the tail-node IDs waiting for it to appear.
@@ -17,7 +23,7 @@ pub(crate) struct ArrowState<K: Key, R: Key, W: Key> {
     pub(crate) end_node_id: Option<K>,
 }
 
-impl<K: Key, R: Key, W: Key> ArrowState<K, R, W> {
+impl<K: Key, R: Key, W: Key> ArrowGraphState<K, R, W> {
     pub(crate) fn new() -> Self {
         Self {
             edges: IndexMap::new(),
@@ -30,107 +36,104 @@ impl<K: Key, R: Key, W: Key> ArrowState<K, R, W> {
         }
     }
 
-    pub(crate) fn contains_edge(&self, edge_id: K) -> bool {
+    pub fn contains_edge(&self, edge_id: K) -> bool {
         self.edges.contains_key(&edge_id)
     }
 
-    pub(crate) fn contains_node(&self, node_id: K) -> bool {
+    pub fn contains_node(&self, node_id: K) -> bool {
         self.nodes.contains_key(&node_id)
     }
 
-    pub(crate) fn node(&self, node_id: K) -> Option<&Node<K, Event<K>>> {
+    pub fn node(&self, node_id: K) -> Option<&Node<K, Event<K>>> {
         self.nodes.get(&node_id)
     }
 
-    pub(crate) fn node_mut(&mut self, node_id: K) -> Option<&mut Node<K, Event<K>>> {
+    pub fn node_mut(&mut self, node_id: K) -> Option<&mut Node<K, Event<K>>> {
         self.nodes.get_mut(&node_id)
     }
 
-    pub(crate) fn edge(&self, edge_id: K) -> Option<&Edge<K, DependentActivity<K, R, W>>> {
+    pub fn edge(&self, edge_id: K) -> Option<&Edge<K, DependentActivity<K, R, W>>> {
         self.edges.get(&edge_id)
     }
 
-    pub(crate) fn edge_mut(
-        &mut self,
-        edge_id: K,
-    ) -> Option<&mut Edge<K, DependentActivity<K, R, W>>> {
+    pub fn edge_mut(&mut self, edge_id: K) -> Option<&mut Edge<K, DependentActivity<K, R, W>>> {
         self.edges.get_mut(&edge_id)
     }
 
-    pub(crate) fn edge_head_node_id(&self, edge_id: K) -> Option<K> {
+    pub fn edge_head_node_id(&self, edge_id: K) -> Option<K> {
         self.edge_head.get(&edge_id).copied()
     }
 
-    pub(crate) fn edge_tail_node_id(&self, edge_id: K) -> Option<K> {
+    pub fn edge_tail_node_id(&self, edge_id: K) -> Option<K> {
         self.edge_tail.get(&edge_id).copied()
     }
 
-    pub(crate) fn add_edge(&mut self, edge: Edge<K, DependentActivity<K, R, W>>) {
+    pub fn add_edge(&mut self, edge: Edge<K, DependentActivity<K, R, W>>) {
         let previous = self.edges.insert(edge.id(), edge);
         debug_assert!(previous.is_none(), "duplicate edge id");
     }
 
-    pub(crate) fn remove_edge(&mut self, edge_id: K) -> bool {
+    pub fn remove_edge(&mut self, edge_id: K) -> bool {
         self.edges.shift_remove(&edge_id).is_some()
     }
 
-    pub(crate) fn add_node(&mut self, node: Node<K, Event<K>>) {
+    pub fn add_node(&mut self, node: Node<K, Event<K>>) {
         let previous = self.nodes.insert(node.id(), node);
         debug_assert!(previous.is_none(), "duplicate node id");
     }
 
-    pub(crate) fn remove_node(&mut self, node_id: K) -> bool {
+    pub fn remove_node(&mut self, node_id: K) -> bool {
         self.nodes.shift_remove(&node_id).is_some()
     }
 
-    pub(crate) fn set_edge_head_node(&mut self, edge_id: K, node_id: K) {
+    pub fn set_edge_head_node(&mut self, edge_id: K, node_id: K) {
         let previous = self.edge_head.insert(edge_id, node_id);
         debug_assert!(previous.is_none(), "duplicate edge head");
     }
 
-    pub(crate) fn remove_edge_head_node(&mut self, edge_id: K) -> bool {
+    pub fn remove_edge_head_node(&mut self, edge_id: K) -> bool {
         self.edge_head.shift_remove(&edge_id).is_some()
     }
 
-    pub(crate) fn set_edge_tail_node(&mut self, edge_id: K, node_id: K) {
+    pub fn set_edge_tail_node(&mut self, edge_id: K, node_id: K) {
         let previous = self.edge_tail.insert(edge_id, node_id);
         debug_assert!(previous.is_none(), "duplicate edge tail");
     }
 
-    pub(crate) fn remove_edge_tail_node(&mut self, edge_id: K) -> bool {
+    pub fn remove_edge_tail_node(&mut self, edge_id: K) -> bool {
         self.edge_tail.shift_remove(&edge_id).is_some()
     }
 
-    pub(crate) fn add_unsatisfied_successor(&mut self, dependency_id: K, successor_node_id: K) {
+    pub fn add_unsatisfied_successor(&mut self, dependency_id: K, successor_node_id: K) {
         self.unsatisfied_successors
             .entry(dependency_id)
             .or_default()
             .insert(successor_node_id);
     }
 
-    pub(crate) fn remove_unsatisfied_successors(&mut self, dependency_id: K) -> bool {
+    pub fn remove_unsatisfied_successors(&mut self, dependency_id: K) -> bool {
         self.unsatisfied_successors
             .shift_remove(&dependency_id)
             .is_some()
     }
 
-    pub(crate) fn all_dependencies_satisfied(&self) -> bool {
+    pub fn all_dependencies_satisfied(&self) -> bool {
         self.unsatisfied_successors.is_empty()
     }
 
-    pub(crate) fn invalid_dependencies(&self) -> Vec<K> {
+    pub fn invalid_dependencies(&self) -> Vec<K> {
         self.unsatisfied_successors.keys().copied().collect()
     }
 
-    pub(crate) fn node_ids(&self) -> Vec<K> {
+    pub fn node_ids(&self) -> Vec<K> {
         self.nodes.keys().copied().collect()
     }
 
-    pub(crate) fn edge_ids(&self) -> Vec<K> {
+    pub fn edge_ids(&self) -> Vec<K> {
         self.edges.keys().copied().collect()
     }
 
-    pub(crate) fn nodes_of_type(&self, node_type: NodeType) -> Vec<K> {
+    pub fn nodes_of_type(&self, node_type: NodeType) -> Vec<K> {
         self.nodes
             .values()
             .filter(|n| n.node_type() == node_type)
@@ -149,7 +152,7 @@ impl<K: Key, R: Key, W: Key> ArrowState<K, R, W> {
     }
 
     /// Validation helper used by the graph-loading constructor.
-    pub(crate) fn edge_keys_match(&self, other_keys: impl IntoIterator<Item = K>) -> bool {
+    pub fn edge_keys_match(&self, other_keys: impl IntoIterator<Item = K>) -> bool {
         let mut a: Vec<K> = self.edges.keys().copied().collect();
         let mut b: Vec<K> = other_keys.into_iter().collect();
         a.sort();
@@ -159,9 +162,9 @@ impl<K: Key, R: Key, W: Key> ArrowState<K, R, W> {
 }
 
 /// Edge-space traversal for the shared Tarjan algorithm — the counterpart of
-/// the C# `ArrowGraphTraversal`.
+/// the C# `ArrowGraphTraversal`. Internal, used by the default SCC finder.
 pub(crate) struct ArrowTraversal<'a, K: Key, R: Key, W: Key> {
-    pub(crate) state: &'a ArrowState<K, R, W>,
+    pub(crate) state: &'a ArrowGraphState<K, R, W>,
 }
 
 impl<K: Key, R: Key, W: Key> GraphTraversal<K> for ArrowTraversal<'_, K, R, W> {
@@ -192,10 +195,10 @@ impl<K: Key, R: Key, W: Key> GraphTraversal<K> for ArrowTraversal<'_, K, R, W> {
     }
 }
 
-/// Node-space view for the shared ancestor calculation — the counterpart of
-/// the C# `ArrowAncestorGraphView`.
+/// Node-space view for the shared ancestor calculation — the counterpart of the
+/// C# `ArrowAncestorGraphView`. Internal, used by the default reducer.
 pub(crate) struct ArrowAncestorView<'a, K: Key, R: Key, W: Key> {
-    pub(crate) state: &'a ArrowState<K, R, W>,
+    pub(crate) state: &'a ArrowGraphState<K, R, W>,
 }
 
 impl<K: Key, R: Key, W: Key> AncestorGraphView<K> for ArrowAncestorView<'_, K, R, W> {

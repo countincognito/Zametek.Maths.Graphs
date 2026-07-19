@@ -8,7 +8,11 @@ use std::hash::Hash;
 ///
 /// Implementations are provided for the primitive integer types; any custom
 /// copyable, ordered, hashable type can opt in by implementing this trait.
-pub trait Key: Copy + Ord + Eq + Hash + Debug + Display + Default {
+///
+/// `'static` mirrors the C# `struct` constraint (ID types are self-contained
+/// value types with no borrowed data) and lets the compilers store the
+/// injectable engines as trait objects (`Arc<dyn …<K>>`).
+pub trait Key: Copy + Ord + Eq + Hash + Debug + Display + Default + 'static {
     /// The next key in sequence (used by ascending ID generators).
     fn next(self) -> Self;
     /// The previous key in sequence (used by descending ID generators).

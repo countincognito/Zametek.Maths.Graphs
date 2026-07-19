@@ -1,4 +1,4 @@
-use super::state::ArrowState;
+use super::state::ArrowGraphState;
 use crate::messages;
 use crate::shuffle::shuffle;
 use indexmap::IndexSet;
@@ -10,7 +10,7 @@ use zametek_maths_graphs_primitives::{GraphError, InvalidConstraint, Key, NodeTy
 // critical-path variables.
 
 pub(crate) fn calculate_event_earliest_finish_times<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     invalid_constraints: &[InvalidConstraint<K>],
     shuffle_order: bool,
 ) -> Result<bool, GraphError> {
@@ -138,7 +138,7 @@ pub(crate) fn calculate_event_earliest_finish_times<K: Key, R: Key, W: Key>(
 }
 
 pub(crate) fn calculate_event_latest_finish_times<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     invalid_constraints: &[InvalidConstraint<K>],
     shuffle_order: bool,
 ) -> Result<bool, GraphError> {
@@ -266,7 +266,7 @@ pub(crate) fn calculate_event_latest_finish_times<K: Key, R: Key, W: Key>(
 }
 
 pub(crate) fn calculate_critical_path_variables<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     invalid_constraints: &[InvalidConstraint<K>],
 ) -> Result<bool, GraphError> {
     if !invalid_constraints.is_empty() {

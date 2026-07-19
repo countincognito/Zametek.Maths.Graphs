@@ -1,17 +1,86 @@
 use super::schedule_builder::ResourceScheduleBuilder;
+use crate::contracts::{IResourceSchedulingEngine, IResourceSchedulingGraph};
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{
     Activity, DependentActivity, GraphError, InterActivityAllocationType, Key, LogicalOperator,
     Resource, ResourceSchedule, UnavailableResources,
 };
 
-/// The view of a graph builder the resource scheduler needs — the counterpart
-/// of the C# `IResourceSchedulingGraph`.
-pub(crate) trait ResourceSchedulingGraph<K: Key, R: Key, W: Key> {
-    fn activity(&self, id: K) -> &DependentActivity<K, R, W>;
-    fn activity_mut(&mut self, id: K) -> &mut DependentActivity<K, R, W>;
-    fn strong_activity_dependency_ids(&self, id: K) -> Vec<K>;
-    fn clone_activities(&self) -> Vec<DependentActivity<K, R, W>>;
+/// Default resource-scheduling engine: priority-list allocation plus the
+/// surrounding scheduling pipeline. The counterpart of the C#
+/// `PriorityListResourceScheduler`.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct PriorityListResourceScheduler;
+
+impl<K: Key, R: Key, W: Key> IResourceSchedulingEngine<K, R, W> for PriorityListResourceScheduler {
+    fn calculate_resource_schedules(
+        &self,
+        priority_list: &[K],
+        filtered_resources: &[Resource<R, W>],
+        infinite_resources: bool,
+        graph: &mut dyn IResourceSchedulingGraph<K, R, W>,
+    ) -> Result<Vec<ResourceSchedule<K, R, W>>, GraphError> {
+        calculate_resource_schedules(priority_list, filtered_resources, infinite_resources, graph)
+    }
+
+    fn gather_unavailable_resources(
+        &self,
+        activities: &[&Activity<K, R, W>],
+        filtered_resources: &[Resource<R, W>],
+    ) -> Vec<UnavailableResources<K, R>> {
+        gather_unavailable_resources(activities.iter().copied(), filtered_resources)
+    }
+
+    fn replace_with_synthetic_resources(
+        &self,
+        resource_schedules: Vec<ResourceSchedule<K, R, W>>,
+    ) -> Vec<ResourceSchedule<K, R, W>> {
+        replace_with_synthetic_resources(resource_schedules)
+    }
+
+    fn rebuild_aligned_resource_schedules(
+        &self,
+        resource_schedules: &[ResourceSchedule<K, R, W>],
+        infinite_resources: bool,
+        graph: &dyn IResourceSchedulingGraph<K, R, W>,
+        final_activities: &[Activity<K, R, W>],
+        start_time: i32,
+        finish_time: i32,
+    ) -> Result<Vec<ResourceSchedule<K, R, W>>, GraphError> {
+        rebuild_aligned_resource_schedules(
+            resource_schedules,
+            infinite_resources,
+            graph,
+            final_activities,
+            start_time,
+            finish_time,
+        )
+    }
+
+    fn collect_indirect_resource_schedules(
+        &self,
+        filtered_resources: &[Resource<R, W>],
+        scheduled_resources: &[ResourceSchedule<K, R, W>],
+        final_activities: &[Activity<K, R, W>],
+        start_time: i32,
+        finish_time: i32,
+    ) -> Result<Vec<ResourceSchedule<K, R, W>>, GraphError> {
+        collect_indirect_resource_schedules(
+            filtered_resources,
+            scheduled_resources,
+            final_activities,
+            start_time,
+            finish_time,
+        )
+    }
+
+    fn get_resource_phases_used(
+        &self,
+        total_schedules: &[ResourceSchedule<K, R, W>],
+        workstreams_used: &IndexSet<W>,
+    ) -> IndexSet<W> {
+        get_resource_phases_used(total_schedules, workstreams_used)
+    }
 }
 
 /// Priority-list resource scheduling — the counterpart of the C#
@@ -20,7 +89,7 @@ pub(crate) fn calculate_resource_schedules<K, R, W>(
     priority_list: &[K],
     filtered_resources: &[Resource<R, W>],
     infinite_resources: bool,
-    graph: &mut impl ResourceSchedulingGraph<K, R, W>,
+    graph: &mut dyn IResourceSchedulingGraph<K, R, W>,
 ) -> Result<Vec<ResourceSchedule<K, R, W>>, GraphError>
 where
     K: Key,
@@ -79,7 +148,7 @@ where
         assign_ready_activities_to_resources(
             &mut ready,
             &mut resource_schedule_builders,
-            graph,
+            &mut *graph,
             filtered_resources,
             infinite_resources,
             &mut started,
@@ -177,7 +246,7 @@ fn promote_ready_activities<K: Key>(
 fn assign_ready_activities_to_resources<K, R, W>(
     ready: &mut [Option<K>],
     builders: &mut Vec<ResourceScheduleBuilder<K, R, W>>,
-    graph: &mut impl ResourceSchedulingGraph<K, R, W>,
+    graph: &mut dyn IResourceSchedulingGraph<K, R, W>,
     filtered_resources: &[Resource<R, W>],
     infinite_resources: bool,
     started: &mut IndexSet<K>,
@@ -450,7 +519,7 @@ pub(crate) fn replace_with_synthetic_resources<K: Key, R: Key, W: Key>(
 pub(crate) fn rebuild_aligned_resource_schedules<K, R, W>(
     resource_schedules: &[ResourceSchedule<K, R, W>],
     infinite_resources: bool,
-    graph: &impl ResourceSchedulingGraph<K, R, W>,
+    graph: &dyn IResourceSchedulingGraph<K, R, W>,
     final_activities: &[Activity<K, R, W>],
     start_time: i32,
     finish_time: i32,

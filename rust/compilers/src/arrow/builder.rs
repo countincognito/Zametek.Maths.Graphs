@@ -1,10 +1,16 @@
-use super::state::{ArrowState, ArrowTraversal};
-use super::{cpm, orchestrator, reducer};
+use super::engines::ArrowGraphBuilderEngines;
+use super::orchestrator;
+use super::state::ArrowGraphState;
 use crate::constraint_checker;
-use crate::id_gen::IdGenerator;
+use crate::contracts::{
+    IActivityGenerator, IArrowCriticalPathEngine, IArrowStronglyConnectedComponentsFinder,
+    IArrowTransitiveReducer, IDummyEdgeOrchestrator, IEventGenerator, IIdGenerator,
+    IResourceSchedulingEngine, IResourceSchedulingGraph,
+};
+use crate::id_gen::PreviousIdGenerator;
 use crate::messages;
-use crate::scheduling::{self, ResourceSchedulingGraph};
 use indexmap::{IndexMap, IndexSet};
+use std::sync::Arc;
 use zametek_maths_graphs_primitives::{
     CircularDependency, DependentActivity, Edge, Event, Graph, GraphError, InvalidConstraint, Key,
     LogicalOperator, Node, NodeType, Resource, ResourceSchedule, UnavailableResources,
@@ -22,9 +28,16 @@ use zametek_maths_graphs_primitives::{
 /// `RemoveActivityDependencies`, all of which throw `NotImplementedException`;
 /// they are omitted here.
 pub struct ArrowGraphBuilder<K: Key, R: Key, W: Key> {
-    pub(crate) state: ArrowState<K, R, W>,
-    edge_id_generator: IdGenerator<K>,
-    node_id_generator: IdGenerator<K>,
+    pub(crate) state: ArrowGraphState<K, R, W>,
+    edge_id_generator: Box<dyn IIdGenerator<K>>,
+    node_id_generator: Box<dyn IIdGenerator<K>>,
+    dummy_activity_generator: Arc<dyn IActivityGenerator<K, R, W>>,
+    event_generator: Arc<dyn IEventGenerator<K>>,
+    scc_finder: Arc<dyn IArrowStronglyConnectedComponentsFinder<K, R, W>>,
+    critical_path_engine: Arc<dyn IArrowCriticalPathEngine<K, R, W>>,
+    transitive_reducer: Arc<dyn IArrowTransitiveReducer<K, R, W>>,
+    dummy_edge_orchestrator: Arc<dyn IDummyEdgeOrchestrator<K, R, W>>,
+    resource_scheduling_engine: Arc<dyn IResourceSchedulingEngine<K, R, W>>,
     /// When true, the critical-path passes process remaining elements in a
     /// random order on each iteration (results are identical either way; used
     /// to prove order-independence).
@@ -32,31 +45,69 @@ pub struct ArrowGraphBuilder<K: Key, R: Key, W: Key> {
 }
 
 impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
-    /// Creates a builder using the given edge (activity) and node (event) ID
-    /// generators.
-    pub fn new(edge_id_generator: IdGenerator<K>, node_id_generator: IdGenerator<K>) -> Self {
-        let mut builder = Self {
-            state: ArrowState::new(),
-            edge_id_generator,
-            node_id_generator,
+    // Builds the struct from a bundle, without initialising the Start/End nodes
+    // or assimilating a graph — the shared core of `with_engines` and
+    // `from_graph_with_engines`.
+    fn from_engines_raw(engines: ArrowGraphBuilderEngines<K, R, W>) -> Self {
+        Self {
+            state: ArrowGraphState::new(),
+            edge_id_generator: engines.edge_id_generator,
+            node_id_generator: engines.node_id_generator,
+            dummy_activity_generator: engines.dummy_activity_generator,
+            event_generator: engines.event_generator,
+            scc_finder: engines.scc_finder,
+            critical_path_engine: engines.critical_path_engine,
+            transitive_reducer: engines.transitive_reducer,
+            dummy_edge_orchestrator: engines.dummy_edge_orchestrator,
+            resource_scheduling_engine: engines.resource_scheduling_engine,
             shuffle_processing_order: false,
-        };
+        }
+    }
+
+    /// Creates a builder with default engines, using the given edge (activity)
+    /// and node (event) ID generators.
+    pub fn new(
+        edge_id_generator: impl IIdGenerator<K> + 'static,
+        node_id_generator: impl IIdGenerator<K> + 'static,
+    ) -> Self {
+        Self::with_engines(ArrowGraphBuilderEngines {
+            edge_id_generator: Box::new(edge_id_generator),
+            node_id_generator: Box::new(node_id_generator),
+            ..Default::default()
+        })
+    }
+
+    /// Creates a builder from an engines bundle; every unset bundle field
+    /// defaults to the standard implementation. The Start and End nodes are
+    /// created immediately.
+    pub fn with_engines(engines: ArrowGraphBuilderEngines<K, R, W>) -> Self {
+        let mut builder = Self::from_engines_raw(engines);
         builder.initialize();
         builder
     }
 
-    /// Creates a builder by assimilating an existing graph.
+    /// Creates a builder by assimilating an existing graph, with default engines.
     pub fn from_graph(
         graph: crate::ArrowGraph<K, R, W>,
-        edge_id_generator: IdGenerator<K>,
-        node_id_generator: IdGenerator<K>,
+        edge_id_generator: impl IIdGenerator<K> + 'static,
+        node_id_generator: impl IIdGenerator<K> + 'static,
     ) -> Result<Self, GraphError> {
-        let mut builder = Self {
-            state: ArrowState::new(),
-            edge_id_generator,
-            node_id_generator,
-            shuffle_processing_order: false,
-        };
+        Self::from_graph_with_engines(
+            graph,
+            ArrowGraphBuilderEngines {
+                edge_id_generator: Box::new(edge_id_generator),
+                node_id_generator: Box::new(node_id_generator),
+                ..Default::default()
+            },
+        )
+    }
+
+    /// Creates a builder by assimilating an existing graph, from an engines bundle.
+    pub fn from_graph_with_engines(
+        graph: crate::ArrowGraph<K, R, W>,
+        engines: ArrowGraphBuilderEngines<K, R, W>,
+    ) -> Result<Self, GraphError> {
+        let mut builder = Self::from_engines_raw(engines);
 
         for edge in graph.edges {
             builder.state.add_edge(edge);
@@ -137,16 +188,17 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
 
     fn initialize(&mut self) {
         let start_event_id = self.node_id_generator.generate();
-        // Arrow-graph events represent real milestones, so they are created
-        // read-only (not removable); the start event begins at time zero.
-        let start_node = Node::with_type(
-            NodeType::Start,
-            Event::with_times(start_event_id, Some(0), Some(0)),
-        );
+        // Arrow-graph events represent real milestones, so the default generator
+        // makes them read-only (not removable); the start event begins at time zero.
+        let start_event =
+            self.event_generator
+                .generate_with_times(start_event_id, Some(0), Some(0));
+        let start_node = Node::with_type(NodeType::Start, start_event);
         self.state.start_node_id = Some(start_node.id());
         self.state.add_node(start_node);
         let end_event_id = self.node_id_generator.generate();
-        let end_node = Node::with_type(NodeType::End, Event::new(end_event_id));
+        let end_event = self.event_generator.generate(end_event_id);
+        let end_node = Node::with_type(NodeType::End, end_event);
         self.state.end_node_id = Some(end_node.id());
         self.state.add_node(end_node);
     }
@@ -321,7 +373,8 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
             // Since we use dummy edges to connect all tail nodes, we can create
             // a new tail node for this edge.
             let tail_event_id = self.node_id_generator.generate();
-            let mut tail_node = Node::new(Event::new(tail_event_id));
+            let tail_event = self.event_generator.generate(tail_event_id);
+            let mut tail_node = Node::new(tail_event);
             tail_node.outgoing.insert(activity_id);
             let tail_node_id = tail_node.id();
             self.state.set_edge_tail_node(activity_id, tail_node_id);
@@ -347,7 +400,10 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
                     .edge_head_node_id(dependency_id)
                     .expect("dependency head must exist");
 
-                let dummy_edge = orchestrator::generate_dummy_activity(&mut self.edge_id_generator);
+                let dummy_edge = orchestrator::generate_dummy_activity(
+                    &mut *self.edge_id_generator,
+                    &*self.dummy_activity_generator,
+                );
                 let dummy_edge_id = dummy_edge.id();
                 self.state
                     .node_mut(tail_node_id)
@@ -397,7 +453,8 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
         }
 
         let head_event_id = self.node_id_generator.generate();
-        let mut head_node = Node::new(Event::new(head_event_id));
+        let head_event = self.event_generator.generate(head_event_id);
+        let mut head_node = Node::new(head_event);
         head_node.incoming.insert(activity_id);
         let head_node_id = head_node.id();
         self.state.set_edge_head_node(activity_id, head_node_id);
@@ -408,10 +465,12 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
         // activity's head node with a dummy edge.
         if let Some(tail_node_ids) = self.state.unsatisfied_successors.get(&activity_id) {
             let tail_node_ids: Vec<K> = tail_node_ids.iter().copied().collect();
+            let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
             for tail_node_id in tail_node_ids {
-                orchestrator::connect_with_dummy_edge(
+                orchestrator.connect_with_dummy_edge(
                     &mut self.state,
-                    &mut self.edge_id_generator,
+                    &mut *self.edge_id_generator,
+                    &*self.dummy_activity_generator,
                     head_node_id,
                     tail_node_id,
                 );
@@ -421,9 +480,11 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
             // No existing activities were expecting this activity as a
             // dependency, so attach it directly to the end node via a dummy.
             let end_node_id = self.state.end_node_id.expect("end node must exist");
-            orchestrator::connect_with_dummy_edge(
+            let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
+            orchestrator.connect_with_dummy_edge(
                 &mut self.state,
-                &mut self.edge_id_generator,
+                &mut *self.edge_id_generator,
+                &*self.dummy_activity_generator,
                 head_node_id,
                 end_node_id,
             );
@@ -432,7 +493,8 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
 
     /// Removes a dummy activity edge, merging adjacent nodes where possible.
     pub fn remove_dummy_activity(&mut self, activity_id: K) -> Result<bool, GraphError> {
-        orchestrator::remove_dummy_activity(&mut self.state, activity_id)
+        let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
+        orchestrator.remove_dummy_activity(&mut self.state, activity_id)
     }
 
     /// Returns the IDs of the activities the given activity currently depends
@@ -492,10 +554,8 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
 
     /// Finds the strongly-connected circular dependencies in the graph.
     pub fn find_strong_circular_dependencies(&self) -> Vec<CircularDependency<K>> {
-        crate::tarjan::find_strongly_circular_dependencies(
-            &ArrowTraversal { state: &self.state },
-            true,
-        )
+        self.scc_finder
+            .find_strongly_circular_dependencies(&self.state, true)
     }
 
     /// Finds activity constraints that are self-contradictory before compilation.
@@ -515,23 +575,27 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
     /// Builds a lookup from each node ID to the full set of its ancestor node
     /// IDs. Returns `None` if the graph has unsatisfied or circular dependencies.
     pub fn get_ancestor_nodes_lookup(&self) -> Option<IndexMap<K, IndexSet<K>>> {
-        reducer::get_ancestor_nodes_lookup(&self.state)
+        self.transitive_reducer
+            .get_ancestor_nodes_lookup(&self.state)
     }
 
     /// Performs transitive reduction, removing all redundant dummy edges.
     /// Returns `Ok(false)` if it cannot be performed.
     pub fn transitive_reduction(&mut self) -> Result<bool, GraphError> {
-        reducer::reduce_graph(&mut self.state)
+        let reducer = Arc::clone(&self.transitive_reducer);
+        reducer.reduce_graph(&mut self.state)
     }
 
     /// Redirects redundant dummy edges (canonical arrow-graph normalisation).
     pub fn redirect_edges(&mut self) -> Result<bool, GraphError> {
-        orchestrator::redirect_dummy_edges(&mut self.state)
+        let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
+        orchestrator.redirect_dummy_edges(&mut self.state)
     }
 
     /// Removes dummy edges that are transitively implied.
     pub fn remove_redundant_edges(&mut self) -> Result<bool, GraphError> {
-        orchestrator::remove_redundant_dummy_edges(&mut self.state)
+        let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
+        orchestrator.remove_redundant_dummy_edges(&mut self.state)
     }
 
     /// Redirects and then removes redundant dummy edges until the graph is minimal.
@@ -571,7 +635,9 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
             Vec::new()
         };
 
-        if !cpm::calculate_event_earliest_finish_times(
+        let engine = Arc::clone(&self.critical_path_engine);
+
+        if !engine.calculate_event_earliest_finish_times(
             &mut self.state,
             &constraints,
             self.shuffle_processing_order,
@@ -581,7 +647,7 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
             ));
         }
 
-        if !cpm::calculate_event_latest_finish_times(
+        if !engine.calculate_event_latest_finish_times(
             &mut self.state,
             &constraints,
             self.shuffle_processing_order,
@@ -591,7 +657,7 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
             ));
         }
 
-        if !cpm::calculate_critical_path_variables(&mut self.state, &constraints)? {
+        if !engine.calculate_critical_path_variables(&mut self.state, &constraints)? {
             return Err(GraphError::new(
                 messages::MSG_CANNOT_CALCULATE_CRITICAL_PATH,
             ));
@@ -677,7 +743,8 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
         let mut priority_clone = tmp_graph_builder.clone_builder()?;
         let priority_list = Self::calculate_critical_path_priority_list_on(&mut priority_clone)?;
 
-        scheduling::calculate_resource_schedules(
+        let engine = Arc::clone(&self.resource_scheduling_engine);
+        engine.calculate_resource_schedules(
             &priority_list,
             &filtered_resources,
             infinite_resources,
@@ -782,15 +849,26 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
             .min()
             .unwrap_or_default()
             .previous();
-        Self::from_graph(
+        // Preserve the injected (stateless) engines on the clone; only the ID
+        // generators are recreated, since they carry per-graph counters.
+        Self::from_graph_with_engines(
             graph,
-            IdGenerator::Previous(min_edge_id),
-            IdGenerator::Previous(min_node_id),
+            ArrowGraphBuilderEngines {
+                edge_id_generator: Box::new(PreviousIdGenerator::new(min_edge_id)),
+                node_id_generator: Box::new(PreviousIdGenerator::new(min_node_id)),
+                dummy_activity_generator: Arc::clone(&self.dummy_activity_generator),
+                event_generator: Arc::clone(&self.event_generator),
+                scc_finder: Arc::clone(&self.scc_finder),
+                critical_path_engine: Arc::clone(&self.critical_path_engine),
+                transitive_reducer: Arc::clone(&self.transitive_reducer),
+                dummy_edge_orchestrator: Arc::clone(&self.dummy_edge_orchestrator),
+                resource_scheduling_engine: Arc::clone(&self.resource_scheduling_engine),
+            },
         )
     }
 }
 
-impl<K: Key, R: Key, W: Key> ResourceSchedulingGraph<K, R, W> for ArrowGraphBuilder<K, R, W> {
+impl<K: Key, R: Key, W: Key> IResourceSchedulingGraph<K, R, W> for ArrowGraphBuilder<K, R, W> {
     fn activity(&self, id: K) -> &DependentActivity<K, R, W> {
         ArrowGraphBuilder::activity(self, id).expect("activity must exist")
     }

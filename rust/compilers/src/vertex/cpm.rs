@@ -1,4 +1,4 @@
-use super::state::VertexState;
+use super::state::VertexGraphState;
 use crate::messages;
 use crate::shuffle::shuffle;
 use indexmap::IndexSet;
@@ -17,7 +17,7 @@ fn all_completed<K: Key>(edge_ids: &IndexSet<K>, completed: &IndexSet<K>) -> boo
 }
 
 pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
-    state: &mut VertexState<K, R, W>,
+    state: &mut VertexGraphState<K, R, W>,
     invalid_constraints: &[InvalidConstraint<K>],
     shuffle_order: bool,
 ) -> Result<bool, GraphError> {
@@ -311,7 +311,7 @@ pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
 }
 
 pub(crate) fn calculate_critical_path_backward_flow<K: Key, R: Key, W: Key>(
-    state: &mut VertexState<K, R, W>,
+    state: &mut VertexGraphState<K, R, W>,
     invalid_constraints: &[InvalidConstraint<K>],
     shuffle_order: bool,
 ) -> Result<bool, GraphError> {
@@ -649,7 +649,7 @@ pub(crate) fn calculate_critical_path_backward_flow<K: Key, R: Key, W: Key>(
 }
 
 pub(crate) fn back_fill_isolated_nodes<K: Key, R: Key, W: Key>(
-    state: &mut VertexState<K, R, W>,
+    state: &mut VertexGraphState<K, R, W>,
     invalid_constraints: &[InvalidConstraint<K>],
 ) -> bool {
     if !invalid_constraints.is_empty() {

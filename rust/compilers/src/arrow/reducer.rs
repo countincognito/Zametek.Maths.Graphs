@@ -1,5 +1,5 @@
 use super::orchestrator;
-use super::state::{ArrowAncestorView, ArrowState, ArrowTraversal};
+use super::state::{ArrowAncestorView, ArrowGraphState, ArrowTraversal};
 use crate::ancestor::{self, AncestorBitSets};
 use crate::tarjan;
 use indexmap::{IndexMap, IndexSet};
@@ -11,7 +11,7 @@ use zametek_maths_graphs_primitives::{GraphError, Key, NodeType};
 /// Builds a lookup from each node ID to the full set of its ancestor node IDs.
 /// Returns `None` if the graph has unsatisfied or circular dependencies.
 pub(crate) fn get_ancestor_nodes_lookup<K: Key, R: Key, W: Key>(
-    state: &ArrowState<K, R, W>,
+    state: &ArrowGraphState<K, R, W>,
 ) -> Option<IndexMap<K, IndexSet<K>>> {
     if !state.all_dependencies_satisfied() {
         return None;
@@ -24,7 +24,7 @@ pub(crate) fn get_ancestor_nodes_lookup<K: Key, R: Key, W: Key>(
 }
 
 fn get_ancestor_bit_sets<K: Key, R: Key, W: Key>(
-    state: &ArrowState<K, R, W>,
+    state: &ArrowGraphState<K, R, W>,
 ) -> Option<AncestorBitSets<K>> {
     if !state.all_dependencies_satisfied() {
         return None;
@@ -39,7 +39,7 @@ fn get_ancestor_bit_sets<K: Key, R: Key, W: Key>(
 /// Performs transitive reduction, removing all redundant dummy edges. Returns
 /// `Ok(false)` if it cannot be performed.
 pub(crate) fn reduce_graph<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
 ) -> Result<bool, GraphError> {
     let Some(ancestor_bit_sets) = get_ancestor_bit_sets(state) else {
         return Ok(false);

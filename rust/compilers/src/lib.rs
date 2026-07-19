@@ -12,15 +12,25 @@
 //!   Intended for rendering the classic arrow diagram.
 //!
 //! The C# original decomposes the algorithms into injectable engine interfaces
-//! (SCC finder, CPM engine, transitive reducer, resource scheduler). This port
-//! keeps the same algorithms and the same inputs/outputs but implements them as
-//! plain modules; the C# thread-safety locks are replaced by Rust's `&mut`
-//! ownership rules (wrap a compiler in a `Mutex` for shared use).
+//! (SCC finder, CPM engine, transitive reducer, resource scheduler, generators).
+//! This port preserves those seams as the traits in [`contracts`], each with a
+//! default engine struct that keeps the C# name. Unlike C#, the engines are
+//! stateless (they take the graph state as a parameter), which removes the need
+//! for the C# `…Factory` seams. The C# thread-safety locks are replaced by
+//! Rust's `&mut` ownership rules.
+//!
+//! To customise an engine, pass an engines bundle
+//! ([`VertexGraphBuilderEngines`](vertex::VertexGraphBuilderEngines) /
+//! [`ArrowGraphBuilderEngines`](arrow::ArrowGraphBuilderEngines)) to the
+//! builder's `with_engines` constructor, setting only the fields you want to
+//! override.
 
 mod ancestor;
 pub mod arrow;
 mod constraint_checker;
+pub mod contracts;
 mod error_formatter;
+mod generators;
 mod id_gen;
 pub mod messages;
 mod scheduling;
@@ -28,10 +38,18 @@ mod shuffle;
 mod tarjan;
 pub mod vertex;
 
-pub use arrow::{ArrowGraphBuilder, ArrowGraphCompiler};
-pub use id_gen::IdGenerator;
-pub use scheduling::ResourceScheduleBuilder;
-pub use vertex::{VertexGraphBuilder, VertexGraphCompiler};
+pub use arrow::{
+    ArrowCriticalPathEngine, ArrowGraphBuilder, ArrowGraphBuilderEngines, ArrowGraphCompiler,
+    ArrowGraphState, ArrowTarjanStronglyConnectedComponentsFinder, ArrowTransitiveReducer,
+    DummyEdgeOrchestrator,
+};
+pub use generators::{DummyActivityGenerator, EventGenerator, RemovableEventGenerator};
+pub use id_gen::{NextIdGenerator, PreviousIdGenerator};
+pub use scheduling::{PriorityListResourceScheduler, ResourceScheduleBuilder};
+pub use vertex::{
+    VertexCriticalPathEngine, VertexGraphBuilder, VertexGraphBuilderEngines, VertexGraphCompiler,
+    VertexGraphState, VertexTarjanStronglyConnectedComponentsFinder, VertexTransitiveReducer,
+};
 
 pub use zametek_maths_graphs_primitives as primitives;
 

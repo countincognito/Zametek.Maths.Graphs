@@ -1,29 +1,79 @@
-use super::state::{ArrowState, ArrowTraversal};
+use super::state::{ArrowGraphState, ArrowTraversal};
 use crate::ancestor::AncestorBitSets;
-use crate::id_gen::IdGenerator;
+use crate::contracts::{IActivityGenerator, IDummyEdgeOrchestrator, IIdGenerator};
 use crate::tarjan;
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, GraphError, Key, NodeType};
 
 // All dummy-edge operations for Activity-on-Arrow graphs — the counterpart of
 // the C# `DummyEdgeOrchestrator`. Operates directly on the shared
-// `ArrowState`; where the C# throws `InvalidOperationException` this port
+// `ArrowGraphState`; where the C# throws `InvalidOperationException` this port
 // returns `Err`.
 
+/// Default dummy-edge orchestrator — the counterpart of the C#
+/// `DummyEdgeOrchestrator`. The methods delegate to the free functions in this
+/// module; edge/activity IDs come from the generators passed per call (the
+/// builder owns them).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct DummyEdgeOrchestrator;
+
+impl<K: Key, R: Key, W: Key> IDummyEdgeOrchestrator<K, R, W> for DummyEdgeOrchestrator {
+    fn connect_with_dummy_edge(
+        &self,
+        state: &mut ArrowGraphState<K, R, W>,
+        edge_id_generator: &mut dyn IIdGenerator<K>,
+        activity_generator: &dyn IActivityGenerator<K, R, W>,
+        tail_node_id: K,
+        head_node_id: K,
+    ) {
+        connect_with_dummy_edge(
+            state,
+            edge_id_generator,
+            activity_generator,
+            tail_node_id,
+            head_node_id,
+        )
+    }
+
+    fn remove_dummy_activity(
+        &self,
+        state: &mut ArrowGraphState<K, R, W>,
+        activity_id: K,
+    ) -> Result<bool, GraphError> {
+        remove_dummy_activity(state, activity_id)
+    }
+
+    fn redirect_dummy_edges(
+        &self,
+        state: &mut ArrowGraphState<K, R, W>,
+    ) -> Result<bool, GraphError> {
+        redirect_dummy_edges(state)
+    }
+
+    fn remove_redundant_dummy_edges(
+        &self,
+        state: &mut ArrowGraphState<K, R, W>,
+    ) -> Result<bool, GraphError> {
+        remove_redundant_dummy_edges(state)
+    }
+}
+
 pub(crate) fn generate_dummy_activity<K: Key, R: Key, W: Key>(
-    edge_id_generator: &mut IdGenerator<K>,
+    edge_id_generator: &mut dyn IIdGenerator<K>,
+    activity_generator: &dyn IActivityGenerator<K, R, W>,
 ) -> Edge<K, DependentActivity<K, R, W>> {
     let dummy_edge_id = edge_id_generator.generate();
-    Edge::new(DependentActivity::new_removable(dummy_edge_id, 0, true))
+    Edge::new(activity_generator.generate(dummy_edge_id))
 }
 
 pub(crate) fn connect_with_dummy_edge<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
-    edge_id_generator: &mut IdGenerator<K>,
+    state: &mut ArrowGraphState<K, R, W>,
+    edge_id_generator: &mut dyn IIdGenerator<K>,
+    activity_generator: &dyn IActivityGenerator<K, R, W>,
     tail_node_id: K,
     head_node_id: K,
 ) {
-    let dummy_edge = generate_dummy_activity(edge_id_generator);
+    let dummy_edge = generate_dummy_activity(edge_id_generator, activity_generator);
     let dummy_edge_id = dummy_edge.id();
     state
         .node_mut(head_node_id)
@@ -43,7 +93,7 @@ pub(crate) fn connect_with_dummy_edge<K: Key, R: Key, W: Key>(
 /// Removes a dummy activity edge, merging adjacent nodes where possible.
 /// Returns `Ok(false)` when the edge cannot be removed.
 pub(crate) fn remove_dummy_activity<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     activity_id: K,
 ) -> Result<bool, GraphError> {
     // Retrieve the activity's edge.
@@ -131,7 +181,7 @@ pub(crate) fn remove_dummy_activity<K: Key, R: Key, W: Key>(
 
 /// Redirects redundant dummy edges (canonical arrow-graph normalisation).
 pub(crate) fn redirect_dummy_edges<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
 ) -> Result<bool, GraphError> {
     if !state.all_dependencies_satisfied() {
         return Ok(false);
@@ -305,7 +355,7 @@ pub(crate) fn redirect_dummy_edges<K: Key, R: Key, W: Key>(
 
 /// Removes dummy edges that are transitively implied.
 pub(crate) fn remove_redundant_dummy_edges<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
 ) -> Result<bool, GraphError> {
     if !state.all_dependencies_satisfied() {
         return Ok(false);
@@ -385,7 +435,7 @@ pub(crate) fn remove_redundant_dummy_edges<K: Key, R: Key, W: Key>(
 }
 
 fn removable_dummy_edges_in_descending_order<K: Key, R: Key, W: Key>(
-    state: &ArrowState<K, R, W>,
+    state: &ArrowGraphState<K, R, W>,
 ) -> Vec<K> {
     get_dummy_edges_in_descending_order(state)
         .into_iter()
@@ -403,7 +453,7 @@ fn removable_dummy_edges_in_descending_order<K: Key, R: Key, W: Key>(
 /// iteratively so a deep graph cannot overflow the call stack; the output
 /// order is identical).
 pub(crate) fn get_dummy_edges_in_descending_order<K: Key, R: Key, W: Key>(
-    state: &ArrowState<K, R, W>,
+    state: &ArrowGraphState<K, R, W>,
 ) -> Vec<K> {
     let mut recorded_edges: IndexSet<K> = IndexSet::new();
     let mut edges_in_descending_order: Vec<K> = Vec::new();
@@ -474,7 +524,7 @@ pub(crate) fn get_dummy_edges_in_descending_order<K: Key, R: Key, W: Key>(
 /// nodes of the edge's tail node, and the ancestor/descendant nodes of the
 /// head node, then do not remove it.
 fn have_descendant_or_ancestor_overlap<K: Key, R: Key, W: Key>(
-    state: &ArrowState<K, R, W>,
+    state: &ArrowGraphState<K, R, W>,
     tail_node_id: K,
     head_node_id: K,
 ) -> bool {
@@ -531,7 +581,7 @@ fn have_descendant_or_ancestor_overlap<K: Key, R: Key, W: Key>(
 }
 
 fn share_more_than_one_edge<K: Key, R: Key, W: Key>(
-    state: &ArrowState<K, R, W>,
+    state: &ArrowGraphState<K, R, W>,
     tail_node_id: K,
     head_node_id: K,
 ) -> bool {
@@ -559,7 +609,7 @@ fn share_more_than_one_edge<K: Key, R: Key, W: Key>(
 }
 
 pub(crate) fn remove_parallel_incoming_dummy_edges<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     node_id: K,
 ) -> Result<(), GraphError> {
     // Clean up any dummy edges that are parallel coming into the head node.
@@ -611,7 +661,7 @@ pub(crate) fn remove_parallel_incoming_dummy_edges<K: Key, R: Key, W: Key>(
 }
 
 fn change_edge_tail_node_without_cleanup<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     edge_id: K,
     new_tail_node_id: K,
 ) -> bool {
@@ -650,7 +700,7 @@ fn change_edge_tail_node_without_cleanup<K: Key, R: Key, W: Key>(
 }
 
 fn change_edge_head_node_without_cleanup<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     edge_id: K,
     new_head_node_id: K,
 ) -> bool {
@@ -689,7 +739,7 @@ fn change_edge_head_node_without_cleanup<K: Key, R: Key, W: Key>(
 }
 
 fn change_edge_tail_node<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     edge_id: K,
     new_tail_node_id: K,
 ) -> Result<bool, GraphError> {
@@ -757,7 +807,7 @@ fn change_edge_tail_node<K: Key, R: Key, W: Key>(
 }
 
 fn change_edge_head_node<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     edge_id: K,
     new_head_node_id: K,
 ) -> Result<bool, GraphError> {
@@ -828,7 +878,7 @@ fn change_edge_head_node<K: Key, R: Key, W: Key>(
 /// Removes redundant incoming dummy edges using the compact ancestor bitsets —
 /// the counterpart of the C# `RemoveRedundantIncomingDummyEdges` (bitset form).
 pub(crate) fn remove_redundant_incoming_dummy_edges<K: Key, R: Key, W: Key>(
-    state: &mut ArrowState<K, R, W>,
+    state: &mut ArrowGraphState<K, R, W>,
     root_node_ids: Vec<K>,
     ancestor_bit_sets: &AncestorBitSets<K>,
 ) -> Result<(), GraphError> {

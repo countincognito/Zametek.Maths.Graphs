@@ -4,9 +4,16 @@
 mod builder;
 mod compiler;
 mod cpm;
+mod engines;
 mod orchestrator;
 mod reducer;
 mod state;
 
 pub use builder::ArrowGraphBuilder;
 pub use compiler::ArrowGraphCompiler;
+pub use engines::{
+    ArrowCriticalPathEngine, ArrowGraphBuilderEngines,
+    ArrowTarjanStronglyConnectedComponentsFinder, ArrowTransitiveReducer,
+};
+pub use orchestrator::DummyEdgeOrchestrator;
+pub use state::ArrowGraphState;

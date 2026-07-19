@@ -1,7 +1,6 @@
 use super::builder::VertexGraphBuilder;
-use crate::id_gen::IdGenerator;
+use crate::id_gen::PreviousIdGenerator;
 use crate::messages;
-use crate::scheduling;
 use indexmap::IndexSet;
 use zametek_maths_graphs_primitives::{
     Activity, DependentActivity, GraphCompilation, GraphCompilationError, GraphError, Key,
@@ -30,7 +29,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
     /// Creates a compiler wired with the default engines.
     pub fn new() -> Self {
         Self {
-            builder: VertexGraphBuilder::new(IdGenerator::Previous(K::default())),
+            builder: VertexGraphBuilder::new(PreviousIdGenerator::new(K::default())),
         }
     }
 
@@ -252,7 +251,10 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         // we need to create fake resources for resource dependencies to work in
         // the next step.
         if infinite_resources {
-            resource_schedules = scheduling::replace_with_synthetic_resources(resource_schedules);
+            resource_schedules = self
+                .builder
+                .resource_scheduling_engine()
+                .replace_with_synthetic_resources(resource_schedules);
         }
 
         // Determine the resource dependencies and add them to the compiled dependencies.
@@ -284,7 +286,8 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         let start_time = self.builder.start_time();
         let finish_time = self.builder.finish_time();
 
-        let new_schedules = scheduling::rebuild_aligned_resource_schedules(
+        let engine = self.builder.resource_scheduling_engine();
+        let new_schedules = engine.rebuild_aligned_resource_schedules(
             &resource_schedules,
             infinite_resources,
             &self.builder,
@@ -292,7 +295,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
             start_time,
             finish_time,
         )?;
-        let indirect_schedules = scheduling::collect_indirect_resource_schedules(
+        let indirect_schedules = engine.collect_indirect_resource_schedules(
             &filtered_resources,
             &new_schedules,
             &final_activities,
@@ -308,7 +311,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
             .flat_map(|x| x.target_work_streams.iter().copied())
             .collect();
         let resource_phases_used =
-            scheduling::get_resource_phases_used(&total_schedules, &workstreams_used);
+            engine.get_resource_phases_used(&total_schedules, &workstreams_used);
 
         Ok(GraphCompilation::new(
             self.builder.activities().cloned().collect(),

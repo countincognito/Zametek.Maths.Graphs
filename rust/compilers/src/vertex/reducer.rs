@@ -1,4 +1,4 @@
-use super::state::{VertexAncestorView, VertexState, VertexTraversal};
+use super::state::{VertexAncestorView, VertexGraphState, VertexTraversal};
 use crate::ancestor::{self, AncestorBitSets};
 use crate::tarjan;
 use indexmap::{IndexMap, IndexSet};
@@ -10,7 +10,7 @@ use zametek_maths_graphs_primitives::{Key, NodeType};
 /// Builds a lookup from each node ID to the full set of its ancestor node IDs.
 /// Returns `None` if the graph has unsatisfied or circular dependencies.
 pub(crate) fn get_ancestor_nodes_lookup<K: Key, R: Key, W: Key>(
-    state: &VertexState<K, R, W>,
+    state: &VertexGraphState<K, R, W>,
 ) -> Option<IndexMap<K, IndexSet<K>>> {
     if !state.all_dependencies_satisfied() {
         return None;
@@ -23,7 +23,7 @@ pub(crate) fn get_ancestor_nodes_lookup<K: Key, R: Key, W: Key>(
 }
 
 fn get_ancestor_bit_sets<K: Key, R: Key, W: Key>(
-    state: &VertexState<K, R, W>,
+    state: &VertexGraphState<K, R, W>,
 ) -> Option<AncestorBitSets<K>> {
     if !state.all_dependencies_satisfied() {
         return None;
@@ -37,7 +37,7 @@ fn get_ancestor_bit_sets<K: Key, R: Key, W: Key>(
 
 /// Performs transitive reduction, removing all redundant edges. Returns false
 /// if it cannot be performed.
-pub(crate) fn reduce_graph<K: Key, R: Key, W: Key>(state: &mut VertexState<K, R, W>) -> bool {
+pub(crate) fn reduce_graph<K: Key, R: Key, W: Key>(state: &mut VertexGraphState<K, R, W>) -> bool {
     let Some(ancestor_bit_sets) = get_ancestor_bit_sets(state) else {
         return false;
     };
@@ -52,7 +52,7 @@ pub(crate) fn reduce_graph<K: Key, R: Key, W: Key>(state: &mut VertexState<K, R,
 // own incoming edges, using the static ancestor bitsets, so the operation is
 // independent of visit order and idempotent per node.
 fn remove_redundant_incoming_edges<K: Key, R: Key, W: Key>(
-    state: &mut VertexState<K, R, W>,
+    state: &mut VertexGraphState<K, R, W>,
     root_node_ids: Vec<K>,
     ancestor_bit_sets: &AncestorBitSets<K>,
 ) {
