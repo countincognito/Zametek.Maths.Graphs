@@ -576,26 +576,30 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
     /// IDs. Returns `None` if the graph has unsatisfied or circular dependencies.
     pub fn get_ancestor_nodes_lookup(&self) -> Option<IndexMap<K, IndexSet<K>>> {
         self.transitive_reducer
-            .get_ancestor_nodes_lookup(&self.state)
+            .get_ancestor_nodes_lookup(&self.state, &*self.scc_finder)
     }
 
     /// Performs transitive reduction, removing all redundant dummy edges.
     /// Returns `Ok(false)` if it cannot be performed.
     pub fn transitive_reduction(&mut self) -> Result<bool, GraphError> {
         let reducer = Arc::clone(&self.transitive_reducer);
-        reducer.reduce_graph(&mut self.state)
+        let scc_finder = Arc::clone(&self.scc_finder);
+        let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
+        reducer.reduce_graph(&mut self.state, &*scc_finder, &*orchestrator)
     }
 
     /// Redirects redundant dummy edges (canonical arrow-graph normalisation).
     pub fn redirect_edges(&mut self) -> Result<bool, GraphError> {
         let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
-        orchestrator.redirect_dummy_edges(&mut self.state)
+        let scc_finder = Arc::clone(&self.scc_finder);
+        orchestrator.redirect_dummy_edges(&mut self.state, &*scc_finder)
     }
 
     /// Removes dummy edges that are transitively implied.
     pub fn remove_redundant_edges(&mut self) -> Result<bool, GraphError> {
         let orchestrator = Arc::clone(&self.dummy_edge_orchestrator);
-        orchestrator.remove_redundant_dummy_edges(&mut self.state)
+        let scc_finder = Arc::clone(&self.scc_finder);
+        orchestrator.remove_redundant_dummy_edges(&mut self.state, &*scc_finder)
     }
 
     /// Redirects and then removes redundant dummy edges until the graph is minimal.

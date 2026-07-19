@@ -3,7 +3,7 @@ using System;
 namespace Zametek.Maths.Graphs
 {
     /// <summary>
-    /// A bundle of the engines and factories an <see cref="ArrowGraphBuilder{T, TResourceId, TWorkStreamId, TActivity}"/>
+    /// A bundle of the engines an <see cref="ArrowGraphBuilder{T, TResourceId, TWorkStreamId, TActivity}"/>
     /// relies on, each defaulting to the standard implementation. Passing the
     /// bundle to the builder keeps the constructor signature stable as engines are
     /// added: set only the properties you want to customise.
@@ -62,15 +62,17 @@ namespace Zametek.Maths.Graphs
             new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
 
         /// <summary>
-        /// Creates the dummy-edge orchestrator bound to the builder's graph state.
+        /// Performs the dummy-edge operations (stateless; the builder passes it the
+        /// graph state and the generators/SCC finder each operation needs).
         /// </summary>
-        public IDummyEdgeOrchestratorFactory<T, TResourceId, TWorkStreamId, TActivity> DummyEdgeOrchestratorFactory { get; set; } =
-            new DummyEdgeOrchestratorFactory<T, TResourceId, TWorkStreamId, TActivity>();
+        public IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> DummyEdgeOrchestrator { get; set; } =
+            new DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>();
 
         /// <summary>
-        /// Creates the transitive reducer bound to the builder's graph state.
+        /// Performs transitive reduction (stateless; the builder passes it the graph
+        /// state, SCC finder and dummy-edge orchestrator per call).
         /// </summary>
-        public IArrowTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity> TransitiveReducerFactory { get; set; } =
-            new ArrowTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity>();
+        public IArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity> TransitiveReducer { get; set; } =
+            new ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>();
     }
 }

@@ -30,10 +30,11 @@ namespace Zametek.Maths.Graphs
         private readonly IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
         private readonly IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> m_ResourceSchedulingEngine;
         private readonly VertexGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
-        private readonly ITransitiveReducer<T> m_TransitiveReducer;
-        // Default factory; overwritten by the engines-bundle constructors.
-        private readonly IVertexTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity> m_TransitiveReducerFactory =
-            new VertexTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity>();
+        // Default reducer; overwritten by the engines-bundle constructors. Stateless
+        // (the builder passes it the state and SCC finder per call), so a single
+        // shared instance serves every graph, including clones.
+        private readonly IVertexTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity> m_TransitiveReducer =
+            new VertexTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>();
 
         #endregion
 
@@ -67,8 +68,7 @@ namespace Zametek.Maths.Graphs
                   engines.CriticalPathEngine,
                   engines.ResourceSchedulingEngine)
         {
-            m_TransitiveReducerFactory = engines.TransitiveReducerFactory ?? throw new ArgumentNullException(nameof(engines));
-            m_TransitiveReducer = CreateTransitiveReducer();
+            m_TransitiveReducer = engines.TransitiveReducer ?? throw new ArgumentNullException(nameof(engines));
         }
 
         // Engines-bundle graph-loading constructor.
@@ -86,8 +86,7 @@ namespace Zametek.Maths.Graphs
                   engines.CriticalPathEngine,
                   engines.ResourceSchedulingEngine)
         {
-            m_TransitiveReducerFactory = engines.TransitiveReducerFactory ?? throw new ArgumentNullException(nameof(engines));
-            m_TransitiveReducer = CreateTransitiveReducer();
+            m_TransitiveReducer = engines.TransitiveReducer ?? throw new ArgumentNullException(nameof(engines));
         }
 
         // Engine-injecting constructor - supply custom engines + event generator.
@@ -109,7 +108,6 @@ namespace Zametek.Maths.Graphs
 
             m_State = new VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             ShuffleProcessingOrder = false;
-            m_TransitiveReducer = CreateTransitiveReducer();
         }
 
         // Graph-loading constructor (from existing Graph<T, IEvent<T>, TActivity>).
@@ -211,7 +209,6 @@ namespace Zametek.Maths.Graphs
                 }
             }
 
-            m_TransitiveReducer = CreateTransitiveReducer();
         }
 
         #endregion
@@ -755,7 +752,7 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public Dictionary<T, HashSet<T>>? GetAncestorNodesLookup()
         {
-            return m_TransitiveReducer.GetAncestorNodesLookup();
+            return m_TransitiveReducer.GetAncestorNodesLookup(m_State, m_SccFinder);
         }
 
         /// <summary>
@@ -763,7 +760,7 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public bool TransitiveReduction()
         {
-            return m_TransitiveReducer.ReduceGraph();
+            return m_TransitiveReducer.ReduceGraph(m_State, m_SccFinder);
         }
 
         /// <summary>
@@ -1432,11 +1429,6 @@ namespace Zametek.Maths.Graphs
             return m_SccFinder.FindStronglyConnectedComponents(m_State, ignoreDummies: false);
         }
 
-        private ITransitiveReducer<T> CreateTransitiveReducer()
-        {
-            return m_TransitiveReducerFactory.Create(m_SccFinder, m_State);
-        }
-
         private void ResolveUnsatisfiedSuccessorActivities(T activityId)
         {
             // Check to make sure the node really exists.
@@ -1513,8 +1505,8 @@ namespace Zametek.Maths.Graphs
             Graph<T, IEvent<T>, TActivity> vertexGraphCopy = ToGraph();
             T minEdgeId = vertexGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
             minEdgeId = minEdgeId.Previous();
-            // Preserve the injected (stateless) engines and factories on the clone;
-            // only the id generator is recreated, since it carries a per-graph counter.
+            // Preserve the injected (stateless) engines on the clone; only the id
+            // generator is recreated, since it carries a per-graph counter.
             return new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 vertexGraphCopy,
                 new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
@@ -1524,7 +1516,7 @@ namespace Zametek.Maths.Graphs
                     SccFinder = m_SccFinder,
                     CriticalPathEngine = m_CriticalPathEngine,
                     ResourceSchedulingEngine = m_ResourceSchedulingEngine,
-                    TransitiveReducerFactory = m_TransitiveReducerFactory,
+                    TransitiveReducer = m_TransitiveReducer,
                 });
         }
 

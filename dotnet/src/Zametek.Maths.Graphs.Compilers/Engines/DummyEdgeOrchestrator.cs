@@ -4,58 +4,64 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    // Implements all dummy-edge operations for Activity-on-Arrow graphs.
-    // Operates on the shared ArrowGraphState supplied at construction time - the
-    // orchestrator owns no graph state of its own.
-    internal sealed class DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>
+    // Implements the dummy-edge operations for Activity-on-Arrow graphs. Stateless:
+    // the graph state - and the ID/activity generators and SCC finder each operation
+    // needs - are supplied to its methods by the builder that owns them, so a single
+    // instance can serve any graph and is safely shared across builder clones.
+    /// <summary>
+    /// Default dummy-edge orchestrator for Activity-on-Arrow graphs.
+    /// </summary>
+    public sealed class DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>
         : IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
-        #region Fields
-
-        private readonly IIdGenerator<T> m_EdgeIdGenerator;
-        private readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> m_DummyActivityGenerator;
-        private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_StronglyConnectedComponentsFinder;
-        private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
-
-        #endregion
-
-        #region Ctor
-
-        internal DummyEdgeOrchestrator(
-            IIdGenerator<T> edgeIdGenerator,
-            IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
-            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> stronglyConnectedComponentsFinder,
-            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
-        {
-            m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
-            m_DummyActivityGenerator = dummyActivityGenerator ?? throw new ArgumentNullException(nameof(dummyActivityGenerator));
-            m_StronglyConnectedComponentsFinder = stronglyConnectedComponentsFinder ?? throw new ArgumentNullException(nameof(stronglyConnectedComponentsFinder));
-            m_State = state ?? throw new ArgumentNullException(nameof(state));
-        }
-
-        #endregion
-
         #region IDummyEdgeOrchestrator
 
-        public void ConnectWithDummyEdge(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode)
+        /// <inheritdoc/>
+        public void ConnectWithDummyEdge(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IIdGenerator<T> edgeIdGenerator,
+            IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
+            Node<T, IEvent<T>> tailNode,
+            Node<T, IEvent<T>> headNode)
         {
-            T dummyEdgeId = m_EdgeIdGenerator.Generate();
-            var dummyEdge = new Edge<T, TActivity>(m_DummyActivityGenerator.Generate(dummyEdgeId));
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (edgeIdGenerator is null)
+            {
+                throw new ArgumentNullException(nameof(edgeIdGenerator));
+            }
+            if (dummyActivityGenerator is null)
+            {
+                throw new ArgumentNullException(nameof(dummyActivityGenerator));
+            }
+
+            T dummyEdgeId = edgeIdGenerator.Generate();
+            var dummyEdge = new Edge<T, TActivity>(dummyActivityGenerator.Generate(dummyEdgeId));
             headNode.IncomingEdges.Add(dummyEdgeId);
-            m_State.SetEdgeHeadNode(dummyEdgeId, headNode);
+            state.SetEdgeHeadNode(dummyEdgeId, headNode);
             tailNode.OutgoingEdges.Add(dummyEdgeId);
-            m_State.SetEdgeTailNode(dummyEdgeId, tailNode);
-            m_State.AddEdge(dummyEdge);
+            state.SetEdgeTailNode(dummyEdgeId, tailNode);
+            state.AddEdge(dummyEdge);
         }
 
-        public bool RemoveDummyActivity(T activityId)
+        /// <inheritdoc/>
+        public bool RemoveDummyActivity(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T activityId)
         {
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
             // Retrieve the activity's edge.
-            if (!m_State.TryGetEdge(activityId, out Edge<T, TActivity> edge))
+            if (!state.TryGetEdge(activityId, out Edge<T, TActivity> edge))
             {
                 return false;
             }
@@ -68,26 +74,26 @@ namespace Zametek.Maths.Graphs
                 return false;
             }
 
-            Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(activityId);
-            Node<T, IEvent<T>> headNode = m_State.EdgeHeadNode(activityId);
+            Node<T, IEvent<T>> tailNode = state.EdgeTailNode(activityId);
+            Node<T, IEvent<T>> headNode = state.EdgeHeadNode(activityId);
 
             // Check to make sure that no other edges will be made parallel
             // by removing this edge.
-            if (HaveDescendantOrAncestorOverlap(tailNode, headNode) && !ShareMoreThanOneEdge(tailNode, headNode))
+            if (HaveDescendantOrAncestorOverlap(state, tailNode, headNode) && !ShareMoreThanOneEdge(tailNode, headNode))
             {
                 return false;
             }
 
             // Remove the edge from the tail node.
             tailNode.OutgoingEdges.Remove(activityId);
-            m_State.RemoveEdgeTailNode(activityId);
+            state.RemoveEdgeTailNode(activityId);
 
             // Remove the edge from the head node.
             headNode.IncomingEdges.Remove(activityId);
-            m_State.RemoveEdgeHeadNode(activityId);
+            state.RemoveEdgeHeadNode(activityId);
 
             // Remove the edge completely.
-            m_State.RemoveEdge(activityId);
+            state.RemoveEdge(activityId);
 
             // If the head node is not the End node, and it has no more incoming
             // edges, then transfer the head node's outgoing edges to the tail node.
@@ -98,7 +104,7 @@ namespace Zametek.Maths.Graphs
                 IList<T> headNodeOutgoingEdgeIds = headNode.OutgoingEdges.ToList();
                 foreach (T headNodeOutgoingEdgeId in headNodeOutgoingEdgeIds)
                 {
-                    bool changeTailSuccess = ChangeEdgeTailNode(headNodeOutgoingEdgeId, tailNode.Id);
+                    bool changeTailSuccess = ChangeEdgeTailNode(state, headNodeOutgoingEdgeId, tailNode.Id);
                     if (!changeTailSuccess)
                     {
                         throw new InvalidOperationException($@"Unable to change tail node of edge {headNodeOutgoingEdgeId} to node {tailNode.Id} when removing dummy activity {activityId}");
@@ -114,7 +120,7 @@ namespace Zametek.Maths.Graphs
                 IList<T> tailNodeIncomingEdgeIds = tailNode.IncomingEdges.ToList();
                 foreach (T tailNodeIncomingEdgeId in tailNodeIncomingEdgeIds)
                 {
-                    bool changeHeadSuccess = ChangeEdgeHeadNode(tailNodeIncomingEdgeId, headNode.Id);
+                    bool changeHeadSuccess = ChangeEdgeHeadNode(state, tailNodeIncomingEdgeId, headNode.Id);
                     if (!changeHeadSuccess)
                     {
                         throw new InvalidOperationException($@"Unable to change head node of edge {tailNodeIncomingEdgeId} to node {headNode.Id} when removing dummy activity {activityId}");
@@ -124,15 +130,27 @@ namespace Zametek.Maths.Graphs
             return true;
         }
 
-        public bool RedirectDummyEdges()
+        /// <inheritdoc/>
+        public bool RedirectDummyEdges(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder)
         {
-            if (!m_State.AllDependenciesSatisfied)
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (sccFinder is null)
+            {
+                throw new ArgumentNullException(nameof(sccFinder));
+            }
+
+            if (!state.AllDependenciesSatisfied)
             {
                 return false;
             }
 
             List<ICircularDependency<T>> circularDependencies =
-                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+                sccFinder.FindStronglyCircularDependencies(state, ignoreDummies: false);
 
             if (circularDependencies.Count != 0)
             {
@@ -140,7 +158,7 @@ namespace Zametek.Maths.Graphs
             }
 
             // Go through each node that is not an End or Isolated node.
-            List<Node<T, IEvent<T>>> nodes = m_State.Nodes
+            List<Node<T, IEvent<T>>> nodes = state.Nodes
                 .Where(x => x.NodeType != NodeType.End && x.NodeType != NodeType.Isolated)
                 .OrderByDescending(x => x.Content.EarliestFinishTime)
                 .ToList();
@@ -149,11 +167,11 @@ namespace Zametek.Maths.Graphs
             {
                 // Get the outgoing dummy edges and their head nodes.
                 var outgoingDummyEdgeIdLookup = new HashSet<T>(
-                    node.OutgoingEdges.Select(x => m_State.Edge(x))
+                    node.OutgoingEdges.Select(x => state.Edge(x))
                     .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved).Select(x => x.Id));
 
                 IList<Node<T, IEvent<T>>> dummyEdgeSuccessorNodes =
-                    outgoingDummyEdgeIdLookup.Select(x => m_State.EdgeHeadNode(x)).ToList();
+                    outgoingDummyEdgeIdLookup.Select(x => state.EdgeHeadNode(x)).ToList();
 
                 // Now from the successor nodes, work backwards to find
                 // all the dependency nodes that share the same successor
@@ -163,7 +181,7 @@ namespace Zametek.Maths.Graphs
                 // successor nodes as head nodes.
                 IList<IEnumerable<T>> dummyEdgeIdsToSuccessorNodes =
                     dummyEdgeSuccessorNodes
-                    .Select(x => x.IncomingEdges.Select(y => m_State.Edge(y))
+                    .Select(x => x.IncomingEdges.Select(y => state.Edge(y))
                     .Where(y => y.Content.IsDummy && y.Content.CanBeRemoved)
                     .Select(y => y.Id))
                     .ToList();
@@ -176,7 +194,7 @@ namespace Zametek.Maths.Graphs
                 // Now find the subset of dependency nodes that are common
                 // to all the successor nodes via removable dummy edges.
                 IList<T> commonDependencyNodes =
-                    dummyEdgeIdsToSuccessorNodes.Select(x => x.Select(y => m_State.EdgeTailNode(y).Id))
+                    dummyEdgeIdsToSuccessorNodes.Select(x => x.Select(y => state.EdgeTailNode(y).Id))
                     .Aggregate((previous, next) => previous.Intersect(next)).ToList();
 
                 var commonDependencyNodeLookup = new HashSet<T>(commonDependencyNodes);
@@ -185,15 +203,15 @@ namespace Zametek.Maths.Graphs
                 // the common dependency nodes.
                 IList<T> commonDependencyEdgeIds =
                     dummyEdgeIdsToSuccessorNodes.SelectMany(x => x)
-                    .Where(x => commonDependencyNodeLookup.Contains(m_State.EdgeTailNode(x).Id))
+                    .Where(x => commonDependencyNodeLookup.Contains(state.EdgeTailNode(x).Id))
                     .ToList();
 
                 // In order to redirect any common dependencies to the original
                 // node, it cannot have any successor nodes other than the common
                 // successor nodes (i.e. its successor nodes must be a subset of
                 // the common successor nodes).
-                var allSuccessorNodeLookup = new HashSet<T>(node.OutgoingEdges.Select(x => m_State.EdgeHeadNode(x).Id));
-                var commonSuccessorNodeLookup = new HashSet<T>(commonDependencyEdgeIds.Select(x => m_State.EdgeHeadNode(x).Id));
+                var allSuccessorNodeLookup = new HashSet<T>(node.OutgoingEdges.Select(x => state.EdgeHeadNode(x).Id));
+                var commonSuccessorNodeLookup = new HashSet<T>(commonDependencyEdgeIds.Select(x => state.EdgeHeadNode(x).Id));
 
                 if (!allSuccessorNodeLookup.IsSubsetOf(commonSuccessorNodeLookup))
                 {
@@ -208,27 +226,39 @@ namespace Zametek.Maths.Graphs
 
                 foreach (T commonDependencyEdgeId in commonDependencyEdgeIdsForOriginalNode)
                 {
-                    bool changeHeadSuccess = ChangeEdgeHeadNode(commonDependencyEdgeId, node.Id);
+                    bool changeHeadSuccess = ChangeEdgeHeadNode(state, commonDependencyEdgeId, node.Id);
                     if (!changeHeadSuccess)
                     {
                         throw new InvalidOperationException($@"Unable to change head node of edge {commonDependencyEdgeId} to node {node.Id} when redirecting dummy activities");
                     }
                 }
 
-                RemoveParallelIncomingDummyEdges(node);
+                RemoveParallelIncomingDummyEdges(state, node);
             }
             return true;
         }
 
-        public bool RemoveRedundantDummyEdges()
+        /// <inheritdoc/>
+        public bool RemoveRedundantDummyEdges(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder)
         {
-            if (!m_State.AllDependenciesSatisfied)
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (sccFinder is null)
+            {
+                throw new ArgumentNullException(nameof(sccFinder));
+            }
+
+            if (!state.AllDependenciesSatisfied)
             {
                 return false;
             }
 
             List<ICircularDependency<T>> circularDependencies =
-                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+                sccFinder.FindStronglyCircularDependencies(state, ignoreDummies: false);
 
             if (circularDependencies.Count != 0)
             {
@@ -238,190 +268,57 @@ namespace Zametek.Maths.Graphs
             // Go through and remove all the dummy edges that are
             // the only outgoing edge of their tail node, and also
             // the only incoming edge of their head node.
-            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
+            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder(state).Where(x => x.Content.CanBeRemoved))
             {
-                Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(edge.Id);
-                Node<T, IEvent<T>> headNode = m_State.EdgeHeadNode(edge.Id);
+                Node<T, IEvent<T>> tailNode = state.EdgeTailNode(edge.Id);
+                Node<T, IEvent<T>> headNode = state.EdgeHeadNode(edge.Id);
                 if (tailNode.OutgoingEdges.Count == 1 && headNode.IncomingEdges.Count == 1)
                 {
-                    RemoveDummyActivity(edge.Id);
+                    RemoveDummyActivity(state, edge.Id);
                 }
             }
 
             // Next, go through and remove all the dummy edges that
             // are the only incoming edge of their head node.
-            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
+            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder(state).Where(x => x.Content.CanBeRemoved))
             {
-                if (m_State.EdgeHeadNode(edge.Id).IncomingEdges.Count == 1)
+                if (state.EdgeHeadNode(edge.Id).IncomingEdges.Count == 1)
                 {
-                    RemoveDummyActivity(edge.Id);
+                    RemoveDummyActivity(state, edge.Id);
                 }
             }
 
             // Next, go through and remove all the dummy edges that
             // are the only outgoing edge of their tail node.
-            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder().Where(x => x.Content.CanBeRemoved))
+            foreach (Edge<T, TActivity> edge in GetDummyEdgesInDescendingOrder(state).Where(x => x.Content.CanBeRemoved))
             {
-                if (m_State.EdgeTailNode(edge.Id).OutgoingEdges.Count == 1)
+                if (state.EdgeTailNode(edge.Id).OutgoingEdges.Count == 1)
                 {
-                    RemoveDummyActivity(edge.Id);
+                    RemoveDummyActivity(state, edge.Id);
                 }
             }
 
             // Remove parallel dummy edges (if they exist).
-            foreach (Node<T, IEvent<T>> node in m_State.Nodes.ToList())
+            foreach (Node<T, IEvent<T>> node in state.Nodes.ToList())
             {
-                RemoveParallelIncomingDummyEdges(node);
+                RemoveParallelIncomingDummyEdges(state, node);
             }
 
             return true;
         }
 
-        public void RemoveRedundantIncomingDummyEdges(T nodeId, Dictionary<T, HashSet<T>> nodeIdAncestorLookup)
+        /// <inheritdoc/>
+        public List<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
         {
-            if (nodeIdAncestorLookup is null)
+            if (state is null)
             {
-                throw new ArgumentNullException(nameof(nodeIdAncestorLookup));
-            }
-            RemoveRedundantIncomingDummyEdgesCore(new[] { nodeId }, new DictionaryAncestorUnion(nodeIdAncestorLookup));
-        }
-
-        // Bitset entry used by the default ArrowTransitiveReducer: the compact ancestor
-        // form plus a single shared visited set across all root nodes (each node's
-        // removal is node-local and idempotent - see the core's comments - so merging
-        // the walks does not change the outcome).
-        internal void RemoveRedundantIncomingDummyEdges(IEnumerable<T> nodeIds, AncestorBitSets<T> ancestorBitSets)
-        {
-            if (nodeIds is null)
-            {
-                throw new ArgumentNullException(nameof(nodeIds));
-            }
-            if (ancestorBitSets is null)
-            {
-                throw new ArgumentNullException(nameof(ancestorBitSets));
-            }
-            RemoveRedundantIncomingDummyEdgesCore(nodeIds, new BitSetAncestorUnion(ancestorBitSets));
-        }
-
-        // Iterative (was recursive) so a deep dependency chain cannot overflow the
-        // stack. A visited set means each node's incoming edges are processed once:
-        // every node removes only its own incoming dummy edges, using the static
-        // ancestor lookup, so the operation is independent of visit order and
-        // idempotent per node.
-        private void RemoveRedundantIncomingDummyEdgesCore(IEnumerable<T> rootNodeIds, IAncestorUnion ancestorUnion)
-        {
-            var visited = new HashSet<T>();
-            var stack = new Stack<T>();
-            foreach (T rootNodeId in rootNodeIds)
-            {
-                stack.Push(rootNodeId);
+                throw new ArgumentNullException(nameof(state));
             }
 
-            while (stack.Count != 0)
-            {
-                T currentNodeId = stack.Pop();
-                if (!visited.Add(currentNodeId))
-                {
-                    continue;
-                }
-
-                Node<T, IEvent<T>> node = m_State.Node(currentNodeId);
-
-                if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
-                {
-                    continue;
-                }
-
-                // Go through all the incoming edges and collate the
-                // ancestors of their tail nodes.
-                ancestorUnion.Reset();
-                foreach (T incomingEdgeId in node.IncomingEdges)
-                {
-                    ancestorUnion.UnionAncestorsOf(m_State.EdgeTailNode(incomingEdgeId).Id);
-                }
-
-                // Go through the incoming dummy edges and remove any that
-                // connect directly to any ancestors of the non-dummy edges'
-                // tail nodes.
-                List<T> incomingDummyEdges = node.IncomingEdges
-                    .Select(x => m_State.Edge(x))
-                    .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
-                    .Select(x => x.Id)
-                    .ToList();
-
-                foreach (T dummyEdgeId in incomingDummyEdges)
-                {
-                    T dummyEdgeTailNodeId = m_State.EdgeTailNode(dummyEdgeId).Id;
-                    if (ancestorUnion.Contains(dummyEdgeTailNodeId))
-                    {
-                        RemoveDummyActivity(dummyEdgeId);
-                    }
-                }
-
-                // Continue with all the remaining incoming edges' tail nodes.
-                List<T> remainingIncomingEdges = node.IncomingEdges
-                    .Select(x => m_State.EdgeTailNode(x).Id)
-                    .ToList();
-
-                foreach (T tailNodeId in remainingIncomingEdges)
-                {
-                    stack.Push(tailNodeId);
-                }
-            }
-        }
-
-        // Abstraction over "union of ancestor sets + membership" so the dictionary form
-        // (the public contract, kept for custom orchestrators) and the bitset form (the
-        // default fast path) share the single traversal above.
-        private interface IAncestorUnion
-        {
-            void Reset();
-            void UnionAncestorsOf(T nodeId);
-            bool Contains(T nodeId);
-        }
-
-        private sealed class DictionaryAncestorUnion
-            : IAncestorUnion
-        {
-            private readonly Dictionary<T, HashSet<T>> m_Lookup;
-            private readonly HashSet<T> m_Union = new HashSet<T>();
-
-            internal DictionaryAncestorUnion(Dictionary<T, HashSet<T>> lookup)
-            {
-                m_Lookup = lookup;
-            }
-
-            public void Reset() => m_Union.Clear();
-
-            public void UnionAncestorsOf(T nodeId) => m_Union.UnionWith(m_Lookup[nodeId]);
-
-            public bool Contains(T nodeId) => m_Union.Contains(nodeId);
-        }
-
-        private sealed class BitSetAncestorUnion
-            : IAncestorUnion
-        {
-            private readonly AncestorBitSets<T> m_AncestorBitSets;
-            private readonly ulong[] m_Scratch;
-
-            internal BitSetAncestorUnion(AncestorBitSets<T> ancestorBitSets)
-            {
-                m_AncestorBitSets = ancestorBitSets;
-                m_Scratch = ancestorBitSets.CreateScratch();
-            }
-
-            public void Reset() => AncestorBitSets<T>.ClearScratch(m_Scratch);
-
-            public void UnionAncestorsOf(T nodeId) => m_AncestorBitSets.UnionAncestorsInto(m_Scratch, nodeId);
-
-            public bool Contains(T nodeId) => m_AncestorBitSets.ScratchContains(m_Scratch, nodeId);
-        }
-
-        public List<Edge<T, TActivity>> GetDummyEdgesInDescendingOrder()
-        {
             var recordedEdges = new HashSet<T>();
             var edgesInDescendingOrder = new List<Edge<T, TActivity>>();
-            GetEdgesInDescendingOrder(m_State.StartNode.Id, edgesInDescendingOrder, recordedEdges);
+            GetEdgesInDescendingOrder(state, state.StartNode.Id, edgesInDescendingOrder, recordedEdges);
             return edgesInDescendingOrder.Where(x => x.Content.IsDummy).ToList();
         }
 
@@ -429,7 +326,11 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
-        private void GetEdgesInDescendingOrder(T nodeId, List<Edge<T, TActivity>> edgesInDescendingOrder, HashSet<T> recordedEdges)
+        private static void GetEdgesInDescendingOrder(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T nodeId,
+            List<Edge<T, TActivity>> edgesInDescendingOrder,
+            HashSet<T> recordedEdges)
         {
             if (edgesInDescendingOrder is null)
             {
@@ -440,7 +341,7 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(recordedEdges));
             }
 
-            Node<T, IEvent<T>> node = m_State.Node(nodeId);
+            Node<T, IEvent<T>> node = state.Node(nodeId);
 
             if (node.NodeType == NodeType.End || node.NodeType == NodeType.Isolated)
             {
@@ -449,14 +350,14 @@ namespace Zametek.Maths.Graphs
 
             // Go through each of the node's outgoing edges, record them,
             // then do the same to their head nodes.
-            foreach (Edge<T, TActivity> outgoingEdge in node.OutgoingEdges.Select(x => m_State.Edge(x)))
+            foreach (Edge<T, TActivity> outgoingEdge in node.OutgoingEdges.Select(x => state.Edge(x)))
             {
                 if (!recordedEdges.Contains(outgoingEdge.Id))
                 {
                     edgesInDescendingOrder.Add(outgoingEdge);
                     recordedEdges.Add(outgoingEdge.Id);
                 }
-                GetEdgesInDescendingOrder(m_State.EdgeHeadNode(outgoingEdge.Id).Id, edgesInDescendingOrder, recordedEdges);
+                GetEdgesInDescendingOrder(state, state.EdgeHeadNode(outgoingEdge.Id).Id, edgesInDescendingOrder, recordedEdges);
             }
         }
 
@@ -466,10 +367,10 @@ namespace Zametek.Maths.Graphs
         /// the ancestor/descendant nodes of the edge's tail node, and the
         /// ancestor/descendant nodes of the head node, then do not remove it.
         /// </summary>
-        /// <param name="tailNode"></param>
-        /// <param name="headNode"></param>
-        /// <returns></returns>
-        private bool HaveDescendantOrAncestorOverlap(Node<T, IEvent<T>> tailNode, Node<T, IEvent<T>> headNode)
+        private static bool HaveDescendantOrAncestorOverlap(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            Node<T, IEvent<T>> tailNode,
+            Node<T, IEvent<T>> headNode)
         {
             if (tailNode is null)
             {
@@ -484,24 +385,24 @@ namespace Zametek.Maths.Graphs
             // First the descendants of the tail node.
             if (tailNode.NodeType != NodeType.End && tailNode.NodeType != NodeType.Isolated)
             {
-                tailNeighbours.UnionWith(tailNode.OutgoingEdges.Select(x => m_State.EdgeHeadNode(x).Id).Except(new[] { headNode.Id }));
+                tailNeighbours.UnionWith(tailNode.OutgoingEdges.Select(x => state.EdgeHeadNode(x).Id).Except(new[] { headNode.Id }));
             }
             // Then the ancestors of the tail node.
             if (tailNode.NodeType != NodeType.Start && tailNode.NodeType != NodeType.Isolated)
             {
-                tailNeighbours.UnionWith(tailNode.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).Except(new[] { headNode.Id }));
+                tailNeighbours.UnionWith(tailNode.IncomingEdges.Select(x => state.EdgeTailNode(x).Id).Except(new[] { headNode.Id }));
             }
 
             var headNeighbours = new HashSet<T>();
             // Next the ancestors of the head node.
             if (headNode.NodeType != NodeType.Start && headNode.NodeType != NodeType.Isolated)
             {
-                headNeighbours.UnionWith(headNode.IncomingEdges.Select(x => m_State.EdgeTailNode(x).Id).Except(new[] { tailNode.Id }));
+                headNeighbours.UnionWith(headNode.IncomingEdges.Select(x => state.EdgeTailNode(x).Id).Except(new[] { tailNode.Id }));
             }
             // Then the descendants of the head node.
             if (headNode.NodeType != NodeType.End && headNode.NodeType != NodeType.Isolated)
             {
-                headNeighbours.UnionWith(headNode.OutgoingEdges.Select(x => m_State.EdgeHeadNode(x).Id).Except(new[] { tailNode.Id }));
+                headNeighbours.UnionWith(headNode.OutgoingEdges.Select(x => state.EdgeHeadNode(x).Id).Except(new[] { tailNode.Id }));
             }
 
             return tailNeighbours.Overlaps(headNeighbours);
@@ -526,7 +427,9 @@ namespace Zametek.Maths.Graphs
             return tailOutgoing.Intersect(headIncoming).Count() > 1;
         }
 
-        private void RemoveParallelIncomingDummyEdges(Node<T, IEvent<T>> node)
+        private void RemoveParallelIncomingDummyEdges(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            Node<T, IEvent<T>> node)
         {
             if (node is null)
             {
@@ -541,14 +444,14 @@ namespace Zametek.Maths.Graphs
             // First, find the tail nodes that connect to this node via dummy edges.
             var tailNodeParallelDummyEdgesLookup = new Dictionary<T, HashSet<T>>();
             IEnumerable<T> removableIncomingDummyEdgeIds = node.IncomingEdges
-                .Select(x => m_State.Edge(x))
+                .Select(x => state.Edge(x))
                 .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
                 .Select(x => x.Id)
                 .ToList();
 
             foreach (T incomingDummyEdgeId in removableIncomingDummyEdgeIds)
             {
-                T tailNodeId = m_State.EdgeTailNode(incomingDummyEdgeId).Id;
+                T tailNodeId = state.EdgeTailNode(incomingDummyEdgeId).Id;
                 if (!tailNodeParallelDummyEdgesLookup.TryGetValue(tailNodeId, out HashSet<T> dummyEdgeIds))
                 {
                     dummyEdgeIds = new HashSet<T>();
@@ -568,78 +471,87 @@ namespace Zametek.Maths.Graphs
                 // Leave one dummy edge behind.
                 for (int i = 1; i < length; i++)
                 {
-                    RemoveDummyActivity(dummyEdgeIds[i]);
+                    RemoveDummyActivity(state, dummyEdgeIds[i]);
                 }
             }
         }
 
-        private bool ChangeEdgeTailNodeWithoutCleanup(T edgeId, T newTailNodeId)
+        private bool ChangeEdgeTailNodeWithoutCleanup(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T edgeId,
+            T newTailNodeId)
         {
             // Do not attend this unless all dependencies are satisfied.
-            if (!m_State.AllDependenciesSatisfied)
+            if (!state.AllDependenciesSatisfied)
             {
                 return false;
             }
             // Retrieve the activity edge.
-            if (!m_State.ContainsEdge(edgeId))
+            if (!state.ContainsEdge(edgeId))
             {
                 return false;
             }
             // Retrieve the new tail event node.
-            if (!m_State.TryGetNode(newTailNodeId, out Node<T, IEvent<T>> newTailNode))
+            if (!state.TryGetNode(newTailNodeId, out Node<T, IEvent<T>> newTailNode))
             {
                 return false;
             }
 
             // Remove the connection from the current tail node.
-            Node<T, IEvent<T>> oldTailNode = m_State.EdgeTailNode(edgeId);
+            Node<T, IEvent<T>> oldTailNode = state.EdgeTailNode(edgeId);
             oldTailNode.OutgoingEdges.Remove(edgeId);
-            m_State.RemoveEdgeTailNode(edgeId);
+            state.RemoveEdgeTailNode(edgeId);
 
             // Attach to the new tail node.
             newTailNode.OutgoingEdges.Add(edgeId);
-            m_State.SetEdgeTailNode(edgeId, newTailNode);
+            state.SetEdgeTailNode(edgeId, newTailNode);
             return true;
         }
 
-        private bool ChangeEdgeHeadNodeWithoutCleanup(T edgeId, T newHeadNodeId)
+        private bool ChangeEdgeHeadNodeWithoutCleanup(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T edgeId,
+            T newHeadNodeId)
         {
             // Do not attend this unless all dependencies are satisfied.
-            if (!m_State.AllDependenciesSatisfied)
+            if (!state.AllDependenciesSatisfied)
             {
                 return false;
             }
             // Retrieve the activity edge.
-            if (!m_State.ContainsEdge(edgeId))
+            if (!state.ContainsEdge(edgeId))
             {
                 return false;
             }
             // Retrieve the new head event node.
-            if (!m_State.TryGetNode(newHeadNodeId, out Node<T, IEvent<T>> newHeadNode))
+            if (!state.TryGetNode(newHeadNodeId, out Node<T, IEvent<T>> newHeadNode))
             {
                 return false;
             }
 
             // Remove the connection from the current head node.
-            Node<T, IEvent<T>> currentHeadNode = m_State.EdgeHeadNode(edgeId);
+            Node<T, IEvent<T>> currentHeadNode = state.EdgeHeadNode(edgeId);
             currentHeadNode.IncomingEdges.Remove(edgeId);
-            m_State.RemoveEdgeHeadNode(edgeId);
+            state.RemoveEdgeHeadNode(edgeId);
 
             // Attach to the new head node.
             newHeadNode.IncomingEdges.Add(edgeId);
-            m_State.SetEdgeHeadNode(edgeId, newHeadNode);
+            state.SetEdgeHeadNode(edgeId, newHeadNode);
             return true;
         }
 
-        private bool ChangeEdgeTailNode(T edgeId, T newTailNodeId)
+        private bool ChangeEdgeTailNode(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T edgeId,
+            T newTailNodeId)
         {
-            if (!m_State.AllDependenciesSatisfied)
+            if (!state.AllDependenciesSatisfied)
             {
                 return false;
             }
 
-            Node<T, IEvent<T>> oldTailNode = m_State.EdgeTailNode(edgeId);
-            bool changeTailSuccess = ChangeEdgeTailNodeWithoutCleanup(edgeId, newTailNodeId);
+            Node<T, IEvent<T>> oldTailNode = state.EdgeTailNode(edgeId);
+            bool changeTailSuccess = ChangeEdgeTailNodeWithoutCleanup(state, edgeId, newTailNodeId);
             if (!changeTailSuccess)
             {
                 throw new InvalidOperationException($@"Unable to change tail node of edge {edgeId} to node {newTailNodeId} without cleanup");
@@ -650,11 +562,11 @@ namespace Zametek.Maths.Graphs
             IList<T> oldTailNodeOutgoingEdgeIds = oldTailNode.OutgoingEdges.ToList();
             if (!oldTailNodeOutgoingEdgeIds.Any())
             {
-                Node<T, IEvent<T>> headNode = m_State.EdgeHeadNode(edgeId);
+                Node<T, IEvent<T>> headNode = state.EdgeHeadNode(edgeId);
                 IList<T> oldTailNodeIncomingEdgeIds = oldTailNode.IncomingEdges.ToList();
                 foreach (T oldTailNodeIncomingEdgeId in oldTailNodeIncomingEdgeIds)
                 {
-                    bool changeHeadSuccess = ChangeEdgeHeadNodeWithoutCleanup(oldTailNodeIncomingEdgeId, headNode.Id);
+                    bool changeHeadSuccess = ChangeEdgeHeadNodeWithoutCleanup(state, oldTailNodeIncomingEdgeId, headNode.Id);
                     if (!changeHeadSuccess)
                     {
                         throw new InvalidOperationException($@"Unable to change head node of edge {oldTailNodeIncomingEdgeId} to node {headNode.Id} without cleanup");
@@ -669,21 +581,24 @@ namespace Zametek.Maths.Graphs
                 && oldTailNode.IncomingEdges.Count == 0
                 && oldTailNode.OutgoingEdges.Count == 0)
             {
-                m_State.RemoveNode(oldTailNode.Id);
+                state.RemoveNode(oldTailNode.Id);
             }
             return true;
         }
 
-        private bool ChangeEdgeHeadNode(T edgeId, T newHeadNodeId)
+        private bool ChangeEdgeHeadNode(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T edgeId,
+            T newHeadNodeId)
         {
             // Do not attend this unless all dependencies are satisfied.
-            if (!m_State.AllDependenciesSatisfied)
+            if (!state.AllDependenciesSatisfied)
             {
                 return false;
             }
 
-            Node<T, IEvent<T>> oldHeadNode = m_State.EdgeHeadNode(edgeId);
-            bool changeHeadSuccess = ChangeEdgeHeadNodeWithoutCleanup(edgeId, newHeadNodeId);
+            Node<T, IEvent<T>> oldHeadNode = state.EdgeHeadNode(edgeId);
+            bool changeHeadSuccess = ChangeEdgeHeadNodeWithoutCleanup(state, edgeId, newHeadNodeId);
             if (!changeHeadSuccess)
             {
                 throw new InvalidOperationException($@"Unable to change head node of edge {edgeId} to node {newHeadNodeId} without cleanup");
@@ -694,11 +609,11 @@ namespace Zametek.Maths.Graphs
             IList<T> oldHeadNodeIncomingEdgeIds = oldHeadNode.IncomingEdges.ToList();
             if (!oldHeadNodeIncomingEdgeIds.Any())
             {
-                Node<T, IEvent<T>> tailNode = m_State.EdgeTailNode(edgeId);
+                Node<T, IEvent<T>> tailNode = state.EdgeTailNode(edgeId);
                 IList<T> oldHeadNodeOutgoingEdgeIds = oldHeadNode.OutgoingEdges.ToList();
                 foreach (T oldHeadNodeOutgoingEdgeId in oldHeadNodeOutgoingEdgeIds)
                 {
-                    bool changeTailSuccess = ChangeEdgeTailNodeWithoutCleanup(oldHeadNodeOutgoingEdgeId, tailNode.Id);
+                    bool changeTailSuccess = ChangeEdgeTailNodeWithoutCleanup(state, oldHeadNodeOutgoingEdgeId, tailNode.Id);
                     if (!changeTailSuccess)
                     {
                         throw new InvalidOperationException($@"Unable to change tail node of edge {oldHeadNodeOutgoingEdgeId} to node {tailNode.Id} without cleanup");
@@ -713,7 +628,7 @@ namespace Zametek.Maths.Graphs
                 && oldHeadNode.IncomingEdges.Count == 0
                 && oldHeadNode.OutgoingEdges.Count == 0)
             {
-                m_State.RemoveNode(oldHeadNode.Id);
+                state.RemoveNode(oldHeadNode.Id);
             }
             return true;
         }

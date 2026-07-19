@@ -1,51 +1,75 @@
 using Shouldly;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
 {
-    // Demonstrates the engines-bundle constructors and the factory seams for the
-    // state-dependent engines (transitive reducers and the dummy-edge orchestrator).
-    // Factories are the injection point because those engines are bound to the
-    // builder's graph state at construction time.
+    // Demonstrates the engines-bundle constructors and the injectable stateless
+    // engines (the transitive reducer and the dummy-edge orchestrator). Because the
+    // engines are stateless - the builder passes them the graph state and any
+    // collaborators per call - they are injected directly, with no factory seam.
     public class EngineBundleInjectionTests
     {
-        // Wraps the default factory and counts how often a reducer is created.
-        private sealed class CountingVertexTransitiveReducerFactory
-            : IVertexTransitiveReducerFactory<int, int, int, IDependentActivity<int, int, int>>
+        // Wraps the default reducer and counts how often it reduces a graph.
+        private sealed class CountingVertexTransitiveReducer
+            : IVertexTransitiveReducer<int, int, int, IDependentActivity<int, int, int>>
         {
-            private readonly VertexTransitiveReducerFactory<int, int, int, IDependentActivity<int, int, int>> m_Inner = new();
+            private readonly VertexTransitiveReducer<int, int, int, IDependentActivity<int, int, int>> m_Inner = new();
 
-            public int CreateCallCount { get; private set; }
+            public int ReduceGraphCallCount { get; private set; }
 
-            public ITransitiveReducer<int> Create(
-                IVertexStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>> sccFinder,
-                IVertexGraphState<int, int, int, IDependentActivity<int, int, int>> state)
+            public Dictionary<int, HashSet<int>> GetAncestorNodesLookup(
+                VertexGraphState<int, int, int, IDependentActivity<int, int, int>> state,
+                IVertexStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>> sccFinder)
+                => m_Inner.GetAncestorNodesLookup(state, sccFinder);
+
+            public bool ReduceGraph(
+                VertexGraphState<int, int, int, IDependentActivity<int, int, int>> state,
+                IVertexStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>> sccFinder)
             {
-                CreateCallCount++;
-                return m_Inner.Create(sccFinder, state);
+                ReduceGraphCallCount++;
+                return m_Inner.ReduceGraph(state, sccFinder);
             }
         }
 
-        // Wraps the default factory and counts how often an orchestrator is created.
-        private sealed class CountingDummyEdgeOrchestratorFactory
-            : IDummyEdgeOrchestratorFactory<int, int, int, IDependentActivity<int, int, int>>
+        // Wraps the default orchestrator and counts how often it wires a dummy edge.
+        private sealed class CountingDummyEdgeOrchestrator
+            : IDummyEdgeOrchestrator<int, int, int, IDependentActivity<int, int, int>>
         {
-            private readonly DummyEdgeOrchestratorFactory<int, int, int, IDependentActivity<int, int, int>> m_Inner = new();
+            private readonly DummyEdgeOrchestrator<int, int, int, IDependentActivity<int, int, int>> m_Inner = new();
 
-            public int CreateCallCount { get; private set; }
+            public int ConnectCallCount { get; private set; }
 
-            public IDummyEdgeOrchestrator<int, int, int, IDependentActivity<int, int, int>> Create(
+            public void ConnectWithDummyEdge(
+                ArrowGraphState<int, int, int, IDependentActivity<int, int, int>> state,
                 IIdGenerator<int> edgeIdGenerator,
                 IActivityGenerator<int, int, int, IDependentActivity<int, int, int>> dummyActivityGenerator,
-                IArrowStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>> sccFinder,
-                IArrowGraphState<int, int, int, IDependentActivity<int, int, int>> state)
+                Node<int, IEvent<int>> tailNode,
+                Node<int, IEvent<int>> headNode)
             {
-                CreateCallCount++;
-                return m_Inner.Create(edgeIdGenerator, dummyActivityGenerator, sccFinder, state);
+                ConnectCallCount++;
+                m_Inner.ConnectWithDummyEdge(state, edgeIdGenerator, dummyActivityGenerator, tailNode, headNode);
             }
+
+            public bool RemoveDummyActivity(
+                ArrowGraphState<int, int, int, IDependentActivity<int, int, int>> state,
+                int activityId)
+                => m_Inner.RemoveDummyActivity(state, activityId);
+
+            public bool RedirectDummyEdges(
+                ArrowGraphState<int, int, int, IDependentActivity<int, int, int>> state,
+                IArrowStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>> sccFinder)
+                => m_Inner.RedirectDummyEdges(state, sccFinder);
+
+            public bool RemoveRedundantDummyEdges(
+                ArrowGraphState<int, int, int, IDependentActivity<int, int, int>> state,
+                IArrowStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>> sccFinder)
+                => m_Inner.RemoveRedundantDummyEdges(state, sccFinder);
+
+            public List<Edge<int, IDependentActivity<int, int, int>>> GetDummyEdgesInDescendingOrder(
+                ArrowGraphState<int, int, int, IDependentActivity<int, int, int>> state)
+                => m_Inner.GetDummyEdgesInDescendingOrder(state);
         }
 
         [Fact]
@@ -65,46 +89,51 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexGraphBuilder_GivenInjectedTransitiveReducerFactory_ThenFactoryIsUsed()
+        public void VertexGraphBuilder_GivenInjectedTransitiveReducer_ThenReducerIsUsed()
         {
-            var factory = new CountingVertexTransitiveReducerFactory();
+            var reducer = new CountingVertexTransitiveReducer();
 
             var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
                 new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
                 {
-                    TransitiveReducerFactory = factory,
+                    TransitiveReducer = reducer,
                 });
 
-            factory.CreateCallCount.ShouldBeGreaterThan(0);
-
-            // The reducer produced by the injected factory performs the reduction.
             builder.AddActivity(new DependentActivity<int, int, int>(1, 1), []);
             builder.AddActivity(new DependentActivity<int, int, int>(2, 1), [1]);
             builder.AddActivity(new DependentActivity<int, int, int>(3, 1), [1, 2]);
 
             builder.TransitiveReduction().ShouldBeTrue();
 
+            // The injected (stateless) reducer performed the reduction.
+            reducer.ReduceGraphCallCount.ShouldBeGreaterThan(0);
+
             // The direct 1 -> 3 dependency is redundant (implied via 2) and is removed.
             builder.ActivityDependencyIds(3).ShouldBe([2]);
         }
 
         [Fact]
-        public void VertexGraphBuilder_GivenInjectedTransitiveReducerFactory_ThenFactorySurvivesClone()
+        public void VertexGraphBuilder_GivenInjectedTransitiveReducer_ThenReducerSurvivesClone()
         {
-            var factory = new CountingVertexTransitiveReducerFactory();
+            var reducer = new CountingVertexTransitiveReducer();
 
             var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
                 new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
                 {
-                    TransitiveReducerFactory = factory,
+                    TransitiveReducer = reducer,
                 });
 
-            int countBeforeClone = factory.CreateCallCount;
+            builder.AddActivity(new DependentActivity<int, int, int>(1, 1), []);
+            builder.AddActivity(new DependentActivity<int, int, int>(2, 1), [1]);
+            builder.AddActivity(new DependentActivity<int, int, int>(3, 1), [1, 2]);
 
             var clone = (VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>)builder.CloneObject();
 
             clone.ShouldNotBeSameAs(builder);
-            factory.CreateCallCount.ShouldBeGreaterThan(countBeforeClone);
+
+            // The same stateless reducer instance is preserved on the clone and used.
+            clone.TransitiveReduction().ShouldBeTrue();
+            reducer.ReduceGraphCallCount.ShouldBeGreaterThan(0);
         }
 
         [Fact]
@@ -122,22 +151,21 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphBuilder_GivenInjectedOrchestratorFactory_ThenFactoryIsUsed()
+        public void ArrowGraphBuilder_GivenInjectedOrchestrator_ThenOrchestratorIsUsed()
         {
-            var factory = new CountingDummyEdgeOrchestratorFactory();
+            var orchestrator = new CountingDummyEdgeOrchestrator();
 
             var builder = new ArrowGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
                 new ArrowGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
                 {
-                    DummyEdgeOrchestratorFactory = factory,
+                    DummyEdgeOrchestrator = orchestrator,
                 });
 
-            factory.CreateCallCount.ShouldBeGreaterThan(0);
-
-            // The orchestrator produced by the injected factory wires up the dummy edges.
+            // The orchestrator produced by the injected engine wires up the dummy edges.
             builder.AddActivity(new DependentActivity<int, int, int>(1, 3), []);
             builder.AddActivity(new DependentActivity<int, int, int>(2, 5), [1]);
 
+            orchestrator.ConnectCallCount.ShouldBeGreaterThan(0);
             builder.EdgeIds.Count().ShouldBeGreaterThan(2);
         }
     }

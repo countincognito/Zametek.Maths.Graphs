@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// The public members below faithfully implement the fully-documented
+// IVertexGraphState contract, so their XML docs live on the interface.
+#pragma warning disable CS1591
+
 namespace Zametek.Maths.Graphs
 {
     // Owns all mutable graph state for an Activity-on-Vertex graph: the five lookup
@@ -9,7 +13,12 @@ namespace Zametek.Maths.Graphs
     // CPM engine, SCC finder) operate on a single instance of this class.
     // No single Start/End node - vertex graphs allow multiple of each, exposed
     // via StartNodes / EndNodes filtering Nodes by NodeType.
-    internal sealed class VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>
+    //
+    // The class is public so the stateless engines can take it directly, but its
+    // structural-mutation API is marked internal (the C# counterpart of Rust's
+    // pub(crate) fields): external engine implementations can read the state but
+    // only engines in this assembly can restructure it.
+    public sealed class VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>
         : IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -112,7 +121,11 @@ namespace Zametek.Maths.Graphs
 
         #region Mutation API
 
-        public void AddEdge(Edge<T, IEvent<T>> edge)
+        // The structural-mutation API below is internal: engines outside this
+        // assembly receive a public VertexGraphState but can only read it, matching
+        // the Rust port's pub(crate) fields on the otherwise-public state struct.
+
+        internal void AddEdge(Edge<T, IEvent<T>> edge)
         {
             if (edge is null)
             {
@@ -121,9 +134,9 @@ namespace Zametek.Maths.Graphs
             m_EdgeLookup.Add(edge.Id, edge);
         }
 
-        public bool RemoveEdge(T edgeId) => m_EdgeLookup.Remove(edgeId);
+        internal bool RemoveEdge(T edgeId) => m_EdgeLookup.Remove(edgeId);
 
-        public void AddNode(Node<T, TActivity> node)
+        internal void AddNode(Node<T, TActivity> node)
         {
             if (node is null)
             {
@@ -132,9 +145,9 @@ namespace Zametek.Maths.Graphs
             m_NodeLookup.Add(node.Id, node);
         }
 
-        public bool RemoveNode(T nodeId) => m_NodeLookup.Remove(nodeId);
+        internal bool RemoveNode(T nodeId) => m_NodeLookup.Remove(nodeId);
 
-        public void SetEdgeHeadNode(T edgeId, Node<T, TActivity> node)
+        internal void SetEdgeHeadNode(T edgeId, Node<T, TActivity> node)
         {
             if (node is null)
             {
@@ -143,9 +156,9 @@ namespace Zametek.Maths.Graphs
             m_EdgeHeadNodeLookup.Add(edgeId, node);
         }
 
-        public bool RemoveEdgeHeadNode(T edgeId) => m_EdgeHeadNodeLookup.Remove(edgeId);
+        internal bool RemoveEdgeHeadNode(T edgeId) => m_EdgeHeadNodeLookup.Remove(edgeId);
 
-        public void SetEdgeTailNode(T edgeId, Node<T, TActivity> node)
+        internal void SetEdgeTailNode(T edgeId, Node<T, TActivity> node)
         {
             if (node is null)
             {
@@ -154,9 +167,9 @@ namespace Zametek.Maths.Graphs
             m_EdgeTailNodeLookup.Add(edgeId, node);
         }
 
-        public bool RemoveEdgeTailNode(T edgeId) => m_EdgeTailNodeLookup.Remove(edgeId);
+        internal bool RemoveEdgeTailNode(T edgeId) => m_EdgeTailNodeLookup.Remove(edgeId);
 
-        public void AddUnsatisfiedSuccessor(T dependencyId, Node<T, TActivity> successor)
+        internal void AddUnsatisfiedSuccessor(T dependencyId, Node<T, TActivity> successor)
         {
             if (successor is null)
             {
@@ -170,12 +183,12 @@ namespace Zametek.Maths.Graphs
             nodes.Add(successor);
         }
 
-        public bool RemoveUnsatisfiedSuccessors(T dependencyId) =>
+        internal bool RemoveUnsatisfiedSuccessors(T dependencyId) =>
             m_UnsatisfiedSuccessorsLookup.Remove(dependencyId);
 
         // Removes an activity from the unsatisfied-successor set keyed under
         // dependencyId. If that set becomes empty, drops the entry entirely.
-        public void RemoveActivityFromUnsatisfiedSuccessor(T dependencyId, T activityId)
+        internal void RemoveActivityFromUnsatisfiedSuccessor(T dependencyId, T activityId)
         {
             if (m_UnsatisfiedSuccessorsLookup.TryGetValue(dependencyId, out HashSet<Node<T, TActivity>> nodes))
             {
@@ -189,7 +202,7 @@ namespace Zametek.Maths.Graphs
 
         // Removes the activity from every unsatisfied-successor set it appears in,
         // dropping any sets that become empty as a result.
-        public void RemoveActivityFromAllUnsatisfiedSuccessors(T activityId)
+        internal void RemoveActivityFromAllUnsatisfiedSuccessors(T activityId)
         {
             IList<T> keysContainingActivity = m_UnsatisfiedSuccessorsLookup
                 .Where(x => x.Value.Select(y => y.Id).Contains(activityId))
@@ -207,7 +220,7 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        public void Clear()
+        internal void Clear()
         {
             m_EdgeLookup.Clear();
             m_NodeLookup.Clear();
@@ -217,17 +230,19 @@ namespace Zametek.Maths.Graphs
         }
 
         // Validation helpers used by the graph-loading builder constructor.
-        public bool EdgeKeysMatch(IEnumerable<T> otherKeys) =>
+        internal bool EdgeKeysMatch(IEnumerable<T> otherKeys) =>
             m_EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(otherKeys.OrderBy(x => x));
 
-        public IEnumerable<T> EdgeHeadNodeKeys => m_EdgeHeadNodeLookup.Keys;
+        internal IEnumerable<T> EdgeHeadNodeKeys => m_EdgeHeadNodeLookup.Keys;
 
-        public IEnumerable<T> EdgeTailNodeKeys => m_EdgeTailNodeLookup.Keys;
+        internal IEnumerable<T> EdgeTailNodeKeys => m_EdgeTailNodeLookup.Keys;
 
-        public IEnumerable<Node<T, TActivity>> EdgeHeadNodes => m_EdgeHeadNodeLookup.Values;
+        internal IEnumerable<Node<T, TActivity>> EdgeHeadNodes => m_EdgeHeadNodeLookup.Values;
 
-        public IEnumerable<Node<T, TActivity>> EdgeTailNodes => m_EdgeTailNodeLookup.Values;
+        internal IEnumerable<Node<T, TActivity>> EdgeTailNodes => m_EdgeTailNodeLookup.Values;
 
         #endregion
     }
 }
+
+#pragma warning restore CS1591

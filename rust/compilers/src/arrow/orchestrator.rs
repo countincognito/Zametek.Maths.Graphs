@@ -1,7 +1,8 @@
-use super::state::{ArrowGraphState, ArrowTraversal};
-use crate::ancestor::AncestorBitSets;
-use crate::contracts::{IActivityGenerator, IDummyEdgeOrchestrator, IIdGenerator};
-use crate::tarjan;
+use super::state::ArrowGraphState;
+use crate::contracts::{
+    IActivityGenerator, IArrowStronglyConnectedComponentsFinder, IDummyEdgeOrchestrator,
+    IIdGenerator,
+};
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, GraphError, Key, NodeType};
 
@@ -46,15 +47,17 @@ impl<K: Key, R: Key, W: Key> IDummyEdgeOrchestrator<K, R, W> for DummyEdgeOrches
     fn redirect_dummy_edges(
         &self,
         state: &mut ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Result<bool, GraphError> {
-        redirect_dummy_edges(state)
+        redirect_dummy_edges(state, scc_finder)
     }
 
     fn remove_redundant_dummy_edges(
         &self,
         state: &mut ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Result<bool, GraphError> {
-        remove_redundant_dummy_edges(state)
+        remove_redundant_dummy_edges(state, scc_finder)
     }
 }
 
@@ -182,13 +185,13 @@ pub(crate) fn remove_dummy_activity<K: Key, R: Key, W: Key>(
 /// Redirects redundant dummy edges (canonical arrow-graph normalisation).
 pub(crate) fn redirect_dummy_edges<K: Key, R: Key, W: Key>(
     state: &mut ArrowGraphState<K, R, W>,
+    scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
 ) -> Result<bool, GraphError> {
     if !state.all_dependencies_satisfied() {
         return Ok(false);
     }
 
-    let circular_dependencies =
-        tarjan::find_strongly_circular_dependencies(&ArrowTraversal { state }, false);
+    let circular_dependencies = scc_finder.find_strongly_circular_dependencies(state, false);
     if !circular_dependencies.is_empty() {
         return Ok(false);
     }
@@ -356,13 +359,13 @@ pub(crate) fn redirect_dummy_edges<K: Key, R: Key, W: Key>(
 /// Removes dummy edges that are transitively implied.
 pub(crate) fn remove_redundant_dummy_edges<K: Key, R: Key, W: Key>(
     state: &mut ArrowGraphState<K, R, W>,
+    scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
 ) -> Result<bool, GraphError> {
     if !state.all_dependencies_satisfied() {
         return Ok(false);
     }
 
-    let circular_dependencies =
-        tarjan::find_strongly_circular_dependencies(&ArrowTraversal { state }, false);
+    let circular_dependencies = scc_finder.find_strongly_circular_dependencies(state, false);
     if !circular_dependencies.is_empty() {
         return Ok(false);
     }
@@ -873,81 +876,4 @@ fn change_edge_head_node<K: Key, R: Key, W: Key>(
         state.remove_node(old_head_node_id);
     }
     Ok(true)
-}
-
-/// Removes redundant incoming dummy edges using the compact ancestor bitsets —
-/// the counterpart of the C# `RemoveRedundantIncomingDummyEdges` (bitset form).
-pub(crate) fn remove_redundant_incoming_dummy_edges<K: Key, R: Key, W: Key>(
-    state: &mut ArrowGraphState<K, R, W>,
-    root_node_ids: Vec<K>,
-    ancestor_bit_sets: &AncestorBitSets<K>,
-) -> Result<(), GraphError> {
-    let mut visited: IndexSet<K> = IndexSet::new();
-    let mut stack: Vec<K> = root_node_ids;
-    let mut scratch = ancestor_bit_sets.create_scratch();
-
-    while let Some(current_node_id) = stack.pop() {
-        if !visited.insert(current_node_id) {
-            continue;
-        }
-
-        let Some(node) = state.node(current_node_id) else {
-            continue;
-        };
-
-        if matches!(node.node_type(), NodeType::Start | NodeType::Isolated) {
-            continue;
-        }
-
-        // Go through all the incoming edges and collate the ancestors of their
-        // tail nodes.
-        AncestorBitSets::<K>::clear_scratch(&mut scratch);
-        for incoming_edge_id in &node.incoming {
-            let tail_id = state
-                .edge_tail_node_id(*incoming_edge_id)
-                .expect("edge tail must exist");
-            ancestor_bit_sets.union_ancestors_into(&mut scratch, tail_id);
-        }
-
-        // Go through the incoming dummy edges and remove any that connect
-        // directly to any ancestors of the non-dummy edges' tail nodes.
-        let incoming_dummy_edges: Vec<K> = node
-            .incoming
-            .iter()
-            .filter(|edge_id| {
-                state
-                    .edge(**edge_id)
-                    .map(|e| e.content.is_dummy() && e.content.can_be_removed())
-                    .unwrap_or(false)
-            })
-            .copied()
-            .collect();
-
-        for dummy_edge_id in incoming_dummy_edges {
-            let Some(dummy_edge_tail_node_id) = state.edge_tail_node_id(dummy_edge_id) else {
-                continue;
-            };
-            if ancestor_bit_sets.scratch_contains(&scratch, dummy_edge_tail_node_id) {
-                remove_dummy_activity(state, dummy_edge_id)?;
-            }
-        }
-
-        // Continue with all the remaining incoming edges' tail nodes.
-        let remaining_tails: Vec<K> = match state.node(current_node_id) {
-            Some(node) => node
-                .incoming
-                .iter()
-                .map(|edge_id| {
-                    state
-                        .edge_tail_node_id(*edge_id)
-                        .expect("edge tail must exist")
-                })
-                .collect(),
-            None => Vec::new(),
-        };
-        for tail_node_id in remaining_tails {
-            stack.push(tail_node_id);
-        }
-    }
-    Ok(())
 }

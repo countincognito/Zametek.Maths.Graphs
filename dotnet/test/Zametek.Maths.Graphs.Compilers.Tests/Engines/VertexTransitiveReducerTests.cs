@@ -7,19 +7,25 @@ namespace Zametek.Maths.Graphs.Tests
 {
     public class VertexTransitiveReducerTests
     {
+        // The reducer is stateless: the graph state and SCC finder are supplied per
+        // call rather than bound at construction.
+        private static VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>> SccFinder() =>
+            new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
+
         [Fact]
-        public void VertexTransitiveReducer_GivenCtorCalledWithNullStronglyConnectedComponentsFinder_ThenThrowsArgumentNullException()
+        public void VertexTransitiveReducer_GivenReduceGraphWithNullState_ThenThrowsArgumentNullException()
         {
-            var state = new VertexGraphState<int, int, int, Activity<int, int, int>>();
-            Action act = () => new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>(null, state);
+            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>();
+            Action act = () => reducer.ReduceGraph(null, SccFinder());
             act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
-        public void VertexTransitiveReducer_GivenCtorCalledWithNullState_ThenThrowsArgumentNullException()
+        public void VertexTransitiveReducer_GivenReduceGraphWithNullStronglyConnectedComponentsFinder_ThenThrowsArgumentNullException()
         {
-            Action act = () => new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(), null);
+            var state = BuildLinearVertexState();
+            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>();
+            Action act = () => reducer.ReduceGraph(state, null);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -30,11 +36,9 @@ namespace Zametek.Maths.Graphs.Tests
             var dependentNode = new Node<int, Activity<int, int, int>>(NodeType.Normal, new Activity<int, int, int>(99, 1));
             state.AddUnsatisfiedSuccessor(7777, dependentNode);
 
-            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup(state, SccFinder());
 
             output.ShouldBeNull();
         }
@@ -43,11 +47,9 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexTransitiveReducer_GivenGetAncestorNodesLookup_WithCircularDependencies_ThenReturnsNull()
         {
             var state = BuildLinearVertexStateWithCircularDependency();
-            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup(state, SccFinder());
 
             output.ShouldBeNull();
         }
@@ -56,11 +58,9 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexTransitiveReducer_GivenGetAncestorNodesLookup_WithLinearGraph_ThenReturnsCorrectAncestorLookup()
         {
             var state = BuildLinearVertexState();
-            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            Dictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            Dictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup(state, SccFinder());
 
             output.ShouldNotBeNull();
             output[3].ShouldContain(1);
@@ -74,11 +74,9 @@ namespace Zametek.Maths.Graphs.Tests
             var dependentNode = new Node<int, Activity<int, int, int>>(NodeType.Normal, new Activity<int, int, int>(99, 1));
             state.AddUnsatisfiedSuccessor(7777, dependentNode);
 
-            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            bool result = reducer.ReduceGraph();
+            bool result = reducer.ReduceGraph(state, SccFinder());
 
             result.ShouldBeFalse();
         }
@@ -89,11 +87,9 @@ namespace Zametek.Maths.Graphs.Tests
             var state = BuildVertexStateWithRedundantEdge();
             int initialEdgeCount = state.EdgeCount;
 
-            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new VertexTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            bool result = reducer.ReduceGraph();
+            bool result = reducer.ReduceGraph(state, SccFinder());
 
             result.ShouldBeTrue();
             state.EdgeCount.ShouldBeLessThan(initialEdgeCount);

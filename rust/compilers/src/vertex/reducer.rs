@@ -1,44 +1,48 @@
-use super::state::{VertexAncestorView, VertexGraphState, VertexTraversal};
+use super::state::{VertexAncestorView, VertexGraphState};
 use crate::ancestor::{self, AncestorBitSets};
-use crate::tarjan;
+use crate::contracts::IVertexStronglyConnectedComponentsFinder;
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{Key, NodeType};
 
 // Transitive reduction for Activity-on-Vertex graphs — the counterpart of the
-// C# `VertexTransitiveReducer`.
+// C# `VertexTransitiveReducer`. Stateless: the graph state and the injected SCC
+// finder are supplied per call.
 
 /// Builds a lookup from each node ID to the full set of its ancestor node IDs.
 /// Returns `None` if the graph has unsatisfied or circular dependencies.
 pub(crate) fn get_ancestor_nodes_lookup<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
+    scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<K, R, W>,
 ) -> Option<IndexMap<K, IndexSet<K>>> {
     if !state.all_dependencies_satisfied() {
         return None;
     }
 
-    let circular_dependencies =
-        tarjan::find_strongly_circular_dependencies(&VertexTraversal { state }, false);
+    let circular_dependencies = scc_finder.find_strongly_circular_dependencies(state, false);
 
     ancestor::get_ancestor_nodes_lookup(&VertexAncestorView { state }, &circular_dependencies)
 }
 
 fn get_ancestor_bit_sets<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
+    scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<K, R, W>,
 ) -> Option<AncestorBitSets<K>> {
     if !state.all_dependencies_satisfied() {
         return None;
     }
 
-    let circular_dependencies =
-        tarjan::find_strongly_circular_dependencies(&VertexTraversal { state }, false);
+    let circular_dependencies = scc_finder.find_strongly_circular_dependencies(state, false);
 
     ancestor::get_ancestor_bit_sets(&VertexAncestorView { state }, &circular_dependencies)
 }
 
 /// Performs transitive reduction, removing all redundant edges. Returns false
 /// if it cannot be performed.
-pub(crate) fn reduce_graph<K: Key, R: Key, W: Key>(state: &mut VertexGraphState<K, R, W>) -> bool {
-    let Some(ancestor_bit_sets) = get_ancestor_bit_sets(state) else {
+pub(crate) fn reduce_graph<K: Key, R: Key, W: Key>(
+    state: &mut VertexGraphState<K, R, W>,
+    scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<K, R, W>,
+) -> bool {
+    let Some(ancestor_bit_sets) = get_ancestor_bit_sets(state, scc_finder) else {
         return false;
     };
 

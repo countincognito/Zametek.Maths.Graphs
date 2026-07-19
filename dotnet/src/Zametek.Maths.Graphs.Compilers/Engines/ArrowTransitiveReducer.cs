@@ -4,106 +4,169 @@ using System.Linq;
 
 namespace Zametek.Maths.Graphs
 {
-    // Transitive reducer for Activity-on-Arrow graphs.
-    // Computes the ancestor-node lookup and delegates dummy-edge removal to the
-    // IDummyEdgeOrchestrator - only dummy edges are reduced in arrow graphs.
-    // Operates on the shared ArrowGraphState.
-    internal sealed class ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>
-        : ITransitiveReducer<T>
+    // Transitive reducer for Activity-on-Arrow graphs - only dummy edges are
+    // reduced. Stateless: the graph state, SCC finder and dummy-edge orchestrator
+    // are supplied to each method. The reduction walk lives here and removes each
+    // redundant dummy edge through the orchestrator's RemoveDummyActivity primitive
+    // (the orchestrator owns edge mutation; the reducer owns the traversal).
+    /// <summary>
+    /// Default transitive reducer for Activity-on-Arrow graphs.
+    /// </summary>
+    public sealed class ArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>
+        : IArrowTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
-        #region Fields
-
-        private readonly IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> m_DummyEdgeOrchestrator;
-        private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_StronglyConnectedComponentsFinder;
-        private readonly ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> m_State;
-        private readonly IAncestorGraphView<T> m_AncestorGraphView;
-
-        #endregion
-
-        #region Ctor
-
-        internal ArrowTransitiveReducer(
-            IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> dummyEdgeOrchestrator,
-            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> stronglyConnectedComponentsFinder,
-            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state)
+        /// <inheritdoc/>
+        public Dictionary<T, HashSet<T>>? GetAncestorNodesLookup(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder)
         {
-            m_DummyEdgeOrchestrator = dummyEdgeOrchestrator ?? throw new ArgumentNullException(nameof(dummyEdgeOrchestrator));
-            m_StronglyConnectedComponentsFinder = stronglyConnectedComponentsFinder ?? throw new ArgumentNullException(nameof(stronglyConnectedComponentsFinder));
-            m_State = state ?? throw new ArgumentNullException(nameof(state));
-            m_AncestorGraphView = new ArrowAncestorGraphView<T, TResourceId, TWorkStreamId, TActivity>(m_State);
-        }
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (sccFinder is null)
+            {
+                throw new ArgumentNullException(nameof(sccFinder));
+            }
 
-        #endregion
-
-        #region ITransitiveReducer
-
-        public Dictionary<T, HashSet<T>>? GetAncestorNodesLookup()
-        {
-            if (!m_State.AllDependenciesSatisfied)
+            if (!state.AllDependenciesSatisfied)
             {
                 return null;
             }
 
             List<ICircularDependency<T>> circularDependencies =
-                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+                sccFinder.FindStronglyCircularDependencies(state, ignoreDummies: false);
 
-            return AncestorNodeCalculator.GetAncestorNodesLookup(m_AncestorGraphView, circularDependencies);
+            var ancestorGraphView = new ArrowAncestorGraphView<T, TResourceId, TWorkStreamId, TActivity>(state);
+            return AncestorNodeCalculator.GetAncestorNodesLookup(ancestorGraphView, circularDependencies);
         }
 
-        public bool ReduceGraph()
+        /// <inheritdoc/>
+        public bool ReduceGraph(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
+            IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> orchestrator)
         {
-            AncestorBitSets<T>? ancestorBitSets = GetAncestorBitSets();
+            if (state is null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+            if (sccFinder is null)
+            {
+                throw new ArgumentNullException(nameof(sccFinder));
+            }
+            if (orchestrator is null)
+            {
+                throw new ArgumentNullException(nameof(orchestrator));
+            }
+
+            AncestorBitSets<T>? ancestorBitSets = GetAncestorBitSets(state, sccFinder);
 
             if (ancestorBitSets is null)
             {
                 return false;
             }
 
-            List<T> endNodeIds = m_State.EndNodes.Select(x => x.Id).ToList();
-
-            // The default orchestrator understands the compact bitset form directly; a
-            // custom orchestrator only knows the public dictionary contract, so the
-            // lookup is materialised for it on demand.
-            if (m_DummyEdgeOrchestrator is DummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> defaultOrchestrator)
-            {
-                defaultOrchestrator.RemoveRedundantIncomingDummyEdges(endNodeIds, ancestorBitSets);
-            }
-            else
-            {
-                Dictionary<T, HashSet<T>> ancestorNodesLookup = ancestorBitSets.ToDictionary();
-                foreach (T endNodeId in endNodeIds)
-                {
-                    m_DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges(endNodeId, ancestorNodesLookup);
-                }
-            }
+            IEnumerable<T> endNodeIds = state.EndNodes.Select(x => x.Id);
+            RemoveRedundantIncomingDummyEdges(state, endNodeIds, ancestorBitSets, orchestrator);
 
             return true;
         }
 
-        #endregion
-
-        #region Private Methods
-
         // Same checks as GetAncestorNodesLookup, but the ancestors stay in their compact
-        // bitset form - ReduceGraph never materialises the dictionary-of-hashsets for the
-        // default orchestrator.
-        private AncestorBitSets<T>? GetAncestorBitSets()
+        // bitset form - ReduceGraph never materialises the dictionary-of-hashsets.
+        private static AncestorBitSets<T>? GetAncestorBitSets(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder)
         {
-            if (!m_State.AllDependenciesSatisfied)
+            if (!state.AllDependenciesSatisfied)
             {
                 return null;
             }
 
             List<ICircularDependency<T>> circularDependencies =
-                m_StronglyConnectedComponentsFinder.FindStronglyCircularDependencies(m_State, ignoreDummies: false);
+                sccFinder.FindStronglyCircularDependencies(state, ignoreDummies: false);
 
-            return AncestorNodeCalculator.GetAncestorBitSets(m_AncestorGraphView, circularDependencies);
+            var ancestorGraphView = new ArrowAncestorGraphView<T, TResourceId, TWorkStreamId, TActivity>(state);
+            return AncestorNodeCalculator.GetAncestorBitSets(ancestorGraphView, circularDependencies);
         }
 
-        #endregion
+        // Iterative (was recursive) so a deep dependency chain cannot overflow the
+        // stack. A single shared visited set means each node's incoming dummy edges
+        // are processed once: every node removes only its own incoming dummy edges,
+        // using the static ancestor bitsets, so the operation is independent of visit
+        // order and idempotent per node. Removal itself is delegated to the
+        // orchestrator so a custom orchestrator can still customise edge removal.
+        private static void RemoveRedundantIncomingDummyEdges(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            IEnumerable<T> rootNodeIds,
+            AncestorBitSets<T> ancestorBitSets,
+            IDummyEdgeOrchestrator<T, TResourceId, TWorkStreamId, TActivity> orchestrator)
+        {
+            var visited = new HashSet<T>();
+            var stack = new Stack<T>();
+            foreach (T rootNodeId in rootNodeIds)
+            {
+                stack.Push(rootNodeId);
+            }
+
+            ulong[] scratch = ancestorBitSets.CreateScratch();
+
+            while (stack.Count != 0)
+            {
+                T currentNodeId = stack.Pop();
+                if (!visited.Add(currentNodeId))
+                {
+                    continue;
+                }
+
+                Node<T, IEvent<T>> node = state.Node(currentNodeId);
+
+                if (node.NodeType == NodeType.Start || node.NodeType == NodeType.Isolated)
+                {
+                    continue;
+                }
+
+                // Go through all the incoming edges and collate the
+                // ancestors of their tail nodes into the scratch bitset.
+                AncestorBitSets<T>.ClearScratch(scratch);
+                foreach (T incomingEdgeId in node.IncomingEdges)
+                {
+                    ancestorBitSets.UnionAncestorsInto(scratch, state.EdgeTailNode(incomingEdgeId).Id);
+                }
+
+                // Go through the incoming dummy edges and remove any that
+                // connect directly to any ancestors of the non-dummy edges'
+                // tail nodes.
+                List<T> incomingDummyEdges = node.IncomingEdges
+                    .Select(x => state.Edge(x))
+                    .Where(x => x.Content.IsDummy && x.Content.CanBeRemoved)
+                    .Select(x => x.Id)
+                    .ToList();
+
+                foreach (T dummyEdgeId in incomingDummyEdges)
+                {
+                    T dummyEdgeTailNodeId = state.EdgeTailNode(dummyEdgeId).Id;
+                    if (ancestorBitSets.ScratchContains(scratch, dummyEdgeTailNodeId))
+                    {
+                        orchestrator.RemoveDummyActivity(state, dummyEdgeId);
+                    }
+                }
+
+                // Continue with all the remaining incoming edges' tail nodes.
+                List<T> remainingIncomingEdges = node.IncomingEdges
+                    .Select(x => state.EdgeTailNode(x).Id)
+                    .ToList();
+
+                foreach (T tailNodeId in remainingIncomingEdges)
+                {
+                    stack.Push(tailNodeId);
+                }
+            }
+        }
     }
 }

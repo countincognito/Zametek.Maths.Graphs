@@ -702,14 +702,15 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
     /// IDs. Returns `None` if the graph has unsatisfied or circular dependencies.
     pub fn get_ancestor_nodes_lookup(&self) -> Option<IndexMap<K, IndexSet<K>>> {
         self.transitive_reducer
-            .get_ancestor_nodes_lookup(&self.state)
+            .get_ancestor_nodes_lookup(&self.state, &*self.scc_finder)
     }
 
     /// Performs transitive reduction, removing all redundant edges. Returns
     /// false if it cannot be performed.
     pub fn transitive_reduction(&mut self) -> bool {
         let reducer = Arc::clone(&self.transitive_reducer);
-        reducer.reduce_graph(&mut self.state)
+        let scc_finder = Arc::clone(&self.scc_finder);
+        reducer.reduce_graph(&mut self.state, &*scc_finder)
     }
 
     /// Redirects redundant edges; a documented no-op for vertex graphs.

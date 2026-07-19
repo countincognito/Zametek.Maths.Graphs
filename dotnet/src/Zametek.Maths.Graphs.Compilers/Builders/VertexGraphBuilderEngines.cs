@@ -3,7 +3,7 @@ using System;
 namespace Zametek.Maths.Graphs
 {
     /// <summary>
-    /// A bundle of the engines and factories a <see cref="VertexGraphBuilder{T, TResourceId, TWorkStreamId, TActivity}"/>
+    /// A bundle of the engines a <see cref="VertexGraphBuilder{T, TResourceId, TWorkStreamId, TActivity}"/>
     /// relies on, each defaulting to the standard implementation. Passing the
     /// bundle to the builder keeps the constructor signature stable as engines are
     /// added: set only the properties you want to customise.
@@ -49,9 +49,10 @@ namespace Zametek.Maths.Graphs
             new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
 
         /// <summary>
-        /// Creates the transitive reducer bound to the builder's graph state.
+        /// Performs transitive reduction (stateless; the builder passes it the graph
+        /// state and SCC finder per call).
         /// </summary>
-        public IVertexTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity> TransitiveReducerFactory { get; set; } =
-            new VertexTransitiveReducerFactory<T, TResourceId, TWorkStreamId, TActivity>();
+        public IVertexTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity> TransitiveReducer { get; set; } =
+            new VertexTransitiveReducer<T, TResourceId, TWorkStreamId, TActivity>();
     }
 }

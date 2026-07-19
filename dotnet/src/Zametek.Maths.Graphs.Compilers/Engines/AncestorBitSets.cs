@@ -42,8 +42,8 @@ namespace Zametek.Maths.Graphs
     // times smaller, which is the difference between a 20k-deep graph reducing
     // comfortably and exhausting memory.
     //
-    // The dictionary-of-hashsets form remains the public contract
-    // (GetAncestorNodesLookup and IDummyEdgeOrchestrator); ToDictionary() materialises
+    // The dictionary-of-hashsets form remains the public contract for the
+    // transitive reducers' GetAncestorNodesLookup; ToDictionary() materialises
     // it on demand from the bits.
     internal sealed class AncestorBitSets<T>
         where T : struct, IComparable<T>, IEquatable<T>

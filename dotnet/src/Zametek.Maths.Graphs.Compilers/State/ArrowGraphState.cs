@@ -2,14 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// The public members below faithfully implement the fully-documented
+// IArrowGraphState contract, so their XML docs live on the interface.
+#pragma warning disable CS1591
+
 namespace Zametek.Maths.Graphs
 {
     // Owns all mutable graph state for an Activity-on-Arrow graph: the five lookup
     // dictionaries plus the single Start and End event nodes. Both the builder and
     // every Arrow engine (orchestrator, transitive reducer, CPM engine, SCC finder)
-    // operate on a single instance of this class, so the same dictionaries are
-    // never threaded through method calls as raw parameters.
-    internal sealed class ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>
+    // operate on a single instance of this class.
+    //
+    // The class is public so the stateless engines can take it directly, but its
+    // structural-mutation API is marked internal (the C# counterpart of Rust's
+    // pub(crate) fields): external engine implementations can read the state but
+    // only engines in this assembly can restructure it.
+    public sealed class ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>
         : IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
@@ -30,9 +38,10 @@ namespace Zametek.Maths.Graphs
 
         // Set by the builder's Initialize()/graph assimilation immediately after
         // construction (and re-set after every Clear), so consumers never observe null.
-        public Node<T, IEvent<T>> StartNode { get; set; } = null!;
+        // The setter is internal (structural mutation); the getter stays public.
+        public Node<T, IEvent<T>> StartNode { get; internal set; } = null!;
 
-        public Node<T, IEvent<T>> EndNode { get; set; } = null!;
+        public Node<T, IEvent<T>> EndNode { get; internal set; } = null!;
 
         public IEnumerable<T> EdgeIds => m_EdgeLookup.Keys;
 
@@ -118,7 +127,11 @@ namespace Zametek.Maths.Graphs
 
         #region Mutation API
 
-        public void AddEdge(Edge<T, TActivity> edge)
+        // The structural-mutation API below is internal: engines outside this
+        // assembly receive a public ArrowGraphState but can only read it, matching
+        // the Rust port's pub(crate) fields on the otherwise-public state struct.
+
+        internal void AddEdge(Edge<T, TActivity> edge)
         {
             if (edge is null)
             {
@@ -127,9 +140,9 @@ namespace Zametek.Maths.Graphs
             m_EdgeLookup.Add(edge.Id, edge);
         }
 
-        public bool RemoveEdge(T edgeId) => m_EdgeLookup.Remove(edgeId);
+        internal bool RemoveEdge(T edgeId) => m_EdgeLookup.Remove(edgeId);
 
-        public void AddNode(Node<T, IEvent<T>> node)
+        internal void AddNode(Node<T, IEvent<T>> node)
         {
             if (node is null)
             {
@@ -138,9 +151,9 @@ namespace Zametek.Maths.Graphs
             m_NodeLookup.Add(node.Id, node);
         }
 
-        public bool RemoveNode(T nodeId) => m_NodeLookup.Remove(nodeId);
+        internal bool RemoveNode(T nodeId) => m_NodeLookup.Remove(nodeId);
 
-        public void SetEdgeHeadNode(T edgeId, Node<T, IEvent<T>> node)
+        internal void SetEdgeHeadNode(T edgeId, Node<T, IEvent<T>> node)
         {
             if (node is null)
             {
@@ -149,9 +162,9 @@ namespace Zametek.Maths.Graphs
             m_EdgeHeadNodeLookup.Add(edgeId, node);
         }
 
-        public bool RemoveEdgeHeadNode(T edgeId) => m_EdgeHeadNodeLookup.Remove(edgeId);
+        internal bool RemoveEdgeHeadNode(T edgeId) => m_EdgeHeadNodeLookup.Remove(edgeId);
 
-        public void SetEdgeTailNode(T edgeId, Node<T, IEvent<T>> node)
+        internal void SetEdgeTailNode(T edgeId, Node<T, IEvent<T>> node)
         {
             if (node is null)
             {
@@ -160,9 +173,9 @@ namespace Zametek.Maths.Graphs
             m_EdgeTailNodeLookup.Add(edgeId, node);
         }
 
-        public bool RemoveEdgeTailNode(T edgeId) => m_EdgeTailNodeLookup.Remove(edgeId);
+        internal bool RemoveEdgeTailNode(T edgeId) => m_EdgeTailNodeLookup.Remove(edgeId);
 
-        public void AddUnsatisfiedSuccessor(T dependencyId, Node<T, IEvent<T>> successor)
+        internal void AddUnsatisfiedSuccessor(T dependencyId, Node<T, IEvent<T>> successor)
         {
             if (successor is null)
             {
@@ -176,10 +189,10 @@ namespace Zametek.Maths.Graphs
             nodes.Add(successor);
         }
 
-        public bool RemoveUnsatisfiedSuccessors(T dependencyId) =>
+        internal bool RemoveUnsatisfiedSuccessors(T dependencyId) =>
             m_UnsatisfiedSuccessorsLookup.Remove(dependencyId);
 
-        public void Clear()
+        internal void Clear()
         {
             m_EdgeLookup.Clear();
             m_NodeLookup.Clear();
@@ -191,17 +204,19 @@ namespace Zametek.Maths.Graphs
         }
 
         // Validation helpers used by the graph-loading builder constructor.
-        public bool EdgeKeysMatch(IEnumerable<T> otherKeys) =>
+        internal bool EdgeKeysMatch(IEnumerable<T> otherKeys) =>
             m_EdgeLookup.Keys.OrderBy(x => x).SequenceEqual(otherKeys.OrderBy(x => x));
 
-        public IEnumerable<T> EdgeHeadNodeKeys => m_EdgeHeadNodeLookup.Keys;
+        internal IEnumerable<T> EdgeHeadNodeKeys => m_EdgeHeadNodeLookup.Keys;
 
-        public IEnumerable<T> EdgeTailNodeKeys => m_EdgeTailNodeLookup.Keys;
+        internal IEnumerable<T> EdgeTailNodeKeys => m_EdgeTailNodeLookup.Keys;
 
-        public IEnumerable<Node<T, IEvent<T>>> EdgeHeadNodes => m_EdgeHeadNodeLookup.Values;
+        internal IEnumerable<Node<T, IEvent<T>>> EdgeHeadNodes => m_EdgeHeadNodeLookup.Values;
 
-        public IEnumerable<Node<T, IEvent<T>>> EdgeTailNodes => m_EdgeTailNodeLookup.Values;
+        internal IEnumerable<Node<T, IEvent<T>>> EdgeTailNodes => m_EdgeTailNodeLookup.Values;
 
         #endregion
     }
 }
+
+#pragma warning restore CS1591

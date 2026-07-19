@@ -86,12 +86,18 @@ impl<K: Key, R: Key, W: Key> IArrowTransitiveReducer<K, R, W> for ArrowTransitiv
     fn get_ancestor_nodes_lookup(
         &self,
         state: &ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Option<IndexMap<K, IndexSet<K>>> {
-        reducer::get_ancestor_nodes_lookup(state)
+        reducer::get_ancestor_nodes_lookup(state, scc_finder)
     }
 
-    fn reduce_graph(&self, state: &mut ArrowGraphState<K, R, W>) -> Result<bool, GraphError> {
-        reducer::reduce_graph(state)
+    fn reduce_graph(
+        &self,
+        state: &mut ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
+        orchestrator: &dyn IDummyEdgeOrchestrator<K, R, W>,
+    ) -> Result<bool, GraphError> {
+        reducer::reduce_graph(state, scc_finder, orchestrator)
     }
 }
 

@@ -7,31 +7,37 @@ namespace Zametek.Maths.Graphs.Tests
 {
     public class ArrowTransitiveReducerTests
     {
+        // The reducer is stateless: the graph state, SCC finder and dummy-edge
+        // orchestrator are supplied per call rather than bound at construction.
+        private static ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>> SccFinder() =>
+            new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>();
+
+        private static DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> Orchestrator() =>
+            new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>();
+
         [Fact]
-        public void ArrowTransitiveReducer_GivenCtorCalledWithNullDummyEdgeOrchestrator_ThenThrowsArgumentNullException()
+        public void ArrowTransitiveReducer_GivenReduceGraphWithNullState_ThenThrowsArgumentNullException()
         {
-            var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                null, new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(), state);
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
+            Action act = () => reducer.ReduceGraph(null, SccFinder(), Orchestrator());
             act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
-        public void ArrowTransitiveReducer_GivenCtorCalledWithNullStronglyConnectedComponentsFinder_ThenThrowsArgumentNullException()
+        public void ArrowTransitiveReducer_GivenReduceGraphWithNullStronglyConnectedComponentsFinder_ThenThrowsArgumentNullException()
         {
-            var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator = BuildOrchestrator(state);
-            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(orchestrator, null, state);
+            var state = BuildLinearArrowState();
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
+            Action act = () => reducer.ReduceGraph(state, null, Orchestrator());
             act.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
-        public void ArrowTransitiveReducer_GivenCtorCalledWithNullState_ThenThrowsArgumentNullException()
+        public void ArrowTransitiveReducer_GivenReduceGraphWithNullOrchestrator_ThenThrowsArgumentNullException()
         {
-            var state = new ArrowGraphState<int, int, int, Activity<int, int, int>>();
-            IDummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> orchestrator = BuildOrchestrator(state);
-            Action act = () => new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                orchestrator, new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(), null);
+            var state = BuildLinearArrowState();
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
+            Action act = () => reducer.ReduceGraph(state, SccFinder(), null);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -42,12 +48,9 @@ namespace Zametek.Maths.Graphs.Tests
             var dependentNode = new Node<int, IEvent<int>>(NodeType.Normal, new Event<int>(99));
             state.AddUnsatisfiedSuccessor(7777, dependentNode);
 
-            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                BuildOrchestrator(state),
-                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup(state, SccFinder());
 
             output.ShouldBeNull();
         }
@@ -56,12 +59,9 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTransitiveReducer_GivenGetAncestorNodesLookup_WithCircularDependencies_ThenReturnsNull()
         {
             var state = BuildLinearArrowStateWithCircularDependency();
-            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                BuildOrchestrator(state),
-                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            IDictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup(state, SccFinder());
 
             output.ShouldBeNull();
         }
@@ -70,12 +70,9 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTransitiveReducer_GivenGetAncestorNodesLookup_WithLinearGraph_ThenReturnsCorrectAncestorLookup()
         {
             var state = BuildLinearArrowState();
-            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                BuildOrchestrator(state),
-                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            Dictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup();
+            Dictionary<int, HashSet<int>> output = reducer.GetAncestorNodesLookup(state, SccFinder());
 
             output.ShouldNotBeNull();
             output[state.EndNode.Id].ShouldContain(state.StartNode.Id);
@@ -89,12 +86,9 @@ namespace Zametek.Maths.Graphs.Tests
             var dependentNode = new Node<int, IEvent<int>>(NodeType.Normal, new Event<int>(99));
             state.AddUnsatisfiedSuccessor(7777, dependentNode);
 
-            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                BuildOrchestrator(state),
-                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            bool result = reducer.ReduceGraph();
+            bool result = reducer.ReduceGraph(state, SccFinder(), Orchestrator());
 
             result.ShouldBeFalse();
         }
@@ -103,12 +97,9 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowTransitiveReducer_GivenReduceGraph_WithValidGraph_ThenReturnsTrue()
         {
             var state = BuildLinearArrowState();
-            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>(
-                BuildOrchestrator(state),
-                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),
-                state);
+            var reducer = new ArrowTransitiveReducer<int, int, int, Activity<int, int, int>>();
 
-            bool result = reducer.ReduceGraph();
+            bool result = reducer.ReduceGraph(state, SccFinder(), Orchestrator());
 
             result.ShouldBeTrue();
         }
@@ -153,17 +144,6 @@ namespace Zametek.Maths.Graphs.Tests
             AddEdge(state, 14, middleNode2, endNode, duration: 2);
 
             return state;
-        }
-
-        private static DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>> BuildOrchestrator(
-            ArrowGraphState<int, int, int, Activity<int, int, int>> state)
-        {
-            int nextId = 9000;
-            return new DummyEdgeOrchestrator<int, int, int, Activity<int, int, int>>(
-                new NextIdGenerator<int>(nextId),
-                new DummyActivityGenerator<int, int, int, Activity<int, int, int>>(),
-                new ArrowTarjanStronglyConnectedComponentsFinder<int, int, int, Activity<int, int, int>>(),// () => [],
-                state);
         }
 
         private static void AddEdge(

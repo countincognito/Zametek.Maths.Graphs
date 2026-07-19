@@ -84,12 +84,17 @@ impl<K: Key, R: Key, W: Key> IVertexTransitiveReducer<K, R, W> for VertexTransit
     fn get_ancestor_nodes_lookup(
         &self,
         state: &VertexGraphState<K, R, W>,
+        scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Option<IndexMap<K, IndexSet<K>>> {
-        reducer::get_ancestor_nodes_lookup(state)
+        reducer::get_ancestor_nodes_lookup(state, scc_finder)
     }
 
-    fn reduce_graph(&self, state: &mut VertexGraphState<K, R, W>) -> bool {
-        reducer::reduce_graph(state)
+    fn reduce_graph(
+        &self,
+        state: &mut VertexGraphState<K, R, W>,
+        scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<K, R, W>,
+    ) -> bool {
+        reducer::reduce_graph(state, scc_finder)
     }
 }
 

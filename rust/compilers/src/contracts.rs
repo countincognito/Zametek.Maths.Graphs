@@ -5,10 +5,10 @@
 //! the identically-named default structs (`VertexCriticalPathEngine`, …). This
 //! is non-idiomatic Rust, chosen for the parity contract.
 //!
-//! Unlike C#, the engines are **stateless**: they take the graph state (and any
-//! collaborators) as parameters rather than being constructed around it. That
-//! removes the need for the C# `…Factory` seams — the factory+product pairs
-//! collapse into a single trait each.
+//! Like the C# reference, the engines are **stateless**: they take the graph
+//! state (and any collaborators) as parameters rather than being constructed
+//! around it, so there are no `…Factory` seams — the reducers and the dummy-edge
+//! orchestrator are injected directly, exactly like every other engine.
 
 use crate::arrow::ArrowGraphState;
 use crate::vertex::VertexGraphState;
@@ -183,37 +183,50 @@ pub trait IResourceSchedulingEngine<K: Key, R: Key, W: Key> {
 }
 
 /// Transitive reduction for Activity-on-Vertex graphs — the counterpart of the
-/// C# `ITransitiveReducer<T>` as implemented by `VertexTransitiveReducer`.
-///
-/// The C# reducer is bound to the state and SCC finder at construction (via a
-/// factory); here the state is a parameter and the reducer uses the default
-/// cycle detection internally. The injected SCC finder still governs the
-/// builder's reported cycle detection ([`crate::VertexGraphBuilder::find_strong_circular_dependencies`]).
+/// C# `IVertexTransitiveReducer`. Stateless: the graph state and the SCC finder
+/// are supplied per call (the builder owns them), so there is no factory binding
+/// the reducer to a particular graph, and the injected SCC finder drives the
+/// reducer's own cycle detection.
 pub trait IVertexTransitiveReducer<K: Key, R: Key, W: Key> {
     fn get_ancestor_nodes_lookup(
         &self,
         state: &VertexGraphState<K, R, W>,
+        scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Option<IndexMap<K, IndexSet<K>>>;
 
-    fn reduce_graph(&self, state: &mut VertexGraphState<K, R, W>) -> bool;
+    fn reduce_graph(
+        &self,
+        state: &mut VertexGraphState<K, R, W>,
+        scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<K, R, W>,
+    ) -> bool;
 }
 
 /// Transitive reduction for Activity-on-Arrow graphs — the counterpart of the
-/// C# `ITransitiveReducer<T>` as implemented by `ArrowTransitiveReducer`. Only
-/// dummy edges are reduced.
+/// C# `IArrowTransitiveReducer`. Only dummy edges are reduced. Stateless: the
+/// graph state, the SCC finder and the dummy-edge orchestrator are supplied per
+/// call. The reduction walk lives here and removes each redundant dummy edge
+/// through the orchestrator's [`IDummyEdgeOrchestrator::remove_dummy_activity`].
 pub trait IArrowTransitiveReducer<K: Key, R: Key, W: Key> {
     fn get_ancestor_nodes_lookup(
         &self,
         state: &ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Option<IndexMap<K, IndexSet<K>>>;
 
-    fn reduce_graph(&self, state: &mut ArrowGraphState<K, R, W>) -> Result<bool, GraphError>;
+    fn reduce_graph(
+        &self,
+        state: &mut ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
+        orchestrator: &dyn IDummyEdgeOrchestrator<K, R, W>,
+    ) -> Result<bool, GraphError>;
 }
 
-/// All dummy-edge operations for Activity-on-Arrow graphs — the counterpart of
-/// the C# `IDummyEdgeOrchestrator<…>`. Edge/activity IDs come from the injected
-/// generators, passed per call (the builder owns them). The internal cycle
-/// guards use the default Tarjan, as with the reducer.
+/// The dummy-edge operations for Activity-on-Arrow graphs — the counterpart of
+/// the C# `IDummyEdgeOrchestrator`. Stateless: edge/activity IDs come from the
+/// injected generators and the cycle guards from the injected SCC finder, all
+/// passed per call (the builder owns them). It owns the dummy-edge mutation
+/// primitives; the reduction traversal that decides which dummy edges are
+/// redundant lives in [`IArrowTransitiveReducer`].
 pub trait IDummyEdgeOrchestrator<K: Key, R: Key, W: Key> {
     fn connect_with_dummy_edge(
         &self,
@@ -233,10 +246,12 @@ pub trait IDummyEdgeOrchestrator<K: Key, R: Key, W: Key> {
     fn redirect_dummy_edges(
         &self,
         state: &mut ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Result<bool, GraphError>;
 
     fn remove_redundant_dummy_edges(
         &self,
         state: &mut ArrowGraphState<K, R, W>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<K, R, W>,
     ) -> Result<bool, GraphError>;
 }

@@ -404,7 +404,7 @@ Every engine the builders rely on sits behind a public interface and can be supp
 - `IArrowCriticalPathEngine<…>` / `IVertexCriticalPathEngine<…>` - critical path calculation.
 - `IArrowStronglyConnectedComponentsFinder<…>` / `IVertexStronglyConnectedComponentsFinder<…>` - cycle detection.
 - `IResourceSchedulingEngine<…>` - resource scheduling and its surrounding pipeline.
-- `IArrowTransitiveReducerFactory<…>` / `IVertexTransitiveReducerFactory<…>` / `IDummyEdgeOrchestratorFactory<…>` - creation of the state-bound engines (transitive reducers and the dummy-edge orchestrator). These engines are bound to a builder's graph state at construction time, so the *factory* is the injection seam; custom factories typically decorate the engine produced by the default factory (`ArrowTransitiveReducerFactory`, `VertexTransitiveReducerFactory`, `DummyEdgeOrchestratorFactory`).
+- `IArrowTransitiveReducer<…>` / `IVertexTransitiveReducer<…>` - transitive reduction, and `IDummyEdgeOrchestrator<…>` - the dummy-edge operations (`ArrowTransitiveReducer`, `VertexTransitiveReducer`, `DummyEdgeOrchestrator`). Like every other engine these are stateless: the builder passes them the graph state - and, per call, the collaborators each needs (the arrow reducer takes the SCC finder and the orchestrator; the orchestrator takes the ID/activity generators and the SCC finder) - so they are injected directly, with no factory seam.
 
 Rather than the telescoping constructors, engines can also be supplied through an **engines bundle** - `ArrowGraphBuilderEngines<…>` / `VertexGraphBuilderEngines<…>` - where every property defaults to the standard implementation and only the customised ones need setting. The bundle constructors are the stable injection surface: new engines are added as new bundle properties without breaking the signature.
 
@@ -417,15 +417,16 @@ var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int,
 var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>(builder);
 ```
 
-Custom engines read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts; the concrete, mutable state stays internal to the library. Injected engines and factories are preserved through `CloneObject()`.
+The critical-path engines and SCC finders read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts. The transitive reducers and the dummy-edge orchestrator restructure the graph, so they take the concrete `ArrowGraphState<…>` / `VertexGraphState<…>` directly: the state type is public, but its structural-mutation API is `internal`, so an external engine can read the state yet only the library's own engines can restructure it. Injected engines are preserved through `CloneObject()`.
 
 ## Breaking changes
 
 ### Unreleased
 
+- The transitive reducers and the dummy-edge orchestrator are now **stateless**: they take the graph state (and any collaborators) as method parameters instead of capturing it at construction. As a result the `IArrowTransitiveReducerFactory` / `IVertexTransitiveReducerFactory` / `IDummyEdgeOrchestratorFactory` interfaces and their default implementations are removed; the single `ITransitiveReducer<T>` is split into `IVertexTransitiveReducer<…>` / `IArrowTransitiveReducer<…>`; the engines bundles expose `TransitiveReducer` / `DummyEdgeOrchestrator` engine properties in place of the former `…Factory` properties; and `VertexGraphState<…>` / `ArrowGraphState<…>` are now public (their structural-mutation API stays `internal`) so the injected engines can take them directly.
 - The builders' `WhenTesting` property is renamed to `ShuffleProcessingOrder`, which is what it actually does: when true, the critical-path passes process remaining edges in a random order on each iteration (results are identical either way; tests use it to prove order-independence).
 - `ArrowGraphBuilder.ToGraph()` and `VertexGraphBuilder.ToGraph()` now throw `InvalidOperationException` when the graph cannot be cleaned up, instead of silently returning `null`.
-- Both packages now compile with **nullable reference types** enabled and the public API is annotated. Notable contract changes for consumers with nullable enabled: `IActivity.Name`/`Notes`, `IResource.Name` and `IScheduledActivity.Name` are `string?`; `IResourceSchedule.Resource` is nullable (unmapped/synthetic schedules carry no resource); `ITransitiveReducer.GetAncestorNodesLookup()` and the builders' `GetAncestorNodesLookup()` are declared nullable (they return `null` for unsatisfied or circular dependencies, as before).
+- Both packages now compile with **nullable reference types** enabled and the public API is annotated. Notable contract changes for consumers with nullable enabled: `IActivity.Name`/`Notes`, `IResource.Name` and `IScheduledActivity.Name` are `string?`; `IResourceSchedule.Resource` is nullable (unmapped/synthetic schedules carry no resource); `IVertexTransitiveReducer`/`IArrowTransitiveReducer.GetAncestorNodesLookup(…)` and the builders' `GetAncestorNodesLookup()` are declared nullable (they return `null` for unsatisfied or circular dependencies, as before).
 - `DummyActivityGenerator<…>.Generate` now throws `InvalidOperationException` if the created dummy activity is not assignable to `TActivity`, instead of returning `null`.
 
 ### 3.0.0

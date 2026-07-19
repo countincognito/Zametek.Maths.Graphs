@@ -7,11 +7,11 @@
 //! engine traits take `&self`, so the counters need interior mutability;
 //! atomics keep the spies `Send + Sync`).
 //!
-//! The C# `EngineBundleInjectionTests` inject *factories* (the state-bound
-//! engines are created per builder); this port has no factories — the engines
-//! are stateless and injected directly — so those tests are adapted to assert
-//! the injected engine instance is invoked (and, being shared via `Arc`,
-//! survives a builder clone).
+//! Both ports inject the engines directly — they are stateless, so the builder
+//! passes them the graph state and any collaborators per call — so these tests
+//! assert the injected engine instance is invoked, that a custom reducer
+//! consults the injected SCC finder, and that engines shared via `Arc` survive a
+//! builder clone.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -19,16 +19,19 @@ use std::sync::Arc;
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_compilers::arrow::ArrowGraphState;
 use zametek_maths_graphs_compilers::contracts::{
-    IActivityGenerator, IDummyEdgeOrchestrator, IEventGenerator, IIdGenerator,
-    IVertexCriticalPathEngine, IVertexTransitiveReducer,
+    IActivityGenerator, IArrowStronglyConnectedComponentsFinder, IDummyEdgeOrchestrator,
+    IEventGenerator, IIdGenerator, IVertexCriticalPathEngine,
+    IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
 };
 use zametek_maths_graphs_compilers::vertex::VertexGraphState;
 use zametek_maths_graphs_compilers::{
     ArrowGraphBuilder, ArrowGraphBuilderEngines, DummyEdgeOrchestrator, RemovableEventGenerator,
     VertexCriticalPathEngine, VertexGraphBuilder, VertexGraphBuilderEngines, VertexGraphCompiler,
-    VertexTransitiveReducer,
+    VertexTarjanStronglyConnectedComponentsFinder, VertexTransitiveReducer,
 };
-use zametek_maths_graphs_primitives::{DependentActivity, Event, GraphError, InvalidConstraint};
+use zametek_maths_graphs_primitives::{
+    CircularDependency, DependentActivity, Event, GraphError, InvalidConstraint,
+};
 
 type Act = DependentActivity<i32, i32, i32>;
 
@@ -113,13 +116,47 @@ impl IVertexTransitiveReducer<i32, i32, i32> for CountingVertexTransitiveReducer
     fn get_ancestor_nodes_lookup(
         &self,
         state: &VertexGraphState<i32, i32, i32>,
+        scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<i32, i32, i32>,
     ) -> Option<IndexMap<i32, IndexSet<i32>>> {
-        self.inner.get_ancestor_nodes_lookup(state)
+        self.inner.get_ancestor_nodes_lookup(state, scc_finder)
     }
 
-    fn reduce_graph(&self, state: &mut VertexGraphState<i32, i32, i32>) -> bool {
+    fn reduce_graph(
+        &self,
+        state: &mut VertexGraphState<i32, i32, i32>,
+        scc_finder: &dyn IVertexStronglyConnectedComponentsFinder<i32, i32, i32>,
+    ) -> bool {
         self.reduce_count.fetch_add(1, Ordering::Relaxed);
-        self.inner.reduce_graph(state)
+        self.inner.reduce_graph(state, scc_finder)
+    }
+}
+
+/// Wraps the default vertex SCC finder and counts how often it is consulted, so
+/// a test can prove the injected finder drives the reducer's cycle detection.
+#[derive(Default)]
+struct SpyVertexSccFinder {
+    inner: VertexTarjanStronglyConnectedComponentsFinder,
+    circular_calls: AtomicUsize,
+}
+
+impl IVertexStronglyConnectedComponentsFinder<i32, i32, i32> for SpyVertexSccFinder {
+    fn find_strongly_connected_components(
+        &self,
+        state: &VertexGraphState<i32, i32, i32>,
+        ignore_dummies: bool,
+    ) -> Vec<CircularDependency<i32>> {
+        self.inner
+            .find_strongly_connected_components(state, ignore_dummies)
+    }
+
+    fn find_strongly_circular_dependencies(
+        &self,
+        state: &VertexGraphState<i32, i32, i32>,
+        ignore_dummies: bool,
+    ) -> Vec<CircularDependency<i32>> {
+        self.circular_calls.fetch_add(1, Ordering::Relaxed);
+        self.inner
+            .find_strongly_circular_dependencies(state, ignore_dummies)
     }
 }
 
@@ -160,15 +197,17 @@ impl IDummyEdgeOrchestrator<i32, i32, i32> for CountingDummyEdgeOrchestrator {
     fn redirect_dummy_edges(
         &self,
         state: &mut ArrowGraphState<i32, i32, i32>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<i32, i32, i32>,
     ) -> Result<bool, GraphError> {
-        self.inner.redirect_dummy_edges(state)
+        self.inner.redirect_dummy_edges(state, scc_finder)
     }
 
     fn remove_redundant_dummy_edges(
         &self,
         state: &mut ArrowGraphState<i32, i32, i32>,
+        scc_finder: &dyn IArrowStronglyConnectedComponentsFinder<i32, i32, i32>,
     ) -> Result<bool, GraphError> {
-        self.inner.remove_redundant_dummy_edges(state)
+        self.inner.remove_redundant_dummy_edges(state, scc_finder)
     }
 }
 
@@ -221,7 +260,31 @@ fn vertex_given_injected_event_generator_then_custom_generator_is_used() {
     );
 }
 
-// -- EngineBundleInjectionTests (adapted: engines, not factories) -------------
+#[test]
+fn vertex_given_injected_scc_finder_then_reduction_consults_it() {
+    let spy = Arc::new(SpyVertexSccFinder::default());
+    let scc_finder: Arc<dyn IVertexStronglyConnectedComponentsFinder<i32, i32, i32>> = spy.clone();
+
+    let mut builder = VertexGraphBuilder::with_engines(VertexGraphBuilderEngines {
+        scc_finder,
+        ..Default::default()
+    });
+    builder.add_activity(Act::new(1, 1));
+    builder.add_activity_with_dependencies(Act::new(2, 1), IndexSet::from([1]));
+    builder.add_activity_with_dependencies(Act::new(3, 1), IndexSet::from([1, 2]));
+
+    let before = spy.circular_calls.load(Ordering::Relaxed);
+    assert!(builder.transitive_reduction());
+
+    // The reducer drives its cycle guard through the *injected* SCC finder, not a
+    // hard-wired default — this is the parity gap the stateless refactor closed.
+    assert!(
+        spy.circular_calls.load(Ordering::Relaxed) > before,
+        "reduction should consult the injected SCC finder"
+    );
+}
+
+// -- EngineBundleInjectionTests -----------------------------------------------
 
 #[test]
 fn vertex_given_default_engines_bundle_then_compiles_successfully() {
