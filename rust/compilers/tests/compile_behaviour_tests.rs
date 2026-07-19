@@ -1,5 +1,5 @@
 //! Ports of `Zametek.Maths.Graphs.Compilers.Tests/Compilers/CompileBehaviourTests.cs`:
-//! end-to-end behaviour guards — critical-path order-independence (the shuffle
+//! end-to-end behaviour guards - critical-path order-independence (the shuffle
 //! hook), scheduling through a dummy chain, and degenerate inputs.
 
 use indexmap::IndexSet;

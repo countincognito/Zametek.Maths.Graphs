@@ -4,11 +4,11 @@ use crate::contracts::{IArrowStronglyConnectedComponentsFinder, IDummyEdgeOrches
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{GraphError, Key, NodeType};
 
-// Transitive reduction for Activity-on-Arrow graphs — the counterpart of the
+// Transitive reduction for Activity-on-Arrow graphs - the counterpart of the
 // C# `ArrowTransitiveReducer`. Only dummy edges are reduced. Stateless: the
 // graph state, the injected SCC finder and the injected dummy-edge orchestrator
 // are supplied per call. The reduction walk lives here and removes each
-// redundant dummy edge through the orchestrator's `remove_dummy_activity` — the
+// redundant dummy edge through the orchestrator's `remove_dummy_activity` - the
 // orchestrator owns edge mutation; the reducer owns the traversal.
 
 /// Builds a lookup from each node ID to the full set of its ancestor node IDs.

@@ -31,7 +31,7 @@ impl XorShift64 {
     }
 }
 
-/// Fisher-Yates shuffle — the counterpart of the C# `Zametek.Utility.Shuffle`.
+/// Fisher-Yates shuffle - the counterpart of the C# `Zametek.Utility.Shuffle`.
 pub(crate) fn shuffle<T>(items: &mut [T]) {
     let mut rng = XorShift64::from_entropy();
     for i in (1..items.len()).rev() {

@@ -18,7 +18,7 @@ use zametek_maths_graphs_primitives::{
 
 /// Builds and maintains an Activity-on-Vertex graph (activities on nodes,
 /// events on edges): dynamic dependency resolution, transitive reduction,
-/// critical-path calculation and resource scheduling — the counterpart of the
+/// critical-path calculation and resource scheduling - the counterpart of the
 /// C# `VertexGraphBuilder`. Prefer driving it through
 /// [`super::VertexGraphCompiler`].
 ///

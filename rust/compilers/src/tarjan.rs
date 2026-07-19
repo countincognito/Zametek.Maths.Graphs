@@ -2,7 +2,7 @@ use indexmap::IndexMap;
 use zametek_maths_graphs_primitives::{CircularDependency, Key};
 
 /// A read-only traversal view over a graph, in whichever space the activities
-/// live (edge-space for arrow graphs, node-space for vertex graphs) — the
+/// live (edge-space for arrow graphs, node-space for vertex graphs) - the
 /// counterpart of the C# `IGraphTraversal<T>`.
 pub(crate) trait GraphTraversal<K: Key> {
     fn keys(&self) -> Vec<K>;
@@ -11,7 +11,7 @@ pub(crate) trait GraphTraversal<K: Key> {
 }
 
 /// Tarjan's strongly connected components algorithm, written once over a
-/// [`GraphTraversal`] view — the counterpart of the C#
+/// [`GraphTraversal`] view - the counterpart of the C#
 /// `TarjanStronglyConnectedComponents`.
 ///
 /// The depth-first search is iterative (explicit frame stack), so very deep
@@ -146,7 +146,7 @@ pub(crate) fn find_strongly_connected_components<K: Key>(
     circular_dependencies
 }
 
-/// The strongly connected components with more than one member — the actual
+/// The strongly connected components with more than one member - the actual
 /// circular dependencies.
 pub(crate) fn find_strongly_circular_dependencies<K: Key>(
     traversal: &impl GraphTraversal<K>,

@@ -1,5 +1,5 @@
 //! Default engines for Activity-on-Vertex graphs, and the engines bundle passed
-//! to the builder — the counterparts of the C# default engine classes and
+//! to the builder - the counterparts of the C# default engine classes and
 //! `VertexGraphBuilderEngines`.
 
 use super::state::{VertexGraphState, VertexTraversal};
@@ -17,7 +17,7 @@ use std::sync::Arc;
 use zametek_maths_graphs_primitives::{CircularDependency, InvalidConstraint, Key};
 
 /// Default Tarjan SCC finder for Activity-on-Vertex graphs (node-space
-/// traversal) — the counterpart of the C#
+/// traversal) - the counterpart of the C#
 /// `VertexTarjanStronglyConnectedComponentsFinder<…>`.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VertexTarjanStronglyConnectedComponentsFinder;
@@ -42,7 +42,7 @@ impl<K: Key, R: Key, W: Key> IVertexStronglyConnectedComponentsFinder<K, R, W>
     }
 }
 
-/// Default critical-path engine for Activity-on-Vertex graphs — the counterpart
+/// Default critical-path engine for Activity-on-Vertex graphs - the counterpart
 /// of the C# `VertexCriticalPathEngine<…>`.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VertexCriticalPathEngine;
@@ -75,7 +75,7 @@ impl<K: Key, R: Key, W: Key> IVertexCriticalPathEngine<K, R, W> for VertexCritic
     }
 }
 
-/// Default transitive reducer for Activity-on-Vertex graphs — the counterpart
+/// Default transitive reducer for Activity-on-Vertex graphs - the counterpart
 /// of the C# `VertexTransitiveReducer<…>`.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VertexTransitiveReducer;
@@ -99,7 +99,7 @@ impl<K: Key, R: Key, W: Key> IVertexTransitiveReducer<K, R, W> for VertexTransit
 }
 
 /// A bundle of the engines a [`VertexGraphBuilder`](super::VertexGraphBuilder)
-/// relies on, each defaulting to the standard implementation — the counterpart
+/// relies on, each defaulting to the standard implementation - the counterpart
 /// of the C# `VertexGraphBuilderEngines`. Set only the fields you want to
 /// customise; the rest keep their defaults.
 ///

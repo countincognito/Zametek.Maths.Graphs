@@ -4,7 +4,7 @@ use crate::contracts::IVertexStronglyConnectedComponentsFinder;
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{Key, NodeType};
 
-// Transitive reduction for Activity-on-Vertex graphs — the counterpart of the
+// Transitive reduction for Activity-on-Vertex graphs - the counterpart of the
 // C# `VertexTransitiveReducer`. Stateless: the graph state and the injected SCC
 // finder are supplied per call.
 

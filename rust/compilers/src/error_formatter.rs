@@ -4,7 +4,7 @@ use zametek_maths_graphs_primitives::{
     CircularDependency, DependentActivity, InvalidConstraint, Key, UnavailableResources,
 };
 
-/// Builds the human-readable error messages for graph compilation errors —
+/// Builds the human-readable error messages for graph compilation errors -
 /// the counterpart of the C# `GraphCompilationErrorFormatter`. Lines are
 /// joined with `\n`.
 pub(crate) fn build_invalid_dependencies_error_message<K: Key, R: Key, W: Key>(

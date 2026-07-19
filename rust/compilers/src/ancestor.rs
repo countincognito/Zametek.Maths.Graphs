@@ -1,7 +1,7 @@
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{CircularDependency, Key};
 
-/// A node-space view of a graph for the ancestor calculation — the counterpart
+/// A node-space view of a graph for the ancestor calculation - the counterpart
 /// of the C# `IAncestorGraphView<T>`.
 pub(crate) trait AncestorGraphView<K: Key> {
     fn end_node_ids(&self) -> Vec<K>;
@@ -13,7 +13,7 @@ const BITS_PER_WORD: usize = 64;
 const WORD_INDEX_SHIFT: usize = 6;
 const BIT_INDEX_MASK: usize = BITS_PER_WORD - 1;
 
-/// Compact ancestor representation used by the transitive reducers — the
+/// Compact ancestor representation used by the transitive reducers - the
 /// counterpart of the C# `AncestorBitSets<T>`.
 ///
 /// Every node reachable from an end node is given a dense index; each node's
@@ -53,7 +53,7 @@ impl<K: Key> AncestorBitSets<K> {
     }
 
     /// Unions the ancestor set of the given node into the scratch bitset.
-    /// Panics for an unknown node id — parity with the C# dictionary indexing.
+    /// Panics for an unknown node id - parity with the C# dictionary indexing.
     pub(crate) fn union_ancestors_into(&self, scratch: &mut [u64], node_id: K) {
         let index = self.index_lookup[&node_id];
         for (i, word) in self.ancestor_words[index].iter().enumerate() {
@@ -62,7 +62,7 @@ impl<K: Key> AncestorBitSets<K> {
     }
 
     /// Whether the given node id is present in the scratch bitset. An unknown
-    /// node id is simply not a member — parity with `HashSet::contains`.
+    /// node id is simply not a member - parity with `HashSet::contains`.
     pub(crate) fn scratch_contains(&self, scratch: &[u64], node_id: K) -> bool {
         match self.index_lookup.get(&node_id) {
             None => false,
@@ -94,7 +94,7 @@ impl<K: Key> AncestorBitSets<K> {
 }
 
 /// Shared ancestor-node calculation for both arrow and vertex transitive
-/// reducers — the counterpart of the C# `AncestorNodeCalculator`.
+/// reducers - the counterpart of the C# `AncestorNodeCalculator`.
 ///
 /// Returns `None` when circular dependencies are present (ancestor sets are
 /// only meaningful in an acyclic graph). Both phases are iterative, so a deep
@@ -200,7 +200,7 @@ pub(crate) fn get_ancestor_bit_sets<K: Key>(
     })
 }
 
-/// The map-of-sets form of the ancestor lookup — the public contract of the C#
+/// The map-of-sets form of the ancestor lookup - the public contract of the C#
 /// `GetAncestorNodesLookup`.
 pub(crate) fn get_ancestor_nodes_lookup<K: Key>(
     view: &impl AncestorGraphView<K>,

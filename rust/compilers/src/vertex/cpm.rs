@@ -4,7 +4,7 @@ use crate::shuffle::shuffle;
 use indexmap::IndexSet;
 use zametek_maths_graphs_primitives::{GraphError, InvalidConstraint, Key, NodeType};
 
-// The critical-path engine for Activity-on-Vertex graphs — the counterpart of
+// The critical-path engine for Activity-on-Vertex graphs - the counterpart of
 // the C# `VertexCriticalPathEngine`. Implements the forward pass (earliest
 // start times), backward pass (latest finish times and free slack), and the
 // isolated-node backfill.

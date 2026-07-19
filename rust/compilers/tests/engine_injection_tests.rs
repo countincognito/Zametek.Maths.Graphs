@@ -7,8 +7,8 @@
 //! engine traits take `&self`, so the counters need interior mutability;
 //! atomics keep the spies `Send + Sync`).
 //!
-//! Both ports inject the engines directly — they are stateless, so the builder
-//! passes them the graph state and any collaborators per call — so these tests
+//! Both ports inject the engines directly - they are stateless, so the builder
+//! passes them the graph state and any collaborators per call - so these tests
 //! assert the injected engine instance is invoked, that a custom reducer
 //! consults the injected SCC finder, and that engines shared via `Arc` survive a
 //! builder clone.
@@ -277,7 +277,7 @@ fn vertex_given_injected_scc_finder_then_reduction_consults_it() {
     assert!(builder.transitive_reduction());
 
     // The reducer drives its cycle guard through the *injected* SCC finder, not a
-    // hard-wired default — this is the parity gap the stateless refactor closed.
+    // hard-wired default - this is the parity gap the stateless refactor closed.
     assert!(
         spy.circular_calls.load(Ordering::Relaxed) > before,
         "reduction should consult the injected SCC finder"
@@ -341,7 +341,7 @@ fn vertex_given_injected_transitive_reducer_then_reducer_survives_clone() {
     let count_before_clone = reducer.reduce_count.load(Ordering::Relaxed);
 
     // The clone shares the injected engines (Arc), so reducing on the clone
-    // drives the same counter — the injected reducer survives the clone.
+    // drives the same counter - the injected reducer survives the clone.
     let mut clone = builder.clone_builder().unwrap();
     assert!(clone.transitive_reduction());
 

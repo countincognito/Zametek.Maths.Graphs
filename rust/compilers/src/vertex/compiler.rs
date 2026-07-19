@@ -8,7 +8,7 @@ use zametek_maths_graphs_primitives::{
 };
 
 /// Compiler for Activity-on-Vertex graphs: a coordinator around a
-/// [`VertexGraphBuilder`] — the counterpart of the C# `VertexGraphCompiler`.
+/// [`VertexGraphBuilder`] - the counterpart of the C# `VertexGraphCompiler`.
 /// This is the compiler to use for analysis; [`VertexGraphCompiler::compile`]
 /// runs the full pipeline including resource scheduling.
 ///

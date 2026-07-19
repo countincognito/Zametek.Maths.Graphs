@@ -1,7 +1,7 @@
 use crate::edge::HasId;
 use crate::key::Key;
 
-/// An event (milestone) in a project-planning graph — the counterpart of the
+/// An event (milestone) in a project-planning graph - the counterpart of the
 /// C# `Event<T>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Event<K: Key> {

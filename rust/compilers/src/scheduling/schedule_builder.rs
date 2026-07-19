@@ -3,7 +3,7 @@ use zametek_maths_graphs_primitives::{
     ScheduledActivity,
 };
 
-// Per-time-unit allocation flags — the counterpart of the C# private
+// Per-time-unit allocation flags - the counterpart of the C# private
 // `TimeType` flags enum.
 mod time_type {
     pub const NONE: u16 = 0;
@@ -34,7 +34,7 @@ mod time_type {
 }
 
 /// Accumulates the activities scheduled onto a single resource and produces
-/// the finished [`ResourceSchedule`] with its allocation streams — the
+/// the finished [`ResourceSchedule`] with its allocation streams - the
 /// counterpart of the C# `ResourceScheduleBuilder`.
 pub struct ResourceScheduleBuilder<K: Key, R: Key, W: Key> {
     resource: Option<Resource<R, W>>,

@@ -1,7 +1,7 @@
 use crate::key::Key;
 use crate::resource::Resource;
 
-/// A snapshot of an activity placed onto a resource's timeline — the
+/// A snapshot of an activity placed onto a resource's timeline - the
 /// counterpart of the C# `ScheduledActivity<T>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ScheduledActivity<K: Key> {
@@ -41,7 +41,7 @@ impl<K: Key> ScheduledActivity<K> {
 }
 
 /// The finished schedule for one resource (or for an unmapped, infinite-resources
-/// lane when `resource` is `None`) — the counterpart of the C#
+/// lane when `resource` is `None`) - the counterpart of the C#
 /// `ResourceSchedule<T, TResourceId, TWorkStreamId>`.
 ///
 /// The allocation vectors hold one flag per time unit from zero to `finish_time`.

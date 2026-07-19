@@ -1,10 +1,10 @@
-//! Default event and dummy-activity generators — the counterparts of the C#
+//! Default event and dummy-activity generators - the counterparts of the C#
 //! `EventGenerator`, `RemovableEventGenerator` and `DummyActivityGenerator`.
 
 use crate::contracts::{IActivityGenerator, IEventGenerator};
 use zametek_maths_graphs_primitives::{DependentActivity, Event, Key};
 
-/// Default event generator for Activity-on-Arrow graphs — events represent real
+/// Default event generator for Activity-on-Arrow graphs - events represent real
 /// milestones, so they are created read-only (not removable). The counterpart
 /// of the C# `EventGenerator<T>`.
 #[derive(Debug, Clone, Copy, Default)]
@@ -25,7 +25,7 @@ impl<K: Key> IEventGenerator<K> for EventGenerator {
     }
 }
 
-/// Default event generator for Activity-on-Vertex graphs — events live on
+/// Default event generator for Activity-on-Vertex graphs - events live on
 /// structural edges, which are removed during transitive reduction, so they are
 /// flagged removable. Decorates an inner [`EventGenerator`], mirroring the C#
 /// `RemovableEventGenerator<T>` decorator over `EventGenerator<T>`.
@@ -65,7 +65,7 @@ impl<K: Key> IEventGenerator<K> for RemovableEventGenerator {
     }
 }
 
-/// Default dummy-activity generator — creates removable zero-duration
+/// Default dummy-activity generator - creates removable zero-duration
 /// activities. The counterpart of the C# `DummyActivityGenerator<…>`.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct DummyActivityGenerator;

@@ -6,12 +6,12 @@ use crate::contracts::{
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, GraphError, Key, NodeType};
 
-// All dummy-edge operations for Activity-on-Arrow graphs — the counterpart of
+// All dummy-edge operations for Activity-on-Arrow graphs - the counterpart of
 // the C# `DummyEdgeOrchestrator`. Operates directly on the shared
 // `ArrowGraphState`; where the C# throws `InvalidOperationException` this port
 // returns `Err`.
 
-/// Default dummy-edge orchestrator — the counterpart of the C#
+/// Default dummy-edge orchestrator - the counterpart of the C#
 /// `DummyEdgeOrchestrator`. The methods delegate to the free functions in this
 /// module; edge/activity IDs come from the generators passed per call (the
 /// builder owns them).
@@ -451,7 +451,7 @@ fn removable_dummy_edges_in_descending_order<K: Key, R: Key, W: Key>(
         .collect()
 }
 
-/// The dummy edges in depth-first discovery order from the Start node — the
+/// The dummy edges in depth-first discovery order from the Start node - the
 /// counterpart of the C# `GetDummyEdgesInDescendingOrder` (implemented
 /// iteratively so a deep graph cannot overflow the call stack; the output
 /// order is identical).

@@ -4,7 +4,7 @@ use crate::key::Key;
 use indexmap::IndexSet;
 use std::ops::{Deref, DerefMut};
 
-/// An activity in a project-planning graph — the counterpart of the C#
+/// An activity in a project-planning graph - the counterpart of the C#
 /// `Activity<T, TResourceId, TWorkStreamId>`.
 ///
 /// Times are `Option<i32>` where the C# uses `int?`. The derived values
@@ -129,7 +129,7 @@ impl<K: Key, R: Key, W: Key> HasId<K> for Activity<K, R, W> {
     }
 }
 
-/// An activity plus its dependency bookkeeping — the counterpart of the C#
+/// An activity plus its dependency bookkeeping - the counterpart of the C#
 /// `DependentActivity<T, TResourceId, TWorkStreamId>`. This is the input type
 /// the graph compilers consume.
 ///

@@ -1,7 +1,7 @@
 use crate::contracts::IIdGenerator;
 use zametek_maths_graphs_primitives::Key;
 
-/// Generates sequential IDs in ascending order — the counterpart of the C#
+/// Generates sequential IDs in ascending order - the counterpart of the C#
 /// `NextIdGenerator<T>`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct NextIdGenerator<K: Key> {
@@ -22,7 +22,7 @@ impl<K: Key> IIdGenerator<K> for NextIdGenerator<K> {
     }
 }
 
-/// Generates sequential IDs in descending order — the counterpart of the C#
+/// Generates sequential IDs in descending order - the counterpart of the C#
 /// `PreviousIdGenerator<T>`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct PreviousIdGenerator<K: Key> {

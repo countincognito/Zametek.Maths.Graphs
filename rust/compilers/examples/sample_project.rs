@@ -1,12 +1,12 @@
 //! Extends the basic example with a real-world project: the sample plan from
 //! the Zametek.ProjectPlan wiki
 //! (<https://github.com/countincognito/Zametek.ProjectPlan/wiki>), hard-coded
-//! below — 46 activities (including zero-duration milestones) scheduled onto
+//! below - 46 activities (including zero-duration milestones) scheduled onto
 //! 15 resources with mixed None/Direct/Indirect allocation types and
 //! explicit-target flags.
 //!
 //! The example compiles the plan with resource scheduling and prints every
-//! resource's lane — idle periods marked `*** from -> to ***` — in the
+//! resource's lane - idle periods marked `*** from -> to ***` - in the
 //! application's display order.
 //!
 //! The output is asserted against the schedule published for this sample

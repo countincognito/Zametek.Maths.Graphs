@@ -310,7 +310,7 @@ fn given_compile_with_post_compilation_invalid_constraints_then_finds_invalid_co
     assert_eq!(a4.latest_finish_time, Some(5));
 }
 
-// The canonical 9-activity network compiled with unlimited resources — ports
+// The canonical 9-activity network compiled with unlimited resources - ports
 // VertexGraphCompiler_GivenCompileWithCompiledDependenciesAndUnlimitedResources.
 #[test]
 fn given_compile_with_compiled_dependencies_and_unlimited_resources_then_resource_schedules_correct_order(

@@ -10,7 +10,7 @@ pub const MSG_CANNOT_REQUEST_OUTGOING_EDGES: &str =
     "Cannot request Outgoing Edges of an End or Isolated Node";
 
 /// A directed-graph node carrying a content payload (an event in arrow graphs;
-/// an activity in vertex graphs) — the counterpart of the C# `Node<T, TContent>`.
+/// an activity in vertex graphs) - the counterpart of the C# `Node<T, TContent>`.
 ///
 /// The C# `IncomingEdges`/`OutgoingEdges` properties throw for node types that
 /// cannot have them; the checked accessors [`Node::incoming_edges`] and

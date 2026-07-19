@@ -18,7 +18,7 @@ use zametek_maths_graphs_primitives::{
 
 /// Builds and maintains an Activity-on-Arrow graph (activities on edges,
 /// events on nodes): dynamic dependency resolution via dummy edges, transitive
-/// reduction and critical-path calculation — the counterpart of the C#
+/// reduction and critical-path calculation - the counterpart of the C#
 /// `ArrowGraphBuilder`. Prefer driving it through
 /// [`super::ArrowGraphCompiler`].
 ///
@@ -46,7 +46,7 @@ pub struct ArrowGraphBuilder<K: Key, R: Key, W: Key> {
 
 impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
     // Builds the struct from a bundle, without initialising the Start/End nodes
-    // or assimilating a graph — the shared core of `with_engines` and
+    // or assimilating a graph - the shared core of `with_engines` and
     // `from_graph_with_engines`.
     fn from_engines_raw(engines: ArrowGraphBuilderEngines<K, R, W>) -> Self {
         Self {

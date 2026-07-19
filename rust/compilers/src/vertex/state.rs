@@ -3,7 +3,7 @@ use crate::tarjan::GraphTraversal;
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, Event, Key, Node, NodeType};
 
-/// All mutable graph state for an Activity-on-Vertex graph — the counterpart of
+/// All mutable graph state for an Activity-on-Vertex graph - the counterpart of
 /// the C# `VertexGraphState` (and its public `IVertexGraphState` contract).
 /// Activities live on nodes; events live on edges.
 ///
@@ -192,7 +192,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphState<K, R, W> {
     }
 }
 
-/// Node-space traversal for the shared Tarjan algorithm — the counterpart of
+/// Node-space traversal for the shared Tarjan algorithm - the counterpart of
 /// the C# `VertexGraphTraversal`. Internal: the default (public) SCC finder
 /// wraps the state in this, exactly as the C# default finder does.
 pub(crate) struct VertexTraversal<'a, K: Key, R: Key, W: Key> {
@@ -227,7 +227,7 @@ impl<K: Key, R: Key, W: Key> GraphTraversal<K> for VertexTraversal<'_, K, R, W> 
     }
 }
 
-/// Node-space view for the shared ancestor calculation — the counterpart of the
+/// Node-space view for the shared ancestor calculation - the counterpart of the
 /// C# `VertexAncestorGraphView`. Internal, used by the default reducer.
 pub(crate) struct VertexAncestorView<'a, K: Key, R: Key, W: Key> {
     pub(crate) state: &'a VertexGraphState<K, R, W>,

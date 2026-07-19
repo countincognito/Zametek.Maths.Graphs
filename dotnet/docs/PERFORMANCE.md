@@ -1,6 +1,6 @@
 # Performance & memory plan
 
-A phased plan to reduce compile wall-clock time, cut allocation/GC pressure, and harden the deep-graph paths in `Zametek.Maths.Graphs`. Nothing here is implemented yet — it is a backlog to work through, each phase shippable behind the green test suite.
+A phased plan to reduce compile wall-clock time, cut allocation/GC pressure, and harden the deep-graph paths in `Zametek.Maths.Graphs`. Nothing here is implemented yet - it is a backlog to work through, each phase shippable behind the green test suite.
 
 Target scale: **low thousands of activities** (interactive project plans, repeated re-compiles on edit). Scope: **vertex (analysis) and arrow (rendering) paths**.
 
@@ -36,54 +36,54 @@ There is no unbounded-retention leak surface in the library:
 
 - no static mutable collections, no `event` handlers, no `IDisposable`/finalizers, no unmanaged resources, no persistent caches;
 - per-graph state lives in `VertexGraphState`'s five dictionaries and is fully emptied by `Reset()` / `Clear()`;
-- the one shared static — `s_DefaultEventGenerator` (`VertexGraphBuilder.cs:24`) — is a single stateless instance.
+- the one shared static - `s_DefaultEventGenerator` (`VertexGraphBuilder.cs:24`) - is a single stateless instance.
 
-So the real "memory" issue is **transient allocation churn / GC pressure**, not leaks. Every item below is throughput, allocation, or robustness — there is no leak to fix.
+So the real "memory" issue is **transient allocation churn / GC pressure**, not leaks. Every item below is throughput, allocation, or robustness - there is no leak to fix.
 
 ## Guardrails (apply to every phase)
 
-- **Correctness invariant:** every change must be behaviour-preserving. The `ShuffleProcessingOrder` tests already prove order-independence — keep running them (both `false` and `true`) as the primary safety net, alongside the full test suite (currently 397 tests).
+- **Correctness invariant:** every change must be behaviour-preserving. The `ShuffleProcessingOrder` tests already prove order-independence - keep running them (both `false` and `true`) as the primary safety net, alongside the full test suite (currently 397 tests).
 - **Measure, don't guess:** add a small BenchmarkDotNet (or stopwatch) harness in a throwaway project over representative graphs (~200, ~1k, ~5k activities; chain, diamond/dense, and wide-parallel shapes) capturing wall-clock **and** allocated bytes. Land it in Phase 0 and re-run it per phase to confirm each change helps and none regresses.
 - **Memory leaks:** nothing to do (see above). All items are allocation/throughput/robustness.
 
 ## Findings, by leverage
 
-### Tier 1 — algorithmic (the big costs on large graphs)
+### Tier 1 - algorithmic (the big costs on large graphs)
 
-- **P1. CPM forward/backward flow is O(E^2) with per-pass allocations.** `VertexCriticalPathEngine.cs:154` (forward) and `:416` (backward). The label-correcting `while (remainingEdgeIds.Count != 0)` loop re-materialises `remainingEdgeIds.ToList()` every pass and, per edge, allocates `new HashSet<T>(dependencyNode.IncomingEdges)` plus a LINQ `.Select(state.Edge).Max(...)`. Worst case O(E) passes x O(E) = O(E^2); even the good case allocates O(E) hashsets per pass. Fix: topological-order pass (Kahn / per-node remaining-incoming counter) — O(V+E), near-zero per-edge allocation.
+- **P1. CPM forward/backward flow is O(E^2) with per-pass allocations.** `VertexCriticalPathEngine.cs:154` (forward) and `:416` (backward). The label-correcting `while (remainingEdgeIds.Count != 0)` loop re-materialises `remainingEdgeIds.ToList()` every pass and, per edge, allocates `new HashSet<T>(dependencyNode.IncomingEdges)` plus a LINQ `.Select(state.Edge).Max(...)`. Worst case O(E) passes x O(E) = O(E^2); even the good case allocates O(E) hashsets per pass. Fix: topological-order pass (Kahn / per-node remaining-incoming counter) - O(V+E), near-zero per-edge allocation.
 
-- **P2. Priority-list calc runs a full CPM per activity.** `VertexGraphBuilder.cs:1011` — the loop calls `CalculateCriticalPath()` (forward+backward) once per critical activity extracted (O(A) full passes), pulling a single activity and zeroing its duration each time. Combined with P1 that is **O(A.E^2)** — the dominant compile cost. With P1 it drops to O(A.(V+E)); longer term an incremental scheme could avoid full re-passes.
+- **P2. Priority-list calc runs a full CPM per activity.** `VertexGraphBuilder.cs:1011` - the loop calls `CalculateCriticalPath()` (forward+backward) once per critical activity extracted (O(A) full passes), pulling a single activity and zeroing its duration each time. Combined with P1 that is **O(A.E^2)** - the dominant compile cost. With P1 it drops to O(A.(V+E)); longer term an incremental scheme could avoid full re-passes.
 
-- **P3. Scheduler recomputes dependency sets every time tick.** `PriorityListResourceScheduler.cs:117` — `PromoteReadyActivities` calls `graph.StrongActivityDependencyIds(activityId)` (recursive edge-walk + `new HashSet`) for every not-yet-ready activity on **every** `timeCounter` tick, though dependencies never change during scheduling. `ActivityAt` (`:86`) is also a linear scan per builder per tick. Fix: precompute each activity's strong-dependency set once; track completion incrementally. O(timeSpan.A.deps) -> ~O(A.deps).
+- **P3. Scheduler recomputes dependency sets every time tick.** `PriorityListResourceScheduler.cs:117` - `PromoteReadyActivities` calls `graph.StrongActivityDependencyIds(activityId)` (recursive edge-walk + `new HashSet`) for every not-yet-ready activity on **every** `timeCounter` tick, though dependencies never change during scheduling. `ActivityAt` (`:86`) is also a linear scan per builder per tick. Fix: precompute each activity's strong-dependency set once; track completion incrementally. O(timeSpan.A.deps) -> ~O(A.deps).
 
 - **P4. Redundant full-graph clones.** `CalculateResourceSchedulesByPriorityList` clones the builder (`VertexGraphBuilder.cs:934`) and then clones *that clone again* for the priority list (`:938-939`); each `CloneObject` -> `ToGraph` cleans edges and deep-copies every edge and node. The compiler additionally deep-clones all activities 2-3x per `Compile` (`VertexGraphCompiler.cs:250,283,308`). Fix: remove the double clone; reuse one working copy.
 
-### Tier 2 — allocation churn (GC pressure, smaller graphs)
+### Tier 2 - allocation churn (GC pressure, smaller graphs)
 
-- **P5. `SetActivityDependencies` LINQ storms** — `VertexGraphBuilder.cs:1086-1212`: four blocks each recompute `Dependencies.Union(...).Union(...).ToList()` and re-walk `ActivityDependencyIds`. Compute the shared sets once. (40 `Union/Except/Intersect` calls live in this one file.)
-- **P6. Recomputing property getters** — `ActivityIds`, `StartTime`, `FinishTime`, `Activities` are LINQ-over-`Values` each access; `ActivityIds.Contains(id)` (`:1096`) is an O(A) scan when `m_State.ContainsNode` is O(1). Use the dictionary directly; materialise once where enumerated repeatedly.
+- **P5. `SetActivityDependencies` LINQ storms** - `VertexGraphBuilder.cs:1086-1212`: four blocks each recompute `Dependencies.Union(...).Union(...).ToList()` and re-walk `ActivityDependencyIds`. Compute the shared sets once. (40 `Union/Except/Intersect` calls live in this one file.)
+- **P6. Recomputing property getters** - `ActivityIds`, `StartTime`, `FinishTime`, `Activities` are LINQ-over-`Values` each access; `ActivityIds.Contains(id)` (`:1096`) is an O(A) scan when `m_State.ContainsNode` is O(1). Use the dictionary directly; materialise once where enumerated repeatedly.
 - **P7. `ResourceScheduleBuilder.ScheduledActivities` copies every access** (`ResourceScheduleBuilder.cs:63`, `.ToList()`), and the scheduler calls it repeatedly via `.Any()`/`.Select()`. Expose a non-copying enumerable/count.
 
-### Tier 3 — robustness (same class as the earlier deep-graph Tarjan fix)
+### Tier 3 - robustness (same class as the earlier deep-graph Tarjan fix)
 
-- **P8. `VertexTransitiveReducer.RemoveRedundantIncomingEdges` is recursive and un-memoized** — `VertexTransitiveReducer.cs:75` re-descends into tail nodes for every end node with no visited-set (redundant work on shared ancestors; deep chains risk `StackOverflow`, the same failure mode already fixed in Tarjan). `StrongActivityDependencyIds` (`:689`) is likewise recursive over dummy chains. The arrow reducer delegates to a recursive `DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges` with the same shape. Fix: visited-set + iterative traversal.
+- **P8. `VertexTransitiveReducer.RemoveRedundantIncomingEdges` is recursive and un-memoized** - `VertexTransitiveReducer.cs:75` re-descends into tail nodes for every end node with no visited-set (redundant work on shared ancestors; deep chains risk `StackOverflow`, the same failure mode already fixed in Tarjan). `StrongActivityDependencyIds` (`:689`) is likewise recursive over dummy chains. The arrow reducer delegates to a recursive `DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges` with the same shape. Fix: visited-set + iterative traversal.
 
 ### Arrow parity
 
 The arrow builder mirrors P1-P4/P8 on the *rendering* path:
 
-- `ArrowCriticalPathEngine` — same node-space label-correcting loops (`:70-96`, `:200+`).
-- `ArrowGraphBuilder` — same double-clone priority list (`:685`, `:687`) and `while (cont)` loop (`:871`).
-- `ArrowTransitiveReducer` -> `DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges` — same un-memoized recursion.
+- `ArrowCriticalPathEngine` - same node-space label-correcting loops (`:70-96`, `:200+`).
+- `ArrowGraphBuilder` - same double-clone priority list (`:685`, `:687`) and `while (cont)` loop (`:871`).
+- `ArrowTransitiveReducer` -> `DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges` - same un-memoized recursion.
 
 ## Phased plan
 
 Each phase is independently shippable behind the green suite + benchmark deltas.
 
-### Phase 0 — Baseline & safety
+### Phase 0 - Baseline & safety
 Benchmark harness + allocation baseline. Audit that `ShuffleProcessingOrder=true` variants exist for the CPM and scheduling paths we will touch (add any missing). No production changes.
 
-### Phase 1 — Low-risk allocation & clone cuts (behaviour-preserving)
+### Phase 1 - Low-risk allocation & clone cuts (behaviour-preserving)
 Highest value-to-risk ratio; no algorithm changes.
 - **P4 double-clone:** remove the second `CloneObject()` in `CalculateResourceSchedulesByPriorityList` (`VertexGraphBuilder.cs:934-939`); reuse one working copy for both the schedule and the priority list. Same for arrow (`ArrowGraphBuilder.cs:685/687`).
 - **P6 getters/membership:** replace `ActivityIds.Contains(id)` (`:1096`) with the O(1) `m_State.ContainsNode(id)`; materialise `Activities`/`ActivityIds` once where enumerated repeatedly in a method.
@@ -91,16 +91,16 @@ Highest value-to-risk ratio; no algorithm changes.
 - **P7 `ScheduledActivities`:** stop returning `m_ScheduledActivities.ToList()` on every access (`ResourceScheduleBuilder.cs:63`); expose a non-copying enumerable/count for the scheduler's `.Any()`/`.Select()` hot calls.
 - **Compiler:** de-duplicate the repeated `Activities.ToList()` / activity deep-clones in `Compile` (`VertexGraphCompiler.cs:242,278,280,283,308`).
 
-### Phase 2 — Cached-dependency scheduler (P3)
-In `PriorityListResourceScheduler`, precompute each activity's strong dependency set once before the tick loop instead of calling `graph.StrongActivityDependencyIds` for every pending activity on every `timeCounter` (`:117`); track completion incrementally. Optionally index `ActivityAt` (`:86`) so completion detection is not a per-builder linear scan. Turns O(timeSpan.A.deps) into ~O(A.deps). Risk: medium — the ready/started/completed bookkeeping must stay identical; covered by scheduling tests.
+### Phase 2 - Cached-dependency scheduler (P3)
+In `PriorityListResourceScheduler`, precompute each activity's strong dependency set once before the tick loop instead of calling `graph.StrongActivityDependencyIds` for every pending activity on every `timeCounter` (`:117`); track completion incrementally. Optionally index `ActivityAt` (`:86`) so completion detection is not a per-builder linear scan. Turns O(timeSpan.A.deps) into ~O(A.deps). Risk: medium - the ready/started/completed bookkeeping must stay identical; covered by scheduling tests.
 
-### Phase 3 — Topological CPM (P1 -> P2)
-Replace the label-correcting `while (remainingEdgeIds...)` passes in `VertexCriticalPathEngine` forward (`:154`) and backward (`:416`) with a single Kahn-style topological sweep driven by per-node remaining-incoming/outgoing counters — O(V+E), eliminating the per-pass `ToList()` and per-edge `new HashSet(IncomingEdges)`. Biggest single win and it compounds through P2 (`CalculateCriticalPathPriorityList` runs a full CPM per activity, `:1011`). Keep the `shuffle` hook (shuffle the ready frontier) so order-independence tests still exercise it. Risk: highest — most test scrutiny; do vertex first, validate, then mirror.
+### Phase 3 - Topological CPM (P1 -> P2)
+Replace the label-correcting `while (remainingEdgeIds...)` passes in `VertexCriticalPathEngine` forward (`:154`) and backward (`:416`) with a single Kahn-style topological sweep driven by per-node remaining-incoming/outgoing counters - O(V+E), eliminating the per-pass `ToList()` and per-edge `new HashSet(IncomingEdges)`. Biggest single win and it compounds through P2 (`CalculateCriticalPathPriorityList` runs a full CPM per activity, `:1011`). Keep the `shuffle` hook (shuffle the ready frontier) so order-independence tests still exercise it. Risk: highest - most test scrutiny; do vertex first, validate, then mirror.
 
-### Phase 4 — Deep-graph robustness (P8)
+### Phase 4 - Deep-graph robustness (P8)
 Make `VertexTransitiveReducer.RemoveRedundantIncomingEdges` (`:75`) iterative with a visited-set (removes both the `StackOverflow` risk on deep chains and redundant re-descent into shared ancestors); same for `StrongActivityDependencyIds` (`:689`) and the arrow `DummyEdgeOrchestrator.RemoveRedundantIncomingDummyEdges`. Add a deep-chain (tens-of-thousands) test mirroring the existing `TarjanDeepGraphTests`.
 
-### Phase 5 — Arrow parity
+### Phase 5 - Arrow parity
 Apply Phases 1-4 to the rendering path: `ArrowCriticalPathEngine` node-space loops (`:70-96`, `:200+`), `ArrowGraphBuilder` double-clone/priority-list, `ArrowTransitiveReducer` / `DummyEdgeOrchestrator`. Kept last because analysis runs on the vertex path.
 
 ## Sequencing rationale

@@ -3,7 +3,7 @@ use crate::tarjan::GraphTraversal;
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, Event, Key, Node, NodeType};
 
-/// All mutable graph state for an Activity-on-Arrow graph — the counterpart of
+/// All mutable graph state for an Activity-on-Arrow graph - the counterpart of
 /// the C# `ArrowGraphState` (and its public `IArrowGraphState` contract).
 /// Activities live on edges; events live on nodes. There is a single Start node
 /// and a single End node.
@@ -161,7 +161,7 @@ impl<K: Key, R: Key, W: Key> ArrowGraphState<K, R, W> {
     }
 }
 
-/// Edge-space traversal for the shared Tarjan algorithm — the counterpart of
+/// Edge-space traversal for the shared Tarjan algorithm - the counterpart of
 /// the C# `ArrowGraphTraversal`. Internal, used by the default SCC finder.
 pub(crate) struct ArrowTraversal<'a, K: Key, R: Key, W: Key> {
     pub(crate) state: &'a ArrowGraphState<K, R, W>,
@@ -195,7 +195,7 @@ impl<K: Key, R: Key, W: Key> GraphTraversal<K> for ArrowTraversal<'_, K, R, W> {
     }
 }
 
-/// Node-space view for the shared ancestor calculation — the counterpart of the
+/// Node-space view for the shared ancestor calculation - the counterpart of the
 /// C# `ArrowAncestorGraphView`. Internal, used by the default reducer.
 pub(crate) struct ArrowAncestorView<'a, K: Key, R: Key, W: Key> {
     pub(crate) state: &'a ArrowGraphState<K, R, W>,

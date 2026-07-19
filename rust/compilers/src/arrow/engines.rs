@@ -1,5 +1,5 @@
 //! Default engines for Activity-on-Arrow graphs, and the engines bundle passed
-//! to the builder — the counterparts of the C# default engine classes and
+//! to the builder - the counterparts of the C# default engine classes and
 //! `ArrowGraphBuilderEngines`.
 
 use super::orchestrator::DummyEdgeOrchestrator;
@@ -19,7 +19,7 @@ use std::sync::Arc;
 use zametek_maths_graphs_primitives::{CircularDependency, GraphError, InvalidConstraint, Key};
 
 /// Default Tarjan SCC finder for Activity-on-Arrow graphs (edge-space
-/// traversal) — the counterpart of the C#
+/// traversal) - the counterpart of the C#
 /// `ArrowTarjanStronglyConnectedComponentsFinder<…>`.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ArrowTarjanStronglyConnectedComponentsFinder;
@@ -44,7 +44,7 @@ impl<K: Key, R: Key, W: Key> IArrowStronglyConnectedComponentsFinder<K, R, W>
     }
 }
 
-/// Default critical-path engine for Activity-on-Arrow graphs — the counterpart
+/// Default critical-path engine for Activity-on-Arrow graphs - the counterpart
 /// of the C# `ArrowCriticalPathEngine<…>`.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ArrowCriticalPathEngine;
@@ -77,7 +77,7 @@ impl<K: Key, R: Key, W: Key> IArrowCriticalPathEngine<K, R, W> for ArrowCritical
     }
 }
 
-/// Default transitive reducer for Activity-on-Arrow graphs — the counterpart of
+/// Default transitive reducer for Activity-on-Arrow graphs - the counterpart of
 /// the C# `ArrowTransitiveReducer<…>`.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ArrowTransitiveReducer;
@@ -102,7 +102,7 @@ impl<K: Key, R: Key, W: Key> IArrowTransitiveReducer<K, R, W> for ArrowTransitiv
 }
 
 /// A bundle of the engines an [`ArrowGraphBuilder`](super::ArrowGraphBuilder)
-/// relies on, each defaulting to the standard implementation — the counterpart
+/// relies on, each defaulting to the standard implementation - the counterpart
 /// of the C# `ArrowGraphBuilderEngines`. Set only the fields you want to
 /// customise; the rest keep their defaults.
 ///

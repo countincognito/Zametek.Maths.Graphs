@@ -1,6 +1,6 @@
 use crate::key::Key;
 
-/// A stream of work (optionally a sequential phase) — the counterpart of the
+/// A stream of work (optionally a sequential phase) - the counterpart of the
 /// C# `WorkStream<T>`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WorkStream<W: Key> {

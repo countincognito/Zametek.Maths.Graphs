@@ -5,8 +5,8 @@ use indexmap::IndexSet;
 use zametek_maths_graphs_primitives::{DependentActivity, GraphError, Key};
 
 /// Compiler for Activity-on-Arrow graphs: a coordinator around an
-/// [`ArrowGraphBuilder`] — the counterpart of the C# `ArrowGraphCompiler`.
-/// Intended for rendering — it prepares the network for
+/// [`ArrowGraphBuilder`] - the counterpart of the C# `ArrowGraphCompiler`.
+/// Intended for rendering - it prepares the network for
 /// [`ArrowGraphCompiler::to_graph`] and performs no resource scheduling (use
 /// [`crate::VertexGraphCompiler`] for analysis).
 pub struct ArrowGraphCompiler<K: Key, R: Key, W: Key> {

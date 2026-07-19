@@ -1,4 +1,4 @@
-//! Priority-list resource scheduling and its surrounding pipeline — the
+//! Priority-list resource scheduling and its surrounding pipeline - the
 //! counterpart of the C# `PriorityListResourceScheduler` and
 //! `ResourceScheduleBuilder`.
 

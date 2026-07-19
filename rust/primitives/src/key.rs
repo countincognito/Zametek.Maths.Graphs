@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
-/// The constraint every ID type must satisfy — the counterpart of the C#
+/// The constraint every ID type must satisfy - the counterpart of the C#
 /// `where T : struct, IComparable<T>, IEquatable<T>` bound, plus the
 /// `Next()`/`Previous()` key-generation operations the compilers rely on
 /// (`KeyExtensions` in C#, which supports `int` and `Guid`).

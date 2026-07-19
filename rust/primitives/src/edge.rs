@@ -1,6 +1,6 @@
 use crate::key::Key;
 
-/// Content that carries its own identity — the counterpart of the C#
+/// Content that carries its own identity - the counterpart of the C#
 /// `IHaveId<T>` (plus the removability probe both graph flavours need).
 pub trait HasId<K: Key> {
     fn id(&self) -> K;

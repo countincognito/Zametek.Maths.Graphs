@@ -83,7 +83,7 @@ impl<K: Key, R: Key, W: Key> IResourceSchedulingEngine<K, R, W> for PriorityList
     }
 }
 
-/// Priority-list resource scheduling — the counterpart of the C#
+/// Priority-list resource scheduling - the counterpart of the C#
 /// `PriorityListResourceScheduler.CalculateResourceSchedules`.
 pub(crate) fn calculate_resource_schedules<K, R, W>(
     priority_list: &[K],

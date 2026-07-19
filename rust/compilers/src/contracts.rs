@@ -1,4 +1,4 @@
-//! The engine seams — the counterparts of the C# `I…` engine interfaces.
+//! The engine seams - the counterparts of the C# `I…` engine interfaces.
 //!
 //! Trait names deliberately keep the C# `I` prefix (e.g. [`IVertexCriticalPathEngine`])
 //! so they grep 1:1 against the reference implementation and never collide with
@@ -7,7 +7,7 @@
 //!
 //! Like the C# reference, the engines are **stateless**: they take the graph
 //! state (and any collaborators) as parameters rather than being constructed
-//! around it, so there are no `…Factory` seams — the reducers and the dummy-edge
+//! around it, so there are no `…Factory` seams - the reducers and the dummy-edge
 //! orchestrator are injected directly, exactly like every other engine.
 
 use crate::arrow::ArrowGraphState;
@@ -18,14 +18,14 @@ use zametek_maths_graphs_primitives::{
     Resource, ResourceSchedule, UnavailableResources,
 };
 
-/// Sequential ID generation — the counterpart of the C# `IIdGenerator<T>`.
+/// Sequential ID generation - the counterpart of the C# `IIdGenerator<T>`.
 /// The one stateful seam (it carries a per-graph counter), so it is held by
 /// value (`Box`) and recreated, not shared, when a builder clones.
 pub trait IIdGenerator<K: Key> {
     fn generate(&mut self) -> K;
 }
 
-/// Creates the events placed on a graph's edges (vertex) or nodes (arrow) —
+/// Creates the events placed on a graph's edges (vertex) or nodes (arrow) -
 /// the counterpart of the C# `IEventGenerator<T>`.
 pub trait IEventGenerator<K: Key> {
     fn generate(&self, id: K) -> Event<K>;
@@ -38,12 +38,12 @@ pub trait IEventGenerator<K: Key> {
 }
 
 /// Creates the dummy (zero-duration) activities that preserve dependencies in
-/// arrow graphs — the counterpart of the C# `IActivityGenerator<…>`.
+/// arrow graphs - the counterpart of the C# `IActivityGenerator<…>`.
 pub trait IActivityGenerator<K: Key, R: Key, W: Key> {
     fn generate(&self, id: K) -> DependentActivity<K, R, W>;
 }
 
-/// Detects circular dependencies in an Activity-on-Vertex graph — the
+/// Detects circular dependencies in an Activity-on-Vertex graph - the
 /// counterpart of the C# `IVertexStronglyConnectedComponentsFinder<…>`.
 pub trait IVertexStronglyConnectedComponentsFinder<K: Key, R: Key, W: Key> {
     fn find_strongly_connected_components(
@@ -59,7 +59,7 @@ pub trait IVertexStronglyConnectedComponentsFinder<K: Key, R: Key, W: Key> {
     ) -> Vec<CircularDependency<K>>;
 }
 
-/// Detects circular dependencies in an Activity-on-Arrow graph — the
+/// Detects circular dependencies in an Activity-on-Arrow graph - the
 /// counterpart of the C# `IArrowStronglyConnectedComponentsFinder<…>`.
 pub trait IArrowStronglyConnectedComponentsFinder<K: Key, R: Key, W: Key> {
     fn find_strongly_connected_components(
@@ -75,7 +75,7 @@ pub trait IArrowStronglyConnectedComponentsFinder<K: Key, R: Key, W: Key> {
     ) -> Vec<CircularDependency<K>>;
 }
 
-/// Critical-path calculation for Activity-on-Vertex graphs — the counterpart of
+/// Critical-path calculation for Activity-on-Vertex graphs - the counterpart of
 /// the C# `IVertexCriticalPathEngine<…>`. `Ok(false)` mirrors the C# `false`
 /// (preconditions unmet); `Err` mirrors the C# throw (a cycle mid-flow).
 pub trait IVertexCriticalPathEngine<K: Key, R: Key, W: Key> {
@@ -100,7 +100,7 @@ pub trait IVertexCriticalPathEngine<K: Key, R: Key, W: Key> {
     ) -> bool;
 }
 
-/// Critical-path calculation for Activity-on-Arrow graphs — the counterpart of
+/// Critical-path calculation for Activity-on-Arrow graphs - the counterpart of
 /// the C# `IArrowCriticalPathEngine<…>` (event-time passes).
 pub trait IArrowCriticalPathEngine<K: Key, R: Key, W: Key> {
     fn calculate_event_earliest_finish_times(
@@ -124,7 +124,7 @@ pub trait IArrowCriticalPathEngine<K: Key, R: Key, W: Key> {
     ) -> Result<bool, GraphError>;
 }
 
-/// The view of a graph builder the resource scheduler needs — the counterpart
+/// The view of a graph builder the resource scheduler needs - the counterpart
 /// of the C# `IResourceSchedulingGraph<…>`.
 pub trait IResourceSchedulingGraph<K: Key, R: Key, W: Key> {
     fn activity(&self, id: K) -> &DependentActivity<K, R, W>;
@@ -133,7 +133,7 @@ pub trait IResourceSchedulingGraph<K: Key, R: Key, W: Key> {
     fn clone_activities(&self) -> Vec<DependentActivity<K, R, W>>;
 }
 
-/// Resource scheduling and its surrounding pipeline — the counterpart of the C#
+/// Resource scheduling and its surrounding pipeline - the counterpart of the C#
 /// `IResourceSchedulingEngine<…>`.
 pub trait IResourceSchedulingEngine<K: Key, R: Key, W: Key> {
     fn calculate_resource_schedules(
@@ -182,7 +182,7 @@ pub trait IResourceSchedulingEngine<K: Key, R: Key, W: Key> {
     ) -> IndexSet<W>;
 }
 
-/// Transitive reduction for Activity-on-Vertex graphs — the counterpart of the
+/// Transitive reduction for Activity-on-Vertex graphs - the counterpart of the
 /// C# `IVertexTransitiveReducer`. Stateless: the graph state and the SCC finder
 /// are supplied per call (the builder owns them), so there is no factory binding
 /// the reducer to a particular graph, and the injected SCC finder drives the
@@ -201,7 +201,7 @@ pub trait IVertexTransitiveReducer<K: Key, R: Key, W: Key> {
     ) -> bool;
 }
 
-/// Transitive reduction for Activity-on-Arrow graphs — the counterpart of the
+/// Transitive reduction for Activity-on-Arrow graphs - the counterpart of the
 /// C# `IArrowTransitiveReducer`. Only dummy edges are reduced. Stateless: the
 /// graph state, the SCC finder and the dummy-edge orchestrator are supplied per
 /// call. The reduction walk lives here and removes each redundant dummy edge
@@ -221,7 +221,7 @@ pub trait IArrowTransitiveReducer<K: Key, R: Key, W: Key> {
     ) -> Result<bool, GraphError>;
 }
 
-/// The dummy-edge operations for Activity-on-Arrow graphs — the counterpart of
+/// The dummy-edge operations for Activity-on-Arrow graphs - the counterpart of
 /// the C# `IDummyEdgeOrchestrator`. Stateless: edge/activity IDs come from the
 /// injected generators and the cycle guards from the injected SCC finder, all
 /// passed per call (the builder owns them). It owns the dummy-edge mutation

@@ -1,7 +1,7 @@
 use crate::messages;
 use zametek_maths_graphs_primitives::{Activity, InvalidConstraint, Key};
 
-/// Shared constraint validation logic used by both graph builders — the
+/// Shared constraint validation logic used by both graph builders - the
 /// counterpart of the C# `ConstraintChecker`.
 pub(crate) fn find_invalid_pre_compilation_constraints<'a, K, R, W>(
     activities: impl IntoIterator<Item = &'a Activity<K, R, W>>,

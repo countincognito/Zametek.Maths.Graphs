@@ -4,7 +4,7 @@ use crate::shuffle::shuffle;
 use indexmap::IndexSet;
 use zametek_maths_graphs_primitives::{GraphError, InvalidConstraint, Key, NodeType};
 
-// The critical-path engine for Activity-on-Arrow graphs — the counterpart of
+// The critical-path engine for Activity-on-Arrow graphs - the counterpart of
 // the C# `ArrowCriticalPathEngine`: forward pass (earliest event finish
 // times), backward pass (latest event finish times), and per-activity
 // critical-path variables.

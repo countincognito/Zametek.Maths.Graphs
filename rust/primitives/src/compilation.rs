@@ -5,7 +5,7 @@ use crate::schedule::ResourceSchedule;
 use crate::work_stream::WorkStream;
 use indexmap::IndexSet;
 
-/// A set of activity IDs that form a dependency cycle — the counterpart of the
+/// A set of activity IDs that form a dependency cycle - the counterpart of the
 /// C# `CircularDependency<T>`.
 ///
 /// The IDs are kept in discovery order (the C# `HashSet<T>` preserves insertion
@@ -36,7 +36,7 @@ impl<K: Key> PartialEq for CircularDependency<K> {
 
 impl<K: Key> Eq for CircularDependency<K> {}
 
-/// A violated activity constraint — the counterpart of the C#
+/// A violated activity constraint - the counterpart of the C#
 /// `InvalidConstraint<T>`. Equality compares the message case-insensitively,
 /// as in C# (`OrdinalIgnoreCase`).
 #[derive(Debug, Clone)]
@@ -62,7 +62,7 @@ impl<K: Key> PartialEq for InvalidConstraint<K> {
 
 impl<K: Key> Eq for InvalidConstraint<K> {}
 
-/// The resources an activity requires but that are not available — the
+/// The resources an activity requires but that are not available - the
 /// counterpart of the C# `UnavailableResources<T, TResourceId>`.
 #[derive(Debug, Clone)]
 pub struct UnavailableResources<K: Key, R: Key> {
@@ -94,7 +94,7 @@ impl<K: Key, R: Key> PartialEq for UnavailableResources<K, R> {
 
 impl<K: Key, R: Key> Eq for UnavailableResources<K, R> {}
 
-/// An error found while compiling a graph — the counterpart of the C#
+/// An error found while compiling a graph - the counterpart of the C#
 /// `GraphCompilationError`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GraphCompilationError {
@@ -111,7 +111,7 @@ impl GraphCompilationError {
     }
 }
 
-/// The result of compiling a graph — the counterpart of the C#
+/// The result of compiling a graph - the counterpart of the C#
 /// `GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>`.
 #[derive(Debug, Clone)]
 pub struct GraphCompilation<K: Key, R: Key, W: Key> {

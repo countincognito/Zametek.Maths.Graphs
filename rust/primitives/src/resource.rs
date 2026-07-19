@@ -2,7 +2,7 @@ use crate::enums::InterActivityAllocationType;
 use crate::key::Key;
 use indexmap::IndexSet;
 
-/// A schedulable resource — the counterpart of the C#
+/// A schedulable resource - the counterpart of the C#
 /// `Resource<T, TWorkStreamId>`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Resource<R: Key, W: Key> {

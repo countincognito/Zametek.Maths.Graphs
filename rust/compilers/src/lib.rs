@@ -1,11 +1,11 @@
-//! Graph compilers for project planning — Rust port of
+//! Graph compilers for project planning - Rust port of
 //! `Zametek.Maths.Graphs.Compilers`.
 //!
 //! Two graph representations are supported:
 //!
 //! * **Activity-on-Vertex** ([`VertexGraphBuilder`], [`VertexGraphCompiler`]):
 //!   activities live on nodes, events on edges. This is the compiler to use
-//!   for analysis — [`VertexGraphCompiler::compile`] runs the full pipeline
+//!   for analysis - [`VertexGraphCompiler::compile`] runs the full pipeline
 //!   including resource scheduling.
 //! * **Activity-on-Arrow** ([`ArrowGraphBuilder`], [`ArrowGraphCompiler`]):
 //!   activities live on edges, events on nodes, with dummy-edge orchestration.
@@ -54,11 +54,11 @@ pub use vertex::{
 pub use zametek_maths_graphs_primitives as primitives;
 
 /// The structure exported by a vertex builder: activities on nodes, events on
-/// edges — the counterpart of the C# `Graph<T, IEvent<T>, TActivity>`.
+/// edges - the counterpart of the C# `Graph<T, IEvent<T>, TActivity>`.
 pub type VertexGraph<K, R, W> =
     primitives::Graph<K, primitives::Event<K>, primitives::DependentActivity<K, R, W>>;
 
 /// The structure exported by an arrow builder: activities on edges, events on
-/// nodes — the counterpart of the C# `Graph<T, TActivity, IEvent<T>>`.
+/// nodes - the counterpart of the C# `Graph<T, TActivity, IEvent<T>>`.
 pub type ArrowGraph<K, R, W> =
     primitives::Graph<K, primitives::DependentActivity<K, R, W>, primitives::Event<K>>;
