@@ -14,10 +14,10 @@
 //! The C# original decomposes the algorithms into injectable engine interfaces
 //! (SCC finder, CPM engine, transitive reducer, resource scheduler, generators).
 //! This port preserves those seams as the traits in [`contracts`], each with a
-//! default engine struct that keeps the C# name. Unlike C#, the engines are
-//! stateless (they take the graph state as a parameter), which removes the need
-//! for the C# `…Factory` seams. The C# thread-safety locks are replaced by
-//! Rust's `&mut` ownership rules.
+//! default engine struct that keeps the C# name. As in the C# reference the
+//! engines are stateless (they take the graph state as a parameter), so neither
+//! has `…Factory` seams. The C# thread-safety locks are replaced by Rust's
+//! `&mut` ownership rules.
 //!
 //! To customise an engine, pass an engines bundle
 //! ([`VertexGraphBuilderEngines`](vertex::VertexGraphBuilderEngines) /
@@ -37,6 +37,12 @@ mod scheduling;
 mod shuffle;
 mod tarjan;
 pub mod vertex;
+
+// In-crate unit tests for the engines: they construct the crate-private graph
+// state directly (as the C# engine tests do via InternalsVisibleTo), which an
+// external integration test cannot reach.
+#[cfg(test)]
+mod engine_tests;
 
 pub use arrow::{
     ArrowCriticalPathEngine, ArrowGraphBuilder, ArrowGraphBuilderEngines, ArrowGraphCompiler,

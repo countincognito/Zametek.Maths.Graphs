@@ -796,3 +796,133 @@ fn given_get_next_activity_id_then_returns_max_plus_one() {
     compiler.add_activity(Act::new(7, 1));
     assert_eq!(compiler.get_next_activity_id(), 8);
 }
+
+#[test]
+fn given_transitive_reduction_when_dependencies_and_planning_dependencies_redundant_across_planning_dependencies_then_both_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 1));
+    compiler.add_activity(Act::with_planning_dependencies(2, 2, [], [1]));
+    compiler.add_activity(Act::with_planning_dependencies(3, 2, [1, 2], [1, 2]));
+
+    compiler.transitive_reduction().unwrap();
+    let compilation = compiler.compile().unwrap();
+
+    assert!(compilation.compilation_errors.is_empty());
+
+    let builder = compiler.builder();
+
+    let a1 = builder.activity(1).unwrap();
+    assert_eq!(a1.dependencies.len(), 0);
+    assert_eq!(a1.planning_dependencies.len(), 0);
+    assert_eq!(a1.resource_dependencies.len(), 0);
+    assert_eq!(a1.successors.len(), 1);
+    assert!(a1.successors.contains(&2));
+
+    let a2 = builder.activity(2).unwrap();
+    assert_eq!(a2.dependencies.len(), 0);
+    assert_eq!(a2.planning_dependencies.len(), 1);
+    assert!(a2.planning_dependencies.contains(&1));
+    assert_eq!(a2.resource_dependencies.len(), 1);
+    assert!(a2.resource_dependencies.contains(&1));
+    assert_eq!(a2.successors.len(), 1);
+    assert!(a2.successors.contains(&3));
+
+    let a3 = builder.activity(3).unwrap();
+    assert_eq!(a3.dependencies.len(), 1);
+    assert!(a3.dependencies.contains(&2));
+    assert_eq!(a3.planning_dependencies.len(), 1);
+    assert!(a3.resource_dependencies.contains(&2));
+    assert_eq!(a3.successors.len(), 0);
+}
+
+#[test]
+fn given_transitive_reduction_when_dependencies_and_planning_dependencies_redundant_across_dependencies_then_both_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 1));
+    compiler.add_activity(Act::with_dependencies(2, 2, [1]));
+    compiler.add_activity(Act::with_planning_dependencies(3, 2, [1, 2], [1, 2]));
+
+    compiler.transitive_reduction().unwrap();
+    let compilation = compiler.compile().unwrap();
+
+    assert!(compilation.compilation_errors.is_empty());
+
+    let builder = compiler.builder();
+
+    let a1 = builder.activity(1).unwrap();
+    assert_eq!(a1.dependencies.len(), 0);
+    assert_eq!(a1.planning_dependencies.len(), 0);
+    assert_eq!(a1.resource_dependencies.len(), 0);
+    assert_eq!(a1.successors.len(), 1);
+    assert!(a1.successors.contains(&2));
+
+    let a2 = builder.activity(2).unwrap();
+    assert_eq!(a2.dependencies.len(), 1);
+    assert!(a2.dependencies.contains(&1));
+    assert_eq!(a2.planning_dependencies.len(), 0);
+    assert_eq!(a2.resource_dependencies.len(), 1);
+    assert!(a2.resource_dependencies.contains(&1));
+    assert_eq!(a2.successors.len(), 1);
+    assert!(a2.successors.contains(&3));
+
+    let a3 = builder.activity(3).unwrap();
+    assert_eq!(a3.dependencies.len(), 1);
+    assert!(a3.dependencies.contains(&2));
+    assert_eq!(a3.planning_dependencies.len(), 1);
+    assert!(a3.resource_dependencies.contains(&2));
+    assert_eq!(a3.successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_minimum_free_slack_post_compilation_invalid_constraints_then_finds_invalid_constraints(
+) {
+    let mut compiler = Compiler::new();
+    let mut a1 = Act::new(1, 10);
+    a1.minimum_free_slack = Some(10);
+    compiler.add_activity(a1);
+    let mut a2 = Act::with_dependencies(2, 10, [1]);
+    a2.maximum_latest_finish_time = Some(20);
+    compiler.add_activity(a2);
+
+    let compilation = compiler.compile().unwrap();
+
+    assert!(!compilation.resource_schedules.is_empty());
+    assert_eq!(compilation.compilation_errors.len(), 1);
+    assert_eq!(
+        compilation.compilation_errors[0].error_code,
+        GraphCompilationErrorCode::C0010
+    );
+    assert_eq!(
+        compilation.compilation_errors[0].error_message,
+        "Invalid activity constraints:\n1 -> FreeSlack cannot be less than MinimumFreeSlack\n"
+    );
+
+    let builder = compiler.builder();
+
+    let a1 = builder.activity(1).unwrap();
+    assert_eq!(a1.earliest_start_time, Some(0));
+    assert_eq!(a1.earliest_finish_time(), Some(10));
+    assert_eq!(a1.free_slack, Some(0));
+    assert_eq!(a1.total_slack(), Some(0));
+    assert_eq!(a1.latest_start_time(), Some(0));
+    assert_eq!(a1.latest_finish_time, Some(10));
+    assert_eq!(a1.dependencies.len(), 0);
+    assert_eq!(a1.planning_dependencies.len(), 0);
+    assert_eq!(a1.resource_dependencies.len(), 0);
+    assert_eq!(a1.successors.len(), 1);
+    assert!(a1.successors.contains(&2));
+
+    let a2 = builder.activity(2).unwrap();
+    assert_eq!(a2.earliest_start_time, Some(10));
+    assert_eq!(a2.earliest_finish_time(), Some(20));
+    assert_eq!(a2.free_slack, Some(0));
+    assert_eq!(a2.total_slack(), Some(0));
+    assert_eq!(a2.latest_start_time(), Some(10));
+    assert_eq!(a2.latest_finish_time, Some(20));
+    assert_eq!(a2.dependencies.len(), 1);
+    assert_eq!(a2.planning_dependencies.len(), 0);
+    assert_eq!(a2.resource_dependencies.len(), 1);
+    assert_eq!(a2.successors.len(), 0);
+}
