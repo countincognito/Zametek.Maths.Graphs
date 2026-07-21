@@ -421,7 +421,9 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ## Breaking changes
 
-### Unreleased
+### 3.1.0
+
+This release also contains behaviour-preserving performance and robustness work - iterative deep-graph traversals (no more stack-overflow risk on very deep dependency chains), compact bitset ancestors for transitive reduction, linear arrow-graph construction and reduced allocation churn in the CPM and scheduling passes - recorded in the [performance notes](docs/PERFORMANCE.md). The breaking changes are:
 
 - The transitive reducers and the dummy-edge orchestrator are now **stateless**: they take the graph state (and any collaborators) as method parameters instead of capturing it at construction. As a result the `IArrowTransitiveReducerFactory` / `IVertexTransitiveReducerFactory` / `IDummyEdgeOrchestratorFactory` interfaces and their default implementations are removed; the single `ITransitiveReducer<T>` is split into `IVertexTransitiveReducer<…>` / `IArrowTransitiveReducer<…>`; the engines bundles expose `TransitiveReducer` / `DummyEdgeOrchestrator` engine properties in place of the former `…Factory` properties; and `VertexGraphState<…>` / `ArrowGraphState<…>` are now public (their structural-mutation API stays `internal`) so the injected engines can take them directly.
 - The builders' `WhenTesting` property is renamed to `ShuffleProcessingOrder`, which is what it actually does: when true, the critical-path passes process remaining edges in a random order on each iteration (results are identical either way; tests use it to prove order-independence).
