@@ -200,7 +200,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_minimum_earliest_start
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_minimum_earliest_start_time_in_normal_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -221,6 +220,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_minimum_earliest_start
     builder.add_activity_with_dependencies(Act::new(8, 4), IndexSet::from([4, 6]));
     builder.add_activity_with_dependencies(Act::new(9, 10), IndexSet::from([5]));
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, 0, 6, 4, 4, 4, 10);
@@ -235,7 +235,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_minimum_earliest_start
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_minimum_earliest_start_time_in_end_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -256,6 +255,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_minimum_earliest_start
         IndexSet::from([5]),
     );
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, 0, 6, 2, 6, 6, 12);
@@ -270,7 +270,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_minimum_earliest_start
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_time_in_start_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -288,6 +287,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_
     builder.add_activity_with_dependencies(Act::new(8, 4), IndexSet::from([4, 6]));
     builder.add_activity_with_dependencies(Act::new(9, 10), IndexSet::from([5]));
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, 0, 6, 1, 1, 1, 7);
@@ -302,7 +302,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest_finish_time_in_start_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -320,6 +319,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest
     builder.add_activity_with_dependencies(Act::new(8, 4), IndexSet::from([4, 6]));
     builder.add_activity_with_dependencies(Act::new(9, 10), IndexSet::from([5]));
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, -1, 5, 0, 0, -1, 5);
@@ -334,7 +334,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_time_in_normal_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -355,6 +354,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_
     builder.add_activity_with_dependencies(Act::new(8, 4), IndexSet::from([4, 6]));
     builder.add_activity_with_dependencies(Act::new(9, 10), IndexSet::from([5]));
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, 0, 6, 2, 2, 2, 8);
@@ -369,7 +369,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest_finish_time_in_normal_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -390,6 +389,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest
     builder.add_activity_with_dependencies(Act::new(8, 4), IndexSet::from([4, 6]));
     builder.add_activity_with_dependencies(Act::new(9, 10), IndexSet::from([5]));
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, 0, 6, 2, 2, 2, 8);
@@ -404,7 +404,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_time_in_end_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -425,6 +424,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_
     );
     builder.add_activity_with_dependencies(Act::new(9, 10), IndexSet::from([5]));
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, 0, 6, 2, 2, 2, 8);
@@ -439,7 +439,6 @@ fn arrow_graph_builder_given_calculate_critical_path_when_maximum_latest_finish_
 }
 
 #[test]
-#[ignore = "arrow free-slack under MinEST/MaxLFT constraints diverges from the C# reference; golden values retained as a drift alarm"]
 fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest_finish_time_in_end_activity_then_as_expected(
 ) {
     let mut builder = new_builder();
@@ -460,6 +459,7 @@ fn arrow_graph_builder_given_calculate_critical_path_when_extreme_maximum_latest
     );
     builder.add_activity_with_dependencies(Act::new(9, 10), IndexSet::from([5]));
 
+    builder.transitive_reduction().unwrap();
     builder.calculate_critical_path().unwrap();
 
     assert_cpm(&builder, 1, 0, 6, 2, 2, 2, 8);
