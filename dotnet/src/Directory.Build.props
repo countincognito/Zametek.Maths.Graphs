@@ -3,7 +3,7 @@
   <!-- Shared metadata for all packable src projects. Version lives here so the
        two packages can never drift apart. -->
   <PropertyGroup>
-    <Version>3.0.2</Version>
+    <Version>3.1.0</Version>
     <Authors>countincognito</Authors>
     <Company>countincognito</Company>
     <Copyright>Copyright (c) 2026 Riccardo M Bennett-Lovsey</Copyright>
