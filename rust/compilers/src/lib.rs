@@ -32,6 +32,7 @@ pub mod contracts;
 mod error_formatter;
 mod generators;
 mod id_gen;
+mod insertion_order_map;
 pub mod messages;
 mod scheduling;
 mod shuffle;

@@ -1,4 +1,5 @@
 use crate::ancestor::AncestorGraphView;
+use crate::insertion_order_map::InsertionOrderMap;
 use crate::tarjan::GraphTraversal;
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, Event, Key, Node, NodeType};
@@ -13,12 +14,12 @@ use zametek_maths_graphs_primitives::{DependentActivity, Edge, Event, Key, Node,
 /// external engines go through the method surface below (mirroring the way the
 /// C# state is an `internal sealed` class behind a public interface).
 pub struct ArrowGraphState<K: Key, R: Key, W: Key> {
-    pub(crate) edges: IndexMap<K, Edge<K, DependentActivity<K, R, W>>>,
-    pub(crate) nodes: IndexMap<K, Node<K, Event<K>>>,
+    pub(crate) edges: InsertionOrderMap<K, Edge<K, DependentActivity<K, R, W>>>,
+    pub(crate) nodes: InsertionOrderMap<K, Node<K, Event<K>>>,
     /// Dependency activity ID -> the tail-node IDs waiting for it to appear.
     pub(crate) unsatisfied_successors: IndexMap<K, IndexSet<K>>,
-    pub(crate) edge_head: IndexMap<K, K>,
-    pub(crate) edge_tail: IndexMap<K, K>,
+    pub(crate) edge_head: InsertionOrderMap<K, K>,
+    pub(crate) edge_tail: InsertionOrderMap<K, K>,
     pub(crate) start_node_id: Option<K>,
     pub(crate) end_node_id: Option<K>,
 }
@@ -26,11 +27,11 @@ pub struct ArrowGraphState<K: Key, R: Key, W: Key> {
 impl<K: Key, R: Key, W: Key> ArrowGraphState<K, R, W> {
     pub(crate) fn new() -> Self {
         Self {
-            edges: IndexMap::new(),
-            nodes: IndexMap::new(),
+            edges: InsertionOrderMap::new(),
+            nodes: InsertionOrderMap::new(),
             unsatisfied_successors: IndexMap::new(),
-            edge_head: IndexMap::new(),
-            edge_tail: IndexMap::new(),
+            edge_head: InsertionOrderMap::new(),
+            edge_tail: InsertionOrderMap::new(),
             start_node_id: None,
             end_node_id: None,
         }
@@ -74,7 +75,7 @@ impl<K: Key, R: Key, W: Key> ArrowGraphState<K, R, W> {
     }
 
     pub fn remove_edge(&mut self, edge_id: K) -> bool {
-        self.edges.shift_remove(&edge_id).is_some()
+        self.edges.remove(&edge_id).is_some()
     }
 
     pub fn add_node(&mut self, node: Node<K, Event<K>>) {
@@ -83,7 +84,7 @@ impl<K: Key, R: Key, W: Key> ArrowGraphState<K, R, W> {
     }
 
     pub fn remove_node(&mut self, node_id: K) -> bool {
-        self.nodes.shift_remove(&node_id).is_some()
+        self.nodes.remove(&node_id).is_some()
     }
 
     pub fn set_edge_head_node(&mut self, edge_id: K, node_id: K) {
@@ -92,7 +93,7 @@ impl<K: Key, R: Key, W: Key> ArrowGraphState<K, R, W> {
     }
 
     pub fn remove_edge_head_node(&mut self, edge_id: K) -> bool {
-        self.edge_head.shift_remove(&edge_id).is_some()
+        self.edge_head.remove(&edge_id).is_some()
     }
 
     pub fn set_edge_tail_node(&mut self, edge_id: K, node_id: K) {
@@ -101,7 +102,7 @@ impl<K: Key, R: Key, W: Key> ArrowGraphState<K, R, W> {
     }
 
     pub fn remove_edge_tail_node(&mut self, edge_id: K) -> bool {
-        self.edge_tail.shift_remove(&edge_id).is_some()
+        self.edge_tail.remove(&edge_id).is_some()
     }
 
     pub fn add_unsatisfied_successor(&mut self, dependency_id: K, successor_node_id: K) {
