@@ -1,7 +1,8 @@
-//! Ports of representative tests from
-//! `Zametek.Maths.Graphs.Compilers.Tests/Compilers/VertexGraphCompilerTests.cs`.
-//! The expected values are copied verbatim from the C# test suite, so a green
-//! run demonstrates input/output parity with the original library.
+//! Ports of `VertexGraphCompilerTests.cs` (all 79 C# tests, plus two
+//! Rust-specific additions). The expected values - resource schedules,
+//! allocation streams, critical-path variables, and compilation-error text -
+//! are copied verbatim from the C# test suite, so a green run demonstrates
+//! input/output parity with the original library.
 
 use indexmap::IndexSet;
 use zametek_maths_graphs_compilers::VertexGraphCompiler;
@@ -925,4 +926,16057 @@ fn given_compile_with_minimum_free_slack_post_compilation_invalid_constraints_th
     assert_eq!(a2.planning_dependencies.len(), 0);
     assert_eq!(a2.resource_dependencies.len(), 1);
     assert_eq!(a2.successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_unavailable_resources_then_finds_unavailable_resources() {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 6);
+        a.target_resources.insert(1);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 7);
+        a.target_resources.insert(2);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 4);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(4, 8);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(5, 3);
+        a.target_resources.insert(2);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(6, 2);
+        a.target_resources.insert(1);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(7, 1);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(8, 6);
+        a.target_resources.insert(1);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(9, 12);
+        a.target_resources.insert(2);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(10, 11);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(11, 9);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(12, 3);
+        a.target_resources.insert(2);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(13, 13);
+        a.target_resources.insert(1);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(14, 8);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(15, 4);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::ActiveAnd;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(16, 3);
+        a.target_resources.insert(2);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::ActiveAnd;
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.resource_schedules.is_empty());
+    assert!(!compilation.compilation_errors.is_empty());
+    assert_eq!(compilation.compilation_errors.len(), 1);
+    assert_eq!(
+        compilation.compilation_errors[0].error_code,
+        GraphCompilationErrorCode::P0060
+    );
+    assert_eq!(compilation.compilation_errors[0].error_message, "Unavailable resources for activities:\n2 -> 2\n3 -> 3\n4 -> 2\n5 -> 2, 3\n6 -> 3\n7 -> 2, 3\n9 -> 2\n10 -> 3\n12 -> 2, 3\n16 -> 2, 3\n");
+}
+
+#[test]
+fn given_compile_with_compiled_dependencies_and_unlimited_resources_and_target_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 6);
+        a.target_resources.insert(1);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(2, 7, [1]);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(3, 4, [2]);
+        a.target_resources.insert(1);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    let compilation = compiler.compile().unwrap();
+    assert!(!compilation.resource_schedules.is_empty());
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 6);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 17);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        17
+    );
+}
+
+#[test]
+fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity(Act::new(3, 8));
+    compiler.add_activity(Act::with_dependencies(4, 11, [2]));
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(5, 8, [1, 2, 3]);
+        a.minimum_free_slack = Some(15);
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(6, 7, [3]));
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_dependencies(8, 4, [4, 6]));
+    compiler.add_activity(Act::with_dependencies(9, 10, [5]));
+    let compilation = compiler.compile().unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 4);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 2);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 18);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 7);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 22);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 9);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 31);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 41);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        41
+    );
+    assert!(schedules[1].resource.is_none());
+    assert_eq!(schedules[1].scheduled_activities.len(), 3);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 3);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 6);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 8);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 22);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        22
+    );
+    assert!(schedules[2].resource.is_none());
+    assert_eq!(schedules[2].scheduled_activities.len(), 2);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[2].scheduled_activities[1].id, 5);
+    assert_eq!(schedules[2].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[2].scheduled_activities[1].finish_time, 16);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        16
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(6)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(2));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(17)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(17)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(18)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(27)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .contains(&2));
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(16)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(15));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .contains(&1));
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(37)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .contains(&3));
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(9));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(27)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .contains(&4));
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(19));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(37)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(41)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .contains(&6));
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(41)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(41)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .contains(&7));
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_dependencies_and_two_none_and_direct_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity({
+        let mut a = Act::new(2, 7);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(4, 11, [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(5, 8, [1, 2, 3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(6, 7, [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_dependencies(8, 4, [4, 6]));
+    compiler.add_activity(Act::with_dependencies(9, 10, [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 2);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, false, false, false, false, false, false, false,
+            true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 5);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 6);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 7);
+    assert!(!schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 8);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 34);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        34
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, true, true, true, true, true, true,
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 4);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 1);
+    assert!(!schedules[1].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 5);
+    assert!(schedules[1].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].id, 9);
+    assert!(!schedules[1].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].finish_time, 31);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        31
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(13)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(10)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![1]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(19)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![3]);
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![1]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(13)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![1]);
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![4]);
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![1]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(30)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![6]);
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![1]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(34)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![7]);
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![1]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(31)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![5]);
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_dependencies_and_one_active_and_two_inactive_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity({
+        let mut a = Act::new(2, 7);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(4, 11, [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(5, 8, [1, 2, 3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(6, 7, [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_dependencies(8, 4, [4, 6]));
+    compiler.add_activity(Act::with_dependencies(9, 10, [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, true, true, true, true, true, true, true, true, true, true,
+            true, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, false, false, false, false, false, false, false, false, false, false,
+            false, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[0].scheduled_activities.len(), 9);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 1);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 15);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 5);
+    assert!(schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 29);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 4);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 29);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 40);
+    assert_eq!(schedules[0].scheduled_activities[5].id, 6);
+    assert!(schedules[0].scheduled_activities[5].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[5].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[5].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[5].start_time, 40);
+    assert_eq!(schedules[0].scheduled_activities[5].finish_time, 47);
+    assert_eq!(schedules[0].scheduled_activities[6].id, 9);
+    assert!(!schedules[0].scheduled_activities[6].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[6].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[6].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[6].start_time, 47);
+    assert_eq!(schedules[0].scheduled_activities[6].finish_time, 57);
+    assert_eq!(schedules[0].scheduled_activities[7].id, 7);
+    assert!(!schedules[0].scheduled_activities[7].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[7].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[7].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[7].start_time, 57);
+    assert_eq!(schedules[0].scheduled_activities[7].finish_time, 61);
+    assert_eq!(schedules[0].scheduled_activities[8].id, 8);
+    assert!(!schedules[0].scheduled_activities[8].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[8].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[8].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[8].start_time, 61);
+    assert_eq!(schedules[0].scheduled_activities[8].finish_time, 65);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        65
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(15)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![3]);
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![2]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(29)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(40)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(29)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(40)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![5]);
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![2]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(29)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(21)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(29)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![1]);
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(40)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(47)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(40)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(47)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![4]);
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![2]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(57)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(61)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(57)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(61)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![9]);
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![2]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(61)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(65)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(61)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(65)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![7]);
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![2]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(47)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(57)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(47)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(57)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![6]);
+    let mut actual17: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual17.sort();
+    assert_eq!(actual17, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_dependencies_and_two_indirect_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(4, 11, [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(5, 8, [1, 2, 3]));
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(6, 7, [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_dependencies(8, 4, [4, 6]));
+    compiler.add_activity(Act::with_dependencies(9, 10, [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 2);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 5);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 6);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 7);
+    assert!(!schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 8);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 34);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        34
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 4);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 1);
+    assert!(!schedules[1].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 5);
+    assert!(!schedules[1].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].id, 9);
+    assert!(!schedules[1].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].finish_time, 31);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        31
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(13)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(10)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![1]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(19)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![3]);
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![1]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(13)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![1]);
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![4]);
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![1]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(30)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![6]);
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![1]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(34)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![7]);
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![1]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(31)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![5]);
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_planning_dependencies_and_unlimited_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity(Act::new(3, 8));
+    compiler.add_activity(Act::with_planning_dependencies(4, 11, [], [2]));
+    compiler.add_activity(Act::with_planning_dependencies(5, 8, [], [1, 2, 3]));
+    compiler.add_activity(Act::with_planning_dependencies(6, 7, [], [3]));
+    compiler.add_activity(Act::with_planning_dependencies(7, 4, [], [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [], [4, 6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler.compile().unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 16);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 9);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 16);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        26
+    );
+    assert!(schedules[1].resource.is_none());
+    assert_eq!(schedules[1].scheduled_activities.len(), 3);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 4);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 18);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 7);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 22);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        22
+    );
+    assert!(schedules[2].resource.is_none());
+    assert_eq!(schedules[2].scheduled_activities.len(), 3);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[2].scheduled_activities[1].id, 6);
+    assert_eq!(schedules[2].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[2].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[2].scheduled_activities[2].id, 8);
+    assert_eq!(schedules[2].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[2].scheduled_activities[2].finish_time, 22);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        22
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(6)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(2));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(2)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(2)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(18)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(4)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(11)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .contains(&2));
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(16)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .contains(&3));
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(7)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .contains(&1));
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(4));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(4)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .contains(&4));
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(4));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(4)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .contains(&6));
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .contains(&5));
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_planning_dependencies_and_unlimited_resources_and_target_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 6);
+        a.target_resources.insert(1);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(2, 7, [], [1]);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(3, 4, [], [2]);
+        a.target_resources.insert(1);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    let compilation = compiler.compile().unwrap();
+    assert!(!compilation.resource_schedules.is_empty());
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 6);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 17);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        17
+    );
+}
+
+#[test]
+fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity(Act::new(3, 8));
+    compiler.add_activity(Act::with_planning_dependencies(4, 11, [], [2]));
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(5, 8, [], [1, 2, 3]);
+        a.minimum_free_slack = Some(15);
+        a
+    });
+    compiler.add_activity(Act::with_planning_dependencies(6, 7, [], [3]));
+    compiler.add_activity(Act::with_planning_dependencies(7, 4, [], [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [], [4, 6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler.compile().unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 4);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 2);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 18);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 7);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 22);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 9);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 31);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 41);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        41
+    );
+    assert!(schedules[1].resource.is_none());
+    assert_eq!(schedules[1].scheduled_activities.len(), 3);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 3);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 6);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 8);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 22);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        22
+    );
+    assert!(schedules[2].resource.is_none());
+    assert_eq!(schedules[2].scheduled_activities.len(), 2);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[2].scheduled_activities[1].id, 5);
+    assert_eq!(schedules[2].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[2].scheduled_activities[1].finish_time, 16);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        16
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(6)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(2));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(17)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(17)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(18)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(27)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .contains(&2));
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(16)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(15));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .contains(&1));
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(37)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .contains(&3));
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(9));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(27)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .contains(&4));
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(19));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(37)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(41)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .contains(&6));
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(41)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(41)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .contains(&7));
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_planning_dependencies_and_two_none_and_direct_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity({
+        let mut a = Act::new(2, 7);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(4, 11, [], [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(5, 8, [], [1, 2, 3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(6, 7, [], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_planning_dependencies(7, 4, [], [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [], [4, 6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 2);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, false, false, false, false, false, false, false,
+            true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 5);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 6);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 7);
+    assert!(!schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 8);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 34);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        34
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, true, true, true, true, true, true,
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 4);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 1);
+    assert!(!schedules[1].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 5);
+    assert!(schedules[1].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].id, 9);
+    assert!(!schedules[1].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].finish_time, 31);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        31
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(13)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(10)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![1]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(19)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![3]);
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![1]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(13)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![1]);
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![4]);
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![1]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(30)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![6]);
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![1]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(34)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![7]);
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![1]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(31)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![5]);
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_planning_dependencies_and_one_active_and_two_inactive_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity({
+        let mut a = Act::new(2, 7);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(4, 11, [], [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(5, 8, [], [1, 2, 3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(6, 7, [], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_planning_dependencies(7, 4, [], [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [], [4, 6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, true, true, true, true, true, true, true, true, true, true,
+            true, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, false, false, false, false, false, false, false, false, false, false,
+            false, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[0].scheduled_activities.len(), 9);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 1);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 15);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 5);
+    assert!(schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 29);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 4);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 29);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 40);
+    assert_eq!(schedules[0].scheduled_activities[5].id, 6);
+    assert!(schedules[0].scheduled_activities[5].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[5].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[5].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[5].start_time, 40);
+    assert_eq!(schedules[0].scheduled_activities[5].finish_time, 47);
+    assert_eq!(schedules[0].scheduled_activities[6].id, 9);
+    assert!(!schedules[0].scheduled_activities[6].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[6].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[6].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[6].start_time, 47);
+    assert_eq!(schedules[0].scheduled_activities[6].finish_time, 57);
+    assert_eq!(schedules[0].scheduled_activities[7].id, 7);
+    assert!(!schedules[0].scheduled_activities[7].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[7].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[7].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[7].start_time, 57);
+    assert_eq!(schedules[0].scheduled_activities[7].finish_time, 61);
+    assert_eq!(schedules[0].scheduled_activities[8].id, 8);
+    assert!(!schedules[0].scheduled_activities[8].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[8].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[8].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[8].start_time, 61);
+    assert_eq!(schedules[0].scheduled_activities[8].finish_time, 65);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        65
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(15)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![3]);
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![2]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(29)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(40)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(29)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(40)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![5]);
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![2]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(29)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(21)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(29)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![1]);
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(40)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(47)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(40)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(47)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![4]);
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![2]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(57)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(61)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(57)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(61)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![9]);
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![2]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(61)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(65)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(61)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(65)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![7]);
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![2]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(47)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(57)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(47)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(57)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![6]);
+    let mut actual17: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual17.sort();
+    assert_eq!(actual17, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_planning_dependencies_and_two_indirect_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(4, 11, [], [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity(Act::with_planning_dependencies(5, 8, [], [1, 2, 3]));
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(6, 7, [], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_planning_dependencies(7, 4, [], [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [], [4, 6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 2);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 5);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 6);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 7);
+    assert!(!schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 8);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 34);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        34
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 4);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 1);
+    assert!(!schedules[1].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 5);
+    assert!(!schedules[1].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].id, 9);
+    assert!(!schedules[1].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].finish_time, 31);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        31
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(13)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(10)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![1]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(19)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![3]);
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![1]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(13)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        3
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![1]);
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![4]);
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![1]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(30)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![6]);
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![1]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(34)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![7]);
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![1]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(31)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![5]);
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity(Act::new(3, 8));
+    compiler.add_activity(Act::with_planning_dependencies(4, 11, [], [2]));
+    compiler.add_activity(Act::with_planning_dependencies(5, 8, [1, 2], [3]));
+    compiler.add_activity(Act::with_planning_dependencies(6, 7, [], [3]));
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [4], [6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler.compile().unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 16);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 9);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 16);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        26
+    );
+    assert!(schedules[1].resource.is_none());
+    assert_eq!(schedules[1].scheduled_activities.len(), 3);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 4);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 18);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 7);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 22);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        22
+    );
+    assert!(schedules[2].resource.is_none());
+    assert_eq!(schedules[2].scheduled_activities.len(), 3);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[2].scheduled_activities[1].id, 6);
+    assert_eq!(schedules[2].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[2].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[2].scheduled_activities[2].id, 8);
+    assert_eq!(schedules[2].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[2].scheduled_activities[2].finish_time, 22);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        22
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(6)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(2));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(2)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(2)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(18)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(4)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(11)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .contains(&2));
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(16)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .contains(&3));
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(7)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .contains(&1));
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(4));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(4)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .contains(&4));
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(4));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(4)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .contains(&6));
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .contains(&5));
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources_and_target_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 6);
+        a.target_resources.insert(1);
+        a.target_resource_operator = LogicalOperator::And;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(2, 7, [], [1]);
+        a.target_resources.insert(1);
+        a.target_resources.insert(2);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(3, 4, [2]);
+        a.target_resources.insert(1);
+        a.target_resources.insert(3);
+        a.target_resource_operator = LogicalOperator::Or;
+        a
+    });
+    let compilation = compiler.compile().unwrap();
+    assert!(!compilation.resource_schedules.is_empty());
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 6);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 17);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        17
+    );
+}
+
+#[test]
+fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimited_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity(Act::new(3, 8));
+    compiler.add_activity(Act::with_planning_dependencies(4, 11, [], [2]));
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(5, 8, [1, 2], [3]);
+        a.minimum_free_slack = Some(15);
+        a
+    });
+    compiler.add_activity(Act::with_planning_dependencies(6, 7, [], [3]));
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [4], [6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler.compile().unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert!(schedules[0].resource.is_none());
+    assert_eq!(schedules[0].scheduled_activities.len(), 4);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 2);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 18);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 7);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 22);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 9);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 31);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 41);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        41
+    );
+    assert!(schedules[1].resource.is_none());
+    assert_eq!(schedules[1].scheduled_activities.len(), 3);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 3);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 6);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 8);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 18);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 22);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        22
+    );
+    assert!(schedules[2].resource.is_none());
+    assert_eq!(schedules[2].scheduled_activities.len(), 2);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 1);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 6);
+    assert_eq!(schedules[2].scheduled_activities[1].id, 5);
+    assert_eq!(schedules[2].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[2].scheduled_activities[1].finish_time, 16);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        16
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(6)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(2));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(17)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(17)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(18)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(27)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .contains(&2));
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(16)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(15));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(23)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .contains(&1));
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(22)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(37)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .contains(&3));
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(9));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(9)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(27)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .contains(&4));
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(18)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(22)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(19));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(37)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(41)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .contains(&6));
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(31)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(41)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(31)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(41)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .contains(&7));
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_and_planning_dependencies_and_two_none_and_direct_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity({
+        let mut a = Act::new(2, 7);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(4, 11, [], [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(5, 8, [1, 2], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(6, 7, [], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [4], [6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 2);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, false, false, false, false, false, false, false,
+            true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 5);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 6);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 7);
+    assert!(!schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 8);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 34);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        34
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, true, true, true, true, true, true,
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 4);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 1);
+    assert!(!schedules[1].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 5);
+    assert!(schedules[1].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].id, 9);
+    assert!(!schedules[1].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].finish_time, 31);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        31
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(13)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(10)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![1]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(19)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![3]);
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![1]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(13)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![1]);
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![4]);
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![1]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(30)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![6]);
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![1]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(34)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![7]);
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![1]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(31)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![5]);
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_and_planning_dependencies_and_one_active_and_two_inactive_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity({
+        let mut a = Act::new(2, 7);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(4, 11, [], [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(5, 8, [1, 2], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(6, 7, [], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [4], [6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                true,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, true, true, true, true, true, true, true, true, true, true,
+            true, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, false, false, false, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, false, false, false, false, false, false, false, false, false, false,
+            false, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[0].scheduled_activities.len(), 9);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 15);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 1);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 15);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 5);
+    assert!(schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 29);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 4);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 29);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 40);
+    assert_eq!(schedules[0].scheduled_activities[5].id, 6);
+    assert!(schedules[0].scheduled_activities[5].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[5].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[5].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[5].start_time, 40);
+    assert_eq!(schedules[0].scheduled_activities[5].finish_time, 47);
+    assert_eq!(schedules[0].scheduled_activities[6].id, 9);
+    assert!(!schedules[0].scheduled_activities[6].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[6].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[6].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[6].start_time, 47);
+    assert_eq!(schedules[0].scheduled_activities[6].finish_time, 57);
+    assert_eq!(schedules[0].scheduled_activities[7].id, 7);
+    assert!(!schedules[0].scheduled_activities[7].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[7].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[7].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[7].start_time, 57);
+    assert_eq!(schedules[0].scheduled_activities[7].finish_time, 61);
+    assert_eq!(schedules[0].scheduled_activities[8].id, 8);
+    assert!(!schedules[0].scheduled_activities[8].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[8].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[8].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[8].start_time, 61);
+    assert_eq!(schedules[0].scheduled_activities[8].finish_time, 65);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        65
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(15)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(15)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(15)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![3]);
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![2]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(29)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(40)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(29)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(40)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![5]);
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![2]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(29)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(21)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(29)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![1]);
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(40)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(47)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(40)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(47)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![4]);
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![2]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(57)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(61)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(57)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(61)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![9]);
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![2]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(61)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(65)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(61)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(65)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![7]);
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![2]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(47)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(57)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(47)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(57)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![6]);
+    let mut actual17: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual17.sort();
+    assert_eq!(actual17, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_compiled_and_planning_dependencies_and_two_indirect_resources_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 6));
+    compiler.add_activity(Act::new(2, 7));
+    compiler.add_activity({
+        let mut a = Act::new(3, 8);
+        a.has_no_cost = true;
+        a.has_no_effort = true;
+        a.has_no_billing = true;
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(4, 11, [], [2]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity(Act::with_planning_dependencies(5, 8, [1, 2], [3]));
+    compiler.add_activity({
+        let mut a = Act::with_planning_dependencies(6, 7, [], [3]);
+        a.has_no_cost = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(7, 4, [4]));
+    compiler.add_activity(Act::with_planning_dependencies(8, 4, [4], [6]));
+    compiler.add_activity(Act::with_planning_dependencies(9, 10, [], [5]));
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 2);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 5);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 3);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 4);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 6);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 19);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].id, 7);
+    assert!(!schedules[0].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[3].start_time, 26);
+    assert_eq!(schedules[0].scheduled_activities[3].finish_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].id, 8);
+    assert!(!schedules[0].scheduled_activities[4].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[4].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[4].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[4].start_time, 30);
+    assert_eq!(schedules[0].scheduled_activities[4].finish_time, 34);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        34
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, false, false, false
+        ]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 4);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].id, 1);
+    assert!(!schedules[1].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[1].start_time, 7);
+    assert_eq!(schedules[1].scheduled_activities[1].finish_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].id, 5);
+    assert!(!schedules[1].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[2].start_time, 13);
+    assert_eq!(schedules[1].scheduled_activities[2].finish_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].id, 9);
+    assert!(!schedules[1].scheduled_activities[3].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[3].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[3].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[3].start_time, 21);
+    assert_eq!(schedules[1].scheduled_activities[3].finish_time, 31);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        31
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(7)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(13)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(10)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![2]);
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(compiler.builder().activity(1).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(7)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(1)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![2]);
+    assert_eq!(compiler.builder().activity(2).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&4));
+    assert!(compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(8)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![1]);
+    assert_eq!(compiler.builder().activity(3).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&5));
+    assert!(compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .successors
+        .contains(&6));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(8)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(19)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(8)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .planning_dependencies
+        .contains(&2));
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![3]);
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![1]);
+    assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&7));
+    assert!(compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().earliest_start_time,
+        Some(13)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(21)
+    );
+    assert_eq!(compiler.builder().activity(5).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_start_time(),
+        Some(16)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().latest_finish_time,
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(5).unwrap().dependencies.len(),
+        2
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&1));
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .dependencies
+        .contains(&2));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(5)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual7: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual7.sort();
+    assert_eq!(actual7, vec![1]);
+    let mut actual8: Vec<i32> = compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual8.sort();
+    assert_eq!(actual8, vec![2]);
+    assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(5)
+        .unwrap()
+        .successors
+        .contains(&9));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().earliest_start_time,
+        Some(19)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(26)
+    );
+    assert_eq!(compiler.builder().activity(6).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_start_time(),
+        Some(19)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().latest_finish_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(6).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(6)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .planning_dependencies
+        .contains(&3));
+    let mut actual9: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual9.sort();
+    assert_eq!(actual9, vec![4]);
+    let mut actual10: Vec<i32> = compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual10.sort();
+    assert_eq!(actual10, vec![1]);
+    assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
+    assert!(compiler
+        .builder()
+        .activity(6)
+        .unwrap()
+        .successors
+        .contains(&8));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().earliest_start_time,
+        Some(26)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(30)
+    );
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_start_time(),
+        Some(26)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().latest_finish_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(7).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(7)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        0
+    );
+    let mut actual11: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual11.sort();
+    assert_eq!(actual11, vec![6]);
+    let mut actual12: Vec<i32> = compiler
+        .builder()
+        .activity(7)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual12.sort();
+    assert_eq!(actual12, vec![1]);
+    assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().earliest_start_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(34)
+    );
+    assert_eq!(compiler.builder().activity(8).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_start_time(),
+        Some(30)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(8).unwrap().dependencies.len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .dependencies
+        .contains(&4));
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(8)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .planning_dependencies
+        .contains(&6));
+    let mut actual13: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual13.sort();
+    assert_eq!(actual13, vec![7]);
+    let mut actual14: Vec<i32> = compiler
+        .builder()
+        .activity(8)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual14.sort();
+    assert_eq!(actual14, vec![1]);
+    assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().earliest_start_time,
+        Some(21)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(31)
+    );
+    assert_eq!(compiler.builder().activity(9).unwrap().free_slack, Some(3));
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().total_slack(),
+        Some(3)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_start_time(),
+        Some(24)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().latest_finish_time,
+        Some(34)
+    );
+    assert_eq!(
+        compiler.builder().activity(9).unwrap().dependencies.len(),
+        0
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(9)
+            .unwrap()
+            .planning_dependencies
+            .len(),
+        1
+    );
+    assert!(compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .planning_dependencies
+        .contains(&5));
+    let mut actual15: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual15.sort();
+    assert_eq!(actual15, vec![5]);
+    let mut actual16: Vec<i32> = compiler
+        .builder()
+        .activity(9)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual16.sort();
+    assert_eq!(actual16, vec![2]);
+    assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
+}
+
+#[test]
+fn given_compile_with_no_activities_and_one_indirect_resource_then_resource_schedules_correct_order(
+) {
+    let mut compiler = Compiler::new();
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert!(schedules[0].resource_allocation.is_empty());
+    assert!(schedules[0].cost_allocation.is_empty());
+    assert!(schedules[0].billing_allocation.is_empty());
+    assert!(schedules[0].effort_allocation.is_empty());
+    assert!(schedules[0].activity_allocation.is_empty());
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_no_uncosted_un_billed_and_unefforted_activities_then_outputs_as_expected(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_uncosted_direct_activity_then_direct_costs_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![false, false, false, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_unefforted_direct_activity_then_direct_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![false, false, false, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_unbilled_direct_activity_then_direct_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![false, false, false, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_uncosted_indirect_activity_then_indirect_costs_unaffected(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_cost = true;
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_unefforted_indirect_activity_then_indirect_efforts_unaffected(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_effort = true;
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_unbilled_indirect_activity_then_indirect_billings_unaffected(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_billing = true;
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_uncosted_none_activity_then_none_costs_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_cost = true;
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![false, false, false, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_unefforted_none_activity_then_none_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_effort = true;
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![false, false, false, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_one_of_each_type_resources_with_unbilled_none_activity_then_none_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(2);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_billing = true;
+        a.target_resources.insert(3);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        5
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![true, true, true, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 3);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        3
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![false, false, false, false, false, false, false, false, false, false, false, false]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![true, true, true, true, true, true, true, true, true, true, true, true]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 3);
+    assert!(!schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 12);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        12
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_uncosted_first_activity_then_first_costs_removed()
+{
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_unefforted_first_activity_then_first_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_unbilled_first_activity_then_first_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_uncosted_middle_activity_then_middle_costs_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_unefforted_middle_activity_then_middle_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_unbilled_middle_activity_then_middle_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_uncosted_last_activity_then_last_costs_removed() {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, false, false, false, false, false,
+            false, false, false, false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_unefforted_last_activity_then_last_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, false, false, false, false, false,
+            false, false, false, false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_direct_resources_with_unbilled_last_activity_then_last_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, false, false, false, false, false,
+            false, false, false, false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_uncosted_first_activity_then_no_costs_removed()
+{
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_unefforted_first_activity_then_no_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_unbilled_first_activity_then_no_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_uncosted_middle_activity_then_no_costs_removed()
+{
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_unefforted_middle_activity_then_no_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_unbilled_middle_activity_then_no_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_uncosted_last_activity_then_no_costs_removed() {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_unefforted_last_activity_then_no_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_indirect_resources_with_unbilled_last_activity_then_no_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_uncosted_first_activity_then_first_costs_removed() {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            false, false, false, false, false, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_unefforted_first_activity_then_first_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            false, false, false, false, false, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_unbilled_first_activity_then_first_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            false, false, false, false, false, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_uncosted_middle_activity_then_middle_costs_removed()
+{
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_unefforted_middle_activity_then_middle_efforts_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_unbilled_middle_activity_then_middle_billings_removed(
+) {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, false, false, false, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_uncosted_last_activity_then_last_costs_removed() {
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_cost = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, false, false, false, false, false,
+            false, false, false, false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_unefforted_last_activity_then_last_efforts_removed()
+{
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_effort = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, false, false, false, false, false,
+            false, false, false, false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_compile_with_three_none_resources_with_unbilled_last_activity_then_last_billings_removed()
+{
+    let mut compiler = Compiler::new();
+    compiler.add_activity({
+        let mut a = Act::new(1, 5);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(2, 3);
+        a.target_resources.insert(1);
+        a
+    });
+    compiler.add_activity({
+        let mut a = Act::new(3, 12);
+        a.has_no_billing = true;
+        a.target_resources.insert(1);
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::None,
+            1.0,
+            1.0,
+            0,
+            [],
+        )])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 1);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, false, false, false, false, false,
+            false, false, false, false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 2);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 3);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 8);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 20);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        20
+    );
+}
+
+#[test]
+fn given_basic_vanilla_test_then_as_expected() {
+    let mut compiler = Compiler::new();
+    compiler.add_activity(Act::new(1, 5));
+    compiler.add_activity(Act::new(2, 10));
+    compiler.add_activity({
+        let mut a = Act::with_dependencies(3, 15, [1]);
+        a.has_no_effort = true;
+        a
+    });
+    compiler.add_activity(Act::with_dependencies(4, 10, [3]));
+    compiler.add_activity({
+        let mut a = Act::new(5, 10);
+        a.has_no_effort = true;
+        a.has_no_cost = true;
+        a.has_no_billing = true;
+        a
+    });
+    let compilation = compiler
+        .compile_with_resources(&[
+            Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                2,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::None,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+            Resource::new(
+                3,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Indirect,
+                1.0,
+                1.0,
+                0,
+                [],
+            ),
+        ])
+        .unwrap();
+    assert!(compilation.compilation_errors.is_empty());
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 3);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].effort_allocation,
+        vec![
+            true, true, true, true, true, false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, true, true, true, true, true, true,
+            true, true, true, true
+        ]
+    );
+    assert_eq!(
+        schedules[0].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities[0].id, 1);
+    assert!(!schedules[0].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[0].scheduled_activities[0].finish_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].id, 3);
+    assert!(!schedules[0].scheduled_activities[1].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[1].has_no_billing);
+    assert!(schedules[0].scheduled_activities[1].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[1].start_time, 5);
+    assert_eq!(schedules[0].scheduled_activities[1].finish_time, 20);
+    assert_eq!(schedules[0].scheduled_activities[2].id, 4);
+    assert!(!schedules[0].scheduled_activities[2].has_no_cost);
+    assert!(!schedules[0].scheduled_activities[2].has_no_billing);
+    assert!(!schedules[0].scheduled_activities[2].has_no_effort);
+    assert_eq!(schedules[0].scheduled_activities[2].start_time, 20);
+    assert_eq!(schedules[0].scheduled_activities[2].finish_time, 30);
+    assert_eq!(
+        schedules[0]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        30
+    );
+    assert_eq!(
+        schedules[1].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false
+        ]
+    );
+    assert_eq!(
+        schedules[1].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false
+        ]
+    );
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert_eq!(schedules[1].scheduled_activities.len(), 1);
+    assert_eq!(schedules[1].scheduled_activities[0].id, 2);
+    assert!(!schedules[1].scheduled_activities[0].has_no_cost);
+    assert!(!schedules[1].scheduled_activities[0].has_no_billing);
+    assert!(!schedules[1].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[1].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[1].scheduled_activities[0].finish_time, 10);
+    assert_eq!(
+        schedules[1]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        10
+    );
+    assert_eq!(
+        schedules[2].resource_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(
+        schedules[2].cost_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(
+        schedules[2].billing_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(
+        schedules[2].effort_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true, true, true, true, true, true, true, true, true, true, true, true, true,
+            true, true
+        ]
+    );
+    assert_eq!(
+        schedules[2].activity_allocation,
+        vec![
+            true, true, true, true, true, true, true, true, true, true, false, false, false, false,
+            false, false, false, false, false, false, false, false, false, false, false, false,
+            false, false, false, false
+        ]
+    );
+    assert_eq!(schedules[2].resource.as_ref().unwrap().id, 3);
+    assert_eq!(schedules[2].scheduled_activities.len(), 1);
+    assert_eq!(schedules[2].scheduled_activities[0].id, 5);
+    assert!(schedules[2].scheduled_activities[0].has_no_cost);
+    assert!(schedules[2].scheduled_activities[0].has_no_billing);
+    assert!(schedules[2].scheduled_activities[0].has_no_effort);
+    assert_eq!(schedules[2].scheduled_activities[0].start_time, 0);
+    assert_eq!(schedules[2].scheduled_activities[0].finish_time, 10);
+    assert_eq!(
+        schedules[2]
+            .scheduled_activities
+            .last()
+            .unwrap()
+            .finish_time,
+        10
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(5)
+    );
+    assert_eq!(compiler.builder().activity(1).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_start_time(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(1).unwrap().latest_finish_time,
+        Some(5)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(1)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual1: Vec<i32> = compiler
+        .builder()
+        .activity(1)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual1.sort();
+    assert_eq!(actual1, vec![1]);
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(0)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(10)
+    );
+    assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(20));
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().total_slack(),
+        Some(20)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_start_time(),
+        Some(20)
+    );
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().latest_finish_time,
+        Some(30)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(2)
+            .unwrap()
+            .resource_dependencies
+            .len(),
+        0
+    );
+    let mut actual2: Vec<i32> = compiler
+        .builder()
+        .activity(2)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual2.sort();
+    assert_eq!(actual2, vec![2]);
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().earliest_start_time,
+        Some(5)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(3)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(20)
+    );
+    assert_eq!(compiler.builder().activity(3).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_start_time(),
+        Some(5)
+    );
+    assert_eq!(
+        compiler.builder().activity(3).unwrap().latest_finish_time,
+        Some(20)
+    );
+    let mut actual3: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual3.sort();
+    assert_eq!(actual3, vec![1]);
+    let mut actual4: Vec<i32> = compiler
+        .builder()
+        .activity(3)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual4.sort();
+    assert_eq!(actual4, vec![1]);
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().earliest_start_time,
+        Some(20)
+    );
+    assert_eq!(
+        compiler
+            .builder()
+            .activity(4)
+            .unwrap()
+            .earliest_finish_time(),
+        Some(30)
+    );
+    assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().total_slack(),
+        Some(0)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_start_time(),
+        Some(20)
+    );
+    assert_eq!(
+        compiler.builder().activity(4).unwrap().latest_finish_time,
+        Some(30)
+    );
+    let mut actual5: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .resource_dependencies
+        .iter()
+        .copied()
+        .collect();
+    actual5.sort();
+    assert_eq!(actual5, vec![3]);
+    let mut actual6: Vec<i32> = compiler
+        .builder()
+        .activity(4)
+        .unwrap()
+        .allocated_to_resources
+        .iter()
+        .copied()
+        .collect();
+    actual6.sort();
+    assert_eq!(actual6, vec![1]);
 }
