@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +54,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [1],
                 [CreateResource(10)],
                 infiniteResources: false,
-                graph).ToList();
+                graph, TestContext.Current.CancellationToken).ToList();
 
             IScheduledActivity<int> scheduled = schedules.Single().ScheduledActivities.Single();
             scheduled.StartTime.ShouldBe(250);
@@ -76,7 +76,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [1],
                 [CreateResource(10)],
                 infiniteResources: false,
-                graph).ToList();
+                graph, TestContext.Current.CancellationToken).ToList();
 
             // The scheduler delays a deadline-constrained activity until starting any
             // later would overshoot the deadline, so it finishes exactly on it.
@@ -106,7 +106,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [1, 2],
                 [CreateResource(10)],
                 infiniteResources: false,
-                graph).ToList();
+                graph, TestContext.Current.CancellationToken).ToList();
 
             List<IScheduledActivity<int>> scheduled = schedules.Single().ScheduledActivities.ToList();
             IScheduledActivity<int> first = scheduled.Single(x => x.Id == 2);
@@ -137,7 +137,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [1, 2],
                 [CreateResource(10)],
                 infiniteResources: false,
-                graph).ToList();
+                graph, TestContext.Current.CancellationToken).ToList();
 
             List<IScheduledActivity<int>> scheduled = schedules.Single().ScheduledActivities.ToList();
             IScheduledActivity<int> milestoneScheduled = scheduled.Single(x => x.Id == 1);
@@ -167,7 +167,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [1, 2],
                 [CreateResource(10)],
                 infiniteResources: false,
-                graph).ToList();
+                graph, TestContext.Current.CancellationToken).ToList();
 
             List<IScheduledActivity<int>> scheduled = schedules.Single().ScheduledActivities.ToList();
             scheduled.Single(x => x.Id == 1).StartTime.ShouldBe(0);
@@ -183,7 +183,7 @@ namespace Zametek.Maths.Graphs.Tests
             compiler.AddActivity(new DependentActivity<int, int, int>(2, 5, [1]));
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation =
-                compiler.Compile([CreateResource(10)]);
+                compiler.Compile([CreateResource(10)], TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             IDependentActivity<int, int, int> first = compilation.DependentActivities.Single(x => x.Id == 1);

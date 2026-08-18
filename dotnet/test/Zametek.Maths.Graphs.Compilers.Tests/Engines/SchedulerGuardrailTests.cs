@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -105,7 +105,7 @@ namespace Zametek.Maths.Graphs.Tests
             compiler.AddActivity(activity);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation =
-                RunWithWatchdog(() => compiler.Compile([CreateResource(12), CreateResource(14)]));
+                RunWithWatchdog(() => compiler.Compile([CreateResource(12), CreateResource(14)], TestContext.Current.CancellationToken));
 
             IGraphCompilationError error = compilation.CompilationErrors.ShouldHaveSingleItem();
             error.ErrorCode.ShouldBe(GraphCompilationErrorCode.P0070);
@@ -132,7 +132,7 @@ namespace Zametek.Maths.Graphs.Tests
                     [1],
                     [CreateResource(10), CreateResource(20)],
                     infiniteResources: false,
-                    graph).ToList()));
+                    graph, TestContext.Current.CancellationToken).ToList()));
 
             ex.Message.ShouldContain(@"internally inconsistent");
             ex.Message.ShouldContain(@"1 -> ");
@@ -155,7 +155,7 @@ namespace Zametek.Maths.Graphs.Tests
                     [1],
                     [CreateResource(10)],
                     infiniteResources: false,
-                    graph).ToList()));
+                    graph, TestContext.Current.CancellationToken).ToList()));
 
             ex.Message.ShouldContain(@"not available");
             ex.Message.ShouldContain(@"99");
@@ -173,7 +173,7 @@ namespace Zametek.Maths.Graphs.Tests
                     [1],
                     [CreateResource(10, isExplicitTarget: true)],
                     infiniteResources: false,
-                    graph).ToList()));
+                    graph, TestContext.Current.CancellationToken).ToList()));
 
             ex.Message.ShouldContain(@"explicit target");
         }
@@ -190,7 +190,7 @@ namespace Zametek.Maths.Graphs.Tests
                     [1],
                     [CreateResource(10)],
                     infiniteResources: false,
-                    graph).ToList()));
+                    graph, TestContext.Current.CancellationToken).ToList()));
 
             ex.Message.ShouldContain(@"can never complete");
             ex.Message.ShouldContain(@"42");
@@ -208,7 +208,7 @@ namespace Zametek.Maths.Graphs.Tests
                     [1],
                     [CreateResource(10)],
                     infiniteResources: false,
-                    graph).ToList()));
+                    graph, TestContext.Current.CancellationToken).ToList()));
 
             ex.Message.ShouldContain(@"time horizon");
         }
@@ -259,7 +259,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
                 RunWithWatchdog(() => graphBuilder.CalculateResourceSchedulesByPriorityList(
-                    [CreateResource(10), CreateResource(20)])));
+                    [CreateResource(10), CreateResource(20)], TestContext.Current.CancellationToken)));
 
             ex.Message.ShouldContain(@"internally inconsistent");
         }
@@ -275,6 +275,87 @@ namespace Zametek.Maths.Graphs.Tests
 
             Should.Throw<OperationCanceledException>(() =>
                 graphBuilder.CalculateResourceSchedulesByPriorityList([CreateResource(10)], cts.Token));
+        }
+
+        [Fact]
+        public void PriorityListResourceScheduler_GivenTokenCancelledMidScheduling_ThenThrowsOperationCanceledException()
+        {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
+            var first = new Activity<int, int, int>(1, 5) { EarliestStartTime = 0 };
+            var second = new Activity<int, int, int>(2, 3) { EarliestStartTime = 0 };
+            Dictionary<int, IActivity<int, int, int>> lookup = new()
+            {
+                [1] = first,
+                [2] = second,
+            };
+            using var cts = new CancellationTokenSource();
+            // Cancel from inside the scheduling loop, deterministically: the graph is
+            // first asked for activity 2 when it becomes ready (after activity 1
+            // completes), so cancellation lands mid-run rather than up front.
+            var graph = new FakeSchedulingGraph(
+                id =>
+                {
+                    if (id == 2)
+                    {
+                        cts.Cancel();
+                    }
+                    return lookup[id];
+                },
+                id => id == 2 ? [1] : [],
+                () => [first, second]);
+
+            OperationCanceledException ex = Should.Throw<OperationCanceledException>(() =>
+                RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
+                    [1, 2],
+                    [CreateResource(10)],
+                    infiniteResources: false,
+                    graph,
+                    cts.Token).ToList()));
+
+            ex.CancellationToken.ShouldBe(cts.Token);
+        }
+
+        [Fact]
+        public void VertexGraphBuilder_GivenCancelledToken_ThenThrowsOperationCanceledException()
+        {
+            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(0));
+            builder.AddActivity(new Activity<int, int, int>(1, 5)).ShouldBeTrue();
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            Should.Throw<OperationCanceledException>(() =>
+                builder.CalculateResourceSchedulesByPriorityList([CreateResource(10)], cts.Token));
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenCancelledToken_WithConvenienceCompileForms_ThenThrowsOperationCanceledException()
+        {
+            var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            compiler.AddActivity(new DependentActivity<int, int, int>(1, 5));
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            Should.Throw<OperationCanceledException>(() => compiler.Compile(cts.Token));
+            Should.Throw<OperationCanceledException>(() => compiler.Compile([CreateResource(10)], cts.Token));
+        }
+
+        [Fact]
+        public void VertexGraphCompiler_GivenLiveToken_WithConvenienceCompileForms_ThenCompilesNormally()
+        {
+            var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            compiler.AddActivity(new DependentActivity<int, int, int>(1, 5));
+            compiler.AddActivity(new DependentActivity<int, int, int>(2, 5, [1]));
+            using var cts = new CancellationTokenSource();
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> infinite =
+                compiler.Compile(cts.Token);
+            infinite.CompilationErrors.ShouldBeEmpty();
+            infinite.ResourceSchedules.ShouldNotBeEmpty();
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> resourced =
+                compiler.Compile([CreateResource(10)], cts.Token);
+            resourced.CompilationErrors.ShouldBeEmpty();
+            resourced.ResourceSchedules.ShouldNotBeEmpty();
         }
 
         [Fact]

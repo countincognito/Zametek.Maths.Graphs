@@ -24,28 +24,16 @@ namespace Zametek.Maths.Graphs
         /// Allocates the activities (in priority-list order, honouring their
         /// dependencies) onto the filtered resources and returns the resulting
         /// per-resource schedules. With <paramref name="infiniteResources"/> a new
-        /// schedule is spawned whenever no existing resource is free.
-        /// </summary>
-        IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedules(
-            List<T> priorityList,
-            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
-            bool infiniteResources,
-            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph);
-
-        /// <summary>
-        /// As <see cref="CalculateResourceSchedules(List{T}, List{IResource{TResourceId, TWorkStreamId}}, bool, IResourceSchedulingGraph{T, TResourceId, TWorkStreamId})"/>,
-        /// but honouring the given cancellation token. The default implementation
-        /// ignores the token so that existing engine implementations remain compatible.
+        /// schedule is spawned whenever no existing resource is free. The
+        /// cancellation token is checked on every scheduling tick and cancellation
+        /// surfaces as <see cref="OperationCanceledException"/>.
         /// </summary>
         IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedules(
             List<T> priorityList,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
             IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
-            CancellationToken cancellationToken)
-        {
-            return CalculateResourceSchedules(priorityList, filteredResources, infiniteResources, graph);
-        }
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Gathers the set of activities that reference resources not present in

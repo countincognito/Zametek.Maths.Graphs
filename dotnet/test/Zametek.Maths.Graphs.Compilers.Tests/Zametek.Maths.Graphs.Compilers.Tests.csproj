@@ -4,11 +4,6 @@
 		<TargetFramework>net10.0</TargetFramework>
 
 		<IsPackable>false</IsPackable>
-
-		<!-- xUnit1051 asks tests to pass TestContext cancellation tokens to any method
-		     with a CancellationToken overload; these tests deliberately exercise the
-		     tokenless public API surface, so the suggestion does not apply. -->
-		<NoWarn>$(NoWarn);xUnit1051</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +42,7 @@ namespace Zametek.Maths.Graphs.Tests
                 null,
                 [],
                 infiniteResources: false,
-                graph);
+                graph, TestContext.Current.CancellationToken);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -55,7 +55,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [],
                 null,
                 infiniteResources: false,
-                graph);
+                graph, TestContext.Current.CancellationToken);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -67,7 +67,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [],
                 [],
                 infiniteResources: false,
-                null);
+                null, TestContext.Current.CancellationToken);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -81,7 +81,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [],
                 [],
                 infiniteResources: false,
-                graph);
+                graph, TestContext.Current.CancellationToken);
 
             output.ShouldBeEmpty();
         }
@@ -98,7 +98,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [1],
                 [resource],
                 infiniteResources: false,
-                graph).ToList();
+                graph, TestContext.Current.CancellationToken).ToList();
 
             schedules.Count.ShouldBe(1);
             schedules[0].Resource.Id.ShouldBe(10);
@@ -123,7 +123,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [1, 2],
                 [],
                 infiniteResources: true,
-                graph).ToList();
+                graph, TestContext.Current.CancellationToken).ToList();
 
             schedules.Count.ShouldBeGreaterThanOrEqualTo(1);
             schedules.SelectMany(x => x.ScheduledActivities).Select(x => x.Id).OrderBy(x => x).ShouldBe([1, 2]);

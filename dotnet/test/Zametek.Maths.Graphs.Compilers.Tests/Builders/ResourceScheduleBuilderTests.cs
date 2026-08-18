@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Shouldly;
 using System;
@@ -190,7 +190,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var output = graphCompiler.Compile(
                 [.. resources.Cast<IResource<int, int>>()],
-                [.. workStreams.Cast<IWorkStream<int>>()]);
+                [.. workStreams.Cast<IWorkStream<int>>()], TestContext.Current.CancellationToken);
 
             var rs1 = resourceSchedules.First(x => x.Resource.Id == 1).AsBase();
             var rs2 = resourceSchedules.First(x => x.Resource.Id == 2).AsBase();

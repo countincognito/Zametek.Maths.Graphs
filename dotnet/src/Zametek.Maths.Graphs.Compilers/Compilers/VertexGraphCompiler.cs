@@ -9,7 +9,7 @@ namespace Zametek.Maths.Graphs
     // Thin coordinator: owns the builder + a lock. Every public method delegates to
     // m_VertexGraphBuilder under the lock. No algorithm logic lives here.
     /// <summary>
-    /// Compiler for Activity-on-Vertex graphs: a thread-safe coordinator around a <see cref="VertexGraphBuilder{T, TResourceId, TWorkStreamId, TActivity}"/>. This is the compiler to use for analysis - <see cref="Compile()"/> runs the full pipeline including resource scheduling.
+    /// Compiler for Activity-on-Vertex graphs: a thread-safe coordinator around a <see cref="VertexGraphBuilder{T, TResourceId, TWorkStreamId, TActivity}"/>. This is the compiler to use for analysis - <see cref="Compile(System.Threading.CancellationToken)"/> runs the full pipeline including resource scheduling.
     /// </summary>
     public class VertexGraphCompiler<T, TResourceId, TWorkStreamId, TDependentActivity>
         where TDependentActivity : IDependentActivity<T, TResourceId, TWorkStreamId>
@@ -203,32 +203,24 @@ namespace Zametek.Maths.Graphs
         /// <summary>
         /// Compiles with infinite resources - the pure critical-path schedule.
         /// </summary>
-        public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile()
+        public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
+            CancellationToken cancellationToken)
         {
-            return Compile(new List<IResource<TResourceId, TWorkStreamId>>());
+            return Compile(new List<IResource<TResourceId, TWorkStreamId>>(), cancellationToken);
         }
 
         /// <summary>
         /// Compiles, scheduling activities onto the given resources (an empty list means infinite resources).
         /// </summary>
         public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
-            List<IResource<TResourceId, TWorkStreamId>> resources)
-        {
-            return Compile(resources, new List<IWorkStream<TWorkStreamId>>());
-        }
-
-        /// <summary>
-        /// Compiles with resources and reports which of the given work streams were used.
-        /// </summary>
-        public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
             List<IResource<TResourceId, TWorkStreamId>> resources,
-            List<IWorkStream<TWorkStreamId>> workStreams)
+            CancellationToken cancellationToken)
         {
-            return Compile(resources, workStreams, CancellationToken.None);
+            return Compile(resources, new List<IWorkStream<TWorkStreamId>>(), cancellationToken);
         }
 
         /// <summary>
-        /// Compiles with resources and work streams, honouring the given cancellation token between pipeline phases and inside resource scheduling.
+        /// Compiles with resources and reports which of the given work streams were used. The cancellation token is checked between pipeline phases and inside resource scheduling, and cancellation surfaces as <see cref="OperationCanceledException"/>.
         /// </summary>
         public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
             List<IResource<TResourceId, TWorkStreamId>> resources,

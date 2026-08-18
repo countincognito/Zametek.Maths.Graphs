@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -82,7 +82,7 @@ namespace Zametek.Maths.Graphs.Tests
             compiler.AddActivity(new DependentActivity<int, int, int>(1, 3));
             compiler.AddActivity(new DependentActivity<int, int, int>(2, 5, [1]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> output = compiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> output = compiler.Compile(TestContext.Current.CancellationToken);
 
             output.CompilationErrors.ShouldBeEmpty();
             compiler.FinishTime.ShouldBe(8);

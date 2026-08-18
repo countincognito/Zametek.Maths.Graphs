@@ -39,12 +39,13 @@ Install the compilers package (it pulls in the primitives):
 dotnet add package Zametek.Maths.Graphs.Compilers
 ```
 
-The fastest path is the Activity-on-Vertex compiler. Add activities (each with an id, a duration and optional dependency ids), then `Compile()`:
+The fastest path is the Activity-on-Vertex compiler. Add activities (each with an id, a duration and optional dependency ids), then `Compile(...)`:
 
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Zametek.Maths.Graphs;
 
 // Type parameters: <activity-id, resource-id, work-stream-id, activity-type>.
@@ -58,7 +59,9 @@ compiler.AddActivity(new DependentActivity<int, int, int>(3, 8, new[] { 1, 2 }))
 compiler.AddActivity(new DependentActivity<int, int, int>(4, 4, new[] { 3 }));
 
 // No resources supplied => infinite resources (pure critical-path schedule).
-IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile();
+// Every Compile form takes a CancellationToken; pass a real one to make long
+// compiles cancellable, or CancellationToken.None to opt out.
+IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile(CancellationToken.None);
 
 if (compilation.CompilationErrors.Any())
 {
@@ -131,8 +134,8 @@ The domain types (in **Zametek.Maths.Graphs.Primitives**) are:
 
    | | `VertexGraphCompiler` | `ArrowGraphCompiler` |
    | - | - | - |
-   | `Compile()` returns | `IGraphCompilation<…>` (activities, resource schedules, work streams, errors) | `void` |
-   | `Compile(resources)` / `Compile(resources, workStreams)` | yes | **no** |
+   | `Compile(...)` returns | `IGraphCompilation<…>` (activities, resource schedules, work streams, errors) | `void` |
+   | `Compile(resources, ct)` / `Compile(resources, workStreams, ct)` | yes | **no** |
    | Resource scheduling and work streams | yes | **no** |
    | Critical-path times | yes | yes |
    | `ToGraph()` | yes | yes |
@@ -192,10 +195,10 @@ Call `GetNextActivityId()` to obtain an unused id.
 
 ### Compiling
 
-`Compile()` runs the full pipeline - dependency resolution, the critical-path forward/backward passes, resource scheduling and back-filling - and returns an `IGraphCompilation`:
+`Compile(...)` runs the full pipeline - dependency resolution, the critical-path forward/backward passes, resource scheduling and back-filling - and returns an `IGraphCompilation`. Every form requires a `CancellationToken` as its last argument (pass `CancellationToken.None` to opt out of cancellation):
 
 ```csharp
-IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile();
+IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile(CancellationToken.None);
 ```
 
 Always check `result.CompilationErrors` first (for example circular dependencies or unsatisfiable constraints). If it is empty, the schedule is valid. The result exposes:
@@ -249,7 +252,7 @@ var resources = new List<IResource<int, int>>
         interActivityPhases: Array.Empty<int>()),
 };
 
-IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile(resources);
+IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile(resources, CancellationToken.None);
 
 foreach (IResourceSchedule<int, int, int> schedule in result.ResourceSchedules)
 {
@@ -258,7 +261,7 @@ foreach (IResourceSchedule<int, int, int> schedule in result.ResourceSchedules)
 }
 ```
 
-A third overload, `Compile(resources, workStreams)`, additionally reports which `IWorkStream`s were used.
+A third overload, `Compile(resources, workStreams, cancellationToken)`, additionally reports which `IWorkStream`s were used.
 
 ### Targeting resources and explicit targets
 
@@ -295,7 +298,7 @@ When more than one resource could take an activity, the scheduler offers work to
 
 ### Work-stream phases
 
-Work streams (`IWorkStream`) group activities into phases of a project; an activity declares the phases it belongs to via `TargetWorkStreams`. A resource declares the phases it is associated with via `InterActivityPhases` (a set of work-stream ids). This matters mostly for indirect resources, where the phases tie an overhead resource to the parts of the project it spans. When you call `Compile(resources, workStreams)`, the result's `WorkStreams` is exactly the set of phases actually used - the intersection of the work streams referenced by activities and those referenced by the scheduled resources.
+Work streams (`IWorkStream`) group activities into phases of a project; an activity declares the phases it belongs to via `TargetWorkStreams`. A resource declares the phases it is associated with via `InterActivityPhases` (a set of work-stream ids). This matters mostly for indirect resources, where the phases tie an overhead resource to the parts of the project it spans. When you call `Compile(resources, workStreams, cancellationToken)`, the result's `WorkStreams` is exactly the set of phases actually used - the intersection of the work streams referenced by activities and those referenced by the scheduled resources.
 
 ### Editing and other operations
 
@@ -309,10 +312,10 @@ Each compiler guards its state with an internal lock, so individual operations a
 
 ## Compilation errors
 
-`VertexGraphCompiler.Compile(...)` does not throw for *modelling* problems - it collects them in `IGraphCompilation.CompilationErrors` so you can surface several at once. (It still throws `ArgumentNullException` for a null `resources` / `workStreams` argument, and `InvalidOperationException` for internal failures such as an impossible back-fill.) `Compile` also has an overload accepting a `CancellationToken` - checked between pipeline phases and inside the resource-scheduling loop - which throws `OperationCanceledException` on cancellation. Each entry is an `IGraphCompilationError` with a `GraphCompilationErrorCode` and a human-readable `ErrorMessage`. Always check the list before trusting the schedule:
+`VertexGraphCompiler.Compile(...)` does not throw for *modelling* problems - it collects them in `IGraphCompilation.CompilationErrors` so you can surface several at once. (It still throws `ArgumentNullException` for a null `resources` / `workStreams` argument, and `InvalidOperationException` for internal failures such as an impossible back-fill.) Every `Compile` form requires a `CancellationToken` - checked between pipeline phases and inside the resource-scheduling loop - and throws `OperationCanceledException` on cancellation; pass `CancellationToken.None` to opt out. Each entry is an `IGraphCompilationError` with a `GraphCompilationErrorCode` and a human-readable `ErrorMessage`. Always check the list before trusting the schedule:
 
 ```csharp
-IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile();
+IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile(CancellationToken.None);
 if (result.CompilationErrors.Any())
 {
     foreach (IGraphCompilationError error in result.CompilationErrors)

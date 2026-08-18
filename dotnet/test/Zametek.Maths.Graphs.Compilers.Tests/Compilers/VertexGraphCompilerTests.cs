@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,7 +64,7 @@ namespace Zametek.Maths.Graphs.Tests
             bool result2 = graphCompiler.AddActivity(activity2);
             result2.ShouldBeTrue();
 
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             graphBuilder.EdgeIds.Any().ShouldBeFalse();
             graphBuilder.NodeIds.Count().ShouldBe(2);
@@ -111,7 +111,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 4, [4, 6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, [5]) { MinimumFreeSlack = 2, MaximumLatestFinishTime = 8 });
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -143,7 +143,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, [9, 6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, [5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -175,7 +175,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, [9, 6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -206,7 +206,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(8, 10, [9, 6, 22]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(9, 10, [5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -266,7 +266,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [4, 6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -487,7 +487,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 10) { MinimumFreeSlack = 10 });
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 10, [activityId1]) { MaximumLatestFinishTime = 20 });
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -653,7 +653,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldBeEmpty();
             compilation.CompilationErrors.ShouldNotBeEmpty();
@@ -725,7 +725,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId2, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -805,7 +805,7 @@ namespace Zametek.Maths.Graphs.Tests
                 IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                     new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
-                    ]));
+                    ]), TestContext.Current.CancellationToken);
 
                 compilation.ResourceSchedules.ShouldNotBeEmpty();
                 compilation.CompilationErrors.ShouldBeEmpty();
@@ -862,7 +862,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -1087,7 +1087,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -1139,7 +1139,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1360,7 +1360,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1686,7 +1686,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -1974,7 +1974,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -2291,7 +2291,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), [activityId4, activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -2514,7 +2514,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -2566,7 +2566,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, new HashSet<int>(), [activityId4, activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -2787,7 +2787,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -3113,7 +3113,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -3401,7 +3401,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -3718,7 +3718,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4], [activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -3941,7 +3941,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity2);
             graphCompiler.AddActivity(activity3);
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.ResourceSchedules.ShouldNotBeEmpty();
             compilation.CompilationErrors.ShouldBeEmpty();
@@ -3993,7 +3993,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4], [activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, new HashSet<int>(), [activityId5]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -4215,7 +4215,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -4541,7 +4541,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, true, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -4829,7 +4829,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -5131,7 +5131,7 @@ namespace Zametek.Maths.Graphs.Tests
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
                 new List<IResource<int, int>>([
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -5173,7 +5173,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -5344,7 +5344,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -5515,7 +5515,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -5686,7 +5686,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -5857,7 +5857,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -6028,7 +6028,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -6199,7 +6199,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -6370,7 +6370,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -6541,7 +6541,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -6712,7 +6712,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1, resource2, resource3]));
+                new List<IResource<int, int>>([resource1, resource2, resource3]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -6878,7 +6878,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -6968,7 +6968,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7058,7 +7058,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7148,7 +7148,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7238,7 +7238,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7328,7 +7328,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7418,7 +7418,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7508,7 +7508,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7598,7 +7598,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7688,7 +7688,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7778,7 +7778,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7868,7 +7868,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -7958,7 +7958,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8048,7 +8048,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8138,7 +8138,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8228,7 +8228,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8318,7 +8318,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8408,7 +8408,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8498,7 +8498,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8588,7 +8588,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8678,7 +8678,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8768,7 +8768,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8858,7 +8858,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -8948,7 +8948,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -9038,7 +9038,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -9128,7 +9128,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -9218,7 +9218,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(activity3);
 
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
-                new List<IResource<int, int>>([resource1]));
+                new List<IResource<int, int>>([resource1]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -9287,7 +9287,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
         {
             var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
             graphCompiler.CyclomaticComplexity.ShouldBe(0);
         }
 
@@ -9314,7 +9314,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             graphCompiler.CyclomaticComplexity.ShouldBe(6);
         }
@@ -9336,7 +9336,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId2]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
 
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }
@@ -9354,7 +9354,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId1]));
 
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }
@@ -9383,7 +9383,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, []),
-                ]));
+                ]), TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             var resourceSchedules = compilation.ResourceSchedules.ToList();
@@ -9602,7 +9602,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -9641,7 +9641,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -9680,7 +9680,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -9719,7 +9719,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, new HashSet<int>(), [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -9758,7 +9758,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2], [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -9797,7 +9797,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 2, [activityId1, activityId2], [activityId1, activityId2]));
 
             graphCompiler.TransitiveReduction();
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 

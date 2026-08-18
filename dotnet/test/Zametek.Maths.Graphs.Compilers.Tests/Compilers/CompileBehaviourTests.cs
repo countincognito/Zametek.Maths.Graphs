@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,7 +75,7 @@ namespace Zametek.Maths.Graphs.Tests
             compiler.AddActivity(new DependentActivity<int, int, int>(3, 5, [2]));  // C dep B (strong dependency: A)
 
             var resource = new Resource<int, int>(1, @"R1", false, false, InterActivityAllocationType.None, 0.0, 0.0, 0, []);
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile([resource]);
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile([resource], TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
 
@@ -93,7 +93,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             compilation.DependentActivities.ShouldBeEmpty();
@@ -106,7 +106,7 @@ namespace Zametek.Maths.Graphs.Tests
             var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
             compiler.AddActivity(new DependentActivity<int, int, int>(1, 5));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             IDependentActivity<int, int, int> a = compilation.DependentActivities.Single();
@@ -123,7 +123,7 @@ namespace Zametek.Maths.Graphs.Tests
             compiler.AddActivity(new DependentActivity<int, int, int>(2, 0, [1]));
             compiler.AddActivity(new DependentActivity<int, int, int>(3, 0, [2]));
 
-            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile();
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = compiler.Compile(TestContext.Current.CancellationToken);
 
             compilation.CompilationErrors.ShouldBeEmpty();
             foreach (IDependentActivity<int, int, int> activity in compilation.DependentActivities)

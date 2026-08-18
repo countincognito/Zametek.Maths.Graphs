@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -106,7 +106,7 @@ namespace Zametek.Maths.Graphs.Tests
             activity2.Dependencies.Add(1);
             compiler.AddActivity(activity2);
 
-            compiler.Compile();
+            compiler.Compile(TestContext.Current.CancellationToken);
 
             spy.ForwardFlowCallCount.ShouldBeGreaterThan(0);
             spy.BackwardFlowCallCount.ShouldBeGreaterThan(0);

@@ -1,4 +1,4 @@
-using Shouldly;
+﻿using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1347,7 +1347,7 @@ namespace Zametek.Maths.Graphs.Tests
                 .CalculateResourceSchedulesByPriorityList(
                 [
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
-                ]);
+                ], TestContext.Current.CancellationToken);
             resourceSchedules.Count.ShouldBe(1);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -1420,7 +1420,7 @@ namespace Zametek.Maths.Graphs.Tests
                 [
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
-                ]);
+                ], TestContext.Current.CancellationToken);
             resourceSchedules.Count.ShouldBe(2);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -1503,7 +1503,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
-                ]);
+                ], TestContext.Current.CancellationToken);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -1594,7 +1594,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []),
                     new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])
-                ]);
+                ], TestContext.Current.CancellationToken);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -1685,7 +1685,7 @@ namespace Zametek.Maths.Graphs.Tests
                     new Resource<int, int>(resourceId2, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 3, []),
                     new Resource<int, int>(resourceId3, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 2, []),
                     new Resource<int, int>(resourceId4, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 1, [])
-                ]);
+                ], TestContext.Current.CancellationToken);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];
@@ -1764,7 +1764,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
-            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList([]);
+            List<IResourceSchedule<int, int, int>> resourceSchedules = graphBuilder.CalculateResourceSchedulesByPriorityList([], TestContext.Current.CancellationToken);
             resourceSchedules.Count.ShouldBe(3);
 
             var resourceSchedule0 = resourceSchedules[0];

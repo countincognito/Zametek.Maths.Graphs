@@ -26,16 +26,6 @@ namespace Zametek.Maths.Graphs
             List<T> priorityList,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
-            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph)
-        {
-            return CalculateResourceSchedules(priorityList, filteredResources, infiniteResources, graph, CancellationToken.None);
-        }
-
-        /// <inheritdoc/>
-        public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedules(
-            List<T> priorityList,
-            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
-            bool infiniteResources,
             IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
             CancellationToken cancellationToken)
         {
