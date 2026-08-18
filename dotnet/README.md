@@ -310,6 +310,24 @@ Work streams (`IWorkStream`) group activities into phases of a project; an activ
 
 Each compiler guards its state with an internal lock, so individual operations are thread-safe.
 
+## Limits
+
+Compilation applies sanity limits to its inputs, exposed as public constants on `GraphLimits` so you can validate user input at the point of entry rather than waiting for a compile:
+
+| Constant | Value | Applies to |
+| - | - | - |
+| `GraphLimits.MinimumTimeValue` | `0` | every declared time value - negative times are never meaningful |
+| `GraphLimits.MaximumTimeValue` | `100_000` | `Duration`, `MinimumEarliestStartTime`, `MaximumLatestFinishTime`, `MinimumFreeSlack`, and the compiled schedule's finish time. At one time unit per day this is roughly 270 years |
+| `GraphLimits.MaximumActivityCount` | `2_000` | activities in the graph |
+| `GraphLimits.MaximumResourceCount` | `1_000` | resources supplied to `Compile` (after inactive ones are filtered out) |
+| `GraphLimits.MaximumWorkStreamCount` | `100` | work streams supplied to `Compile` |
+
+These are sanity bounds, not algorithmic ceilings: they exist so that absurd or corrupted input fails with a clear error instead of consuming unbounded time and memory. Declared values and counts are checked before compilation and reported as `P0080`. The *computed* schedule length is checked separately, after scheduling, and reported as `C0020` - per-value limits cannot bound it on their own, because individually legal durations still sum.
+
+The time limit is what keeps memory predictable. Each resource schedule retains five per-time-unit allocation streams, so what a compilation holds grows as (horizon x resources), independently of activity count. Those streams are stored packed one bit per flag rather than one byte, which keeps the worst case permitted by these limits - a 100,000-unit horizon across 1,000 resources - at about 60 MB rather than 476 MB.
+
+A note on scale: the activity limit bounds what is *accepted*, not what is comfortable. Compilation cost grows steeply with activity count (the priority-list calculation dominates), so in practice graphs of a few hundred to around a thousand activities compile in about a second, while larger ones take considerably longer.
+
 ## Compilation errors
 
 `VertexGraphCompiler.Compile(...)` does not throw for *modelling* problems - it collects them in `IGraphCompilation.CompilationErrors` so you can surface several at once. (It still throws `ArgumentNullException` for a null `resources` / `workStreams` argument, and `InvalidOperationException` for internal failures such as an impossible back-fill.) Every `Compile` form requires a `CancellationToken` - checked between pipeline phases and inside the resource-scheduling loop - and throws `OperationCanceledException` on cancellation; pass `CancellationToken.None` to opt out. Each entry is an `IGraphCompilationError` with a `GraphCompilationErrorCode` and a human-readable `ErrorMessage`. Always check the list before trusting the schedule:
@@ -336,8 +354,9 @@ The codes (`P` = pre-compilation, `C` = post-compilation):
 | `P0050` | **Unable to remove unnecessary edges** - the graph could not be cleaned up / reduced during pre-compilation. |
 | `P0060` | **Explicit target resources unavailable** - an activity must use specific explicit-target resources that are not in the supplied list. |
 | `P0070` | **Internally inconsistent input collections** - an activity's or resource's set reports contents that its own lookups cannot find, the classic symptom of unsynchronized concurrent modification while the compilation inputs were being prepared. Scheduling such data could never make progress, so it is rejected up front. |
+| `P0080` | **Outside supported limits** - a declared time value (duration or time constraint) is negative or larger than `GraphLimits.MaximumTimeValue`, or there are more activities, resources or work streams than the corresponding limit allows. See [Limits](#limits). |
 | `C0010` | **Invalid post-compilation constraints** - after scheduling, the computed times violate an activity's constraints (e.g. `LatestFinishTime > MaximumLatestFinishTime`, `EarliestStartTime < MinimumEarliestStartTime`, `FreeSlack < MinimumFreeSlack`, or times that came out negative or out of order). |
-| `C0020` | **Resource scheduling stalled** - the scheduler proved that one or more activities can never be scheduled onto the supplied resources, so it stopped and reported them instead of looping forever. Through `Compile(...)` the static causes are caught earlier (`P0040`, `P0060`, `P0070`), so this is the last line of defence - e.g. inputs corrupted mid-compile, or a scheduling engine driven directly without the pre-compilation checks. |
+| `C0020` | **Resource scheduling could not produce a usable schedule** - either the scheduler proved that one or more activities can never be scheduled onto the supplied resources (so it stopped and reported them instead of looping forever), or the computed schedule ran past `GraphLimits.MaximumTimeValue`. The latter is the case the per-value limits cannot catch, because individually legal durations still sum. Through `Compile(...)` the other static causes are caught earlier (`P0040`, `P0060`, `P0070`, `P0080`), so the stall form is the last line of defence - e.g. inputs corrupted mid-compile, or a scheduling engine driven directly without the pre-compilation checks. |
 
 For example, a graph where activity 1 depends on 2 and activity 2 depends on 1 produces:
 
@@ -375,8 +394,9 @@ Every `ErrorMessage` opens with a fixed header line for its code, followed by on
 | `P0050` | `Unable to remove unnecessary edges` | *(header only)* |
 | `P0060` | `Unavailable resources for activities:` | `<id> -> <resourceId>, <resourceId>, ...` |
 | `P0070` | `Internally inconsistent input collections (possible concurrent modification of compilation inputs):` | `Activity <id> -> <collection>` or `Resource <id> -> InterActivityPhases` |
+| `P0080` | `Values or counts outside the supported limits:` | `Activity <id> -> <value> is <actual>, which is outside the supported range of <min> to <max>`, or `The number of <activities\|resources\|work streams> is <actual>, which exceeds the maximum supported count of <max>` |
 | `C0010` | `Invalid activity constraints:` | `<id> -> <reason>` (reasons below) |
-| `C0020` | `Resource scheduling could not make progress with the following activities:` | `<id> -> <reason>` (reasons below) |
+| `C0020` | `Resource scheduling could not make progress with the following activities:` (stall) or `The computed schedule finish time (<actual>) exceeds the maximum supported time value (<max>)` (horizon) | `<id> -> <reason>` (reasons below; stall form only) |
 
 `P0030` and `C0010` share the same header - they are the same constraint checks run at different times (`P` before scheduling, `C` after), so the `ErrorCode` is what tells them apart.
 
@@ -405,7 +425,7 @@ Every `ErrorMessage` opens with a fixed header line for its code, followed by on
 - `none of its target resources are available: <resourceId>, <resourceId>, ...`
 - `its target resource set is internally inconsistent - lookups disagree with its contents (possible concurrent modification of compilation inputs)`
 - `has no target resources, but every supplied resource is an explicit target`
-- `starting it now would push its finish time past the representable time horizon`
+- `cannot be scheduled within the maximum supported time value (<max>)`
 - `waiting on dependencies that can never complete: <id>, <id>, ...`
 - `could not be assigned to any resource`
 

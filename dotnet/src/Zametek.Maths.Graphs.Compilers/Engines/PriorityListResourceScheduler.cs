@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -238,9 +239,9 @@ namespace Zametek.Maths.Graphs
                 {
                     continue;
                 }
-                // Starting here would push the finish time past the representable time
+                // Starting here would push the finish time past the supported time
                 // horizon; the activity can never start, which the stall detector reports.
-                if ((long)timeCounter + activity.Duration > int.MaxValue)
+                if ((long)timeCounter + activity.Duration > GraphLimits.MaximumTimeValue)
                 {
                     continue;
                 }
@@ -284,9 +285,9 @@ namespace Zametek.Maths.Graphs
                 {
                     continue;
                 }
-                // Starting here would push the finish time past the representable time
+                // Starting here would push the finish time past the supported time
                 // horizon; the activity can never start, which the stall detector reports.
-                if ((long)timeCounter + activity.Duration > int.MaxValue)
+                if ((long)timeCounter + activity.Duration > GraphLimits.MaximumTimeValue)
                 {
                     continue;
                 }
@@ -422,7 +423,9 @@ namespace Zametek.Maths.Graphs
 
             if (nextEventTime != long.MaxValue)
             {
-                if (nextEventTime > int.MaxValue)
+                // Jumping beyond the supported horizon means nothing schedulable remains
+                // within it, so the state is dead however far the clock is wound forward.
+                if (nextEventTime > GraphLimits.MaximumTimeValue)
                 {
                     throw new ResourceSchedulingStallException(
                         BuildStallMessage(workingList, ready, builders, graph, infiniteResources, strongDependencyLookup, completed, timeCounter));
@@ -543,9 +546,18 @@ namespace Zametek.Maths.Graphs
                 return Properties.Resources.Message_NoTargetResourcesButAllResourcesAreExplicitTargets;
             }
 
-            if ((long)timeCounter + activity.Duration > int.MaxValue)
+            // Either the activity cannot start until after the horizon, or starting it at
+            // the earliest opportunity would still finish beyond it - in both cases no
+            // amount of waiting can make it schedulable.
+            long earliestStartTime = activity.EarliestStartTime.GetValueOrDefault();
+            if (earliestStartTime > GraphLimits.MaximumTimeValue
+                || earliestStartTime + activity.Duration > GraphLimits.MaximumTimeValue
+                || (long)timeCounter + activity.Duration > GraphLimits.MaximumTimeValue)
             {
-                return Properties.Resources.Message_StartWouldExceedTimeHorizon;
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    Properties.Resources.Message_CannotBeScheduledWithinMaximumTimeValue,
+                    GraphLimits.MaximumTimeValue);
             }
 
             return Properties.Resources.Message_CouldNotBeAssignedToAnyResource;

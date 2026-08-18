@@ -49,13 +49,21 @@ namespace Zametek.Maths.Graphs
         P0070 = 7,
 
         /// <summary>
+        /// Declared values or counts fall outside the limits in <see cref="GraphLimits"/> - for
+        /// example a negative or absurdly large duration or time constraint, or more activities,
+        /// resources or work streams than a compilation accepts.
+        /// </summary>
+        P0080 = 9,
+
+        /// <summary>
         /// Invalid post-compilation constraints - the computed times violate an activity's constraints.
         /// </summary>
         C0010 = 6,
 
         /// <summary>
-        /// Resource scheduling stalled - one or more activities could never be scheduled onto the
-        /// supplied resources, so the scheduler stopped instead of looping forever.
+        /// Resource scheduling could not produce a usable schedule - either one or more activities
+        /// could never be scheduled onto the supplied resources (so the scheduler stopped instead of
+        /// looping forever), or the computed schedule ran past <see cref="GraphLimits.MaximumTimeValue"/>.
         /// </summary>
         C0020 = 8
     }

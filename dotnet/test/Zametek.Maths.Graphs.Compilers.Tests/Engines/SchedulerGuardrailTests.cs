@@ -197,10 +197,10 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void PriorityListResourceScheduler_GivenEarliestStartTimeNearTheTimeHorizon_ThenStallsWithHorizonDiagnosis()
+        public void PriorityListResourceScheduler_GivenEarliestStartTimeBeyondTheTimeHorizon_ThenStallsWithHorizonDiagnosis()
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
-            var activity = new Activity<int, int, int>(1, 5) { EarliestStartTime = int.MaxValue - 2 };
+            var activity = new Activity<int, int, int>(1, 5) { EarliestStartTime = GraphLimits.MaximumTimeValue + 1 };
             var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
@@ -210,7 +210,50 @@ namespace Zametek.Maths.Graphs.Tests
                     infiniteResources: false,
                     graph, TestContext.Current.CancellationToken).ToList()));
 
-            ex.Message.ShouldContain(@"time horizon");
+            ex.Message.ShouldContain(@"maximum supported time value");
+        }
+
+        [Fact]
+        public void PriorityListResourceScheduler_GivenDurationThatWouldFinishBeyondTheTimeHorizon_ThenStallsWithHorizonDiagnosis()
+        {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
+            // Starts inside the horizon, but is too long to finish within it.
+            var activity = new Activity<int, int, int>(1, GraphLimits.MaximumTimeValue)
+            {
+                EarliestStartTime = 1,
+            };
+            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+
+            ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
+                RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
+                    [1],
+                    [CreateResource(10)],
+                    infiniteResources: false,
+                    graph, TestContext.Current.CancellationToken).ToList()));
+
+            ex.Message.ShouldContain(@"maximum supported time value");
+        }
+
+        [Fact]
+        public void PriorityListResourceScheduler_GivenActivityExactlyAtTheTimeHorizon_ThenSchedulesIt()
+        {
+            var scheduler = new PriorityListResourceScheduler<int, int, int>();
+            // Finishing exactly on the horizon is within the limit, so it must schedule.
+            var activity = new Activity<int, int, int>(1, 5)
+            {
+                EarliestStartTime = GraphLimits.MaximumTimeValue - 5,
+            };
+            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+
+            var schedules = RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
+                [1],
+                [CreateResource(10)],
+                infiniteResources: false,
+                graph, TestContext.Current.CancellationToken).ToList());
+
+            IScheduledActivity<int> scheduled = schedules.Single().ScheduledActivities.Single();
+            scheduled.StartTime.ShouldBe(GraphLimits.MaximumTimeValue - 5);
+            scheduled.FinishTime.ShouldBe(GraphLimits.MaximumTimeValue);
         }
 
         [Fact]

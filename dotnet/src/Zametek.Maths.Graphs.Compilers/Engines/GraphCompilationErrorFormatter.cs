@@ -66,6 +66,21 @@ namespace Zametek.Maths.Graphs
             return output.ToString();
         }
 
+        internal static string BuildLimitViolationsErrorMessage(List<string> limitViolations)
+        {
+            if (limitViolations == null || limitViolations.Count == 0)
+            {
+                return string.Empty;
+            }
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_LimitsExceeded}");
+            foreach (string limitViolation in limitViolations)
+            {
+                output.AppendLine(limitViolation);
+            }
+            return output.ToString();
+        }
+
         internal static string BuildInternallyInconsistentCollectionsErrorMessage(List<string> inconsistentCollections)
         {
             if (inconsistentCollections == null || inconsistentCollections.Count == 0)

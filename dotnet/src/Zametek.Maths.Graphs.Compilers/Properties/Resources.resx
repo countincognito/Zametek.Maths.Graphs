@@ -225,6 +225,27 @@
   <data name="Message_Activity" xml:space="preserve">
     <value>Activity</value>
   </data>
+  <data name="Message_LimitsExceeded" xml:space="preserve">
+    <value>Values or counts outside the supported limits:</value>
+  </data>
+  <data name="Message_ValueOutsideSupportedRange" xml:space="preserve">
+    <value>{0} is {1}, which is outside the supported range of {2} to {3}</value>
+  </data>
+  <data name="Message_CountExceedsMaximum" xml:space="preserve">
+    <value>The number of {0} is {1}, which exceeds the maximum supported count of {2}</value>
+  </data>
+  <data name="Message_Activities" xml:space="preserve">
+    <value>activities</value>
+  </data>
+  <data name="Message_Resources" xml:space="preserve">
+    <value>resources</value>
+  </data>
+  <data name="Message_WorkStreams" xml:space="preserve">
+    <value>work streams</value>
+  </data>
+  <data name="Message_ComputedScheduleExceedsMaximumTimeValue" xml:space="preserve">
+    <value>The computed schedule finish time ({0}) exceeds the maximum supported time value ({1})</value>
+  </data>
   <data name="Message_Resource" xml:space="preserve">
     <value>Resource</value>
   </data>
@@ -243,8 +264,8 @@
   <data name="Message_NoTargetResourcesButAllResourcesAreExplicitTargets" xml:space="preserve">
     <value>has no target resources, but every supplied resource is an explicit target</value>
   </data>
-  <data name="Message_StartWouldExceedTimeHorizon" xml:space="preserve">
-    <value>starting it now would push its finish time past the representable time horizon</value>
+  <data name="Message_CannotBeScheduledWithinMaximumTimeValue" xml:space="preserve">
+    <value>cannot be scheduled within the maximum supported time value ({0})</value>
   </data>
   <data name="Message_CouldNotBeAssignedToAnyResource" xml:space="preserve">
     <value>could not be assigned to any resource</value>

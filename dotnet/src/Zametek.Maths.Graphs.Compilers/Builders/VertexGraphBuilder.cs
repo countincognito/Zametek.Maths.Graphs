@@ -1338,6 +1338,7 @@ namespace Zametek.Maths.Graphs
         public void AddPreCompilationErrors(
             List<GraphCompilationError> errors,
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            List<IWorkStream<TWorkStreamId>> workStreams,
             bool infiniteResources)
         {
             List<TActivity> activities = Activities.ToList();
@@ -1412,6 +1413,18 @@ namespace Zametek.Maths.Graphs
                 errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0070,
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildInternallyInconsistentCollectionsErrorMessage(inconsistentCollections)));
+            }
+
+            // P0080
+            List<string> limitViolations = LimitChecker<T, TResourceId, TWorkStreamId>.FindLimitViolations(
+                activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList(),
+                filteredResources,
+                workStreams);
+            if (limitViolations.Count != 0)
+            {
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0080,
+                    GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
+                        .BuildLimitViolationsErrorMessage(limitViolations)));
             }
         }
 

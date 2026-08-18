@@ -37,11 +37,16 @@ namespace Zametek.Maths.Graphs
             ScheduledActivities = scheduledActivities.ToList();
             StartTime = startTime;
             FinishTime = finishTime;
-            ResourceAllocation = resourceAllocation.ToList();
-            CostAllocation = costAllocation.ToList();
-            BillingAllocation = billingAllocation.ToList();
-            EffortAllocation = effortAllocation.ToList();
-            ActivityAllocation = activityAllocation.ToList();
+            // The allocation streams hold one flag per time unit each, so on a long
+            // schedule with many resources they are by far the largest thing retained
+            // here. They are stored packed one bit per flag (see PackedBoolList) rather
+            // than as List<bool>, which would spend a whole byte on each flag. The
+            // properties stay IEnumerable<bool>, so this is invisible to callers.
+            ResourceAllocation = PackedBoolList.From(resourceAllocation);
+            CostAllocation = PackedBoolList.From(costAllocation);
+            BillingAllocation = PackedBoolList.From(billingAllocation);
+            EffortAllocation = PackedBoolList.From(effortAllocation);
+            ActivityAllocation = PackedBoolList.From(activityAllocation);
         }
 
         /// <summary>

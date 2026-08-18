@@ -61,11 +61,74 @@ namespace Zametek.Maths.Graphs.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to activities.
+        /// </summary>
+        internal static string Message_Activities {
+            get {
+                return ResourceManager.GetString("Message_Activities", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Activity.
         /// </summary>
         internal static string Message_Activity {
             get {
                 return ResourceManager.GetString("Message_Activity", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The computed schedule finish time ({0}) exceeds the maximum supported time value ({1}).
+        /// </summary>
+        internal static string Message_ComputedScheduleExceedsMaximumTimeValue {
+            get {
+                return ResourceManager.GetString("Message_ComputedScheduleExceedsMaximumTimeValue", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The number of {0} is {1}, which exceeds the maximum supported count of {2}.
+        /// </summary>
+        internal static string Message_CountExceedsMaximum {
+            get {
+                return ResourceManager.GetString("Message_CountExceedsMaximum", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Values or counts outside the supported limits:.
+        /// </summary>
+        internal static string Message_LimitsExceeded {
+            get {
+                return ResourceManager.GetString("Message_LimitsExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to resources.
+        /// </summary>
+        internal static string Message_Resources {
+            get {
+                return ResourceManager.GetString("Message_Resources", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is {1}, which is outside the supported range of {2} to {3}.
+        /// </summary>
+        internal static string Message_ValueOutsideSupportedRange {
+            get {
+                return ResourceManager.GetString("Message_ValueOutsideSupportedRange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to work streams.
+        /// </summary>
+        internal static string Message_WorkStreams {
+            get {
+                return ResourceManager.GetString("Message_WorkStreams", resourceCulture);
             }
         }
 
@@ -431,11 +494,11 @@ namespace Zametek.Maths.Graphs.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to starting it now would push its finish time past the representable time horizon.
+        ///   Looks up a localized string similar to cannot be scheduled within the maximum supported time value ({0}).
         /// </summary>
-        internal static string Message_StartWouldExceedTimeHorizon {
+        internal static string Message_CannotBeScheduledWithinMaximumTimeValue {
             get {
-                return ResourceManager.GetString("Message_StartWouldExceedTimeHorizon", resourceCulture);
+                return ResourceManager.GetString("Message_CannotBeScheduledWithinMaximumTimeValue", resourceCulture);
             }
         }
 

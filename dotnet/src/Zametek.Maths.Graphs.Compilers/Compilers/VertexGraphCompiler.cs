@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 
@@ -247,7 +248,7 @@ namespace Zametek.Maths.Graphs
                 m_VertexGraphBuilder.ResetResourceState(m_VertexGraphBuilder.Activities.ToList());
 
                 var compilationErrors = new List<GraphCompilationError>();
-                m_VertexGraphBuilder.AddPreCompilationErrors(compilationErrors, filteredResources, infiniteResources);
+                m_VertexGraphBuilder.AddPreCompilationErrors(compilationErrors, filteredResources, workStreams, infiniteResources);
 
                 if (compilationErrors.Count != 0)
                 {
@@ -295,6 +296,27 @@ namespace Zametek.Maths.Graphs
                 m_VertexGraphBuilder.CalculateCriticalPath();
 
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // The per-value limits bound each declared duration and constraint, but not
+                // their sum: enough activities in sequence can still push the compiled
+                // schedule far past the horizon. The allocation streams built below hold one
+                // flag per time unit per resource, so an unbounded finish time here would
+                // mean an unbounded allocation - hence this check before they are built.
+                if (m_VertexGraphBuilder.FinishTime > GraphLimits.MaximumTimeValue)
+                {
+                    compilationErrors.Add(new GraphCompilationError(
+                        GraphCompilationErrorCode.C0020,
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            Properties.Resources.Message_ComputedScheduleExceedsMaximumTimeValue,
+                            m_VertexGraphBuilder.FinishTime,
+                            GraphLimits.MaximumTimeValue)));
+                    return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
+                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
+                        Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>(),
+                        Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
+                        compilationErrors);
+                }
 
                 if (!m_VertexGraphBuilder.BackFillIsolatedNodes())
                 {
