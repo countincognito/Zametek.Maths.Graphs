@@ -66,6 +66,21 @@ namespace Zametek.Maths.Graphs
             return output.ToString();
         }
 
+        internal static string BuildInternallyInconsistentCollectionsErrorMessage(List<string> inconsistentCollections)
+        {
+            if (inconsistentCollections == null || inconsistentCollections.Count == 0)
+            {
+                return string.Empty;
+            }
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_InternallyInconsistentCollections}");
+            foreach (string inconsistentCollection in inconsistentCollections)
+            {
+                output.AppendLine(inconsistentCollection);
+            }
+            return output.ToString();
+        }
+
         internal static string BuildUnavailableResourcesErrorMessage(List<IUnavailableResources<T, TResourceId>> unavailableResourceSet)
         {
             if (unavailableResourceSet == null || unavailableResourceSet.Count == 0)

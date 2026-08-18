@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Zametek.Maths.Graphs
 {
@@ -675,6 +676,16 @@ namespace Zametek.Maths.Graphs
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
             List<IResource<TResourceId, TWorkStreamId>> resources)
         {
+            return CalculateResourceSchedulesByPriorityList(resources, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Schedules the activities onto the given resources in priority order and returns the per-resource schedules, honouring the given cancellation token.
+        /// </summary>
+        public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
+            List<IResource<TResourceId, TWorkStreamId>> resources,
+            CancellationToken cancellationToken)
+        {
             if (resources is null)
             {
                 throw new ArgumentNullException(nameof(resources));
@@ -704,7 +715,8 @@ namespace Zametek.Maths.Graphs
                 priorityList,
                 filteredResources,
                 infiniteResources,
-                tmpGraphBuilder)
+                tmpGraphBuilder,
+                cancellationToken)
                 .ToList();
         }
 

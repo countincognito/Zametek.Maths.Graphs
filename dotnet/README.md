@@ -309,7 +309,7 @@ Each compiler guards its state with an internal lock, so individual operations a
 
 ## Compilation errors
 
-`VertexGraphCompiler.Compile(...)` does not throw for *modelling* problems - it collects them in `IGraphCompilation.CompilationErrors` so you can surface several at once. (It still throws `ArgumentNullException` for a null `resources` / `workStreams` argument, and `InvalidOperationException` for internal failures such as an impossible back-fill.) Each entry is an `IGraphCompilationError` with a `GraphCompilationErrorCode` and a human-readable `ErrorMessage`. Always check the list before trusting the schedule:
+`VertexGraphCompiler.Compile(...)` does not throw for *modelling* problems - it collects them in `IGraphCompilation.CompilationErrors` so you can surface several at once. (It still throws `ArgumentNullException` for a null `resources` / `workStreams` argument, and `InvalidOperationException` for internal failures such as an impossible back-fill.) `Compile` also has an overload accepting a `CancellationToken` - checked between pipeline phases and inside the resource-scheduling loop - which throws `OperationCanceledException` on cancellation. Each entry is an `IGraphCompilationError` with a `GraphCompilationErrorCode` and a human-readable `ErrorMessage`. Always check the list before trusting the schedule:
 
 ```csharp
 IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile();
@@ -332,7 +332,9 @@ The codes (`P` = pre-compilation, `C` = post-compilation):
 | `P0040` | **All resources explicit, activity untargeted** - every supplied resource is an explicit target, but a non-dummy activity targets none of them, so it could never be scheduled. |
 | `P0050` | **Unable to remove unnecessary edges** - the graph could not be cleaned up / reduced during pre-compilation. |
 | `P0060` | **Explicit target resources unavailable** - an activity must use specific explicit-target resources that are not in the supplied list. |
+| `P0070` | **Internally inconsistent input collections** - an activity's or resource's set reports contents that its own lookups cannot find, the classic symptom of unsynchronized concurrent modification while the compilation inputs were being prepared. Scheduling such data could never make progress, so it is rejected up front. |
 | `C0010` | **Invalid post-compilation constraints** - after scheduling, the computed times violate an activity's constraints (e.g. `LatestFinishTime > MaximumLatestFinishTime`, `EarliestStartTime < MinimumEarliestStartTime`, `FreeSlack < MinimumFreeSlack`, or times that came out negative or out of order). |
+| `C0020` | **Resource scheduling stalled** - the scheduler proved that one or more activities can never be scheduled onto the supplied resources, so it stopped and reported them instead of looping forever. Through `Compile(...)` the static causes are caught earlier (`P0040`, `P0060`, `P0070`), so this is the last line of defence - e.g. inputs corrupted mid-compile, or a scheduling engine driven directly without the pre-compilation checks. |
 
 For example, a graph where activity 1 depends on 2 and activity 2 depends on 1 produces:
 
@@ -369,7 +371,9 @@ Every `ErrorMessage` opens with a fixed header line for its code, followed by on
 | `P0040` | `All resources are explicit targets, but not all activities have targeted resources` | *(header only)* |
 | `P0050` | `Unable to remove unnecessary edges` | *(header only)* |
 | `P0060` | `Unavailable resources for activities:` | `<id> -> <resourceId>, <resourceId>, ...` |
+| `P0070` | `Internally inconsistent input collections (possible concurrent modification of compilation inputs):` | `Activity <id> -> <collection>` or `Resource <id> -> InterActivityPhases` |
 | `C0010` | `Invalid activity constraints:` | `<id> -> <reason>` (reasons below) |
+| `C0020` | `Resource scheduling could not make progress with the following activities:` | `<id> -> <reason>` (reasons below) |
 
 `P0030` and `C0010` share the same header - they are the same constraint checks run at different times (`P` before scheduling, `C` after), so the `ErrorCode` is what tells them apart.
 
@@ -389,6 +393,18 @@ Every `ErrorMessage` opens with a fixed header line for its code, followed by on
 - `EarliestStartTime cannot be less than MinimumEarliestStartTime`
 - `LatestFinishTime cannot be more than MaximumLatestFinishTime`
 - `FreeSlack cannot be less than MinimumFreeSlack`
+
+**`P0070` (pre-compilation)** names each offending set on its owner - `TargetResources`, `TargetWorkStreams`, `AllocatedToResources`, `Dependencies`, `PlanningDependencies`, `ResourceDependencies` or `Successors` on an activity; `InterActivityPhases` on a resource.
+
+**`C0020` (during scheduling)** reports, per stuck activity, the most precise reason the scheduler could determine:
+
+- `requires all of its target resources, but the following are not available: <resourceId>, <resourceId>, ...`
+- `none of its target resources are available: <resourceId>, <resourceId>, ...`
+- `its target resource set is internally inconsistent - lookups disagree with its contents (possible concurrent modification of compilation inputs)`
+- `has no target resources, but every supplied resource is an explicit target`
+- `starting it now would push its finish time past the representable time horizon`
+- `waiting on dependencies that can never complete: <id>, <id>, ...`
+- `could not be assigned to any resource`
 
 ## Where this is used
 

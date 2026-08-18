@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Zametek.Maths.Graphs
 {
@@ -223,6 +224,17 @@ namespace Zametek.Maths.Graphs
             List<IResource<TResourceId, TWorkStreamId>> resources,
             List<IWorkStream<TWorkStreamId>> workStreams)
         {
+            return Compile(resources, workStreams, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Compiles with resources and work streams, honouring the given cancellation token between pipeline phases and inside resource scheduling.
+        /// </summary>
+        public IGraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity> Compile(
+            List<IResource<TResourceId, TWorkStreamId>> resources,
+            List<IWorkStream<TWorkStreamId>> workStreams,
+            CancellationToken cancellationToken)
+        {
             if (resources is null)
             {
                 throw new ArgumentNullException(nameof(resources));
@@ -234,6 +246,7 @@ namespace Zametek.Maths.Graphs
 
             lock (m_Lock)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 // If resources are 0, assume infinite resources.
                 bool infiniteResources = resources.Count == 0;
                 // Filter out disabled resources.
@@ -255,8 +268,27 @@ namespace Zametek.Maths.Graphs
 
                 // First CPM pass → schedule → wire resource dependencies → second CPM pass.
                 m_VertexGraphBuilder.CalculateCriticalPath();
-                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules =
-                    m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources).ToList();
+
+                List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules;
+                try
+                {
+                    resourceSchedules =
+                        m_VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(filteredResources, cancellationToken).ToList();
+                }
+                catch (ResourceSchedulingStallException ex)
+                {
+                    // C0020 - the scheduler proved that one or more activities can never
+                    // be scheduled; report it like any other compilation error rather
+                    // than looping forever or surfacing an unhandled exception.
+                    compilationErrors.Add(new GraphCompilationError(GraphCompilationErrorCode.C0020, ex.Message));
+                    return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
+                        m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
+                        Enumerable.Empty<IResourceSchedule<T, TResourceId, TWorkStreamId>>(),
+                        Enumerable.Empty<IWorkStream<TWorkStreamId>>(),
+                        compilationErrors);
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // If the previous calculation was performed with infinite resources, then it will not be possible
                 // to handle resource dependencies. So here we need to create fake resources for resource dependencies
@@ -269,6 +301,8 @@ namespace Zametek.Maths.Graphs
                 // Determine the resource dependencies and add them to the compiled dependencies.
                 m_VertexGraphBuilder.AssignResourceDependencies(resourceSchedules);
                 m_VertexGraphBuilder.CalculateCriticalPath();
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (!m_VertexGraphBuilder.BackFillIsolatedNodes())
                 {

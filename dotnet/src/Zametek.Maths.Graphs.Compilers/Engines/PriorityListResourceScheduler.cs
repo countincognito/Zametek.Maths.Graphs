@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading;
 
 namespace Zametek.Maths.Graphs
 {
@@ -25,6 +27,17 @@ namespace Zametek.Maths.Graphs
             List<IResource<TResourceId, TWorkStreamId>> filteredResources,
             bool infiniteResources,
             IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph)
+        {
+            return CalculateResourceSchedules(priorityList, filteredResources, infiniteResources, graph, CancellationToken.None);
+        }
+
+        /// <inheritdoc/>
+        public IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedules(
+            List<T> priorityList,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources,
+            bool infiniteResources,
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
+            CancellationToken cancellationToken)
         {
             if (priorityList is null)
             {
@@ -66,11 +79,13 @@ namespace Zametek.Maths.Graphs
 
             while (workingList.Any(x => x.HasValue) || started.Count != 0 || ready.Any(x => x.HasValue))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 AdvanceCompletedActivities(resourceScheduleBuilders, timeCounter, started, completed);
                 PromoteReadyActivities(workingList, ready, completed, started, strongDependencyLookup);
                 AssignReadyActivitiesToResources(ready, resourceScheduleBuilders, graph, filteredResources,
                     infiniteResources, started, timeCounter);
-                timeCounter++;
+                timeCounter = NextTickOfInterest(workingList, ready, started, completed, resourceScheduleBuilders,
+                    graph, infiniteResources, strongDependencyLookup, timeCounter);
             }
 
             List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = graph.CloneActivities();
@@ -229,7 +244,13 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
                 if (activity.MaximumLatestFinishTime.HasValue
-                    && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
+                    && activity.MaximumLatestFinishTime.GetValueOrDefault() > ((long)timeCounter + activity.Duration))
+                {
+                    continue;
+                }
+                // Starting here would push the finish time past the representable time
+                // horizon; the activity can never start, which the stall detector reports.
+                if ((long)timeCounter + activity.Duration > int.MaxValue)
                 {
                     continue;
                 }
@@ -269,7 +290,13 @@ namespace Zametek.Maths.Graphs
                     continue;
                 }
                 if (activity.MaximumLatestFinishTime.HasValue
-                    && activity.MaximumLatestFinishTime.GetValueOrDefault() > (timeCounter + activity.Duration))
+                    && activity.MaximumLatestFinishTime.GetValueOrDefault() > ((long)timeCounter + activity.Duration))
+                {
+                    continue;
+                }
+                // Starting here would push the finish time past the representable time
+                // horizon; the activity can never start, which the stall detector reports.
+                if ((long)timeCounter + activity.Duration > int.MaxValue)
                 {
                     continue;
                 }
@@ -311,6 +338,227 @@ namespace Zametek.Maths.Graphs
                 }
             }
             return false;
+        }
+
+        // Decides which tick the scheduling loop should process next. Most of the time
+        // that is simply the next tick, but when every remaining activity is waiting on
+        // a time gate the loop can jump straight to the earliest gate opening - every
+        // skipped tick is provably a no-op (no completion, promotion or assignment can
+        // occur before the next running activity finishes or the next gate opens).
+        // When there is nothing running, nothing pending completion and no future time
+        // gate while activities still remain, no amount of further ticking can change
+        // anything - so instead of looping forever the scheduler stops and reports
+        // which activities are stuck and why.
+        private static int NextTickOfInterest(
+            List<T?> workingList,
+            List<T?> ready,
+            HashSet<T> started,
+            HashSet<T> completed,
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
+            bool infiniteResources,
+            IReadOnlyDictionary<T, HashSet<T>> strongDependencyLookup,
+            int timeCounter)
+        {
+            // Times are compared in long so that pathological input values cannot
+            // overflow int arithmetic inside the loop.
+            long nextEventTime = long.MaxValue;
+
+            if (started.Count != 0)
+            {
+                // Find the activities currently occupying resources, and when the
+                // earliest of them will finish. A builder is busy when its last
+                // recorded activity finishes after the current tick (activities are
+                // only ever appended at the current tick, so nothing later exists).
+                var running = new HashSet<T>();
+                foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder in builders)
+                {
+                    int lastFinishTime = builder.LastActivityFinishTime;
+                    if (lastFinishTime > timeCounter)
+                    {
+                        T? runningActivityId = builder.ActivityAt(timeCounter);
+                        if (runningActivityId.HasValue)
+                        {
+                            running.Add(runningActivityId.GetValueOrDefault());
+                        }
+                        if (lastFinishTime < nextEventTime)
+                        {
+                            nextEventTime = lastFinishTime;
+                        }
+                    }
+                }
+
+                // A started activity that is no longer running (e.g. one with zero
+                // duration) completes on the very next tick, which may unblock its
+                // successors - so no jump is possible.
+                foreach (T startedId in started)
+                {
+                    if (!running.Contains(startedId))
+                    {
+                        return timeCounter + 1;
+                    }
+                }
+            }
+
+            // Ready activities can also be unblocked purely by the passage of time: an
+            // EarliestStartTime that has not been reached yet, or a deadline whose
+            // just-in-time start point is still ahead.
+            for (int i = 0; i < ready.Count; i++)
+            {
+                if (!ready[i].HasValue)
+                {
+                    continue;
+                }
+                IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(ready[i].GetValueOrDefault());
+                long earliestStartTime = activity.EarliestStartTime.GetValueOrDefault();
+                if (earliestStartTime > timeCounter && earliestStartTime < nextEventTime)
+                {
+                    nextEventTime = earliestStartTime;
+                }
+                if (activity.MaximumLatestFinishTime.HasValue)
+                {
+                    long maximumLatestFinishTime = activity.MaximumLatestFinishTime.GetValueOrDefault();
+                    // The just-in-time gate holds the activity back while starting now
+                    // would still finish ahead of the deadline; it opens at the tick
+                    // where the finish would land exactly on the deadline.
+                    long gateOpensAt = maximumLatestFinishTime - activity.Duration;
+                    if (maximumLatestFinishTime > (long)timeCounter + activity.Duration
+                        && gateOpensAt < nextEventTime)
+                    {
+                        nextEventTime = gateOpensAt;
+                    }
+                }
+            }
+
+            if (nextEventTime != long.MaxValue)
+            {
+                if (nextEventTime > int.MaxValue)
+                {
+                    throw new ResourceSchedulingStallException(
+                        BuildStallMessage(workingList, ready, builders, graph, infiniteResources, strongDependencyLookup, completed, timeCounter));
+                }
+                // Guaranteed to be at least timeCounter + 1, because every candidate
+                // above is strictly greater than the current tick.
+                return (int)nextEventTime;
+            }
+
+            // No running activity, no pending completion, and no future time gate: if
+            // any activities remain then they can never be scheduled.
+            if (ready.Any(x => x.HasValue) || workingList.Any(x => x.HasValue) || started.Count != 0)
+            {
+                throw new ResourceSchedulingStallException(
+                    BuildStallMessage(workingList, ready, builders, graph, infiniteResources, strongDependencyLookup, completed, timeCounter));
+            }
+
+            // Everything has drained; the loop condition is about to terminate the loop.
+            return timeCounter + 1;
+        }
+
+        // Builds the diagnostic message for a scheduling stall: one line per stuck
+        // activity explaining, as precisely as possible, why it can never be scheduled.
+        private static string BuildStallMessage(
+            List<T?> workingList,
+            List<T?> ready,
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
+            bool infiniteResources,
+            IReadOnlyDictionary<T, HashSet<T>> strongDependencyLookup,
+            HashSet<T> completed,
+            int timeCounter)
+        {
+            // Collect the builder resource IDs into a set of our own so the diagnosis
+            // below relies only on value comparisons, never on the (possibly corrupted)
+            // lookup behaviour of the input collections.
+            var availableResourceIds = new HashSet<TResourceId>();
+            bool allBuildersExplicitTarget = builders.Count != 0;
+            foreach (ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder in builders)
+            {
+                if (builder.ResourceId != null)
+                {
+                    availableResourceIds.Add(builder.ResourceId.GetValueOrDefault());
+                }
+                if (!builder.IsExplicitTarget)
+                {
+                    allBuildersExplicitTarget = false;
+                }
+            }
+
+            var output = new StringBuilder();
+            output.AppendLine($@"{Properties.Resources.Message_ResourceSchedulingStalled}");
+            for (int i = 0; i < ready.Count; i++)
+            {
+                if (!ready[i].HasValue)
+                {
+                    continue;
+                }
+                T activityId = ready[i].GetValueOrDefault();
+                IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(activityId);
+                output.AppendLine($@"{activityId} -> {DescribeUnschedulableActivity(activity, availableResourceIds, allBuildersExplicitTarget, infiniteResources, timeCounter)}");
+            }
+            for (int i = 0; i < workingList.Count; i++)
+            {
+                if (!workingList[i].HasValue)
+                {
+                    continue;
+                }
+                T activityId = workingList[i].GetValueOrDefault();
+                IEnumerable<T> outstanding = strongDependencyLookup[activityId]
+                    .Where(x => !completed.Contains(x))
+                    .OrderBy(x => x);
+                output.AppendLine($@"{activityId} -> waiting on dependencies that can never complete: {string.Join(@", ", outstanding)}");
+            }
+            return output.ToString();
+        }
+
+        // Explains why a ready activity could not be assigned to any resource. The
+        // checks below deliberately enumerate the activity's target resource set and
+        // compare values rather than calling Contains on it, so that a structurally
+        // corrupted set is diagnosed instead of skewing the diagnosis.
+        private static string DescribeUnschedulableActivity(
+            IActivity<T, TResourceId, TWorkStreamId> activity,
+            HashSet<TResourceId> availableResourceIds,
+            bool allBuildersExplicitTarget,
+            bool infiniteResources,
+            int timeCounter)
+        {
+            List<TResourceId> targetResources = activity.TargetResources.ToList();
+            bool mustTargetSpecific = !infiniteResources && targetResources.Count != 0;
+
+            if (mustTargetSpecific)
+            {
+                List<TResourceId> missing = targetResources
+                    .Where(x => !availableResourceIds.Contains(x))
+                    .OrderBy(x => x)
+                    .ToList();
+                if (activity.TargetResourceOperator == LogicalOperator.AND
+                    && missing.Count != 0)
+                {
+                    return $@"requires all of its target resources, but the following are not available: {string.Join(@", ", missing)}";
+                }
+                if ((activity.TargetResourceOperator == LogicalOperator.OR
+                        || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
+                    && missing.Count == targetResources.Count)
+                {
+                    return $@"none of its target resources are available: {string.Join(@", ", targetResources.OrderBy(x => x))}";
+                }
+                // The target resources are all present by value, yet assignment still
+                // failed - probe whether the set's own lookups agree with its contents.
+                if (!targetResources.All(x => activity.TargetResources.Contains(x)))
+                {
+                    return @"its target resource set is internally inconsistent - lookups disagree with its contents (possible concurrent modification of compilation inputs)";
+                }
+            }
+            else if (allBuildersExplicitTarget)
+            {
+                return @"has no target resources, but every supplied resource is an explicit target";
+            }
+
+            if ((long)timeCounter + activity.Duration > int.MaxValue)
+            {
+                return @"starting it now would push its finish time past the representable time horizon";
+            }
+
+            return @"could not be assigned to any resource";
         }
 
         #region Scheduling Pipeline Helpers

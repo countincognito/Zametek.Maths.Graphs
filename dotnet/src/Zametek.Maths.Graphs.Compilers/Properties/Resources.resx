@@ -216,6 +216,12 @@
   <data name="Message_UnavailableResources" xml:space="preserve">
     <value>Unavailable resources for activities:</value>
   </data>
+  <data name="Message_InternallyInconsistentCollections" xml:space="preserve">
+    <value>Internally inconsistent input collections (possible concurrent modification of compilation inputs):</value>
+  </data>
+  <data name="Message_ResourceSchedulingStalled" xml:space="preserve">
+    <value>Resource scheduling could not make progress with the following activities:</value>
+  </data>
   <data name="Message_ValueCannotBeNegative" xml:space="preserve">
     <value>Value cannot be negative</value>
   </data>

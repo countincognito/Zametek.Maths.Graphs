@@ -278,6 +278,15 @@ namespace Zametek.Maths.Graphs.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Internally inconsistent input collections (possible concurrent modification of compilation inputs):.
+        /// </summary>
+        internal static string Message_InternallyInconsistentCollections {
+            get {
+                return ResourceManager.GetString("Message_InternallyInconsistentCollections", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Invalid activity constraints:.
         /// </summary>
         internal static string Message_InvalidConstraints {
@@ -386,6 +395,15 @@ namespace Zametek.Maths.Graphs.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Resource scheduling could not make progress with the following activities:.
+        /// </summary>
+        internal static string Message_ResourceSchedulingStalled {
+            get {
+                return ResourceManager.GetString("Message_ResourceSchedulingStalled", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to remove unnecessary edges.
         /// </summary>

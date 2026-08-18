@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Zametek.Maths.Graphs
 {
@@ -922,6 +923,16 @@ namespace Zametek.Maths.Graphs
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
             List<IResource<TResourceId, TWorkStreamId>> resources)
         {
+            return CalculateResourceSchedulesByPriorityList(resources, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Schedules the activities onto the given resources in priority order and returns the per-resource schedules, honouring the given cancellation token.
+        /// </summary>
+        public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> CalculateResourceSchedulesByPriorityList(
+            List<IResource<TResourceId, TWorkStreamId>> resources,
+            CancellationToken cancellationToken)
+        {
             if (resources is null)
             {
                 throw new ArgumentNullException(nameof(resources));
@@ -958,7 +969,8 @@ namespace Zametek.Maths.Graphs
                 priorityList,
                 filteredResources,
                 infiniteResources,
-                tmpGraphBuilder)
+                tmpGraphBuilder,
+                cancellationToken)
                 .ToList();
         }
 
@@ -1401,6 +1413,83 @@ namespace Zametek.Maths.Graphs
                     GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
                         .BuildUnavailableResourcesErrorMessage(unavailableResourcesSet)));
             }
+
+            // P0070
+            List<string> inconsistentCollections = FindInternallyInconsistentCollections(activities, filteredResources);
+            if (inconsistentCollections.Count != 0)
+            {
+                errors.Add(new GraphCompilationError(GraphCompilationErrorCode.P0070,
+                    GraphCompilationErrorFormatter<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>
+                        .BuildInternallyInconsistentCollectionsErrorMessage(inconsistentCollections)));
+            }
+        }
+
+        // A HashSet whose Contains lookups disagree with its own contents has been
+        // structurally corrupted - typically by unsynchronized concurrent modification
+        // while the compilation inputs were being prepared. Such a set still enumerates
+        // normally, so value-based validation passes, but membership probes fail - which
+        // would leave the resource scheduler unable to ever match the activity to its
+        // resources. Detecting it here turns a would-be infinite scheduling loop into a
+        // precise pre-compilation error.
+        private static bool IsSelfConsistent<TItem>(HashSet<TItem> set)
+        {
+            foreach (TItem item in set)
+            {
+                if (!set.Contains(item))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static List<string> FindInternallyInconsistentCollections(
+            List<TActivity> activities,
+            List<IResource<TResourceId, TWorkStreamId>> filteredResources)
+        {
+            var output = new List<string>();
+            foreach (TActivity activity in activities)
+            {
+                if (!IsSelfConsistent(activity.TargetResources))
+                {
+                    output.Add($@"Activity {activity.Id} -> {nameof(activity.TargetResources)}");
+                }
+                if (!IsSelfConsistent(activity.TargetWorkStreams))
+                {
+                    output.Add($@"Activity {activity.Id} -> {nameof(activity.TargetWorkStreams)}");
+                }
+                if (!IsSelfConsistent(activity.AllocatedToResources))
+                {
+                    output.Add($@"Activity {activity.Id} -> {nameof(activity.AllocatedToResources)}");
+                }
+                if (activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)
+                {
+                    if (!IsSelfConsistent(dependentActivity.Dependencies))
+                    {
+                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.Dependencies)}");
+                    }
+                    if (!IsSelfConsistent(dependentActivity.PlanningDependencies))
+                    {
+                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.PlanningDependencies)}");
+                    }
+                    if (!IsSelfConsistent(dependentActivity.ResourceDependencies))
+                    {
+                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.ResourceDependencies)}");
+                    }
+                    if (!IsSelfConsistent(dependentActivity.Successors))
+                    {
+                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.Successors)}");
+                    }
+                }
+            }
+            foreach (IResource<TResourceId, TWorkStreamId> resource in filteredResources)
+            {
+                if (!IsSelfConsistent(resource.InterActivityPhases))
+                {
+                    output.Add($@"Resource {resource.Id} -> {nameof(resource.InterActivityPhases)}");
+                }
+            }
+            return output;
         }
 
         // Appends any post-compilation constraint errors to the error list.
