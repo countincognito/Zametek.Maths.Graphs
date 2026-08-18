@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace Zametek.Maths.Graphs
 {
@@ -16,7 +17,10 @@ namespace Zametek.Maths.Graphs
         public TActivity Generate(T id)
         {
             return new DependentActivity<T, TResourceId, TWorkStreamId>(id, 0, canBeRemoved: true) as TActivity
-                ?? throw new InvalidOperationException($@"Unable to create a dummy activity assignable to type {typeof(TActivity).FullName}");
+                ?? throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Properties.Resources.Message_UnableToCreateDummyActivityAssignableToType,
+                    typeof(TActivity).FullName));
         }
     }
 }

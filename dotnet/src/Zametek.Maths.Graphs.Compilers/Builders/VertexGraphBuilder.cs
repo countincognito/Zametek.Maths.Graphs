@@ -1443,33 +1443,33 @@ namespace Zametek.Maths.Graphs
             {
                 if (!IsSelfConsistent(activity.TargetResources))
                 {
-                    output.Add($@"Activity {activity.Id} -> {nameof(activity.TargetResources)}");
+                    output.Add($@"{Properties.Resources.Message_Activity} {activity.Id} -> {nameof(activity.TargetResources)}");
                 }
                 if (!IsSelfConsistent(activity.TargetWorkStreams))
                 {
-                    output.Add($@"Activity {activity.Id} -> {nameof(activity.TargetWorkStreams)}");
+                    output.Add($@"{Properties.Resources.Message_Activity} {activity.Id} -> {nameof(activity.TargetWorkStreams)}");
                 }
                 if (!IsSelfConsistent(activity.AllocatedToResources))
                 {
-                    output.Add($@"Activity {activity.Id} -> {nameof(activity.AllocatedToResources)}");
+                    output.Add($@"{Properties.Resources.Message_Activity} {activity.Id} -> {nameof(activity.AllocatedToResources)}");
                 }
                 if (activity is IDependentActivity<T, TResourceId, TWorkStreamId> dependentActivity)
                 {
                     if (!IsSelfConsistent(dependentActivity.Dependencies))
                     {
-                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.Dependencies)}");
+                        output.Add($@"{Properties.Resources.Message_Activity} {activity.Id} -> {nameof(dependentActivity.Dependencies)}");
                     }
                     if (!IsSelfConsistent(dependentActivity.PlanningDependencies))
                     {
-                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.PlanningDependencies)}");
+                        output.Add($@"{Properties.Resources.Message_Activity} {activity.Id} -> {nameof(dependentActivity.PlanningDependencies)}");
                     }
                     if (!IsSelfConsistent(dependentActivity.ResourceDependencies))
                     {
-                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.ResourceDependencies)}");
+                        output.Add($@"{Properties.Resources.Message_Activity} {activity.Id} -> {nameof(dependentActivity.ResourceDependencies)}");
                     }
                     if (!IsSelfConsistent(dependentActivity.Successors))
                     {
-                        output.Add($@"Activity {activity.Id} -> {nameof(dependentActivity.Successors)}");
+                        output.Add($@"{Properties.Resources.Message_Activity} {activity.Id} -> {nameof(dependentActivity.Successors)}");
                     }
                 }
             }
@@ -1477,7 +1477,7 @@ namespace Zametek.Maths.Graphs
             {
                 if (!IsSelfConsistent(resource.InterActivityPhases))
                 {
-                    output.Add($@"Resource {resource.Id} -> {nameof(resource.InterActivityPhases)}");
+                    output.Add($@"{Properties.Resources.Message_Resource} {resource.Id} -> {nameof(resource.InterActivityPhases)}");
                 }
             }
             return output;

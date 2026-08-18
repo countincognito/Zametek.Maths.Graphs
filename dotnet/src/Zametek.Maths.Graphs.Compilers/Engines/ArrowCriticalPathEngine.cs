@@ -35,11 +35,11 @@ namespace Zametek.Maths.Graphs
             }
             if (state.StartNode is null)
             {
-                throw new InvalidOperationException(@"Arrow graph state has no Start node");
+                throw new InvalidOperationException(Properties.Resources.Message_ArrowGraphStateHasNoStartNode);
             }
             if (state.EndNode is null)
             {
-                throw new InvalidOperationException(@"Arrow graph state has no End node");
+                throw new InvalidOperationException(Properties.Resources.Message_ArrowGraphStateHasNoEndNode);
             }
 
             if (invalidConstraints.Count != 0)
@@ -191,7 +191,7 @@ namespace Zametek.Maths.Graphs
             }
             if (state.EndNode is null)
             {
-                throw new InvalidOperationException(@"Arrow graph state has no End node");
+                throw new InvalidOperationException(Properties.Resources.Message_ArrowGraphStateHasNoEndNode);
             }
 
             if (invalidConstraints.Count != 0)

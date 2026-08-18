@@ -222,6 +222,57 @@
   <data name="Message_ResourceSchedulingStalled" xml:space="preserve">
     <value>Resource scheduling could not make progress with the following activities:</value>
   </data>
+  <data name="Message_Activity" xml:space="preserve">
+    <value>Activity</value>
+  </data>
+  <data name="Message_Resource" xml:space="preserve">
+    <value>Resource</value>
+  </data>
+  <data name="Message_WaitingOnDependenciesThatCanNeverComplete" xml:space="preserve">
+    <value>waiting on dependencies that can never complete:</value>
+  </data>
+  <data name="Message_RequiresAllTargetResourcesButSomeNotAvailable" xml:space="preserve">
+    <value>requires all of its target resources, but the following are not available:</value>
+  </data>
+  <data name="Message_NoneOfTargetResourcesAreAvailable" xml:space="preserve">
+    <value>none of its target resources are available:</value>
+  </data>
+  <data name="Message_TargetResourceSetInternallyInconsistent" xml:space="preserve">
+    <value>its target resource set is internally inconsistent - lookups disagree with its contents (possible concurrent modification of compilation inputs)</value>
+  </data>
+  <data name="Message_NoTargetResourcesButAllResourcesAreExplicitTargets" xml:space="preserve">
+    <value>has no target resources, but every supplied resource is an explicit target</value>
+  </data>
+  <data name="Message_StartWouldExceedTimeHorizon" xml:space="preserve">
+    <value>starting it now would push its finish time past the representable time horizon</value>
+  </data>
+  <data name="Message_CouldNotBeAssignedToAnyResource" xml:space="preserve">
+    <value>could not be assigned to any resource</value>
+  </data>
+  <data name="Message_DistributionLengthLessThanLatestActivityFinishTime" xml:space="preserve">
+    <value>Distribution length ({0}) cannot be less than latest activity finish time ({1})</value>
+  </data>
+  <data name="Message_PhaseStartKeysDoNotMatchPhaseEndKeys" xml:space="preserve">
+    <value>Keys for phase starting points does not match the keys for phase ending points for resource {0}</value>
+  </data>
+  <data name="Message_ScheduledActivityStartTimeLessThanEarliestAvailableStartTime" xml:space="preserve">
+    <value>Scheduled activity's start time {0} is less than the earliest available start time for the next activity {1}</value>
+  </data>
+  <data name="Message_ArrowGraphStateHasNoStartNode" xml:space="preserve">
+    <value>Arrow graph state has no Start node</value>
+  </data>
+  <data name="Message_ArrowGraphStateHasNoEndNode" xml:space="preserve">
+    <value>Arrow graph state has no End node</value>
+  </data>
+  <data name="Message_UnableToCreateDummyActivityAssignableToType" xml:space="preserve">
+    <value>Unable to create a dummy activity assignable to type {0}</value>
+  </data>
+  <data name="Message_TypeNotSupportedForKeyGeneration" xml:space="preserve">
+    <value>Type {0} is not supported for key generation</value>
+  </data>
+  <data name="Message_GuidKeysDoNotSupportPrevious" xml:space="preserve">
+    <value>Guid keys do not support Previous</value>
+  </data>
   <data name="Message_ValueCannotBeNegative" xml:space="preserve">
     <value>Value cannot be negative</value>
   </data>

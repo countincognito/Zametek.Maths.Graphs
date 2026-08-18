@@ -495,7 +495,7 @@ namespace Zametek.Maths.Graphs
                 IEnumerable<T> outstanding = strongDependencyLookup[activityId]
                     .Where(x => !completed.Contains(x))
                     .OrderBy(x => x);
-                output.AppendLine($@"{activityId} -> waiting on dependencies that can never complete: {string.Join(@", ", outstanding)}");
+                output.AppendLine($@"{activityId} -> {Properties.Resources.Message_WaitingOnDependenciesThatCanNeverComplete} {string.Join(@", ", outstanding)}");
             }
             return output.ToString();
         }
@@ -523,32 +523,32 @@ namespace Zametek.Maths.Graphs
                 if (activity.TargetResourceOperator == LogicalOperator.AND
                     && missing.Count != 0)
                 {
-                    return $@"requires all of its target resources, but the following are not available: {string.Join(@", ", missing)}";
+                    return $@"{Properties.Resources.Message_RequiresAllTargetResourcesButSomeNotAvailable} {string.Join(@", ", missing)}";
                 }
                 if ((activity.TargetResourceOperator == LogicalOperator.OR
                         || activity.TargetResourceOperator == LogicalOperator.ACTIVE_AND)
                     && missing.Count == targetResources.Count)
                 {
-                    return $@"none of its target resources are available: {string.Join(@", ", targetResources.OrderBy(x => x))}";
+                    return $@"{Properties.Resources.Message_NoneOfTargetResourcesAreAvailable} {string.Join(@", ", targetResources.OrderBy(x => x))}";
                 }
                 // The target resources are all present by value, yet assignment still
                 // failed - probe whether the set's own lookups agree with its contents.
                 if (!targetResources.All(x => activity.TargetResources.Contains(x)))
                 {
-                    return @"its target resource set is internally inconsistent - lookups disagree with its contents (possible concurrent modification of compilation inputs)";
+                    return Properties.Resources.Message_TargetResourceSetInternallyInconsistent;
                 }
             }
             else if (allBuildersExplicitTarget)
             {
-                return @"has no target resources, but every supplied resource is an explicit target";
+                return Properties.Resources.Message_NoTargetResourcesButAllResourcesAreExplicitTargets;
             }
 
             if ((long)timeCounter + activity.Duration > int.MaxValue)
             {
-                return @"starting it now would push its finish time past the representable time horizon";
+                return Properties.Resources.Message_StartWouldExceedTimeHorizon;
             }
 
-            return @"could not be assigned to any resource";
+            return Properties.Resources.Message_CouldNotBeAssignedToAnyResource;
         }
 
         #region Scheduling Pipeline Helpers

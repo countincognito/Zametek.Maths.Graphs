@@ -61,6 +61,15 @@ namespace Zametek.Maths.Graphs.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Activity.
+        /// </summary>
+        internal static string Message_Activity {
+            get {
+                return ResourceManager.GetString("Message_Activity", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to All resources are explicit targets, but not all activities have targeted resources.
         /// </summary>
         internal static string Message_AllResourcesExplicitTargetsNotAllActivitiesTargeted {
@@ -69,6 +78,78 @@ namespace Zametek.Maths.Graphs.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Arrow graph state has no End node.
+        /// </summary>
+        internal static string Message_ArrowGraphStateHasNoEndNode {
+            get {
+                return ResourceManager.GetString("Message_ArrowGraphStateHasNoEndNode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Arrow graph state has no Start node.
+        /// </summary>
+        internal static string Message_ArrowGraphStateHasNoStartNode {
+            get {
+                return ResourceManager.GetString("Message_ArrowGraphStateHasNoStartNode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Distribution length ({0}) cannot be less than latest activity finish time ({1}).
+        /// </summary>
+        internal static string Message_DistributionLengthLessThanLatestActivityFinishTime {
+            get {
+                return ResourceManager.GetString("Message_DistributionLengthLessThanLatestActivityFinishTime", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Guid keys do not support Previous.
+        /// </summary>
+        internal static string Message_GuidKeysDoNotSupportPrevious {
+            get {
+                return ResourceManager.GetString("Message_GuidKeysDoNotSupportPrevious", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Keys for phase starting points does not match the keys for phase ending points for resource {0}.
+        /// </summary>
+        internal static string Message_PhaseStartKeysDoNotMatchPhaseEndKeys {
+            get {
+                return ResourceManager.GetString("Message_PhaseStartKeysDoNotMatchPhaseEndKeys", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled activity's start time {0} is less than the earliest available start time for the next activity {1}.
+        /// </summary>
+        internal static string Message_ScheduledActivityStartTimeLessThanEarliestAvailableStartTime {
+            get {
+                return ResourceManager.GetString("Message_ScheduledActivityStartTimeLessThanEarliestAvailableStartTime", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Type {0} is not supported for key generation.
+        /// </summary>
+        internal static string Message_TypeNotSupportedForKeyGeneration {
+            get {
+                return ResourceManager.GetString("Message_TypeNotSupportedForKeyGeneration", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to create a dummy activity assignable to type {0}.
+        /// </summary>
+        internal static string Message_UnableToCreateDummyActivityAssignableToType {
+            get {
+                return ResourceManager.GetString("Message_UnableToCreateDummyActivityAssignableToType", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Arrow graph contains more than one End node.
         /// </summary>
@@ -106,6 +187,15 @@ namespace Zametek.Maths.Graphs.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to could not be assigned to any resource.
+        /// </summary>
+        internal static string Message_CouldNotBeAssignedToAnyResource {
+            get {
+                return ResourceManager.GetString("Message_CouldNotBeAssignedToAnyResource", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot backfill Isolated nodes.
         /// </summary>
@@ -301,6 +391,69 @@ namespace Zametek.Maths.Graphs.Properties {
         internal static string Message_InvalidDependencies {
             get {
                 return ResourceManager.GetString("Message_InvalidDependencies", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to none of its target resources are available:.
+        /// </summary>
+        internal static string Message_NoneOfTargetResourcesAreAvailable {
+            get {
+                return ResourceManager.GetString("Message_NoneOfTargetResourcesAreAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to has no target resources, but every supplied resource is an explicit target.
+        /// </summary>
+        internal static string Message_NoTargetResourcesButAllResourcesAreExplicitTargets {
+            get {
+                return ResourceManager.GetString("Message_NoTargetResourcesButAllResourcesAreExplicitTargets", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Resource.
+        /// </summary>
+        internal static string Message_Resource {
+            get {
+                return ResourceManager.GetString("Message_Resource", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to requires all of its target resources, but the following are not available:.
+        /// </summary>
+        internal static string Message_RequiresAllTargetResourcesButSomeNotAvailable {
+            get {
+                return ResourceManager.GetString("Message_RequiresAllTargetResourcesButSomeNotAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to starting it now would push its finish time past the representable time horizon.
+        /// </summary>
+        internal static string Message_StartWouldExceedTimeHorizon {
+            get {
+                return ResourceManager.GetString("Message_StartWouldExceedTimeHorizon", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to its target resource set is internally inconsistent - lookups disagree with its contents (possible concurrent modification of compilation inputs).
+        /// </summary>
+        internal static string Message_TargetResourceSetInternallyInconsistent {
+            get {
+                return ResourceManager.GetString("Message_TargetResourceSetInternallyInconsistent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to waiting on dependencies that can never complete:.
+        /// </summary>
+        internal static string Message_WaitingOnDependenciesThatCanNeverComplete {
+            get {
+                return ResourceManager.GetString("Message_WaitingOnDependenciesThatCanNeverComplete", resourceCulture);
             }
         }
         

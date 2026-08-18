@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Zametek.Maths.Graphs
@@ -187,7 +188,11 @@ namespace Zametek.Maths.Graphs
             int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
             if (distribution.Count < latestActivityFinishTime)
             {
-                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+                throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Properties.Resources.Message_DistributionLengthLessThanLatestActivityFinishTime,
+                    distribution.Count,
+                    latestActivityFinishTime));
             }
 
             // If the type is Indirect, then the resource must exist.
@@ -253,7 +258,10 @@ namespace Zametek.Maths.Graphs
                 // Check to make sure the key collections are the same.
                 if (!resourcePhaseStarts.Keys.SequenceEqual(resourcePhaseEnds.Keys))
                 {
-                    throw new InvalidOperationException($@"Keys for phase starting points does not match the keys for phase ending points for resouce {resource.Id}.");
+                    throw new InvalidOperationException(string.Format(
+                        CultureInfo.CurrentCulture,
+                        Properties.Resources.Message_PhaseStartKeysDoNotMatchPhaseEndKeys,
+                        resource.Id));
                 }
 
                 // Now we find the earliest start and the latest end and use those
@@ -306,7 +314,11 @@ namespace Zametek.Maths.Graphs
             int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
             if (distribution.Count < latestActivityFinishTime)
             {
-                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+                throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Properties.Resources.Message_DistributionLengthLessThanLatestActivityFinishTime,
+                    distribution.Count,
+                    latestActivityFinishTime));
             }
 
             // Mark schedules as normal.
@@ -433,7 +445,11 @@ namespace Zametek.Maths.Graphs
             int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
             if (distribution.Count < latestActivityFinishTime)
             {
-                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+                throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Properties.Resources.Message_DistributionLengthLessThanLatestActivityFinishTime,
+                    distribution.Count,
+                    latestActivityFinishTime));
             }
 
             // Mark schedules as normal.
@@ -477,7 +493,11 @@ namespace Zametek.Maths.Graphs
             int latestActivityFinishTime = scheduledActivities.Select(x => x.FinishTime).DefaultIfEmpty().Max();
             if (distribution.Count < latestActivityFinishTime)
             {
-                throw new InvalidOperationException($@"Distribution length ({distribution.Count}) cannot be less than latest activity finish time ({latestActivityFinishTime})");
+                throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Properties.Resources.Message_DistributionLengthLessThanLatestActivityFinishTime,
+                    distribution.Count,
+                    latestActivityFinishTime));
             }
 
             // Now mark the uncosted areas
@@ -545,7 +565,11 @@ namespace Zametek.Maths.Graphs
             int earliestAvailableStartTimeForNextActivity = EarliestAvailableStartTimeForNextActivity;
             if (scheduledActivity.StartTime < earliestAvailableStartTimeForNextActivity)
             {
-                throw new InvalidOperationException($@"Scheduled activity's start time {scheduledActivity.StartTime} is less than the earliest available start time for the next activity {earliestAvailableStartTimeForNextActivity}");
+                throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Properties.Resources.Message_ScheduledActivityStartTimeLessThanEarliestAvailableStartTime,
+                    scheduledActivity.StartTime,
+                    earliestAvailableStartTimeForNextActivity));
             }
             AppendActivityWithoutChecks(scheduledActivity);
         }

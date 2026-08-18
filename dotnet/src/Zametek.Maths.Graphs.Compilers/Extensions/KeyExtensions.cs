@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace Zametek.Maths.Graphs
 {
@@ -15,7 +16,10 @@ namespace Zametek.Maths.Graphs
             {
                 return (T)(object)Guid.NewGuid();
             }
-            throw new InvalidOperationException($"Type {typeof(T)} is not supported for key generation.");
+            throw new InvalidOperationException(string.Format(
+                CultureInfo.CurrentCulture,
+                Properties.Resources.Message_TypeNotSupportedForKeyGeneration,
+                typeof(T)));
         }
 
         internal static T Previous<T>(this T input)
@@ -27,9 +31,12 @@ namespace Zametek.Maths.Graphs
             }
             if (typeof(T) == typeof(Guid))
             {
-                throw new InvalidOperationException("Guid keys do not support Previous.");
+                throw new InvalidOperationException(Properties.Resources.Message_GuidKeysDoNotSupportPrevious);
             }
-            throw new InvalidOperationException($"Type {typeof(T)} is not supported for key generation.");
+            throw new InvalidOperationException(string.Format(
+                CultureInfo.CurrentCulture,
+                Properties.Resources.Message_TypeNotSupportedForKeyGeneration,
+                typeof(T)));
         }
     }
 }
