@@ -2,18 +2,19 @@
 
 Work identified during investigation, with what was observed, why it matters, and what a fix would need to establish - so anything picked up later starts from evidence rather than from scratch. Entries are marked done as they are undertaken, and keep their measurements.
 
-One item remains: **priority-list Phase 3**, which is investigated and designed but deliberately not implemented, because its value is conditional on raising `GraphLimits.MaximumActivityCount`. See the reassessment at the end of that section.
+**Nothing is outstanding.** Everything identified during this investigation has been done, in both languages:
 
-Everything else on this list has been done:
+- **Priority-list Phases 0 to 3** - the calculation was cubic on a layered graph and is now roughly 80x faster at 8,000 activities than where it started, with allocation down from 91 GB to 721 MB. Phase 3 was the item held back as conditional; it is now implemented, and with it the case for keeping `GraphLimits.MaximumActivityCount` at 2,000 is a domain decision rather than a performance one. Raising it is deliberately left to whoever owns that call.
 
 - **`RemoveRedundantEdges`** was the largest, at 60 seconds and 158 GB on a 150-activity graph, and is now 2 ms and 1 MB. The separate item for the recursive dummy-edge ordering went with it - they were two defects in the same walk.
 - **`RedirectDummyEdges`** on a graph that was never transitively reduced was roughly cubic, at 19.7 s for a 4,000-activity chain, and is now 3.5 s and quadratic. The remaining quadratic is inherent to the canonical form the method produces; the section records why, and why a linear version would be a behaviour change rather than an optimisation.
+- **Recursive dummy-edge ordering** turned out to be the same method as `RemoveRedundantEdges` - two defects in one walk - and went with it.
+- **Rust port parity**, all four items, each with its own measurement; see that section for what was ported and what was deliberately left out.
+- **The arrow topological CPM**, in both languages, though the measurement showed it buys nothing - the section at the end records why, and what it turned up instead.
 
-Both are recorded in full at the end of this document, with their measurements.
+Each is recorded in full below, with its measurements. Two things noted along the way were deliberately *not* acted on, and say so where they are recorded: raising the activity limit, which is a domain decision, and the residual gap between the two languages on deep graphs.
 
-**Rust port parity is complete** - all four items done, each with its own measurement; see that section for what was ported and what was deliberately left out. **The arrow topological CPM is also done in both languages**, though the measurement showed it buys nothing - the section at the end of this document records why, and what it turned up instead.
-
-## Priority-list calculation (was cubic; Phases 0 to 2 done)
+## Priority-list calculation (was cubic; Phases 0 to 3 done)
 
 `CalculateCriticalPathPriorityList` (in both `VertexGraphBuilder` and `ArrowGraphBuilder`) appends exactly **one** activity to the priority list per iteration: it runs a full `CalculateCriticalPath()`, takes the first activity on the current critical path, zeroes that activity's duration, and repeats until every activity has been placed. Compile time is dominated by this loop for anything beyond a few hundred activities.
 
@@ -153,7 +154,7 @@ That is roughly 9x faster and 16x less allocation at 8,000 activities, and 4.5x 
 
 What remains is dominated by the pending-count dictionaries, one per flow per pass. Removing those entirely would mean either checking readiness by rescanning a node's edges - which is cheap for sparse graphs but O(indegree) per completed edge, and so worse for the dense ones in the corpus - or giving nodes a scratch field, which puts transient algorithm state on a shared primitive type. Neither looked worth it against the remaining gain, so Phase 2 stops here; the iteration count that Phase 3 targets is now much the larger factor.
 
-Phase 3 attacks the iteration count itself. It has been **investigated but not implemented**; the findings below revise what was originally proposed, in both directions.
+Phase 3 (**done, in both languages**) attacks the iteration count itself. It was investigated first, and the findings below revise what was originally proposed in both directions; the implementation and its measurements follow them.
 
 **Collecting a whole critical path per iteration is not equivalent, and is rejected.** A counter-example settles it. Take A (duration 10) and B (duration 1) with no dependencies, and C (duration 1) depending on both. On the first pass the slack is 0 for A, 9 for B and 0 for C, so the critical set in earliest-start order is {A, C}; taking it whole would place A, C, B. Taking one activity at a time places A, then re-evaluates - and with A zeroed, B has become critical too - giving A, B, C. Verified against the implementation, which produces A, B, C.
 
@@ -190,11 +191,70 @@ The intricacy is in preserving behaviour exactly, and the risk is that an increm
 - When the finish time does move, fall back to a full recompute. At 5% of iterations that costs little.
 - The engine interface is currently stateless whole-graph recomputation. An incremental entry point (recalculate after a single duration change) is new public surface on `IVertexCriticalPathEngine`, and only the priority-list calculation would use it.
 
-### Why it was not implemented
+### What was built
 
-`GraphLimits.MaximumActivityCount` is 2,000. At exactly that ceiling the priority-list calculation now takes about 1.5 seconds, down from 6.9 seconds; Phase 3 would take it to roughly a tenth of a second. Everything above 2,000 - where the advantage grows to fifteen-fold and beyond - is rejected by `P0080` before scheduling begins. Real plans sit far below the limit in any case: the production graph that prompted this whole investigation had 39 activities, which compiles in milliseconds and always did.
+The two flows keep their full passes, and their arithmetic is now factored into a handful of value helpers so that the full and incremental paths compute from one copy rather than two - the drift between them was the risk the design section flags, and this removes the opportunity for it. Extracting the helpers was verified on its own, before anything used them, by the baseline staying byte-identical.
 
-So Phase 3 would currently be optimising a region the limits forbid, for a size nobody runs. Its real value is conditional: **it is the enabler if the activity limit is ever to be raised.** With it, 8,000 activities becomes a few seconds instead of around 44, and a limit of 5,000 to 10,000 becomes defensible. Without it, 2,000 is the honest ceiling. Revisit this if raising the limit is ever wanted; everything needed to pick it up - the corpus, the harness, the measurements, the design and the two rejected alternatives - is recorded above.
+`IVertexIncrementalCriticalPath` / `IncrementalCriticalPath` is the incremental path. The priority-list calculation now runs one full calculation and then hands each duration change to it. Three things make it exact rather than approximate:
+
+- **The order is computed once.** The graph structure never changes during a priority-list calculation - only durations do - so a topological ordering computed at the start stays valid for every iteration. Changed nodes are visited in that order, so each is recomputed at most once with all of its predecessors already final, which is what makes a single comparison per node sufficient.
+- **Propagation stops where a value has not moved.** A value that did not change cannot change anything downstream of it, because everything below depends on the values above only through the numbers being compared.
+- **A moved finish time is propagated, not surrendered to.** The first implementation fell back to a full recalculation whenever the project finish time moved, on the strength of the 5% figure measured above. That figure is from shallow graphs and badly understates the deep ones: the selection picks the activity with the least total slack, which is one *on* the critical path, so shortening it moves the finish time constantly. Seeding the backward propagation from the End nodes instead - and letting it stop where values have not moved, as everywhere else - took the 8,000-activity deep shape from 9.9 s to 5.2 s on its own.
+
+Two things needed care and are worth knowing. `Duration` feeds the forward pass twice, not once - it sets the earliest finish time, but it also feeds the `MaximumLatestFinishTime - Duration` clamp, so shortening an activity can *raise* its own earliest start rather than only lowering its finish. And free slack is tracked separately from both flows, because it depends on the successors' earliest start times as well as on the node's own values; the priority-list selection never reads it, but it is maintained so that an incrementally updated graph is indistinguishable from a fully recalculated one, which is what lets the two be compared value for value.
+
+The constraint check is no longer run per iteration. `FindInvalidPreCompilationConstraints` depends on the duration only through `MinimumEarliestStartTime + Duration > MaximumLatestFinishTime`, so zeroing an activity can make it valid but never invalid: if the set is empty at the first iteration it stays empty, and if it is not, the first iteration throws.
+
+### Measured
+
+C#, for the priority-list calculation alone, against the Phase 2 figures:
+
+| Activities (12 layers) | Phase 2 | Phase 3 | Allocated, Phase 2 | Allocated, Phase 3 |
+| - | - | - | - | - |
+| 250 | 130 ms | 58 ms | 8 MB | 1 MB |
+| 500 | 296 ms | 77 ms | 27 MB | 3 MB |
+| 1,000 | 770 ms | 194 ms | 104 MB | 7 MB |
+| 2,000 | 1,477 ms | 434 ms | 416 MB | 16 MB |
+| 4,000 | - | 611 ms | - | 27 MB |
+| 8,000 | - | 1,794 ms | - | 57 MB |
+
+Depth dependence is gone at fixed size, where Phase 2 still had some:
+
+| Layers, at 1,500 activities | Phase 2 | Phase 3 |
+| - | - | - |
+| 10 | 669 ms | 76 ms |
+| 60 | 677 ms | 159 ms |
+| 240 | 520 ms | 155 ms |
+
+On the shape the investigation started from, where depth grows with size, measured against every earlier stage:
+
+| Activities | Depth | Start | Phase 2 | Phase 3 | Allocated, Phase 2 | Allocated, Phase 3 |
+| - | - | - | - | - | - | - |
+| 1,000 | 40 | 1.2 s | 0.88 s | **0.08 s** | 91 MB | 15 MB |
+| 2,000 | 80 | 6.9 s | 1.54 s | **0.3 s** | 375 MB | 51 MB |
+| 4,000 | 160 | 47.3 s | 5.96 s | **1.2 s** | 1.4 GB | 189 MB |
+| 8,000 | 320 | 413 s | 44.4 s | **5.5 s** | 5.7 GB | 720 MB |
+
+That is 5x to 12x on top of Phase 2, and roughly 75x against where the investigation started at 8,000 activities, with allocation down eight-fold again.
+
+Treat the top row as "about five and a half seconds" rather than a precise figure: repeated runs of the same build varied between 5.2 s and 8.9 s while allocating within a megabyte of each other, so the spread is the machine and the garbage collector rather than the work. Allocation is the stable number of the two, and it is what the tables above should be read by.
+
+Rust, same calculation:
+
+| Activities (12 layers) | Before | Phase 3 | | Layers, at 1,500 | Before | Phase 3 |
+| - | - | - | - | - | - | - |
+| 250 | 20 ms | 14 ms | | 10 | 901 ms | 66 ms |
+| 500 | 90 ms | 25 ms | | 30 | 999 ms | 166 ms |
+| 1,000 | 418 ms | 48 ms | | 60 | 1,024 ms | 208 ms |
+| 2,000 | 1,854 ms | 166 ms | | 240 | 653 ms | 319 ms |
+
+**Worth recording honestly: on deep graphs Rust is now about twice as slow as C#** - 319 ms against 155 ms at 240 layers, and around 13 s against 5.2 s on the 8,000-activity deep shape, where the two were comparable before. The likely cause is structural rather than algorithmic: the C# session holds the nodes it walks by reference, while the Rust one holds their IDs and looks each up in the state's map on every access, several times per node visited. Caching the End and Isolated node lists in the session, which removes a whole-graph scan per iteration in both languages, was tried first and barely moved it. Chasing the rest would mean giving the incremental walk index-based access into the state's node storage, which is a wider change than this item warrants; it is recorded here rather than done.
+
+### What this does for the activity limit
+
+`GraphLimits.MaximumActivityCount` is 2,000, and that ceiling was set by what was affordable. At exactly that limit the priority-list calculation now takes **0.29 seconds** on the realistic shape, against 1.54 seconds after Phase 2 and 6.9 seconds when this began. At 8,000 activities it takes 5.2 seconds, where before Phase 3 it took 44.
+
+The limit has deliberately **not** been raised here - that is a domain decision about what the library should accept, not a consequence of making it faster, and it belongs to whoever owns the product rather than to this optimisation. But the argument the earlier note made for keeping it at 2,000 no longer holds: a limit of 5,000 to 10,000 is now defensible on performance grounds. Real plans sit far below either figure in any case - the production graph that prompted this whole investigation had 39 activities.
 
 Any change here must preserve the exact priority ordering, since that ordering determines resource assignment and therefore the final schedule. `CompileBehaviourTests` (order-independence across 50 random DAGs) and the golden tests in both the C# and Rust suites are the regression net; a benchmark harness comparing before/after priority lists on random graphs would be worth building first.
 

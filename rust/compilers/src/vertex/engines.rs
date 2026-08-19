@@ -2,6 +2,7 @@
 //! to the builder - the counterparts of the C# default engine classes and
 //! `VertexGraphBuilderEngines`.
 
+use super::incremental::IncrementalCriticalPath;
 use super::state::{VertexGraphState, VertexTraversal};
 use super::{cpm, reducer};
 use crate::contracts::{
@@ -72,6 +73,13 @@ impl<K: Key, R: Key, W: Key> IVertexCriticalPathEngine<K, R, W> for VertexCritic
         invalid_constraints: &[InvalidConstraint<K>],
     ) -> bool {
         cpm::back_fill_isolated_nodes(state, invalid_constraints)
+    }
+
+    fn begin_incremental_critical_path(
+        &self,
+        state: &VertexGraphState<K, R, W>,
+    ) -> Option<IncrementalCriticalPath<K>> {
+        IncrementalCriticalPath::begin(state)
     }
 }
 

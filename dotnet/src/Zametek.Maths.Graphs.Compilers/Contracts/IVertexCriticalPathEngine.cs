@@ -48,5 +48,21 @@ namespace Zametek.Maths.Graphs
         bool BackFillIsolatedNodes(
             IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             List<IInvalidConstraint<T>> invalidConstraints);
+
+        /// <summary>
+        /// Begins an incremental calculation over the current graph, for callers
+        /// that change one activity's duration at a time and would otherwise
+        /// recalculate the whole graph after each change. The graph must already
+        /// have been calculated in full.
+        /// </summary>
+        /// <remarks>
+        /// Returns null when the graph cannot be ordered, which means it contains a
+        /// cycle; the caller should fall back to the full passes, which report that
+        /// properly. The session is invalidated by any change to the graph
+        /// structure - see
+        /// <see cref="IVertexIncrementalCriticalPath{T}"/>.
+        /// </remarks>
+        IVertexIncrementalCriticalPath<T>? BeginIncrementalCriticalPath(
+            IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state);
     }
 }

@@ -196,7 +196,7 @@ fn priority_list_given_corpus_then_every_non_dummy_activity_appears_exactly_once
 fn measure_priority_list_scaling() {
     println!("Scaling with activity count (12 layers):");
     println!("{:>12} {:>12}", "activities", "time");
-    for size in [250, 500, 1_000, 2_000] {
+    for size in [250, 500, 1_000, 2_000, 4_000, 8_000] {
         let elapsed = measure_one(size, 12);
         println!("{:>12} {:>12}", size, format!("{}ms", elapsed.as_millis()));
     }
@@ -209,6 +209,19 @@ fn measure_priority_list_scaling() {
         println!(
             "{:>12} {:>12}",
             layers,
+            format!("{}ms", elapsed.as_millis())
+        );
+    }
+
+    println!();
+    println!("On the shape the investigation started from, where depth grows with size:");
+    println!("{:>12} {:>12} {:>12}", "activities", "layers", "time");
+    for size in [1_000, 2_000, 4_000, 8_000] {
+        let elapsed = measure_one(size, size / 25);
+        println!(
+            "{:>12} {:>12} {:>12}",
+            size,
+            size / 25,
             format!("{}ms", elapsed.as_millis())
         );
     }

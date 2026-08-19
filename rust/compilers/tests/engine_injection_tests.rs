@@ -23,7 +23,7 @@ use zametek_maths_graphs_compilers::contracts::{
     IEventGenerator, IIdGenerator, IVertexCriticalPathEngine,
     IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
 };
-use zametek_maths_graphs_compilers::vertex::VertexGraphState;
+use zametek_maths_graphs_compilers::vertex::{IncrementalCriticalPath, VertexGraphState};
 use zametek_maths_graphs_compilers::{
     ArrowGraphBuilder, ArrowGraphBuilderEngines, DummyEdgeOrchestrator, RemovableEventGenerator,
     VertexCriticalPathEngine, VertexGraphBuilder, VertexGraphBuilderEngines, VertexGraphCompiler,
@@ -77,6 +77,13 @@ impl IVertexCriticalPathEngine<i32, i32, i32> for SpyVertexCriticalPathEngine {
         self.backfill.fetch_add(1, Ordering::Relaxed);
         self.inner
             .back_fill_isolated_nodes(state, invalid_constraints)
+    }
+
+    fn begin_incremental_critical_path(
+        &self,
+        state: &VertexGraphState<i32, i32, i32>,
+    ) -> Option<IncrementalCriticalPath<i32>> {
+        self.inner.begin_incremental_critical_path(state)
     }
 }
 

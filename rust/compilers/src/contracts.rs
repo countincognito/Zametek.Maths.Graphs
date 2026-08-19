@@ -11,7 +11,7 @@
 //! orchestrator are injected directly, exactly like every other engine.
 
 use crate::arrow::ArrowGraphState;
-use crate::vertex::VertexGraphState;
+use crate::vertex::{IncrementalCriticalPath, VertexGraphState};
 use indexmap::{IndexMap, IndexSet};
 use zametek_maths_graphs_primitives::{
     Activity, CircularDependency, DependentActivity, Event, GraphError, InvalidConstraint, Key,
@@ -98,6 +98,19 @@ pub trait IVertexCriticalPathEngine<K: Key, R: Key, W: Key> {
         state: &mut VertexGraphState<K, R, W>,
         invalid_constraints: &[InvalidConstraint<K>],
     ) -> bool;
+
+    /// Begins an incremental calculation over the current graph, for callers that
+    /// change one activity's duration at a time and would otherwise recalculate the
+    /// whole graph after each change. The graph must already have been calculated in
+    /// full.
+    ///
+    /// Returns `None` when the graph cannot be ordered, which means it contains a
+    /// cycle; the caller should fall back to the full passes, which report that
+    /// properly. The session is invalidated by any change to the graph structure.
+    fn begin_incremental_critical_path(
+        &self,
+        state: &VertexGraphState<K, R, W>,
+    ) -> Option<IncrementalCriticalPath<K>>;
 }
 
 /// Critical-path calculation for Activity-on-Arrow graphs - the counterpart of

@@ -1034,10 +1034,22 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(graphBuilder));
             }
             var priorityList = new List<T>();
+
+            // The loop below changes one activity's duration per iteration and nothing
+            // else, so after the first calculation the graph is recalculated incrementally
+            // rather than from scratch. The session caches a topological ordering, which
+            // stays valid because the structure never changes here - only durations do.
+            // It declines to start on a cyclic graph, and declines an update when the
+            // project finish time moves; either way the full calculation below stands in,
+            // and it is also what reports a cycle properly.
+            graphBuilder.CalculateCriticalPath();
+
+            IVertexIncrementalCriticalPath<T>? incrementalCriticalPath =
+                graphBuilder.m_CriticalPathEngine.BeginIncrementalCriticalPath(graphBuilder.m_State);
+
             bool cont = true;
             while (cont)
             {
-                graphBuilder.CalculateCriticalPath();
 
                 // Find the least slack among the activities still to be placed. An
                 // activity with no slack value at all is skipped here, and the default
@@ -1091,6 +1103,12 @@ namespace Zametek.Maths.Graphs
                     priorityList.Add(criticalActivityId);
                     // Set the processed activity to dummy.
                     graphBuilder.Activity(criticalActivityId).Duration = 0;
+
+                    if (incrementalCriticalPath is null
+                        || !incrementalCriticalPath.ApplyDurationChange(criticalActivityId))
+                    {
+                        graphBuilder.CalculateCriticalPath();
+                    }
                 }
                 else
                 {

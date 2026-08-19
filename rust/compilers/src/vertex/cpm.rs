@@ -3,7 +3,7 @@ use crate::messages;
 use crate::shuffle::shuffle;
 use indexmap::IndexMap;
 use zametek_maths_graphs_primitives::{
-    GraphError, InsertionOrderSet, InvalidConstraint, Key, NodeType,
+    DependentActivity, GraphError, InsertionOrderSet, InvalidConstraint, Key, NodeType,
 };
 
 // The critical-path engine for Activity-on-Vertex graphs - the counterpart of
@@ -74,7 +74,7 @@ fn release_predecessor<K: Key, R: Key, W: Key>(
 // The aggregate helpers below return zero for an empty edge set, matching the
 // `unwrap_or(0)` the Start and End node passes used; the main loops only ever
 // call them for nodes that have at least one edge.
-fn max_edge_earliest_finish_time<K: Key, R: Key, W: Key>(
+pub(crate) fn max_edge_earliest_finish_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
     edge_ids: &InsertionOrderSet<K>,
 ) -> i32 {
@@ -95,7 +95,7 @@ fn max_edge_earliest_finish_time<K: Key, R: Key, W: Key>(
     maximum
 }
 
-fn min_edge_latest_finish_time<K: Key, R: Key, W: Key>(
+pub(crate) fn min_edge_latest_finish_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
     edge_ids: &InsertionOrderSet<K>,
 ) -> i32 {
@@ -116,7 +116,7 @@ fn min_edge_latest_finish_time<K: Key, R: Key, W: Key>(
     minimum
 }
 
-fn min_successor_earliest_start_time<K: Key, R: Key, W: Key>(
+pub(crate) fn min_successor_earliest_start_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
     edge_ids: &InsertionOrderSet<K>,
 ) -> i32 {
@@ -168,6 +168,138 @@ fn all_edges_have_latest_finish_time<K: Key, R: Key, W: Key>(
     })
 }
 
+// The value helpers below are the arithmetic of the two flows, factored out so that
+// the full passes and the incremental recalculation in `incremental.rs` compute from
+// one copy rather than two. Each reproduces its original statements verbatim.
+
+/// The earliest start time of a node, given the value implied by its predecessors
+/// (zero for Start and Isolated nodes). This depends on the duration as well as on
+/// the predecessors, through the maximum-latest-finish clamp - so shortening an
+/// activity can raise its own earliest start.
+pub(crate) fn clamp_earliest_start_time<K: Key, R: Key, W: Key>(
+    activity: &DependentActivity<K, R, W>,
+    mut earliest_start_time: i32,
+) -> i32 {
+    if let Some(min_est) = activity.minimum_earliest_start_time {
+        // Augment the earliest start time artificially (if required).
+        if min_est > earliest_start_time {
+            earliest_start_time = min_est;
+        }
+    }
+
+    if let Some(max_lft) = activity.maximum_latest_finish_time {
+        let proposed_latest_start_time = max_lft - activity.duration;
+        // Diminish the earliest start time artificially (if required).
+        if proposed_latest_start_time < earliest_start_time {
+            earliest_start_time = proposed_latest_start_time;
+        }
+    }
+
+    earliest_start_time
+}
+
+/// The finish time a node hands on: diminished by its maximum, or else augmented by
+/// its minimum free slack. This is the value given to a Normal node's outgoing edges,
+/// and also the latest finish time the forward pass gives End and Isolated nodes.
+pub(crate) fn augmented_finish_time<K: Key, R: Key, W: Key>(
+    activity: &DependentActivity<K, R, W>,
+    mut finish_time: i32,
+) -> i32 {
+    if let Some(max_lft) = activity.maximum_latest_finish_time {
+        // Diminish the finish time artificially (if required).
+        if max_lft < finish_time {
+            finish_time = max_lft;
+        }
+    } else if let Some(min_free_slack) = activity.minimum_free_slack {
+        let proposed = finish_time + min_free_slack;
+        // Augment the finish time artificially (if required).
+        if proposed > finish_time {
+            finish_time = proposed;
+        }
+    }
+
+    finish_time
+}
+
+/// The Start-node variant of the above, which applies the minimum free slack without
+/// the maximum diminishment. The asymmetry is deliberate and long-standing.
+pub(crate) fn start_node_edge_earliest_finish_time<K: Key, R: Key, W: Key>(
+    activity: &DependentActivity<K, R, W>,
+    mut finish_time: i32,
+) -> i32 {
+    if let Some(min_free_slack) = activity.minimum_free_slack {
+        let proposed = finish_time + min_free_slack;
+        // Augment the finish time artificially (if required).
+        if proposed > finish_time {
+            finish_time = proposed;
+        }
+    }
+
+    finish_time
+}
+
+/// A latest finish time diminished by the node's maximum.
+pub(crate) fn clamp_latest_finish_time<K: Key, R: Key, W: Key>(
+    activity: &DependentActivity<K, R, W>,
+    mut latest_finish_time: i32,
+) -> i32 {
+    if let Some(max_lft) = activity.maximum_latest_finish_time {
+        // Diminish the latest finish time artificially (if required).
+        if max_lft < latest_finish_time {
+            latest_finish_time = max_lft;
+        }
+    }
+
+    latest_finish_time
+}
+
+/// Free slack for Start and Normal nodes, from the earliest start times of their
+/// successors. Stays optional because the original was: a node with no earliest start
+/// time takes no free slack rather than taking it from zero.
+pub(crate) fn free_slack_from_successors<K: Key, R: Key, W: Key>(
+    activity: &DependentActivity<K, R, W>,
+    min_successor_earliest_start_time: i32,
+) -> Option<i32> {
+    let mut latest_finish_time = min_successor_earliest_start_time;
+
+    if let Some(lft) = activity.latest_finish_time {
+        // Diminish the latest finish time artificially (if required).
+        if lft < latest_finish_time {
+            latest_finish_time = lft;
+        }
+    }
+
+    if let Some(max_lft) = activity.maximum_latest_finish_time {
+        // Diminish the latest finish time artificially (if required).
+        if max_lft < latest_finish_time {
+            latest_finish_time = max_lft;
+        }
+    }
+
+    // Free float/slack calculations.
+    activity
+        .earliest_start_time
+        .map(|est| latest_finish_time - est - activity.duration)
+}
+
+/// The latest finish time an End node gives its incoming edges. The comparison treats
+/// a node without a latest start time as starting at zero, which is not the same as
+/// propagating the absent value.
+pub(crate) fn end_node_incoming_edge_latest_finish_time<K: Key, R: Key, W: Key>(
+    activity: &DependentActivity<K, R, W>,
+) -> Option<i32> {
+    let mut latest_finish_time = activity.latest_start_time();
+
+    if let Some(max_lft) = activity.maximum_latest_finish_time {
+        // Diminish the latest finish time artificially (if required).
+        if max_lft < latest_finish_time.unwrap_or(0) {
+            latest_finish_time = Some(max_lft);
+        }
+    }
+
+    latest_finish_time
+}
+
 pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
     state: &mut VertexGraphState<K, R, W>,
     invalid_constraints: &[InvalidConstraint<K>],
@@ -211,44 +343,13 @@ pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
             .content;
 
         // Earliest Start Time.
-        let mut earliest_start_time = 0;
-
-        if let Some(min_est) = content.minimum_earliest_start_time {
-            // Augment the earliest start time artificially (if required).
-            if min_est > earliest_start_time {
-                earliest_start_time = min_est;
-            }
-        }
-
-        if let Some(max_lft) = content.maximum_latest_finish_time {
-            let proposed_latest_start_time = max_lft - content.duration;
-            // Diminish the earliest start time artificially (if required).
-            if proposed_latest_start_time < earliest_start_time {
-                earliest_start_time = proposed_latest_start_time;
-            }
-        }
-
-        content.earliest_start_time = Some(earliest_start_time);
+        content.earliest_start_time = Some(clamp_earliest_start_time(content, 0));
 
         // Latest Finish Time.
-        let mut latest_finish_time = content
+        let earliest_finish_time = content
             .earliest_finish_time()
             .expect("EFT follows from EST");
-
-        if let Some(max_lft) = content.maximum_latest_finish_time {
-            // Diminish the latest finish time artificially (if required).
-            if max_lft < latest_finish_time {
-                latest_finish_time = max_lft;
-            }
-        } else if let Some(min_free_slack) = content.minimum_free_slack {
-            let proposed = latest_finish_time + min_free_slack;
-            // Augment the latest finish time artificially (if required).
-            if proposed > latest_finish_time {
-                latest_finish_time = proposed;
-            }
-        }
-
-        content.latest_finish_time = Some(latest_finish_time);
+        content.latest_finish_time = Some(augmented_finish_time(content, earliest_finish_time));
     }
 
     // Complete the Start nodes first to ensure the completed edge IDs contains something.
@@ -258,27 +359,12 @@ pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
             .expect("start node must exist")
             .content;
 
-        let mut earliest_start_time = 0;
-
-        if let Some(min_est) = content.minimum_earliest_start_time {
-            if min_est > earliest_start_time {
-                earliest_start_time = min_est;
-            }
-        }
-
-        if let Some(max_lft) = content.maximum_latest_finish_time {
-            let proposed_latest_start_time = max_lft - content.duration;
-            if proposed_latest_start_time < earliest_start_time {
-                earliest_start_time = proposed_latest_start_time;
-            }
-        }
-
-        content.earliest_start_time = Some(earliest_start_time);
+        content.earliest_start_time = Some(clamp_earliest_start_time(content, 0));
 
         let node_eft = content
             .earliest_finish_time()
             .expect("EFT follows from EST");
-        let min_free_slack = content.minimum_free_slack;
+        let earliest_finish_time = start_node_edge_earliest_finish_time(content, node_eft);
 
         edge_scratch.clear();
         edge_scratch.extend(
@@ -291,16 +377,6 @@ pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
         );
 
         for outgoing_edge_id in edge_scratch.iter().copied() {
-            let mut earliest_finish_time = node_eft;
-
-            if let Some(mfs) = min_free_slack {
-                let proposed = earliest_finish_time + mfs;
-                // Augment the earliest finish time artificially (if required).
-                if proposed > earliest_finish_time {
-                    earliest_finish_time = proposed;
-                }
-            }
-
             state
                 .edge_mut(outgoing_edge_id)
                 .expect("outgoing edge must exist")
@@ -351,52 +427,23 @@ pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
             let dependency_node = state.node(dependency_node_id).expect("node must exist");
 
             if dependency_node.content.earliest_start_time.is_none() {
-                let mut earliest_start_time =
-                    max_edge_earliest_finish_time(state, &dependency_node.incoming);
+                let base = max_edge_earliest_finish_time(state, &dependency_node.incoming);
 
-                let dependency_node = state.node(dependency_node_id).expect("node must exist");
-                if let Some(min_est) = dependency_node.content.minimum_earliest_start_time {
-                    // Augment the earliest start time artificially (if required).
-                    if min_est > earliest_start_time {
-                        earliest_start_time = min_est;
-                    }
-                }
-
-                if let Some(max_lft) = dependency_node.content.maximum_latest_finish_time {
-                    let proposed_latest_start_time = max_lft - dependency_node.content.duration;
-                    // Diminish the earliest start time artificially (if required).
-                    if proposed_latest_start_time < earliest_start_time {
-                        earliest_start_time = proposed_latest_start_time;
-                    }
-                }
-
-                state
+                let content = &mut state
                     .node_mut(dependency_node_id)
                     .expect("node must exist")
-                    .content
-                    .earliest_start_time = Some(earliest_start_time);
+                    .content;
+                content.earliest_start_time = Some(clamp_earliest_start_time(content, base));
             }
 
             let dependency_content = &state
                 .node(dependency_node_id)
                 .expect("node must exist")
                 .content;
-            let mut earliest_finish_time = dependency_content
+            let node_eft = dependency_content
                 .earliest_finish_time()
                 .expect("EFT follows from EST");
-
-            if let Some(max_lft) = dependency_content.maximum_latest_finish_time {
-                // Diminish the earliest finish time artificially (if required).
-                if max_lft < earliest_finish_time {
-                    earliest_finish_time = max_lft;
-                }
-            } else if let Some(min_free_slack) = dependency_content.minimum_free_slack {
-                let proposed = earliest_finish_time + min_free_slack;
-                // Augment the earliest finish time artificially (if required).
-                if proposed > earliest_finish_time {
-                    earliest_finish_time = proposed;
-                }
-            }
+            let earliest_finish_time = augmented_finish_time(dependency_content, node_eft);
 
             // A node is only ever processed once, and only Start nodes had their
             // outgoing edges completed beforehand, so every outgoing edge here is
@@ -453,53 +500,18 @@ pub(crate) fn calculate_critical_path_forward_flow<K: Key, R: Key, W: Key>(
 
         let node = state.node(node_id).expect("end node must exist");
         if node.content.earliest_start_time.is_none() {
-            let mut earliest_start_time = max_edge_earliest_finish_time(state, &node.incoming);
+            let base = max_edge_earliest_finish_time(state, &node.incoming);
 
-            let node = state.node(node_id).expect("end node must exist");
-            if let Some(min_est) = node.content.minimum_earliest_start_time {
-                if min_est > earliest_start_time {
-                    earliest_start_time = min_est;
-                }
-            }
-
-            if let Some(max_lft) = node.content.maximum_latest_finish_time {
-                let proposed_latest_start_time = max_lft - node.content.duration;
-                if proposed_latest_start_time < earliest_start_time {
-                    earliest_start_time = proposed_latest_start_time;
-                }
-            }
-
-            state
-                .node_mut(node_id)
-                .expect("node must exist")
-                .content
-                .earliest_start_time = Some(earliest_start_time);
+            let content = &mut state.node_mut(node_id).expect("node must exist").content;
+            content.earliest_start_time = Some(clamp_earliest_start_time(content, base));
         }
 
-        let content = &state.node(node_id).expect("node must exist").content;
+        let content = &mut state.node_mut(node_id).expect("node must exist").content;
         if content.latest_finish_time.is_none() {
-            let mut latest_finish_time = content
+            let earliest_finish_time = content
                 .earliest_finish_time()
                 .expect("EFT follows from EST");
-
-            if let Some(max_lft) = content.maximum_latest_finish_time {
-                // Diminish the latest finish time artificially (if required).
-                if max_lft < latest_finish_time {
-                    latest_finish_time = max_lft;
-                }
-            } else if let Some(min_free_slack) = content.minimum_free_slack {
-                let proposed = latest_finish_time + min_free_slack;
-                // Augment the latest finish time artificially (if required).
-                if proposed > latest_finish_time {
-                    latest_finish_time = proposed;
-                }
-            }
-
-            state
-                .node_mut(node_id)
-                .expect("node must exist")
-                .content
-                .latest_finish_time = Some(latest_finish_time);
+            content.latest_finish_time = Some(augmented_finish_time(content, earliest_finish_time));
         }
     }
 
@@ -602,16 +614,7 @@ pub(crate) fn calculate_critical_path_backward_flow<K: Key, R: Key, W: Key>(
             let content = &mut state.node_mut(node_id).expect("node must exist").content;
 
             // Latest Finish Time.
-            let mut latest_finish_time = end_time;
-
-            if let Some(max_lft) = content.maximum_latest_finish_time {
-                // Diminish the latest finish time artificially (if required).
-                if max_lft < latest_finish_time {
-                    latest_finish_time = max_lft;
-                }
-            }
-
-            content.latest_finish_time = Some(latest_finish_time);
+            content.latest_finish_time = Some(clamp_latest_finish_time(content, end_time));
 
             // Free float/slack calculations.
             content.free_slack = match (content.latest_finish_time, content.earliest_finish_time())
@@ -621,25 +624,15 @@ pub(crate) fn calculate_critical_path_backward_flow<K: Key, R: Key, W: Key>(
             };
         }
 
-        let (node_lst, node_max_lft) = {
+        let edge_latest_finish_time = {
             let node = state.node(node_id).expect("node must exist");
             edge_scratch.clear();
             edge_scratch.extend(node.incoming.iter().copied());
-            (
-                node.content.latest_start_time(),
-                node.content.maximum_latest_finish_time,
-            )
+            end_node_incoming_edge_latest_finish_time(&node.content)
         };
 
         for incoming_edge_id in edge_scratch.iter().copied() {
-            let mut latest_finish_time: Option<i32> = node_lst;
-
-            if let Some(max_lft) = node_max_lft {
-                // Diminish the latest finish time artificially (if required).
-                if max_lft < latest_finish_time.unwrap_or(0) {
-                    latest_finish_time = Some(max_lft);
-                }
-            }
+            let latest_finish_time = edge_latest_finish_time;
 
             state
                 .edge_mut(incoming_edge_id)
@@ -677,55 +670,24 @@ pub(crate) fn calculate_critical_path_backward_flow<K: Key, R: Key, W: Key>(
             let successor_node = state.node(successor_node_id).expect("node must exist");
 
             if successor_node.content.latest_finish_time.is_none() {
-                let mut latest_finish_time =
-                    min_edge_latest_finish_time(state, &successor_node.outgoing);
+                let base = min_edge_latest_finish_time(state, &successor_node.outgoing);
 
-                let successor_node = state.node(successor_node_id).expect("node must exist");
-                if let Some(max_lft) = successor_node.content.maximum_latest_finish_time {
-                    // Diminish the latest finish time artificially (if required).
-                    if max_lft < latest_finish_time {
-                        latest_finish_time = max_lft;
-                    }
-                }
-
-                state
+                let content = &mut state
                     .node_mut(successor_node_id)
                     .expect("node must exist")
-                    .content
-                    .latest_finish_time = Some(latest_finish_time);
+                    .content;
+                content.latest_finish_time = Some(clamp_latest_finish_time(content, base));
             }
 
             let successor_node = state.node(successor_node_id).expect("node must exist");
             if successor_node.content.free_slack.is_none() {
-                let mut latest_finish_time =
-                    min_successor_earliest_start_time(state, &successor_node.outgoing);
+                let base = min_successor_earliest_start_time(state, &successor_node.outgoing);
 
-                let successor_node = state.node(successor_node_id).expect("node must exist");
-                if let Some(lft) = successor_node.content.latest_finish_time {
-                    // Diminish the latest finish time artificially (if required).
-                    if lft < latest_finish_time {
-                        latest_finish_time = lft;
-                    }
-                }
-
-                if let Some(max_lft) = successor_node.content.maximum_latest_finish_time {
-                    // Diminish the latest finish time artificially (if required).
-                    if max_lft < latest_finish_time {
-                        latest_finish_time = max_lft;
-                    }
-                }
-
-                // Free float/slack calculations.
-                let est = successor_node
-                    .content
-                    .earliest_start_time
-                    .expect("successor node must have EST");
-                let duration = successor_node.content.duration;
-                state
+                let content = &mut state
                     .node_mut(successor_node_id)
                     .expect("node must exist")
-                    .content
-                    .free_slack = Some(latest_finish_time - est - duration);
+                    .content;
+                content.free_slack = free_slack_from_successors(content, base);
             }
 
             let successor_lst = state
@@ -789,53 +751,18 @@ pub(crate) fn calculate_critical_path_backward_flow<K: Key, R: Key, W: Key>(
 
         let node = state.node(node_id).expect("node must exist");
         if node.content.latest_finish_time.is_none() {
-            let mut latest_finish_time = min_edge_latest_finish_time(state, &node.outgoing);
+            let base = min_edge_latest_finish_time(state, &node.outgoing);
 
-            let node = state.node(node_id).expect("node must exist");
-            if let Some(max_lft) = node.content.maximum_latest_finish_time {
-                // Diminish the latest finish time artificially (if required).
-                if max_lft < latest_finish_time {
-                    latest_finish_time = max_lft;
-                }
-            }
-
-            state
-                .node_mut(node_id)
-                .expect("node must exist")
-                .content
-                .latest_finish_time = Some(latest_finish_time);
+            let content = &mut state.node_mut(node_id).expect("node must exist").content;
+            content.latest_finish_time = Some(clamp_latest_finish_time(content, base));
         }
 
         let node = state.node(node_id).expect("node must exist");
         if node.content.free_slack.is_none() {
-            let mut latest_finish_time = min_successor_earliest_start_time(state, &node.outgoing);
+            let base = min_successor_earliest_start_time(state, &node.outgoing);
 
-            let node = state.node(node_id).expect("node must exist");
-            if let Some(lft) = node.content.latest_finish_time {
-                // Diminish the latest finish time artificially (if required).
-                if lft < latest_finish_time {
-                    latest_finish_time = lft;
-                }
-            }
-
-            if let Some(max_lft) = node.content.maximum_latest_finish_time {
-                // Diminish the latest finish time artificially (if required).
-                if max_lft < latest_finish_time {
-                    latest_finish_time = max_lft;
-                }
-            }
-
-            // Free float/slack calculations.
-            let est = node
-                .content
-                .earliest_start_time
-                .expect("start node must have EST");
-            let duration = node.content.duration;
-            state
-                .node_mut(node_id)
-                .expect("node must exist")
-                .content
-                .free_slack = Some(latest_finish_time - est - duration);
+            let content = &mut state.node_mut(node_id).expect("node must exist").content;
+            content.free_slack = free_slack_from_successors(content, base);
         }
     }
 

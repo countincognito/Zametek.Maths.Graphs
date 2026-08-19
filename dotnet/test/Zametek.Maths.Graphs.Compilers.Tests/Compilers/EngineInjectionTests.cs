@@ -1,4 +1,4 @@
-﻿using Shouldly;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -57,6 +57,10 @@ namespace Zametek.Maths.Graphs.Tests
                 BackFillCallCount++;
                 return m_Inner.BackFillIsolatedNodes(state, invalidConstraints);
             }
+
+            public IVertexIncrementalCriticalPath<T> BeginIncrementalCriticalPath(
+                IVertexGraphState<T, TResourceId, TWorkStreamId, TActivity> state) =>
+                m_Inner.BeginIncrementalCriticalPath(state);
         }
 
         // Wraps the real event generator and counts how often it is asked for an event.

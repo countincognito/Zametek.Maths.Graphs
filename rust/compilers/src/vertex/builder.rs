@@ -848,9 +848,21 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         graph_builder: &mut VertexGraphBuilder<K, R, W>,
     ) -> Result<Vec<K>, GraphError> {
         let mut priority_list: Vec<K> = Vec::new();
-        loop {
-            graph_builder.calculate_critical_path()?;
 
+        // The loop below changes one activity's duration per iteration and nothing else,
+        // so after the first calculation the graph is recalculated incrementally rather
+        // than from scratch. The session caches a topological ordering, which stays valid
+        // because the structure never changes here - only durations do. It declines to
+        // start on a cyclic graph, in which case the full calculation below stands in and
+        // reports that properly.
+        graph_builder.calculate_critical_path()?;
+
+        let mut incremental_critical_path = {
+            let engine = Arc::clone(&graph_builder.critical_path_engine);
+            engine.begin_incremental_critical_path(&graph_builder.state)
+        };
+
+        loop {
             // Get the critical path in order of earliest start time.
             let min_float = graph_builder
                 .activities()
@@ -873,6 +885,16 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
                     .activity_mut(critical_activity_id)
                     .expect("activity must exist")
                     .duration = 0;
+
+                let updated = match incremental_critical_path.as_mut() {
+                    Some(session) => session
+                        .apply_duration_change(&mut graph_builder.state, critical_activity_id),
+                    None => false,
+                };
+
+                if !updated {
+                    graph_builder.calculate_critical_path()?;
+                }
             } else {
                 break;
             }

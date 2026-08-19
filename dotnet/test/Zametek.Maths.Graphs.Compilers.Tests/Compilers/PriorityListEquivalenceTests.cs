@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace Zametek.Maths.Graphs.Tests
@@ -152,26 +151,34 @@ namespace Zametek.Maths.Graphs.Tests
             // explicit test and see its output; build in Release first, then:
             //   .\Zametek.Maths.Graphs.Compilers.Tests.exe -explicit only -method "*MeasurePriorityListScaling*" -showLiveOutput
             // Compare the result against the tables in docs/TODO.md.
-            var output = new StringBuilder();
-
-            output.AppendLine(@"Scaling with activity count (12 layers):");
-            output.AppendLine($@"{"activities",12} {"time",12} {"allocated",14}");
-            foreach (int size in new[] { 250, 500, 1_000, 2_000 })
+            //
+            // Each row is written as it completes rather than buffered into one block at
+            // the end, so a long run visibly makes progress instead of looking hung.
+            m_Output.WriteLine(@"Scaling with activity count (12 layers):");
+            m_Output.WriteLine($@"{"activities",12} {"time",12} {"allocated",14}");
+            foreach (int size in new[] { 250, 500, 1_000, 2_000, 4_000, 8_000 })
             {
                 (long milliseconds, long allocatedMb) = MeasureOne(size, layers: 12);
-                output.AppendLine($@"{size,12} {milliseconds + "ms",12} {allocatedMb + " MB",14}");
+                m_Output.WriteLine($@"{size,12} {milliseconds + "ms",12} {allocatedMb + " MB",14}");
             }
 
-            output.AppendLine();
-            output.AppendLine(@"Scaling with depth (1,500 activities):");
-            output.AppendLine($@"{"layers",12} {"time",12} {"allocated",14}");
+            m_Output.WriteLine(@"");
+            m_Output.WriteLine(@"Scaling with depth (1,500 activities):");
+            m_Output.WriteLine($@"{"layers",12} {"time",12} {"allocated",14}");
             foreach (int layers in new[] { 10, 30, 60, 120, 240 })
             {
                 (long milliseconds, long allocatedMb) = MeasureOne(1_500, layers);
-                output.AppendLine($@"{layers,12} {milliseconds + "ms",12} {allocatedMb + " MB",14}");
+                m_Output.WriteLine($@"{layers,12} {milliseconds + "ms",12} {allocatedMb + " MB",14}");
             }
 
-            m_Output.WriteLine(output.ToString());
+            m_Output.WriteLine(@"");
+            m_Output.WriteLine(@"On the shape the investigation started from, where depth grows with size:");
+            m_Output.WriteLine($@"{"activities",12} {"layers",12} {"time",12} {"allocated",14}");
+            foreach (int size in new[] { 1_000, 2_000, 4_000, 8_000 })
+            {
+                (long milliseconds, long allocatedMb) = MeasureOne(size, layers: size / 25);
+                m_Output.WriteLine($@"{size,12} {size / 25,12} {milliseconds + "ms",12} {allocatedMb + " MB",14}");
+            }
         }
 
         private static (long milliseconds, long allocatedMb) MeasureOne(int size, int layers)

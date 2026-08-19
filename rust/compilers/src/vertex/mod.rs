@@ -4,6 +4,7 @@ mod builder;
 mod compiler;
 mod cpm;
 mod engines;
+mod incremental;
 mod reducer;
 mod state;
 
@@ -13,4 +14,5 @@ pub use engines::{
     VertexCriticalPathEngine, VertexGraphBuilderEngines,
     VertexTarjanStronglyConnectedComponentsFinder, VertexTransitiveReducer,
 };
+pub use incremental::IncrementalCriticalPath;
 pub use state::VertexGraphState;
