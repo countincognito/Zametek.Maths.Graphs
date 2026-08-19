@@ -1,9 +1,11 @@
 use super::schedule_builder::ResourceScheduleBuilder;
 use crate::contracts::{IResourceSchedulingEngine, IResourceSchedulingGraph};
+use crate::messages;
 use indexmap::{IndexMap, IndexSet};
+use std::fmt::Write as _;
 use zametek_maths_graphs_primitives::{
-    Activity, DependentActivity, GraphError, InterActivityAllocationType, Key, LogicalOperator,
-    Resource, ResourceSchedule, UnavailableResources,
+    graph_limits, Activity, DependentActivity, GraphError, InterActivityAllocationType, Key,
+    LogicalOperator, Resource, ResourceSchedule, UnavailableResources,
 };
 
 /// Default resource-scheduling engine: priority-list allocation plus the
@@ -154,7 +156,17 @@ where
             &mut started,
             time_counter,
         );
-        time_counter += 1;
+        time_counter = next_tick_of_interest(
+            &working_list,
+            &ready,
+            &started,
+            &completed,
+            &resource_schedule_builders,
+            &*graph,
+            infinite_resources,
+            &strong_dependency_lookup,
+            time_counter,
+        )?;
     }
 
     let final_activities: Vec<DependentActivity<K, R, W>> = graph.clone_activities();
@@ -330,9 +342,16 @@ fn try_schedule_unrestricted<K: Key, R: Key, W: Key>(
             continue;
         }
         if let Some(max_lft) = activity.maximum_latest_finish_time {
-            if max_lft > (time_counter + activity.duration) {
+            if i64::from(max_lft) > i64::from(time_counter) + i64::from(activity.duration) {
                 continue;
             }
+        }
+        // Starting here would push the finish time past the supported time
+        // horizon; the activity can never start, which the stall detector reports.
+        if i64::from(time_counter) + i64::from(activity.duration)
+            > i64::from(graph_limits::MAXIMUM_TIME_VALUE)
+        {
+            continue;
         }
         builder.append_activity(activity, time_counter);
         started.insert(activity_id);
@@ -369,9 +388,16 @@ fn try_schedule_targeted<K: Key, R: Key, W: Key>(
             continue;
         }
         if let Some(max_lft) = activity.maximum_latest_finish_time {
-            if max_lft > (time_counter + activity.duration) {
+            if i64::from(max_lft) > i64::from(time_counter) + i64::from(activity.duration) {
                 continue;
             }
+        }
+        // Starting here would push the finish time past the supported time
+        // horizon; the activity can never start, which the stall detector reports.
+        if i64::from(time_counter) + i64::from(activity.duration)
+            > i64::from(graph_limits::MAXIMUM_TIME_VALUE)
+        {
+            continue;
         }
 
         match activity.target_resource_operator {
@@ -430,6 +456,270 @@ fn try_schedule_targeted<K: Key, R: Key, W: Key>(
 
 fn sets_equal<T: Key>(a: &IndexSet<T>, b: &IndexSet<T>) -> bool {
     a.len() == b.len() && a.iter().all(|x| b.contains(x))
+}
+
+/// Decides which tick the scheduling loop should process next. Most of the time
+/// that is simply the next tick, but when every remaining activity is waiting on
+/// a time gate the loop can jump straight to the earliest gate opening - every
+/// skipped tick is provably a no-op (no completion, promotion or assignment can
+/// occur before the next running activity finishes or the next gate opens).
+///
+/// When there is nothing running, nothing pending completion and no future time
+/// gate while activities still remain, no amount of further ticking can change
+/// anything - so instead of looping forever the scheduler stops and reports
+/// which activities are stuck and why.
+#[allow(clippy::too_many_arguments)]
+fn next_tick_of_interest<K: Key, R: Key, W: Key>(
+    working_list: &[Option<K>],
+    ready: &[Option<K>],
+    started: &IndexSet<K>,
+    completed: &IndexSet<K>,
+    builders: &[ResourceScheduleBuilder<K, R, W>],
+    graph: &dyn IResourceSchedulingGraph<K, R, W>,
+    infinite_resources: bool,
+    strong_dependency_lookup: &IndexMap<K, IndexSet<K>>,
+    time_counter: i32,
+) -> Result<i32, GraphError> {
+    // Times are compared in i64 so that pathological input values cannot
+    // overflow i32 arithmetic inside the loop.
+    let mut next_event_time = i64::MAX;
+
+    if !started.is_empty() {
+        // Find the activities currently occupying resources, and when the
+        // earliest of them will finish. A builder is busy when its last recorded
+        // activity finishes after the current tick (activities are only ever
+        // appended at the current tick, so nothing later exists).
+        let mut running: IndexSet<K> = IndexSet::new();
+        for builder in builders {
+            let last_finish_time = i64::from(builder.last_activity_finish_time());
+            if last_finish_time > i64::from(time_counter) {
+                if let Some(running_activity_id) = builder.activity_at(time_counter) {
+                    running.insert(running_activity_id);
+                }
+                if last_finish_time < next_event_time {
+                    next_event_time = last_finish_time;
+                }
+            }
+        }
+
+        // A started activity that is no longer running (e.g. one with zero
+        // duration) completes on the very next tick, which may unblock its
+        // successors - so no jump is possible.
+        for started_id in started {
+            if !running.contains(started_id) {
+                return Ok(time_counter + 1);
+            }
+        }
+    }
+
+    // Ready activities can also be unblocked purely by the passage of time: an
+    // earliest start time that has not been reached yet, or a deadline whose
+    // just-in-time start point is still ahead.
+    for slot in ready {
+        let Some(activity_id) = *slot else {
+            continue;
+        };
+        let activity = graph.activity(activity_id);
+        let earliest_start_time = i64::from(activity.earliest_start_time.unwrap_or(0));
+        if earliest_start_time > i64::from(time_counter) && earliest_start_time < next_event_time {
+            next_event_time = earliest_start_time;
+        }
+        if let Some(maximum_latest_finish_time) = activity.maximum_latest_finish_time {
+            let maximum_latest_finish_time = i64::from(maximum_latest_finish_time);
+            // The just-in-time gate holds the activity back while starting now
+            // would still finish ahead of the deadline; it opens at the tick
+            // where the finish would land exactly on the deadline.
+            let gate_opens_at = maximum_latest_finish_time - i64::from(activity.duration);
+            if maximum_latest_finish_time > i64::from(time_counter) + i64::from(activity.duration)
+                && gate_opens_at < next_event_time
+            {
+                next_event_time = gate_opens_at;
+            }
+        }
+    }
+
+    if next_event_time != i64::MAX {
+        // Jumping beyond the supported horizon means nothing schedulable remains
+        // within it, so the state is dead however far the clock is wound forward.
+        if next_event_time > i64::from(graph_limits::MAXIMUM_TIME_VALUE) {
+            return Err(GraphError::resource_scheduling_stall(build_stall_message(
+                working_list,
+                ready,
+                builders,
+                graph,
+                infinite_resources,
+                strong_dependency_lookup,
+                completed,
+                time_counter,
+            )));
+        }
+        // Guaranteed to be at least time_counter + 1, because every candidate
+        // above is strictly greater than the current tick.
+        return Ok(next_event_time as i32);
+    }
+
+    // No running activity, no pending completion, and no future time gate: if any
+    // activities remain then they can never be scheduled.
+    if ready.iter().any(|x| x.is_some())
+        || working_list.iter().any(|x| x.is_some())
+        || !started.is_empty()
+    {
+        return Err(GraphError::resource_scheduling_stall(build_stall_message(
+            working_list,
+            ready,
+            builders,
+            graph,
+            infinite_resources,
+            strong_dependency_lookup,
+            completed,
+            time_counter,
+        )));
+    }
+
+    // Everything has drained; the loop condition is about to terminate the loop.
+    Ok(time_counter + 1)
+}
+
+/// Builds the diagnostic message for a scheduling stall: one line per stuck
+/// activity explaining, as precisely as possible, why it can never be scheduled.
+#[allow(clippy::too_many_arguments)]
+fn build_stall_message<K: Key, R: Key, W: Key>(
+    working_list: &[Option<K>],
+    ready: &[Option<K>],
+    builders: &[ResourceScheduleBuilder<K, R, W>],
+    graph: &dyn IResourceSchedulingGraph<K, R, W>,
+    infinite_resources: bool,
+    strong_dependency_lookup: &IndexMap<K, IndexSet<K>>,
+    completed: &IndexSet<K>,
+    time_counter: i32,
+) -> String {
+    let mut available_resource_ids: IndexSet<R> = IndexSet::new();
+    let mut all_builders_explicit_target = !builders.is_empty();
+    for builder in builders {
+        if let Some(resource_id) = builder.resource_id() {
+            available_resource_ids.insert(resource_id);
+        }
+        if !builder.is_explicit_target() {
+            all_builders_explicit_target = false;
+        }
+    }
+
+    let mut output = String::new();
+    let _ = writeln!(output, "{}", messages::MSG_RESOURCE_SCHEDULING_STALLED);
+    for slot in ready {
+        let Some(activity_id) = *slot else {
+            continue;
+        };
+        let activity = graph.activity(activity_id);
+        let _ = writeln!(
+            output,
+            "{} -> {}",
+            activity_id,
+            describe_unschedulable_activity(
+                activity,
+                &available_resource_ids,
+                all_builders_explicit_target,
+                infinite_resources,
+                time_counter,
+            )
+        );
+    }
+    for slot in working_list {
+        let Some(activity_id) = *slot else {
+            continue;
+        };
+        let mut outstanding: Vec<K> = strong_dependency_lookup[&activity_id]
+            .iter()
+            .filter(|x| !completed.contains(*x))
+            .copied()
+            .collect();
+        outstanding.sort_unstable();
+        let _ = writeln!(
+            output,
+            "{} -> {} {}",
+            activity_id,
+            messages::MSG_WAITING_ON_DEPENDENCIES_THAT_CAN_NEVER_COMPLETE,
+            join_ids(&outstanding)
+        );
+    }
+    output
+}
+
+/// Explains why a ready activity could not be assigned to any resource.
+///
+/// The C# original has a further branch here that probes whether the activity's
+/// target resource set agrees with its own contents, because the incident this
+/// guardrail was written for involved a structurally corrupted `HashSet` whose
+/// lookups always returned false. That branch has no counterpart here: safe Rust
+/// cannot produce such a collection, for the same reason the `P0070`
+/// self-consistency check is not part of this port.
+fn describe_unschedulable_activity<K: Key, R: Key, W: Key>(
+    activity: &Activity<K, R, W>,
+    available_resource_ids: &IndexSet<R>,
+    all_builders_explicit_target: bool,
+    infinite_resources: bool,
+    time_counter: i32,
+) -> String {
+    let target_resources: Vec<R> = activity.target_resources.iter().copied().collect();
+    let must_target_specific = !infinite_resources && !target_resources.is_empty();
+
+    if must_target_specific {
+        let mut missing: Vec<R> = target_resources
+            .iter()
+            .filter(|x| !available_resource_ids.contains(*x))
+            .copied()
+            .collect();
+        missing.sort_unstable();
+        if activity.target_resource_operator == LogicalOperator::And && !missing.is_empty() {
+            return format!(
+                "{} {}",
+                messages::MSG_REQUIRES_ALL_TARGET_RESOURCES_BUT_SOME_NOT_AVAILABLE,
+                join_ids(&missing)
+            );
+        }
+        if matches!(
+            activity.target_resource_operator,
+            LogicalOperator::Or | LogicalOperator::ActiveAnd
+        ) && missing.len() == target_resources.len()
+        {
+            let mut sorted = target_resources;
+            sorted.sort_unstable();
+            return format!(
+                "{} {}",
+                messages::MSG_NONE_OF_TARGET_RESOURCES_ARE_AVAILABLE,
+                join_ids(&sorted)
+            );
+        }
+    } else if all_builders_explicit_target {
+        return messages::MSG_NO_TARGET_RESOURCES_BUT_ALL_RESOURCES_ARE_EXPLICIT_TARGETS
+            .to_string();
+    }
+
+    // Either the activity cannot start until after the horizon, or starting it at
+    // the earliest opportunity would still finish beyond it - in both cases no
+    // amount of waiting can make it schedulable.
+    let horizon = i64::from(graph_limits::MAXIMUM_TIME_VALUE);
+    let earliest_start_time = i64::from(activity.earliest_start_time.unwrap_or(0));
+    let duration = i64::from(activity.duration);
+    if earliest_start_time > horizon
+        || earliest_start_time + duration > horizon
+        || i64::from(time_counter) + duration > horizon
+    {
+        return messages::format1(
+            messages::MSG_CANNOT_BE_SCHEDULED_WITHIN_MAXIMUM_TIME_VALUE,
+            graph_limits::MAXIMUM_TIME_VALUE,
+        );
+    }
+
+    messages::MSG_COULD_NOT_BE_ASSIGNED_TO_ANY_RESOURCE.to_string()
+}
+
+/// Renders IDs the way the C# original does (`string.Join(", ", ids)`).
+fn join_ids<T: Key>(ids: &[T]) -> String {
+    ids.iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 // -- Scheduling pipeline helpers ---------------------------------------------

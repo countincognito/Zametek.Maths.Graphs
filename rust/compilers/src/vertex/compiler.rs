@@ -3,8 +3,8 @@ use crate::id_gen::PreviousIdGenerator;
 use crate::messages;
 use indexmap::IndexSet;
 use zametek_maths_graphs_primitives::{
-    Activity, DependentActivity, GraphCompilation, GraphCompilationError, GraphError, Key,
-    Resource, WorkStream,
+    graph_limits, Activity, DependentActivity, GraphCompilation, GraphCompilationError,
+    GraphCompilationErrorCode, GraphError, Key, Resource, WorkStream,
 };
 
 /// Compiler for Activity-on-Vertex graphs: a coordinator around a
@@ -242,9 +242,28 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
 
         // First CPM pass -> schedule -> wire resource dependencies -> second CPM pass.
         self.builder.calculate_critical_path()?;
-        let mut resource_schedules = self
+        let mut resource_schedules = match self
             .builder
-            .calculate_resource_schedules_by_priority_list(&filtered_resources)?;
+            .calculate_resource_schedules_by_priority_list(&filtered_resources)
+        {
+            Ok(schedules) => schedules,
+            // C0020 - the scheduler proved that one or more activities can never
+            // be scheduled; report it like any other compilation error rather
+            // than looping forever or propagating the failure to the caller.
+            Err(error) if error.is_resource_scheduling_stall() => {
+                compilation_errors.push(GraphCompilationError::new(
+                    GraphCompilationErrorCode::C0020,
+                    error.message(),
+                ));
+                return Ok(GraphCompilation::new(
+                    self.builder.activities().cloned().collect(),
+                    Vec::new(),
+                    Vec::new(),
+                    compilation_errors,
+                ));
+            }
+            Err(error) => return Err(error),
+        };
 
         // If the previous calculation was performed with infinite resources,
         // then it will not be possible to handle resource dependencies. So here
@@ -261,6 +280,28 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         self.builder
             .assign_resource_dependencies(&resource_schedules);
         self.builder.calculate_critical_path()?;
+
+        // The per-value limits bound each declared duration and constraint, but not
+        // their sum: enough activities in sequence can still push the compiled
+        // schedule far past the horizon. The allocation streams built below hold one
+        // flag per time unit per resource, so an unbounded finish time here would
+        // mean an unbounded allocation - hence this check before they are built.
+        if self.builder.finish_time() > graph_limits::MAXIMUM_TIME_VALUE {
+            compilation_errors.push(GraphCompilationError::new(
+                GraphCompilationErrorCode::C0020,
+                messages::format2(
+                    messages::MSG_COMPUTED_SCHEDULE_EXCEEDS_MAXIMUM_TIME_VALUE,
+                    self.builder.finish_time(),
+                    graph_limits::MAXIMUM_TIME_VALUE,
+                ),
+            ));
+            return Ok(GraphCompilation::new(
+                self.builder.activities().cloned().collect(),
+                Vec::new(),
+                Vec::new(),
+                compilation_errors,
+            ));
+        }
 
         if !self.builder.back_fill_isolated_nodes() {
             return Err(GraphError::new(

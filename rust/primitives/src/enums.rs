@@ -46,20 +46,29 @@ pub enum InterActivityAllocationType {
 
 /// The error codes a graph compilation can report. Codes prefixed P are found
 /// before compilation; codes prefixed C are found after compilation.
+///
+/// The discriminants are pinned to the values the C# original assigns, because
+/// consumers there serialize the codes numerically. Value 7 is deliberately
+/// absent: it belongs to C#'s `P0070` (a self-consistency probe for corrupted
+/// input collections), which has no counterpart here - safe Rust cannot produce
+/// the torn collection that check exists to catch. Codes are append-only.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GraphCompilationErrorCode {
     /// Invalid dependencies - an activity depends on an ID that no activity in the graph has.
-    P0010,
+    P0010 = 0,
     /// Circular dependencies - the activity dependencies form a cycle.
-    P0020,
+    P0020 = 1,
     /// Invalid pre-compilation constraints - an activity's requested constraints are self-contradictory.
-    P0030,
+    P0030 = 2,
     /// All resources are marked as explicit targets, but not all activities have targeted resources.
-    P0040,
+    P0040 = 3,
     /// Unable to remove unnecessary edges during pre-compilation clean-up.
-    P0050,
+    P0050 = 4,
     /// Some necessary explicit target resources are unavailable.
-    P0060,
+    P0060 = 5,
     /// Invalid post-compilation constraints - the computed times violate an activity's constraints.
-    C0010,
+    C0010 = 6,
+    /// Resource scheduling could not make progress, or the computed schedule runs
+    /// past the supported time horizon. Either way no schedule can be produced.
+    C0020 = 8,
 }

@@ -18,6 +18,7 @@ mod enums;
 mod error;
 mod event;
 mod graph;
+pub mod graph_limits;
 mod key;
 mod node;
 mod resource;
@@ -33,7 +34,7 @@ pub use edge::{Edge, HasId};
 pub use enums::{
     GraphCompilationErrorCode, InterActivityAllocationType, LogicalOperator, NodeType,
 };
-pub use error::GraphError;
+pub use error::{GraphError, GraphErrorKind};
 pub use event::Event;
 pub use graph::Graph;
 pub use key::Key;

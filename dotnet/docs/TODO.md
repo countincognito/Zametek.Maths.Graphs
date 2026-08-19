@@ -4,7 +4,7 @@ Work identified during investigation, with what was observed, why it matters, an
 
 In rough order of remaining value:
 
-1. **Rust port parity** - the port is green, but mirrors the C# code from before all of the recent work, and still carries the scheduling livelock. The largest outstanding item.
+1. **Rust port parity** - underway. The scheduling livelock is fixed; the domain limits, bit-packing and the topological walk remain. The largest outstanding item.
 2. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
 3. **Recursive dummy-edge ordering** - a latent stack-depth risk on the arrow construction path.
 4. **Topological CPM for the arrow engine** - low priority, because arrow runs one pass per compile rather than one per activity.
@@ -198,15 +198,15 @@ This is the change that would move the usable ceiling. The `GraphLimits.MaximumA
 
 ## Rust port parity
 
-The `rust/` port is currently green at 361 tests, but it mirrors the C# code as it stood before any of the recent work. Its golden tests are mirrored copies rather than shared, so it passes against its own behaviour; the divergence is real but latent, and it has widened with each change. This is now the largest outstanding item in the repo.
+The `rust/` port mirrors the C# code as it stood before any of the recent work, and is being brought forward one self-contained item at a time. Its golden tests are mirrored copies rather than shared, so it passes against its own behaviour; the divergence is real but latent, and it widened with each change. This is still the largest outstanding item in the repo.
 
-The port's error codes stop at `P0060` and `C0010` (`primitives/src/enums.rs`); its scheduler still advances `time_counter += 1` with no bound and no stall detection (`compilers/src/scheduling/scheduler.rs`); its critical-path engines still sweep with a `progress` flag (`compilers/src/vertex/cpm.rs`, `compilers/src/arrow/cpm.rs`); and its allocation streams are `Vec<bool>`, which like the C# `List<bool>` spends a byte per flag (`primitives/src/schedule.rs`).
+Its critical-path engines still sweep with a `progress` flag (`compilers/src/vertex/cpm.rs`, `compilers/src/arrow/cpm.rs`), and its allocation streams are `Vec<bool>`, which like the C# `List<bool>` spends a byte per flag (`primitives/src/schedule.rs`).
 
 ### Behavioural divergence - the port now computes different results
 
-- **Scheduler stall detection, skip-ahead and the time horizon (`C0020`).** The port still has the livelock that started this investigation: given an activity that can never be scheduled, it spins for ever. This is the highest-value item, because it is a real defect in the port rather than a difference of opinion. Note that the *original trigger* cannot occur in safe Rust (see `P0070` below), but the other routes can - an unsatisfiable `AND` target through the engine directly, or time values that run past the horizon.
-- **Domain limits and `P0080`.** No equivalent of `GraphLimits` exists, so the port accepts graphs the C# side rejects, with the unbounded time and memory that motivated the limits.
-- **`P0070`, the input self-consistency probe.** Recommend **not** porting. It detects a `HashSet` whose lookups disagree with its contents, which arises from unsynchronized concurrent mutation - a state safe Rust cannot produce, since a collection cannot be mutated from two threads without synchronization and the compiler enforces it. Porting it would mean writing a check for a condition that cannot occur, and no test could construct the input to exercise it.
+- **Scheduler stall detection, skip-ahead and the time horizon (`C0020`) - DONE.** The port did carry the livelock that started this investigation, and it was confirmed rather than assumed: temporarily restoring `time_counter += 1` made the ported guardrail tests hang until their 30-second watchdog fired. `next_tick_of_interest`, `build_stall_message` and `describe_unschedulable_activity` are now ported to `compilers/src/scheduling/scheduler.rs`, with the horizon guards in both scheduling attempts computed in `i64`. Since Rust has no exceptions, `GraphError` gained a `GraphErrorKind` discriminant so `VertexGraphCompiler` can tell a stall from any other failure and report `C0020` in place of it; the computed-schedule horizon check after the second CPM pass reports `C0020` too. `graph_limits` was added to primitives at the same time, since the horizon guard needs `MAXIMUM_TIME_VALUE` - constants only, with the `P0080` validation still to come. The error-code discriminants are now pinned to the C# values, leaving 7 free for `P0070`. 16 tests ported (`scheduler_time_gate_tests.rs`, `scheduler_guardrail_tests.rs`); suite 361 to 377 green. The six time-gate tests reproduce the C# expected values exactly, which is what demonstrates the skip-ahead did not change observable behaviour.
+- **Domain limits and `P0080`.** The constants now exist (`primitives/src/graph_limits.rs`), but nothing validates against them: there is no equivalent of `LimitChecker`, so the port still accepts graphs the C# side rejects, with the unbounded memory that motivated the limits. The horizon is enforced during scheduling only.
+- **`P0070`, the input self-consistency probe.** Recommend **not** porting, and the stall-detection work followed that recommendation. It detects a `HashSet` whose lookups disagree with its contents, which arises from unsynchronized concurrent mutation - a state safe Rust cannot produce, since a collection cannot be mutated from two threads without synchronization and the compiler enforces it. Porting it would mean writing a check for a condition that cannot occur, and no test could construct the input to exercise it. For the same reason, the corresponding branch of `describe_unschedulable_activity` (which probes the target resource set when everything else checks out) is absent from the port, and the three corrupted-`HashSet` tests were not ported.
 - **Mandatory cancellation tokens.** No natural equivalent; the Rust idiom would be an `AtomicBool` or a callback, and the port has no consumer that needs it. Recommend skipping unless strict code-parity is the goal, in which case it should be designed as Rust rather than transliterated.
 
 ### Performance parity - same results, different speed
@@ -217,7 +217,7 @@ The port's error codes stop at `P0060` and `C0010` (`primitives/src/enums.rs`); 
 
 ### Suggested order
 
-Fix the defect first (stall detection and the horizon), then the limits, then bit-packing - each self-contained and independently verifiable. The topological walk last, behind its own corpus, and only if the port's performance is judged to matter. `P0070` and cancellation are recommended out of scope, with the reasoning above.
+Fix the defect first (stall detection and the horizon - **done**), then the limits, then bit-packing - each self-contained and independently verifiable. The topological walk last, behind its own corpus, and only if the port's performance is judged to matter. `P0070` and cancellation are recommended out of scope, with the reasoning above.
 
 ## Recursive dummy-edge ordering on the arrow construction path
 

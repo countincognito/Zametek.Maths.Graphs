@@ -14,6 +14,8 @@ pub const MSG_AT_LEAST_ONE_ACTIVITY_REQUIRES_NON_EXPLICIT_TARGET_RESOURCE: &str 
 pub const MSG_AT_LEAST_ONE_TARGET_RESOURCE_NOT_AVAILABLE: &str =
     "At least one of specified target resources are not available in the resources provided";
 pub const MSG_CANNOT_BACKFILL_ISOLATED_NODES: &str = "Cannot backfill Isolated nodes";
+pub const MSG_CANNOT_BE_SCHEDULED_WITHIN_MAXIMUM_TIME_VALUE: &str =
+    "cannot be scheduled within the maximum supported time value ({0})";
 pub const MSG_CANNOT_CALCULATE_CRITICAL_PATH: &str = "Cannot calculate critical path";
 pub const MSG_CANNOT_CALCULATE_CRITICAL_PATH_BACKWARD_FLOW: &str =
     "Cannot calculate critical path backward flow";
@@ -37,6 +39,9 @@ pub const MSG_CANNOT_REMOVE_REDUNDANT_EDGES: &str = "Cannot remove redundant edg
 pub const MSG_CANNOT_SET_MINIMUM_FREE_SLACK_AND_MAXIMUM_LATEST_FINISH_TIME: &str =
     "Cannot set MinimumFreeSlack and MaximumLatestFinishTime at the same time";
 pub const MSG_CIRCULAR_DEPENDENCIES: &str = "Circular activity dependencies:";
+pub const MSG_COMPUTED_SCHEDULE_EXCEEDS_MAXIMUM_TIME_VALUE: &str =
+    "The computed schedule finish time ({0}) exceeds the maximum supported time value ({1})";
+pub const MSG_COULD_NOT_BE_ASSIGNED_TO_ANY_RESOURCE: &str = "could not be assigned to any resource";
 pub const MSG_EARLIEST_FINISH_TIME_LESS_THAN_ZERO: &str =
     "EarliestFinishTime cannot be less than zero";
 pub const MSG_EARLIEST_START_TIME_LESS_THAN_MINIMUM_EARLIEST_START_TIME: &str =
@@ -64,6 +69,14 @@ pub const MSG_LIST_OF_NODE_IDS_AND_TAIL_NODES_DO_NOT_MATCH: &str =
     "List of Node IDs and Edges referenced by tail Nodes do not match";
 pub const MSG_MINIMUM_EARLIEST_START_TIME_PLUS_DURATION: &str =
     "(MinimumEarliestStartTime + Duration) must be greater than MaximumLatestFinishTime";
+pub const MSG_NONE_OF_TARGET_RESOURCES_ARE_AVAILABLE: &str =
+    "none of its target resources are available:";
+pub const MSG_NO_TARGET_RESOURCES_BUT_ALL_RESOURCES_ARE_EXPLICIT_TARGETS: &str =
+    "has no target resources, but every supplied resource is an explicit target";
+pub const MSG_REQUIRES_ALL_TARGET_RESOURCES_BUT_SOME_NOT_AVAILABLE: &str =
+    "requires all of its target resources, but the following are not available:";
+pub const MSG_RESOURCE_SCHEDULING_STALLED: &str =
+    "Resource scheduling could not make progress with the following activities:";
 pub const MSG_UNABLE_TO_REMOVE_UNNECESSARY_EDGES: &str = "Unable to remove unnecessary edges";
 pub const MSG_UNAVAILABLE_RESOURCES: &str = "Unavailable resources for activities:";
 pub const MSG_VALUE_CANNOT_BE_NEGATIVE: &str = "Value cannot be negative";
@@ -71,3 +84,25 @@ pub const MSG_VERTEX_GRAPH_NORMAL_NODES_WITHOUT_END_NODES: &str =
     "Vertex graph cannot contain Normal nodes without any End nodes";
 pub const MSG_VERTEX_GRAPH_NORMAL_NODES_WITHOUT_START_NODES: &str =
     "Vertex graph cannot contain Normal nodes without any Start nodes";
+pub const MSG_WAITING_ON_DEPENDENCIES_THAT_CAN_NEVER_COMPLETE: &str =
+    "waiting on dependencies that can never complete:";
+
+/// Substitutes the single `{0}` placeholder of a message template.
+///
+/// The templates above are held verbatim as they appear in the C# resource
+/// files, placeholders included, so that the rendered text matches the C#
+/// original exactly.
+pub fn format1(template: &str, arg0: impl std::fmt::Display) -> String {
+    template.replace("{0}", &arg0.to_string())
+}
+
+/// Substitutes the `{0}` and `{1}` placeholders of a message template.
+pub fn format2(
+    template: &str,
+    arg0: impl std::fmt::Display,
+    arg1: impl std::fmt::Display,
+) -> String {
+    template
+        .replace("{0}", &arg0.to_string())
+        .replace("{1}", &arg1.to_string())
+}
