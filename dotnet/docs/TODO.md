@@ -4,9 +4,10 @@ Work identified during investigation, with what was observed, why it matters, an
 
 In rough order of remaining value:
 
-1. **`RemoveRedundantEdges` on the arrow path** - newly measured and by far the largest remaining problem: one 150-activity graph takes 60 seconds and allocates 158 GB, while neighbouring shapes finish in milliseconds. Found while measuring the arrow CPM rewrite, which turned out not to be the cost at all.
+1. **`RedirectDummyEdges` on a graph that was never transitively reduced** - newly measured while fixing the item below, and now the largest remaining problem: roughly cubic, at 2.7 s for a 2,000-activity chain and 19.7 s for 4,000. Lower severity than it sounds, because the compiler always reduces before calculating; it is reachable through `ArrowGraphBuilder` used directly.
 2. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
-3. **Recursive dummy-edge ordering** - a latent stack-depth risk on the arrow construction path.
+
+**`RemoveRedundantEdges` is fixed in both languages** - it was the largest item on this list, at 60 seconds and 158 GB on a 150-activity graph, and is now 2 ms and 1 MB. The separate item that used to sit here for the recursive dummy-edge ordering is fixed with it: they were two defects in the same walk. The section at the end of this document records both.
 
 **Rust port parity is complete** - all four items done, each with its own measurement; see that section for what was ported and what was deliberately left out. **The arrow topological CPM is also done in both languages**, though the measurement showed it buys nothing - the section at the end of this document records why, and what it turned up instead.
 
@@ -234,9 +235,25 @@ Neither language sweeps any longer: the arrow critical-path engine (`compilers/s
 
 This was the order followed, and it held up: the defect first (stall detection and the horizon), then the limits, then bit-packing - each self-contained and independently verifiable - and the topological walk last, behind its own corpus. `P0070` and cancellation were left out of scope, with the reasoning above.
 
-## Recursive dummy-edge ordering on the arrow construction path
+## Recursive dummy-edge ordering on the arrow construction path - DONE
 
-`DummyEdgeOrchestrator.GetEdgesInDescendingOrder` is still recursive, unlike the transitive reducers and dependency walks which were made iterative. It sits on the arrow edge-cleanup path rather than the analysis path, so it has not been a problem in practice, but it remains a stack-depth risk on very deep arrow graphs.
+`DummyEdgeOrchestrator.GetEdgesInDescendingOrder` was the last recursive traversal, and it turned out to be the same method as the `RemoveRedundantEdges` cost below, so both were fixed together. The stack-depth risk recorded here was real and not merely latent: a 10,000-activity arrow chain overflows the stack and kills the process outright, which is what the new deep-chain regression test was checked against.
+
+## `RedirectDummyEdges` on a graph that was never transitively reduced
+
+Found while fixing the walk below, and left unfixed. Calculating the critical path on an `ArrowGraphBuilder` that has not been transitively reduced costs, for a plain chain:
+
+| Chain | Build | `RemoveRedundantEdges` | `CalculateCriticalPath` |
+| - | - | - | - |
+| 250 | 6 ms | 13 ms | 58 ms |
+| 500 | 0 ms | 4 ms | 141 ms |
+| 1,000 | 1 ms | 17 ms | 762 ms |
+| 2,000 | 6 ms | 25 ms | 2,658 ms |
+| 4,000 | 10 ms | 29 ms | 19,744 ms |
+
+About 7x per doubling, so roughly cubic, and none of it is the redundant-edge removal - that column is the same call immediately beforehand, and it stays flat. The cost is the `RedirectEdges()` that `CalculateCriticalPath` performs *after* the critical-path passes, which is a different proposition from the same call before them: `RedirectDummyEdges` orders its nodes by `EarliestFinishTime`, so once those times are populated it does real redirection work rather than iterating a graph whose keys are all null. The same shape reduced first costs 9 ms at 4,000.
+
+The severity is bounded by reachability. `ArrowGraphCompiler` calls `TransitiveReduction()` immediately before `CalculateCriticalPath()`, so a compile never takes this path; it needs `ArrowGraphBuilder` driven directly, which is public API but not what the compiler does. That is why the deep-chain regression tests in both languages reduce first, with a comment saying so - otherwise they would be measuring this instead of the walk they are meant to pin.
 
 ## Topological CPM rewrite for the arrow engine - DONE, and it bought nothing
 
@@ -251,13 +268,49 @@ Both engines now walk events in dependency order with per-node pending-edge coun
 | **150 activities, 30 layers** | **59,918 ms** | **0 ms** | **59,918 ms** | **158,191 MB** |
 | 150 activities, 60 layers | 0 ms | 0 ms | 0 ms | 0 MB |
 
+That is the state *before* the redundant-edge fix recorded below, which is why the third row is what it is; the "rest" column has since collapsed to milliseconds throughout.
+
 The passes are sub-millisecond at every size tried, including the pathological one. The rewrite is still worth keeping - it removes a quadratic sweep and, in Rust, a linear `shift_remove` per event, so it protects against a future caller that does drive the arrow path hard - but it should not be described as an optimisation of anything that was slow.
 
-### The real finding: `RemoveRedundantEdges` on the arrow path
+### The real finding: `RemoveRedundantEdges` on the arrow path - DONE
 
-That third row is the thing worth acting on. **One 150-activity graph takes 60 seconds and churns 158 GB**, entirely inside the redundant-edge removal, on a shape no larger than its neighbours - 150 activities across 30 layers, five per layer. Its neighbours at 10, 60 and 120 layers complete in single-digit milliseconds, so this is a shape sensitivity rather than a smooth cost curve, and it is almost certainly a bug rather than an expense.
+That third row was the thing worth acting on, and it was a bug rather than an expense. **One 150-activity graph took 60 seconds and churned 158 GB**, entirely inside the redundant-edge removal, on a shape no larger than its neighbours - 150 activities across 30 layers, five per layer - while its neighbours at 10, 60 and 120 layers completed in single-digit milliseconds. It is now **2 ms and 1 MB**.
 
-This now sits ahead of everything else remaining in this document. It is also what `ArrowGraphBuilder.CalculateResourceSchedulesByPriorityList` would multiply by, since arrow's `CalculateCriticalPath` runs the reduction on every pass; that public method remains unused by its own compiler.
+The cause is one line in `DummyEdgeOrchestrator.GetEdgesInDescendingOrder`. It guarded whether an edge was *recorded*, but the recursive descent sat outside that guard and ran for every edge *occurrence*. That makes the walk enumerate every distinct path from the start node instead of visiting each edge once, so its cost is the number of start-to-node paths summed over the graph - exponential in the depth of a branching DAG, and unrelated to the size of the graph being walked.
+
+Counted exactly, by a dynamic program over the same recurrence rather than by running the walk, on the benchmark's 150-activity graphs:
+
+| Layers | Nodes | Edges | Invocations | Against a walk that visits each node once |
+| - | - | - | - | - |
+| 8 | 284 | 384 | 3.5 x 10^3 | 5x |
+| 10 | 287 | 408 | 1.4 x 10^4 | 20x |
+| 12 | 290 | 366 | 5.1 x 10^3 | 8x |
+| 16 | 293 | 392 | 8.3 x 10^4 | 121x |
+| 20 | 295 | 422 | 1.4 x 10^6 | 1,883x |
+| 24 | 296 | 300 | 3.0 x 10^2 | 0.5x |
+| 30 | 297 | 416 | **3.5 x 10^8** | **496,078x** |
+| 40 | 299 | 300 | 3.0 x 10^2 | 0.5x |
+| 60 | 300 | 300 | 3.0 x 10^2 | 0.5x |
+| 120 | 301 | 300 | 3.0 x 10^2 | 0.5x |
+
+That also explains the "shape sensitivity", which was not one. The count is about 2^depth wherever activities have two distinct predecessors, and collapses to the chain case wherever they have one - and the benchmark generator picks its two dependencies with `id * 7` and `id * 13` modulo the layer width, which coincide for every id once the width divides into both, at 24 layers and beyond. So the rows that looked free were chains, and 30 layers was simply the deepest shape that still branched. Three walks at 3.5 x 10^8 steps, each step allocating a LINQ enumerator over a node's outgoing edges, is the 158 GB.
+
+Descending again through an edge already recorded cannot record anything new: the state does not change for the duration of the walk, and the earlier descent through that edge has necessarily finished, since re-entering one still in progress would need a cycle, which the removal has already excluded. So the guard drops only steps whose output was discarded, and the recorded order - which decides which dummy edges are removed, and therefore the compiled graph - is unchanged. The walk was made iterative at the same time, which is the separate stack-depth item above.
+
+The Rust port already had both, which is the reverse of the usual direction, and its guard carries the comment explaining why it is safe. That is also the strongest evidence the change is equivalent: the two languages' arrow baselines were byte-identical *before* this fix, so the guarded walk was already known to produce the same compiled graph as the unguarded one on all 56 corpus shapes. They remain byte-identical after it.
+
+Measured again after the fix, the whole table is flat:
+
+| Graph | Total | Critical-path passes | The rest | Allocated |
+| - | - | - | - | - |
+| 150 activities, 10 layers | 1 ms | 0 ms | 1 ms | 1 MB |
+| **150 activities, 30 layers** | **2 ms** | **0 ms** | **2 ms** | **1 MB** |
+| 150 activities, 60 layers | 0 ms | 0 ms | 0 ms | 0 MB |
+| 150 activities, 120 layers | 0 ms | 0 ms | 0 ms | 0 MB |
+
+`ArrowGraphBuilder.CalculateResourceSchedulesByPriorityList` was going to multiply the old cost by an iteration per activity, since arrow's `CalculateCriticalPath` runs the reduction on every pass; that public method remains unused by its own compiler, but it is no longer carrying an exponential factor if anything ever calls it.
+
+`RedundantEdgeRemovalTests` / `redundant_edge_removal_tests.rs` pin both defects, one test each, and both were checked against the old code first: the branching graph allocated 158,192 MB against a 100 MB ceiling, and the deep chain killed the test process with a stack overflow inside `GetEdgesInDescendingOrder`. The C# test asserts on allocation rather than elapsed time because allocation is deterministic and the two regimes sit three orders of magnitude either side of the threshold; the Rust test uses the watchdog idiom already established by the scheduler guardrail tests, since counting allocations there would mean a global allocator, which is per test binary rather than per test.
 
 A related property found while building the corpus, and worth knowing before touching any of this: **`CalculateCriticalPath` is not idempotent.** It removes redundant edges before calculating, so a second call on the same builder can produce different values - on `fan-in-5` a dummy activity's free slack moves from 2 to 1, with no shuffling involved. The equivalence tests therefore build a fresh graph per variant rather than recalculating one.
 

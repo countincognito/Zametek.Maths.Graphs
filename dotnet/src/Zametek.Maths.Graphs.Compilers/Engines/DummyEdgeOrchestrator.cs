@@ -326,6 +326,37 @@ namespace Zametek.Maths.Graphs
 
         #region Private Methods
 
+        // One in-flight step of the walk below: a node's outgoing edges and how far
+        // through them it has read. This is what a recursive call frame held.
+        private sealed class DescendingOrderFrame
+        {
+            internal DescendingOrderFrame(IList<T> edgeIds)
+            {
+                EdgeIds = edgeIds;
+            }
+
+            internal IList<T> EdgeIds { get; }
+
+            internal int Cursor { get; set; }
+        }
+
+        // Walks the graph depth-first from the given node, recording each edge the first
+        // time it is reached.
+        //
+        // The descent is guarded by whether the edge is new. It previously ran for every
+        // edge *occurrence* instead, which makes the walk enumerate each distinct path
+        // from the start node rather than visiting each edge once: on a 150-activity graph
+        // 30 layers deep that is 3.5 x 10^8 steps over 297 nodes and 416 edges, and the
+        // three walks RemoveRedundantDummyEdges performs took a minute between them and
+        // churned 158 GB. Descending again through an edge already recorded cannot record
+        // anything new - the state does not change for the duration of the walk, and the
+        // earlier descent through that edge has necessarily finished, since re-entering
+        // one still in progress would need a cycle - so the guard drops only steps whose
+        // output was discarded, and the recorded order is unchanged.
+        //
+        // The walk is iterative for the same reason its Rust counterpart is: the depth is
+        // bounded by the longest path, and a deep chain would otherwise overflow the call
+        // stack.
         private static void GetEdgesInDescendingOrder(
             ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
             T nodeId,
@@ -341,24 +372,48 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(recordedEdges));
             }
 
+            var frames = new Stack<DescendingOrderFrame>();
+            frames.Push(new DescendingOrderFrame(OutgoingEdgeIds(state, nodeId)));
+
+            while (frames.Count != 0)
+            {
+                DescendingOrderFrame frame = frames.Peek();
+
+                if (frame.Cursor == frame.EdgeIds.Count)
+                {
+                    frames.Pop();
+                    continue;
+                }
+
+                T outgoingEdgeId = frame.EdgeIds[frame.Cursor];
+                frame.Cursor++;
+
+                // Record the edge, then do the same to its head node.
+                if (recordedEdges.Add(outgoingEdgeId))
+                {
+                    edgesInDescendingOrder.Add(state.Edge(outgoingEdgeId));
+                    frames.Push(new DescendingOrderFrame(
+                        OutgoingEdgeIds(state, state.EdgeHeadNode(outgoingEdgeId).Id)));
+                }
+            }
+        }
+
+        // The edges the walk descends through from a node, which is none at all for the
+        // node types the walk stops at. Materialised because the walk reads them by
+        // cursor; the state does not change while it runs.
+        private static IList<T> OutgoingEdgeIds(
+            ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T nodeId)
+        {
             Node<T, IEvent<T>> node = state.Node(nodeId);
 
+            // OutgoingEdges throws for End and Isolated nodes rather than returning empty.
             if (node.NodeType == NodeType.End || node.NodeType == NodeType.Isolated)
             {
-                return;
+                return Array.Empty<T>();
             }
 
-            // Go through each of the node's outgoing edges, record them,
-            // then do the same to their head nodes.
-            foreach (Edge<T, TActivity> outgoingEdge in node.OutgoingEdges.Select(x => state.Edge(x)))
-            {
-                if (!recordedEdges.Contains(outgoingEdge.Id))
-                {
-                    edgesInDescendingOrder.Add(outgoingEdge);
-                    recordedEdges.Add(outgoingEdge.Id);
-                }
-                GetEdgesInDescendingOrder(state, state.EdgeHeadNode(outgoingEdge.Id).Id, edgesInDescendingOrder, recordedEdges);
-            }
+            return node.OutgoingEdges.ToList();
         }
 
         /// <summary>
