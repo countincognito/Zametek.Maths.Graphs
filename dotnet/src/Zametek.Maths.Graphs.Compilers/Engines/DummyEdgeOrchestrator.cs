@@ -614,8 +614,10 @@ namespace Zametek.Maths.Graphs
 
             // If the old tail node has no other outgoing edges, then
             // connect its incoming edges to the current head node.
-            IList<T> oldTailNodeOutgoingEdgeIds = oldTailNode.OutgoingEdges.ToList();
-            if (!oldTailNodeOutgoingEdgeIds.Any())
+            // Counted rather than copied: the copy was only ever asked whether it was
+            // empty, and it is as large as the node's degree - which on a graph with a
+            // big dummy fan-in is the whole fan-in, copied once per redirect.
+            if (oldTailNode.OutgoingEdges.Count == 0)
             {
                 Node<T, IEvent<T>> headNode = state.EdgeHeadNode(edgeId);
                 IList<T> oldTailNodeIncomingEdgeIds = oldTailNode.IncomingEdges.ToList();
@@ -661,8 +663,8 @@ namespace Zametek.Maths.Graphs
 
             // If the old head node has no other incoming edges, then
             // connect its outgoing edges to the current tail node.
-            IList<T> oldHeadNodeIncomingEdgeIds = oldHeadNode.IncomingEdges.ToList();
-            if (!oldHeadNodeIncomingEdgeIds.Any())
+            // Counted rather than copied, for the same reason as its mirror above.
+            if (oldHeadNode.IncomingEdges.Count == 0)
             {
                 Node<T, IEvent<T>> tailNode = state.EdgeTailNode(edgeId);
                 IList<T> oldHeadNodeOutgoingEdgeIds = oldHeadNode.OutgoingEdges.ToList();

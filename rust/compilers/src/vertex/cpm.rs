@@ -1,8 +1,10 @@
 use super::state::VertexGraphState;
 use crate::messages;
 use crate::shuffle::shuffle;
-use indexmap::{IndexMap, IndexSet};
-use zametek_maths_graphs_primitives::{GraphError, InvalidConstraint, Key, NodeType};
+use indexmap::IndexMap;
+use zametek_maths_graphs_primitives::{
+    GraphError, InsertionOrderSet, InvalidConstraint, Key, NodeType,
+};
 
 // The critical-path engine for Activity-on-Vertex graphs - the counterpart of
 // the C# `VertexCriticalPathEngine`. Implements the forward pass (earliest
@@ -74,7 +76,7 @@ fn release_predecessor<K: Key, R: Key, W: Key>(
 // call them for nodes that have at least one edge.
 fn max_edge_earliest_finish_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
-    edge_ids: &IndexSet<K>,
+    edge_ids: &InsertionOrderSet<K>,
 ) -> i32 {
     let mut found = false;
     let mut maximum = 0;
@@ -95,7 +97,7 @@ fn max_edge_earliest_finish_time<K: Key, R: Key, W: Key>(
 
 fn min_edge_latest_finish_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
-    edge_ids: &IndexSet<K>,
+    edge_ids: &InsertionOrderSet<K>,
 ) -> i32 {
     let mut found = false;
     let mut minimum = 0;
@@ -116,7 +118,7 @@ fn min_edge_latest_finish_time<K: Key, R: Key, W: Key>(
 
 fn min_successor_earliest_start_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
-    edge_ids: &IndexSet<K>,
+    edge_ids: &InsertionOrderSet<K>,
 ) -> i32 {
     let mut found = false;
     let mut minimum = 0;
@@ -140,7 +142,7 @@ fn min_successor_earliest_start_time<K: Key, R: Key, W: Key>(
 
 fn all_edges_have_earliest_finish_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
-    edge_ids: &IndexSet<K>,
+    edge_ids: &InsertionOrderSet<K>,
 ) -> bool {
     edge_ids.iter().all(|edge_id| {
         state
@@ -154,7 +156,7 @@ fn all_edges_have_earliest_finish_time<K: Key, R: Key, W: Key>(
 
 fn all_edges_have_latest_finish_time<K: Key, R: Key, W: Key>(
     state: &VertexGraphState<K, R, W>,
-    edge_ids: &IndexSet<K>,
+    edge_ids: &InsertionOrderSet<K>,
 ) -> bool {
     edge_ids.iter().all(|edge_id| {
         state

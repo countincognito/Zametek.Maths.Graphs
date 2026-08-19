@@ -1,8 +1,8 @@
 use crate::edge::HasId;
 use crate::enums::NodeType;
 use crate::error::GraphError;
+use crate::insertion_order_set::InsertionOrderSet;
 use crate::key::Key;
-use indexmap::IndexSet;
 
 pub const MSG_CANNOT_REQUEST_INCOMING_EDGES: &str =
     "Cannot request Incoming Edges of a Start or Isolated Node";
@@ -17,12 +17,15 @@ pub const MSG_CANNOT_REQUEST_OUTGOING_EDGES: &str =
 /// [`Node::outgoing_edges`] reproduce that contract. The raw sets are also
 /// exposed (`incoming`/`outgoing`) for algorithm code that has already
 /// established the node type, as the C# internals do.
+///
+/// The edge sets iterate in insertion order, which the golden tests encode, but
+/// remove in O(1) - see [`InsertionOrderSet`] for why that matters here.
 #[derive(Debug, Clone)]
 pub struct Node<K: Key, C> {
     node_type: NodeType,
     pub content: C,
-    pub incoming: IndexSet<K>,
-    pub outgoing: IndexSet<K>,
+    pub incoming: InsertionOrderSet<K>,
+    pub outgoing: InsertionOrderSet<K>,
 }
 
 impl<K: Key, C: HasId<K>> Node<K, C> {
@@ -36,8 +39,8 @@ impl<K: Key, C: HasId<K>> Node<K, C> {
         Self {
             node_type,
             content,
-            incoming: IndexSet::new(),
-            outgoing: IndexSet::new(),
+            incoming: InsertionOrderSet::new(),
+            outgoing: InsertionOrderSet::new(),
         }
     }
 
@@ -56,7 +59,7 @@ impl<K: Key, C: HasId<K>> Node<K, C> {
     }
 
     /// The IDs of the edges pointing into this node (invalid for Start and Isolated nodes).
-    pub fn incoming_edges(&self) -> Result<&IndexSet<K>, GraphError> {
+    pub fn incoming_edges(&self) -> Result<&InsertionOrderSet<K>, GraphError> {
         if matches!(self.node_type, NodeType::Start | NodeType::Isolated) {
             return Err(GraphError::new(MSG_CANNOT_REQUEST_INCOMING_EDGES));
         }
@@ -64,7 +67,7 @@ impl<K: Key, C: HasId<K>> Node<K, C> {
     }
 
     /// The IDs of the edges leaving this node (invalid for End and Isolated nodes).
-    pub fn outgoing_edges(&self) -> Result<&IndexSet<K>, GraphError> {
+    pub fn outgoing_edges(&self) -> Result<&InsertionOrderSet<K>, GraphError> {
         if matches!(self.node_type, NodeType::End | NodeType::Isolated) {
             return Err(GraphError::new(MSG_CANNOT_REQUEST_OUTGOING_EDGES));
         }

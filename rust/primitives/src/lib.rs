@@ -19,6 +19,7 @@ mod error;
 mod event;
 mod graph;
 pub mod graph_limits;
+mod insertion_order_set;
 mod key;
 mod node;
 mod packed_bool_list;
@@ -38,6 +39,7 @@ pub use enums::{
 pub use error::{GraphError, GraphErrorKind};
 pub use event::Event;
 pub use graph::Graph;
+pub use insertion_order_set::InsertionOrderSet;
 pub use key::Key;
 pub use node::Node;
 pub use packed_bool_list::{Iter as PackedBoolListIter, PackedBoolList};

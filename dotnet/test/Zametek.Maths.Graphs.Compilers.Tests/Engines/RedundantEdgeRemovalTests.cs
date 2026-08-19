@@ -41,14 +41,13 @@ namespace Zametek.Maths.Graphs.Tests
             ArrowGraphBuilder<int, int, int, IActivity<int, int, int>> builder = BuildBranchingGraph();
             builder.TransitiveReduction().ShouldBeTrue();
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            long allocatedBefore = GC.GetTotalAllocatedBytes(precise: false);
+            // Per thread rather than per process: the suite runs tests in parallel, and a
+            // process-wide counter measures whatever else happens to be running too.
+            long allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
 
             builder.CalculateCriticalPath();
 
-            long allocated = GC.GetTotalAllocatedBytes(precise: false) - allocatedBefore;
+            long allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
 
             allocated.ShouldBeLessThan(
                 c_AllocationCeilingBytes,

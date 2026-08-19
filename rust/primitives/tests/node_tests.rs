@@ -3,7 +3,7 @@
 //! throwing accessors map to the `Result`-returning `incoming_edges` /
 //! `outgoing_edges`.
 
-use indexmap::IndexSet;
+use zametek_maths_graphs_primitives::InsertionOrderSet;
 use zametek_maths_graphs_primitives::{Event, Node, NodeType};
 
 type Nd = Node<i32, Event<i32>>;
@@ -83,8 +83,8 @@ fn node_given_clone_then_type_content_and_edges_preserved() {
 
     assert_eq!(clone.node_type(), NodeType::Normal);
     assert_eq!(clone.content.earliest_finish_time, Some(2));
-    assert_eq!(clone.incoming, IndexSet::from([10]));
-    assert_eq!(clone.outgoing, IndexSet::from([20]));
+    assert_eq!(clone.incoming, InsertionOrderSet::from([10]));
+    assert_eq!(clone.outgoing, InsertionOrderSet::from([20]));
 }
 
 #[test]

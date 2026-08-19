@@ -2,12 +2,14 @@
 
 Work identified during investigation, with what was observed, why it matters, and what a fix would need to establish - so anything picked up later starts from evidence rather than from scratch. Entries are marked done as they are undertaken, and keep their measurements.
 
-In rough order of remaining value:
+One item remains: **priority-list Phase 3**, which is investigated and designed but deliberately not implemented, because its value is conditional on raising `GraphLimits.MaximumActivityCount`. See the reassessment at the end of that section.
 
-1. **`RedirectDummyEdges` on a graph that was never transitively reduced** - newly measured while fixing the item below, and now the largest remaining problem: roughly cubic, at 2.7 s for a 2,000-activity chain and 19.7 s for 4,000. Lower severity than it sounds, because the compiler always reduces before calculating; it is reachable through `ArrowGraphBuilder` used directly.
-2. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
+Everything else on this list has been done:
 
-**`RemoveRedundantEdges` is fixed in both languages** - it was the largest item on this list, at 60 seconds and 158 GB on a 150-activity graph, and is now 2 ms and 1 MB. The separate item that used to sit here for the recursive dummy-edge ordering is fixed with it: they were two defects in the same walk. The section at the end of this document records both.
+- **`RemoveRedundantEdges`** was the largest, at 60 seconds and 158 GB on a 150-activity graph, and is now 2 ms and 1 MB. The separate item for the recursive dummy-edge ordering went with it - they were two defects in the same walk.
+- **`RedirectDummyEdges`** on a graph that was never transitively reduced was roughly cubic, at 19.7 s for a 4,000-activity chain, and is now 3.5 s and quadratic. The remaining quadratic is inherent to the canonical form the method produces; the section records why, and why a linear version would be a behaviour change rather than an optimisation.
+
+Both are recorded in full at the end of this document, with their measurements.
 
 **Rust port parity is complete** - all four items done, each with its own measurement; see that section for what was ported and what was deliberately left out. **The arrow topological CPM is also done in both languages**, though the measurement showed it buys nothing - the section at the end of this document records why, and what it turned up instead.
 
@@ -239,21 +241,29 @@ This was the order followed, and it held up: the defect first (stall detection a
 
 `DummyEdgeOrchestrator.GetEdgesInDescendingOrder` was the last recursive traversal, and it turned out to be the same method as the `RemoveRedundantEdges` cost below, so both were fixed together. The stack-depth risk recorded here was real and not merely latent: a 10,000-activity arrow chain overflows the stack and kills the process outright, which is what the new deep-chain regression test was checked against.
 
-## `RedirectDummyEdges` on a graph that was never transitively reduced
+## `RedirectDummyEdges` on a graph that was never transitively reduced - DONE, cubic to quadratic
 
-Found while fixing the walk below, and left unfixed. Calculating the critical path on an `ArrowGraphBuilder` that has not been transitively reduced costs, for a plain chain:
+Calculating the critical path on an `ArrowGraphBuilder` that has not been transitively reduced was roughly cubic, at 19.7 s for a 4,000-activity chain. It is now **3.5 s in C# and 3.7 s in Rust**, and quadratic. The residual quadratic is inherent to what the method computes, and the reasoning for leaving it is below.
 
-| Chain | Build | `RemoveRedundantEdges` | `CalculateCriticalPath` |
-| - | - | - | - |
-| 250 | 6 ms | 13 ms | 58 ms |
-| 500 | 0 ms | 4 ms | 141 ms |
-| 1,000 | 1 ms | 17 ms | 762 ms |
-| 2,000 | 6 ms | 25 ms | 2,658 ms |
-| 4,000 | 10 ms | 29 ms | 19,744 ms |
+The cost is entirely the `RedirectEdges()` that `CalculateCriticalPath` performs *after* the critical-path passes, which is a different proposition from the same call before them: `RedirectDummyEdges` orders its nodes by `EarliestFinishTime`, so once those times are populated it does real redirection work rather than iterating a graph whose keys are all null. Timed through the engine seams, at 4,000 activities it was 19,401 ms of a 19,488 ms total, against 60 ms for the redundant-edge removal and 11 ms for the three critical-path passes.
 
-About 7x per doubling, so roughly cubic, and none of it is the redundant-edge removal - that column is the same call immediately beforehand, and it stays flat. The cost is the `RedirectEdges()` that `CalculateCriticalPath` performs *after* the critical-path passes, which is a different proposition from the same call before them: `RedirectDummyEdges` orders its nodes by `EarliestFinishTime`, so once those times are populated it does real redirection work rather than iterating a graph whose keys are all null. The same shape reduced first costs 9 ms at 4,000.
+### What it does, and why it is quadratic
 
-The severity is bounded by reachability. `ArrowGraphCompiler` calls `TransitiveReduction()` immediately before `CalculateCriticalPath()`, so a compile never takes this path; it needs `ArrowGraphBuilder` driven directly, which is public API but not what the compiler does. That is why the deep-chain regression tests in both languages reduce first, with a comment saying so - otherwise they would be measuring this instead of the walk they are meant to pin.
+Where a group of nodes all feed the same successors through removable dummy edges, the group is collapsed so the dummies can be dropped. On an un-reduced chain the whole graph is one such group: every event has a dummy into the End node. Dumped on a six-activity chain, the six dummies `3,5,7,9,11,13 -> 2` become `3->5, 5->7, 7->9, 9->11, 11->13, 13->2` - the fan-in is rewritten as a chain running alongside the real edges.
+
+It builds that chain one link per pass. Each node in turn redirects the whole remaining group to itself, and the next node takes all of them back except one, so a fan-in of k costs k(k-1)/2 redirections. Counted at 4,000 activities: **7,998,000 redirections of 3,999 distinct edges**, which is exactly N(N-1)/2 - each edge moved about two thousand times. Only the last move of each edge survives.
+
+That churn is load-bearing, which is why it is still there. The order is `EarliestFinishTime` descending, and it decides the result: walked in ascending order instead, the first node's redirect makes the guard fail for every node after it, and the graph ends as a star into one node rather than a chain. So a linear formulation is available, but it produces a different canonical form - a behaviour change to a method whose output feeds resource scheduling, not an optimisation. Reproducing the current form directly means simulating the same passes, which is the quadratic.
+
+### What was fixed
+
+The factor sitting on top of it. Every redirection copied a node's whole edge set purely to ask whether it was empty (`ToList()` then `.Any()`, with the copy never used), and the node being asked is the one holding the fan-in - so the copy was O(k) and the pass was cubic rather than quadratic. Counting instead of copying is provably output-identical, and the instrumented counts were byte-identical across the change: same nodes processed, same 7,998,000 redirections, same 3,999 distinct edges. At 4,000 activities C# went from 24,438 ms to 3,580 ms.
+
+Rust had the emptiness test right already - another case of the port being the correct side - but carried the same cubic factor by a different route: `Node`'s edge sets were `IndexSet`, whose `shift_remove` moves and re-indexes every later entry, so each removal from the fan-in node was O(k). `primitives/src/insertion_order_set.rs` is the set counterpart of the compilers' `InsertionOrderMap`, tombstoning a removed slot and compacting once half the slots are dead, so removal is O(1) amortised with insertion order unchanged. `Node.incoming` and `Node.outgoing` now use it, which took Rust from 20,390 ms to 3,671 ms - the two languages are now within 5% of each other, where before this they were both cubic. The 663 existing assertions over those sets were untouched, because the type carries the same method names; that they still pass, and that both golden baselines stayed byte-identical, is what shows the iteration order was preserved.
+
+### Reachability
+
+`ArrowGraphCompiler` calls `TransitiveReduction()` immediately before `CalculateCriticalPath()`, and a reduced graph has no removable dummy fan-in left at all - measured, it performs **zero** redirections and the pass costs 11 ms at 4,000 activities. So a compile never took this path; it needs `ArrowGraphBuilder` driven directly, which is public API but not what the compiler does. That is also why the deep-chain regression tests in both languages reduce first, with a comment saying so, and why the redirect tests deliberately do not.
 
 ## Topological CPM rewrite for the arrow engine - DONE, and it bought nothing
 
