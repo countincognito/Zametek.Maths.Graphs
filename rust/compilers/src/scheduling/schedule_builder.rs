@@ -84,6 +84,21 @@ impl<K: Key, R: Key, W: Key> ResourceScheduleBuilder<K, R, W> {
         &self.scheduled_activities
     }
 
+    // Both of the following rely on the same property: activities are appended in
+    // non-decreasing start-time order. That is enforced rather than assumed -
+    // `append_activity` clamps a start time up to
+    // `earliest_available_start_time_for_next_activity`, which is the last
+    // activity's finish time - so the first entry holds the earliest start and the
+    // last entry the latest finish.
+
+    /// The start time of the first scheduled activity, or zero when empty.
+    pub fn first_activity_start_time(&self) -> i32 {
+        self.scheduled_activities
+            .first()
+            .map(|a| a.start_time)
+            .unwrap_or(0)
+    }
+
     /// The finish time of the last scheduled activity, or zero when empty.
     pub fn last_activity_finish_time(&self) -> i32 {
         self.scheduled_activities

@@ -312,12 +312,17 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
             ));
         }
 
+        // Collected once and used by both calls. Neither adds nor removes an
+        // activity - the first removes dependencies, which are edges, and the
+        // second rewrites successor sets - so the set cannot change between them
+        // and collecting it again would produce the same vector twice. The
+        // earlier collection for `reset_resource_state` is deliberately left
+        // separate: the whole compile pipeline runs between it and these two.
         let all_activity_ids = self.builder.activity_ids();
         self.builder
             .remove_resource_only_dependencies(&all_activity_ids);
         self.builder
             .add_post_compilation_errors(&mut compilation_errors);
-        let all_activity_ids = self.builder.activity_ids();
         self.builder.update_activity_successors(&all_activity_ids);
 
         // Rebuild schedules aligned to final CPM times, collect indirect

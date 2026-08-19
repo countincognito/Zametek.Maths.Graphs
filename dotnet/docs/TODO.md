@@ -296,6 +296,8 @@ This is the change that would move the usable ceiling. The `GraphLimits.MaximumA
 
 The port's golden tests were mirrored copies rather than shared, so it only ever passed against its own behaviour - the divergence was real but latent. The priority-list corpus built for the last item closes that gap for the calculation that matters most: it generates the same graphs in both languages and checks the Rust output against the **C# baseline file itself**, so a future change to either side that breaks agreement now fails a test.
 
+**Parity is not one-directional, and checking it in both directions is the point.** Of the small allocation items done on the C# side afterwards, one did not exist in the port at all (`scheduled_activities()` returns a borrowed slice, so there was never a copy to remove), one had no counterpart (Rust's iterator chains already compile to the loop the C# was rewritten into), and one was a genuine defect present in both and fixed in both. Three of the four occasions this investigation has compared the two languages closely, the port has been the correct side. The habit worth keeping is to read the port first and treat a divergence as a question rather than a to-do; the reason to keep porting even the changes that save nothing there, such as `first_activity_start_time`, is that the two files staying readable side by side is what makes divergences findable at all. `PERFORMANCE.md` carries the item-by-item detail.
+
 Neither language sweeps any longer: the arrow critical-path engine (`compilers/src/arrow/cpm.rs` and its C# counterpart) was rewritten too - see the arrow section at the end of this document, including why that particular rewrite gained nothing.
 
 ### Behavioural divergence - the port now computes different results

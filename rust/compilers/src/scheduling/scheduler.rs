@@ -175,15 +175,13 @@ where
         .map(|a| a.activity.clone())
         .collect();
 
+    // `first_activity_start_time` rather than a minimum over each builder's whole
+    // schedule: appends are in non-decreasing start-time order, so the first entry
+    // already is the minimum. An empty builder still contributes zero, exactly as
+    // the inner `unwrap_or(0)` did, which is what keeps the result identical.
     let start_time = resource_schedule_builders
         .iter()
-        .map(|x| {
-            x.scheduled_activities()
-                .iter()
-                .map(|y| y.start_time)
-                .min()
-                .unwrap_or(0)
-        })
+        .map(|x| x.first_activity_start_time())
         .min()
         .unwrap_or(0);
 

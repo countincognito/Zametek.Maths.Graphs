@@ -10,7 +10,7 @@
 
 use zametek_maths_graphs_compilers::ResourceScheduleBuilder;
 use zametek_maths_graphs_primitives::{
-    InterActivityAllocationType, PackedBoolList, Resource, ScheduledActivity,
+    Activity, InterActivityAllocationType, PackedBoolList, Resource, ScheduledActivity,
 };
 
 type Rsb = ResourceScheduleBuilder<i32, i32, i32>;
@@ -194,4 +194,60 @@ fn resource_schedule2_for_direct_resource_then_start_73_and_finish_101() {
         .unwrap();
 
     assert_allocated_between(&rs.resource_allocation, start, finish);
+}
+
+// The scheduler reads `first_activity_start_time` instead of taking a minimum
+// over each builder's whole schedule. That substitution is only valid because
+// activities are appended in non-decreasing start-time order, which
+// `append_activity` enforces by clamping a start time up to the resource's
+// earliest availability. These pin both halves of it: the clamp, and the
+// equivalence it licenses.
+//
+// Ports of the C# `ResourceScheduleBuilderTests` cases of the same names.
+
+#[test]
+fn given_no_scheduled_activities_then_first_activity_start_time_is_zero() {
+    let rsb: Rsb = ResourceScheduleBuilder::new_unmapped();
+
+    assert_eq!(rsb.first_activity_start_time(), 0);
+    assert_eq!(rsb.last_activity_finish_time(), 0);
+}
+
+#[test]
+fn given_activities_appended_out_of_order_then_first_activity_start_time_equals_the_minimum() {
+    let resource = Resource::new(
+        1,
+        None,
+        false,
+        false,
+        InterActivityAllocationType::None,
+        1.0,
+        1.0,
+        0,
+        [],
+    );
+    let mut rsb: Rsb = ResourceScheduleBuilder::new(resource);
+
+    // The second and third ask to start before the resource is free, so the
+    // builder clamps them forward. Nothing can therefore land ahead of the first.
+    rsb.append_activity(&Activity::new(1, 5), 7);
+    rsb.append_activity(&Activity::new(2, 3), 0);
+    rsb.append_activity(&Activity::new(3, 4), 2);
+
+    let minimum_start_time = rsb
+        .scheduled_activities()
+        .iter()
+        .map(|x| x.start_time)
+        .min()
+        .expect("the schedule is not empty");
+    let maximum_finish_time = rsb
+        .scheduled_activities()
+        .iter()
+        .map(|x| x.finish_time)
+        .max()
+        .expect("the schedule is not empty");
+
+    assert_eq!(rsb.first_activity_start_time(), minimum_start_time);
+    assert_eq!(rsb.first_activity_start_time(), 7);
+    assert_eq!(rsb.last_activity_finish_time(), maximum_finish_time);
 }
