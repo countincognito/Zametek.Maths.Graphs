@@ -329,14 +329,51 @@ namespace Zametek.Maths.Graphs
         /// <summary>
         /// The earliest start time across all activities.
         /// </summary>
-        public int StartTime =>
-            Activities.Select(x => x.EarliestStartTime.GetValueOrDefault()).DefaultIfEmpty().Min();
+        // Explicit loops rather than Select/DefaultIfEmpty/Min, matching the vertex
+        // builder; see the note there. Zero for an empty graph is preserved, as is
+        // treating an activity with no value as zero rather than skipping it.
+        public int StartTime
+        {
+            get
+            {
+                int startTime = 0;
+                bool first = true;
+                foreach (TActivity activity in Activities)
+                {
+                    int earliestStartTime = activity.EarliestStartTime.GetValueOrDefault();
+                    if (first
+                        || earliestStartTime < startTime)
+                    {
+                        startTime = earliestStartTime;
+                        first = false;
+                    }
+                }
+                return startTime;
+            }
+        }
 
         /// <summary>
         /// The latest finish time across all activities.
         /// </summary>
-        public int FinishTime =>
-            Activities.Select(x => x.LatestFinishTime.GetValueOrDefault()).DefaultIfEmpty().Max();
+        public int FinishTime
+        {
+            get
+            {
+                int finishTime = 0;
+                bool first = true;
+                foreach (TActivity activity in Activities)
+                {
+                    int latestFinishTime = activity.LatestFinishTime.GetValueOrDefault();
+                    if (first
+                        || latestFinishTime > finishTime)
+                    {
+                        finishTime = latestFinishTime;
+                        first = false;
+                    }
+                }
+                return finishTime;
+            }
+        }
 
         // When true, the critical-path passes process remaining edges in a random
         // order on each iteration. The results must be identical either way; tests

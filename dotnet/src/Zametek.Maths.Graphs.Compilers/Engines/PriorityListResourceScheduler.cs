@@ -81,8 +81,12 @@ namespace Zametek.Maths.Graphs
 
             List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = graph.CloneActivities();
 
+            // FirstActivityStartTime rather than a minimum over a copy of each builder's
+            // whole list: appends are in non-decreasing start-time order, so the first
+            // entry already is the minimum, and this was the only place in the library
+            // that copied a builder's schedule to read one number out of it.
             int startTime = resourceScheduleBuilders
-                .Select(x => x.ScheduledActivities.Select(y => y.StartTime).DefaultIfEmpty().Min())
+                .Select(x => x.FirstActivityStartTime)
                 .DefaultIfEmpty().Min();
 
             int finishTime = resourceScheduleBuilders

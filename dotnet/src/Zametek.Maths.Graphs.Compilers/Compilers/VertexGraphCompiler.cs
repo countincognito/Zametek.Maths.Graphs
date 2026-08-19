@@ -323,9 +323,16 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotBackFillIsolatedNodes);
                 }
 
-                m_VertexGraphBuilder.RemoveResourceOnlyDependencies(m_VertexGraphBuilder.Activities.ToList());
+                // One materialisation shared by both calls. Neither adds or removes an
+                // activity - the first removes dependencies, which are edges, and the
+                // second rewrites successor sets - so the collection cannot change
+                // between them and re-reading it would produce the same list twice.
+                // The earlier ResetResourceState materialisation is deliberately left
+                // alone: the whole compile pipeline runs between it and these two.
+                List<TDependentActivity> activities = m_VertexGraphBuilder.Activities.ToList();
+                m_VertexGraphBuilder.RemoveResourceOnlyDependencies(activities);
                 m_VertexGraphBuilder.AddPostCompilationErrors(compilationErrors);
-                m_VertexGraphBuilder.UpdateActivitySuccessors(m_VertexGraphBuilder.Activities.ToList());
+                m_VertexGraphBuilder.UpdateActivitySuccessors(activities);
 
                 // Rebuild schedules aligned to final CPM times, collect indirect resource schedules.
                 List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities = m_VertexGraphBuilder.Activities

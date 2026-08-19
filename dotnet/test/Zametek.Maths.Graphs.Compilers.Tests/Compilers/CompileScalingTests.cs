@@ -192,6 +192,13 @@ namespace Zametek.Maths.Graphs.Tests
         {
             internal long TotalMilliseconds { get; set; }
 
+            // Deterministic where the timings are not. Wall-clock on this workload swings
+            // by a quarter between runs even taking the best of five, which is wide enough
+            // to hide any change smaller than an algorithmic one; allocated bytes repeat
+            // to within a few hundred. Per-thread rather than process-wide, so a parallel
+            // test run cannot pollute it.
+            internal long AllocatedBytes { get; set; }
+
             internal long IncrementalMilliseconds { get; set; }
 
             internal long FullPassMilliseconds { get; set; }
@@ -228,7 +235,7 @@ namespace Zametek.Maths.Graphs.Tests
             m_Output.WriteLine(@"'incremental' is the priority-list loop; 'full CPM' is the three whole-graph passes; 'scheduling' is the tick loop.");
             m_Output.WriteLine(@"");
             m_Output.WriteLine(
-                $@"{"activities",11} {"depth",6} {"compile",9} {"incremental",12} {"full CPM",9} {"scheduling",11} {"rebuild",8} {"indirect",9} {"else",7}");
+                $@"{"activities",11} {"depth",6} {"compile",9} {"incremental",12} {"full CPM",9} {"scheduling",11} {"else",7} {"allocated",14}");
 
             foreach (int size in new[] { 250, 500, 1_000, 1_500, 2_000 })
             {
@@ -236,7 +243,7 @@ namespace Zametek.Maths.Graphs.Tests
                 Split split = BestOfFive(size, layers, resourceCount: 20);
 
                 m_Output.WriteLine(
-                    $@"{size,11} {layers,6} {split.TotalMilliseconds + "ms",9} {split.IncrementalMilliseconds + "ms",12} {split.FullPassMilliseconds + "ms",9} {split.ScheduleMilliseconds + "ms",11} {split.RebuildMilliseconds + "ms",8} {split.IndirectMilliseconds + "ms",9} {split.EverythingElseMilliseconds + "ms",7}");
+                    $@"{size,11} {layers,6} {split.TotalMilliseconds + "ms",9} {split.IncrementalMilliseconds + "ms",12} {split.FullPassMilliseconds + "ms",9} {split.ScheduleMilliseconds + "ms",11} {split.EverythingElseMilliseconds + "ms",7} {split.AllocatedBytes / 1024 + " KB",14}");
             }
 
             m_Output.WriteLine(@"");
@@ -320,10 +327,12 @@ namespace Zametek.Maths.Graphs.Tests
             GC.WaitForPendingFinalizers();
             GC.Collect();
 
+            long allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
             long start = Stopwatch.GetTimestamp();
             IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation =
                 compiler.Compile(resources, CancellationToken.None);
             long totalTicks = Stopwatch.GetTimestamp() - start;
+            long allocatedAfter = GC.GetAllocatedBytesForCurrentThread();
 
             compilation.CompilationErrors.ShouldBeEmpty(
                 $@"the compile at {size} activities reported errors, so this would be timing a compile that stopped early");
@@ -331,6 +340,7 @@ namespace Zametek.Maths.Graphs.Tests
             return new Split
             {
                 TotalMilliseconds = ToMilliseconds(totalTicks),
+                AllocatedBytes = allocatedAfter - allocatedBefore,
                 IncrementalMilliseconds = ToMilliseconds(criticalPath.IncrementalTicks),
                 FullPassMilliseconds = ToMilliseconds(criticalPath.FullPassTicks),
                 ScheduleMilliseconds = ToMilliseconds(scheduling.ScheduleTicks),

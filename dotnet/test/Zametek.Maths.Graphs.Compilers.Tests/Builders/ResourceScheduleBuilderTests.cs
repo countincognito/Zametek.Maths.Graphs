@@ -18,6 +18,39 @@ namespace Zametek.Maths.Graphs.Tests
             m_Fixture = fixture;
         }
 
+        // The scheduler reads FirstActivityStartTime instead of taking a minimum over a
+        // copy of the whole schedule. That substitution is only valid because activities
+        // are appended in non-decreasing start-time order, which AppendActivity enforces
+        // by clamping a start time up to the resource's earliest availability. These pin
+        // both halves of that: the clamp, and the equivalence it licenses.
+        [Fact]
+        public void ResourceScheduleBuilder_GivenNoScheduledActivities_ThenFirstActivityStartTimeIsZero()
+        {
+            var builder = new ResourceScheduleBuilder<int, int, int>();
+
+            builder.FirstActivityStartTime.ShouldBe(0);
+            builder.LastActivityFinishTime.ShouldBe(0);
+        }
+
+        [Fact]
+        public void ResourceScheduleBuilder_GivenActivitiesAppendedOutOfOrder_ThenFirstActivityStartTimeEqualsTheMinimum()
+        {
+            var builder = new ResourceScheduleBuilder<int, int, int>(
+                new Resource<int, int>(1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, []));
+
+            // The second and third ask to start before the resource is free, so the
+            // builder clamps them forward. Nothing can therefore land ahead of the first.
+            builder.AppendActivity(new Activity<int, int, int>(1, 5), 7);
+            builder.AppendActivity(new Activity<int, int, int>(2, 3), 0);
+            builder.AppendActivity(new Activity<int, int, int>(3, 4), 2);
+
+            int minimumStartTime = builder.ScheduledActivities.Select(x => x.StartTime).Min();
+
+            builder.FirstActivityStartTime.ShouldBe(minimumStartTime);
+            builder.FirstActivityStartTime.ShouldBe(7);
+            builder.LastActivityFinishTime.ShouldBe(builder.ScheduledActivities.Select(x => x.FinishTime).Max());
+        }
+
         [Fact]
         public void ResourceScheduleBuilder_Given_ResourceSchedule1_ForIndirectResource_ZeroFinishTime_Input_ThenActivityAllocationEmpty()
         {

@@ -58,10 +58,34 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public bool IsInactive => m_Resource != null && m_Resource.IsInactive;
 
+        // Returns a snapshot deliberately. Nothing inside the library reads this any
+        // more - the two values the scheduler wants are the properties below - so this
+        // exists for external consumers, and handing them a live view of the builder's
+        // own list would let a later append change a collection they are still holding.
         /// <summary>
-        /// The activities scheduled so far.
+        /// The activities scheduled so far, as a snapshot taken at the point of access.
         /// </summary>
         public IEnumerable<IScheduledActivity<T>> ScheduledActivities => m_ScheduledActivities.ToList();
+
+        // Both of these rely on the same property: activities are appended in
+        // non-decreasing start-time order. That is enforced rather than assumed -
+        // AppendActivity clamps a start time up to EarliestAvailableStartTimeForNextActivity,
+        // which is the last activity's finish time - so the first entry holds the
+        // earliest start and the last entry the latest finish.
+        /// <summary>
+        /// The start time of the first scheduled activity, or zero when empty.
+        /// </summary>
+        public int FirstActivityStartTime
+        {
+            get
+            {
+                if (m_ScheduledActivities.Count == 0)
+                {
+                    return 0;
+                }
+                return m_ScheduledActivities.First.Value.StartTime;
+            }
+        }
 
         /// <summary>
         /// The finish time of the last scheduled activity, or zero when empty.
