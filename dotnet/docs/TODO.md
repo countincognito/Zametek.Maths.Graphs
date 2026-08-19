@@ -73,7 +73,36 @@ Its Phase 0 reference measurements, for `CalculateCriticalPathPriorityList` alon
 
 Regenerate the baseline only when the output is *intended* to change, with `-explicit only -method "*RegenerateBaseline*"`; it writes back into the source tree.
 
-Phase 1 replaces the label-correcting sweeps with a topological-order calculation (Kahn's algorithm, then one forward and one reverse pass), taking a critical-path pass from O(depth x E) to O(V + E). Two things need care: the `ShuffleProcessingOrder` hook exists to prove order-independence and must survive, by shuffling the ready queue rather than the edge list; and the constraint clamping needs checking for whether it can ever require re-relaxing an already-completed edge. The current code cannot revisit one - `completedEdgeIds` is add-only - which is good evidence that a single topological pass is equivalent, but it should be confirmed rather than assumed.
+Phase 1 (**done**) replaced the label-correcting sweeps in `VertexCriticalPathEngine` with a walk over nodes in dependency order, taking a critical-path pass from O(depth x E) to O(V + E).
+
+The equivalence argument rests on two observations. An edge can be completed once every incoming edge of its tail node is complete (forward flow; the mirror holds backward), and the value the edge receives depends only on that node - so all outgoing edges of a node receive the *same* earliest finish time, and all incoming edges of a node the same latest finish time. The per-edge search was therefore really a per-node computation, and visiting each node once as it becomes ready produces identical values while removing the repeated sweeping. Every value-computing statement was kept verbatim, including the places where Start and End nodes are clamped differently from the rest; only the driver changed.
+
+Two traps worth recording. `Node.IncomingEdges` throws for Start and Isolated nodes, and `Node.OutgoingEdges` throws for End and Isolated nodes, rather than returning empty sets - the old code never tripped this because it only ever reached nodes through edges, whereas a node-driven walk enumerates `state.Nodes` directly and must filter by `NodeType` first. And the `ShuffleProcessingOrder` hook was preserved by processing ready nodes in rounds and shuffling each round, which keeps its meaning: within a round the order genuinely cannot matter.
+
+Measured effect. Depth dependence is gone - at 1,500 activities the time was 1,102 ms at depth 10 rising to 4,292 ms at depth 240, and is now essentially flat, ending *lower* at depth 240 than at depth 10 because deeper layers are narrower:
+
+| Layers, at 1,500 activities | Before | After |
+| - | - | - |
+| 10 | 1,102 ms | 1,335 ms |
+| 30 | 1,739 ms | 1,323 ms |
+| 60 | 2,980 ms | 1,316 ms |
+| 120 | 3,701 ms | 1,038 ms |
+| 240 | 4,292 ms | 861 ms |
+
+On the original benchmark shape, where depth grows with size, the gain grows with it. The "before" column is a full compile and the "after" column the priority-list calculation alone, which is a fair comparison because the priority list is where effectively all of that time goes - at 2,000 activities the full compile now takes 2.40 s of which 2.34 s is the priority list:
+
+| Activities | Depth | Before | After | Allocated, before | Allocated, after |
+| - | - | - | - | - | - |
+| 1,000 | 40 | 1.2 s | 1.22 s | 580 MB | 592 MB |
+| 2,000 | 80 | 6.9 s | 2.34 s | 2.8 GB | 2.4 GB |
+| 4,000 | 160 | 47.3 s | 12.29 s | 15.1 GB | 9.3 GB |
+| 8,000 | 320 | 413 s | 76.41 s | 91.4 GB | 37.7 GB |
+
+Shallow graphs gain little, as expected - there was no depth factor to remove - and at very low depth the new form is marginally slower, because it allocates two dictionaries of pending counts per critical-path pass where the old form allocated one list per sweep. That is a Phase 2 target.
+
+What remains is the iteration count and a large constant factor. At 8,000 activities the calculation still performs roughly 8,000 passes of about 24,000 node and edge visits, which is around 2 x 10^8 elementary steps - a second or two of actual work, against a measured 76 s. The gap is per-visit overhead: LINQ iterators allocated per node in the hot path (`Select(...).Max(...)`, `Select(...).Min(...)`), dictionary lookups through `state.Edge`, `EdgeHeadNode` and `EdgeTailNode`, the two pending-count dictionaries per pass, and the per-iteration work in the priority-list loop itself. 37.7 GB across 8,000 passes is about 4.7 MB per pass, which is far more than the algorithm needs and is what Phase 2 should target before Phase 3 is considered.
+
+Note that the compile-level tables above 2,000 activities can no longer be reproduced through `Compile`, since `GraphLimits.MaximumActivityCount` now rejects such graphs with P0080; measure through `CalculateCriticalPathPriorityList` on the builder instead, as the timing harness does.
 
 Phase 2 removes per-iteration overhead that does not change the asymptotics but accounts for much of the allocation churn: single-pass selection of the most critical activity instead of `Min` + `Where` + `OrderBy` + `ToList`, and avoiding repeated re-enumeration of `Activities`.
 
