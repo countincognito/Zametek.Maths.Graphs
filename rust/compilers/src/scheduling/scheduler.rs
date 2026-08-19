@@ -705,9 +705,9 @@ fn describe_unschedulable_activity<K: Key, R: Key, W: Key>(
         || earliest_start_time + duration > horizon
         || i64::from(time_counter) + duration > horizon
     {
-        return messages::format1(
+        return messages::format_message(
             messages::MSG_CANNOT_BE_SCHEDULED_WITHIN_MAXIMUM_TIME_VALUE,
-            graph_limits::MAXIMUM_TIME_VALUE,
+            &[&graph_limits::MAXIMUM_TIME_VALUE],
         );
     }
 

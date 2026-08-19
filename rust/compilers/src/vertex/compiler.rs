@@ -228,6 +228,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         self.builder.add_pre_compilation_errors(
             &mut compilation_errors,
             &filtered_resources,
+            work_streams,
             infinite_resources,
         );
 
@@ -289,10 +290,12 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         if self.builder.finish_time() > graph_limits::MAXIMUM_TIME_VALUE {
             compilation_errors.push(GraphCompilationError::new(
                 GraphCompilationErrorCode::C0020,
-                messages::format2(
+                messages::format_message(
                     messages::MSG_COMPUTED_SCHEDULE_EXCEEDS_MAXIMUM_TIME_VALUE,
-                    self.builder.finish_time(),
-                    graph_limits::MAXIMUM_TIME_VALUE,
+                    &[
+                        &self.builder.finish_time(),
+                        &graph_limits::MAXIMUM_TIME_VALUE,
+                    ],
                 ),
             ));
             return Ok(GraphCompilation::new(

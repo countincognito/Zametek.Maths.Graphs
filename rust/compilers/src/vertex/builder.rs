@@ -7,13 +7,14 @@ use crate::contracts::{
 };
 use crate::error_formatter;
 use crate::id_gen::PreviousIdGenerator;
+use crate::limit_checker;
 use crate::messages;
 use indexmap::{IndexMap, IndexSet};
 use std::sync::Arc;
 use zametek_maths_graphs_primitives::{
     Activity, CircularDependency, DependentActivity, Edge, Event, Graph, GraphCompilationError,
     GraphCompilationErrorCode, GraphError, InvalidConstraint, Key, LogicalOperator, Node, NodeType,
-    Resource, ResourceSchedule, ScheduledActivity, UnavailableResources,
+    Resource, ResourceSchedule, ScheduledActivity, UnavailableResources, WorkStream,
 };
 
 /// Builds and maintains an Activity-on-Vertex graph (activities on nodes,
@@ -1331,6 +1332,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         &mut self,
         errors: &mut Vec<GraphCompilationError>,
         filtered_resources: &[Resource<R, W>],
+        work_streams: &[WorkStream<W>],
         infinite_resources: bool,
     ) {
         let invalid_dependencies = self.invalid_dependencies();
@@ -1408,6 +1410,23 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
                 error_formatter::build_unavailable_resources_error_message(
                     &unavailable_resources_set,
                 ),
+            ));
+        }
+
+        // P0080
+        // The C# original captures its activity list at the top of this method,
+        // before the edge clean-up above; borrowing rules make that awkward here,
+        // so the list is collected now instead. The two are equivalent: edge
+        // clean-up only redirects and removes edges, and activities live on nodes,
+        // so neither the set nor its count can change. P0060 above collects at
+        // this same point for the same reason.
+        let activities: Vec<&Activity<K, R, W>> = self.activities().map(|a| &a.activity).collect();
+        let limit_violations =
+            limit_checker::find_limit_violations(&activities, filtered_resources, work_streams);
+        if !limit_violations.is_empty() {
+            errors.push(GraphCompilationError::new(
+                GraphCompilationErrorCode::P0080,
+                error_formatter::build_limit_violations_error_message(&limit_violations),
             ));
         }
     }

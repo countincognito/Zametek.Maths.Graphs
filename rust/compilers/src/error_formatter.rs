@@ -80,6 +80,18 @@ pub(crate) fn build_invalid_constraints_error_message<K: Key>(
     output
 }
 
+pub(crate) fn build_limit_violations_error_message(limit_violations: &[String]) -> String {
+    if limit_violations.is_empty() {
+        return String::new();
+    }
+    let mut output = String::new();
+    let _ = writeln!(output, "{}", messages::MSG_LIMITS_EXCEEDED);
+    for limit_violation in limit_violations {
+        let _ = writeln!(output, "{limit_violation}");
+    }
+    output
+}
+
 pub(crate) fn build_unavailable_resources_error_message<K: Key, R: Key>(
     unavailable_resources_set: &[UnavailableResources<K, R>],
 ) -> String {

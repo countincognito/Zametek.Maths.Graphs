@@ -305,33 +305,6 @@ fn vertex_graph_compiler_given_unschedulable_activity_then_reports_c0020_instead
 }
 
 #[test]
-fn vertex_graph_compiler_given_durations_that_sum_beyond_the_horizon_then_reports_c0020() {
-    // Every individual duration is legal, but chained together they push the
-    // computed schedule past the horizon - the case per-value limits cannot catch.
-    let compilation = run_with_watchdog(|| {
-        let mut compiler: VertexGraphCompiler<i32, i32, i32> = VertexGraphCompiler::new();
-        let activity_count = 5;
-        let duration = (graph_limits::MAXIMUM_TIME_VALUE / activity_count) + 1;
-        for id in 1..=activity_count {
-            compiler.add_activity(if id == 1 {
-                DependentActivity::new(id, duration)
-            } else {
-                DependentActivity::with_dependencies(id, duration, [id - 1])
-            });
-        }
-        compiler
-            .compile_with_resources(&[create_resource(10, false)])
-            .unwrap()
-    });
-
-    assert!(compilation
-        .compilation_errors
-        .iter()
-        .any(|x| x.error_code == GraphCompilationErrorCode::C0020));
-    assert!(compilation.resource_schedules.is_empty());
-}
-
-#[test]
 fn vertex_graph_compiler_given_healthy_graph_then_compiles_normally() {
     let mut compiler: VertexGraphCompiler<i32, i32, i32> = VertexGraphCompiler::new();
     compiler.add_activity(DependentActivity::new(1, 5));

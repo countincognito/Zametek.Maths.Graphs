@@ -33,6 +33,7 @@ mod error_formatter;
 mod generators;
 mod id_gen;
 mod insertion_order_map;
+mod limit_checker;
 pub mod messages;
 mod scheduling;
 mod shuffle;

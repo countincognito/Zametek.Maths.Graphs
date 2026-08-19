@@ -71,4 +71,6 @@ pub enum GraphCompilationErrorCode {
     /// Resource scheduling could not make progress, or the computed schedule runs
     /// past the supported time horizon. Either way no schedule can be produced.
     C0020 = 8,
+    /// A declared value or count falls outside the supported domain limits.
+    P0080 = 9,
 }
