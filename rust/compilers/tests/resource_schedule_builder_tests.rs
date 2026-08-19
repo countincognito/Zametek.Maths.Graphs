@@ -9,9 +9,33 @@
 //! fixture at all.
 
 use zametek_maths_graphs_compilers::ResourceScheduleBuilder;
-use zametek_maths_graphs_primitives::{InterActivityAllocationType, Resource, ScheduledActivity};
+use zametek_maths_graphs_primitives::{
+    InterActivityAllocationType, PackedBoolList, Resource, ScheduledActivity,
+};
 
 type Rsb = ResourceScheduleBuilder<i32, i32, i32>;
+
+/// Asserts a stream is unallocated before `start`, allocated from `start` up to
+/// `finish`, and unallocated thereafter. Expressed over the iterator because a
+/// bit-packed stream cannot hand out `&[bool]` slices.
+fn assert_allocated_between(allocation: &PackedBoolList, start: usize, finish: usize) {
+    assert!(
+        allocation.iter().take(start).all(|x| !x),
+        "expected nothing allocated before {start}"
+    );
+    assert!(
+        allocation
+            .iter()
+            .skip(start)
+            .take(finish - start)
+            .all(|x| x),
+        "expected everything allocated between {start} and {finish}"
+    );
+    assert!(
+        allocation.iter().skip(finish).all(|x| !x),
+        "expected nothing allocated after {finish}"
+    );
+}
 
 fn sched(id: i32, name: &str, duration: i32, start: i32, finish: i32) -> ScheduledActivity<i32> {
     ScheduledActivity::new(
@@ -128,9 +152,7 @@ fn resource_schedule1_for_direct_resource_then_start_73_and_finish_127() {
         .to_resource_schedule(&[], start_time, finish_time)
         .unwrap();
 
-    assert!(rs.resource_allocation[..start].iter().all(|&x| !x));
-    assert!(rs.resource_allocation[start..finish].iter().all(|&x| x));
-    assert!(rs.resource_allocation[finish..].iter().all(|&x| !x));
+    assert_allocated_between(&rs.resource_allocation, start, finish);
 }
 
 #[test]
@@ -171,7 +193,5 @@ fn resource_schedule2_for_direct_resource_then_start_73_and_finish_101() {
         .to_resource_schedule(&[], start_time, finish_time)
         .unwrap();
 
-    assert!(rs.resource_allocation[..start].iter().all(|&x| !x));
-    assert!(rs.resource_allocation[start..finish].iter().all(|&x| x));
-    assert!(rs.resource_allocation[finish..].iter().all(|&x| !x));
+    assert_allocated_between(&rs.resource_allocation, start, finish);
 }

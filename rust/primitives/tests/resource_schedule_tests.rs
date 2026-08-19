@@ -21,11 +21,11 @@ fn build_schedule(resource: Option<Resource<i32, i32>>) -> ResourceSchedule<i32,
         )],
         start_time: 0,
         finish_time: 5,
-        resource_allocation: vec![true, true, true, true, true],
-        cost_allocation: vec![true, true, true, false, false],
-        billing_allocation: vec![false, true, true, true, false],
-        effort_allocation: vec![true, false, true, false, true],
-        activity_allocation: vec![true, true, false, false, true],
+        resource_allocation: vec![true, true, true, true, true].into(),
+        cost_allocation: vec![true, true, true, false, false].into(),
+        billing_allocation: vec![false, true, true, true, false].into(),
+        effort_allocation: vec![true, false, true, false, true].into(),
+        activity_allocation: vec![true, true, false, false, true].into(),
     }
 }
 

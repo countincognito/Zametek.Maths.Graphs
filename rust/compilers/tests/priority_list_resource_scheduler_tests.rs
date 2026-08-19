@@ -9,8 +9,8 @@ use zametek_maths_graphs_compilers::contracts::{
 };
 use zametek_maths_graphs_compilers::PriorityListResourceScheduler;
 use zametek_maths_graphs_primitives::{
-    Activity, DependentActivity, InterActivityAllocationType, LogicalOperator, Resource,
-    ResourceSchedule,
+    Activity, DependentActivity, InterActivityAllocationType, LogicalOperator, PackedBoolList,
+    Resource, ResourceSchedule,
 };
 
 /// Test double for the read-only graph view the scheduler operates on. The C#
@@ -244,11 +244,11 @@ fn replace_with_synthetic_resources_with_schedules_then_assigns_synthetic_resour
         scheduled_activities: vec![],
         start_time: 0,
         finish_time: 10,
-        resource_allocation: vec![],
-        cost_allocation: vec![],
-        billing_allocation: vec![],
-        effort_allocation: vec![],
-        activity_allocation: vec![],
+        resource_allocation: PackedBoolList::new(),
+        cost_allocation: PackedBoolList::new(),
+        billing_allocation: PackedBoolList::new(),
+        effort_allocation: PackedBoolList::new(),
+        activity_allocation: PackedBoolList::new(),
     };
 
     let output = scheduler.replace_with_synthetic_resources(vec![schedule]);
@@ -315,11 +315,11 @@ fn collect_indirect_resource_schedules_with_all_indirect_already_scheduled_then_
         scheduled_activities: vec![],
         start_time: 0,
         finish_time: 10,
-        resource_allocation: vec![],
-        cost_allocation: vec![],
-        billing_allocation: vec![],
-        effort_allocation: vec![],
-        activity_allocation: vec![],
+        resource_allocation: PackedBoolList::new(),
+        cost_allocation: PackedBoolList::new(),
+        billing_allocation: PackedBoolList::new(),
+        effort_allocation: PackedBoolList::new(),
+        activity_allocation: PackedBoolList::new(),
     };
 
     let output = scheduler
@@ -350,11 +350,11 @@ fn get_resource_phases_used_with_intersecting_phases_then_returns_intersection()
         scheduled_activities: vec![],
         start_time: 0,
         finish_time: 10,
-        resource_allocation: vec![],
-        cost_allocation: vec![],
-        billing_allocation: vec![],
-        effort_allocation: vec![],
-        activity_allocation: vec![],
+        resource_allocation: PackedBoolList::new(),
+        cost_allocation: PackedBoolList::new(),
+        billing_allocation: PackedBoolList::new(),
+        effort_allocation: PackedBoolList::new(),
+        activity_allocation: PackedBoolList::new(),
     };
     let workstreams_used: IndexSet<i32> = IndexSet::from([2, 3, 4]);
 
@@ -374,11 +374,11 @@ fn get_resource_phases_used_with_no_schedules_having_resource_then_returns_empty
         scheduled_activities: vec![],
         start_time: 0,
         finish_time: 10,
-        resource_allocation: vec![],
-        cost_allocation: vec![],
-        billing_allocation: vec![],
-        effort_allocation: vec![],
-        activity_allocation: vec![],
+        resource_allocation: PackedBoolList::new(),
+        cost_allocation: PackedBoolList::new(),
+        billing_allocation: PackedBoolList::new(),
+        effort_allocation: PackedBoolList::new(),
+        activity_allocation: PackedBoolList::new(),
     };
     let workstreams_used: IndexSet<i32> = IndexSet::from([1, 2]);
 

@@ -1,6 +1,6 @@
 use zametek_maths_graphs_primitives::{
-    Activity, GraphError, InterActivityAllocationType, Key, Resource, ResourceSchedule,
-    ScheduledActivity,
+    Activity, GraphError, InterActivityAllocationType, Key, PackedBoolList, Resource,
+    ResourceSchedule, ScheduledActivity,
 };
 
 // Per-time-unit allocation flags - the counterpart of the C# private
@@ -195,7 +195,13 @@ impl<K: Key, R: Key, W: Key> ResourceScheduleBuilder<K, R, W> {
     }
 }
 
-type Allocations = (Vec<bool>, Vec<bool>, Vec<bool>, Vec<bool>, Vec<bool>);
+type Allocations = (
+    PackedBoolList,
+    PackedBoolList,
+    PackedBoolList,
+    PackedBoolList,
+    PackedBoolList,
+);
 
 fn extract_allocations<K: Key, R: Key, W: Key>(
     resource: Option<&Resource<R, W>>,
