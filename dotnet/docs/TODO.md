@@ -4,11 +4,11 @@ Work identified during investigation, with what was observed, why it matters, an
 
 In rough order of remaining value:
 
-1. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
-2. **Recursive dummy-edge ordering** - a latent stack-depth risk on the arrow construction path.
-3. **Topological CPM for the arrow engine** - low priority, because arrow runs one pass per compile rather than one per activity. It is now the only place either language still sweeps, and it is deferred in both, so the two remain in step.
+1. **`RemoveRedundantEdges` on the arrow path** - newly measured and by far the largest remaining problem: one 150-activity graph takes 60 seconds and allocates 158 GB, while neighbouring shapes finish in milliseconds. Found while measuring the arrow CPM rewrite, which turned out not to be the cost at all.
+2. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
+3. **Recursive dummy-edge ordering** - a latent stack-depth risk on the arrow construction path.
 
-**Rust port parity is complete** - all four items done, each with its own measurement; see that section for what was ported and what was deliberately left out.
+**Rust port parity is complete** - all four items done, each with its own measurement; see that section for what was ported and what was deliberately left out. **The arrow topological CPM is also done in both languages**, though the measurement showed it buys nothing - the section at the end of this document records why, and what it turned up instead.
 
 ## Priority-list calculation (was cubic; Phases 0 to 2 done)
 
@@ -203,7 +203,7 @@ This is the change that would move the usable ceiling. The `GraphLimits.MaximumA
 
 The port's golden tests were mirrored copies rather than shared, so it only ever passed against its own behaviour - the divergence was real but latent. The priority-list corpus built for the last item closes that gap for the calculation that matters most: it generates the same graphs in both languages and checks the Rust output against the **C# baseline file itself**, so a future change to either side that breaks agreement now fails a test.
 
-The only sweep left in either language is the arrow critical-path engine (`compilers/src/arrow/cpm.rs` and its C# counterpart), deliberately deferred in both - see the arrow section at the end of this document.
+Neither language sweeps any longer: the arrow critical-path engine (`compilers/src/arrow/cpm.rs` and its C# counterpart) was rewritten too - see the arrow section at the end of this document, including why that particular rewrite gained nothing.
 
 ### Behavioural divergence - the port now computes different results
 
@@ -238,12 +238,31 @@ This was the order followed, and it held up: the defect first (stall detection a
 
 `DummyEdgeOrchestrator.GetEdgesInDescendingOrder` is still recursive, unlike the transitive reducers and dependency walks which were made iterative. It sits on the arrow edge-cleanup path rather than the analysis path, so it has not been a problem in practice, but it remains a stack-depth risk on very deep arrow graphs.
 
-## Topological CPM rewrite for the arrow engine
+## Topological CPM rewrite for the arrow engine - DONE, and it bought nothing
 
-Done for the vertex engine as Phase 1 above; `ArrowCriticalPathEngine` still uses label-correcting passes, sweeping the remaining event set repeatedly at O(depth x E) per pass.
+Both engines now walk events in dependency order with per-node pending-edge counters instead of sweeping the remaining event set (`ArrowCriticalPathEngine`, `rust/compilers/src/arrow/cpm.rs`). The output is byte-identical in both languages, and the safety net that proves it is described below.
 
-This is **low priority**, because arrow does not repeat the pass. `ArrowGraphCompiler.Compile()` performs no resource scheduling - it validates, reduces and runs the critical path once, purely to prepare a structure for `ToGraph()` - so the cost is paid once per compile rather than once per activity. The multiplier that made this urgent on the vertex side does not exist here.
+**The honest result: there was no measurable gain, because the arrow critical path was never the cost.** The prediction recorded here previously - low priority, because arrow runs the pass once per compile rather than once per activity - held. Measuring with a timing decorator injected through the engine seam, so the critical-path passes could be separated from the redundant-edge removal that `CalculateCriticalPath` performs first:
 
-Arrow does expose the same pattern through `ArrowGraphBuilder.CalculateResourceSchedulesByPriorityList`, which is public but is not used by its own compiler. If anything ever drives that, it would be considerably worse than the vertex version ever was, because arrow's `CalculateCriticalPath` really does perform a transitive reduction on every pass - the extra factor that was wrongly attributed to the vertex path earlier in this file. Should that path matter, hoisting the reduction is the first move, since the graph structure does not change between iterations; only then does the topological rewrite become the next one.
+| Graph | Total | Critical-path passes | The rest | Allocated |
+| - | - | - | - | - |
+| 150 activities, 12 layers | 3 ms | 0 ms | 3 ms | 3 MB |
+| 150 activities, 10 layers | 8 ms | 0 ms | 8 ms | 7 MB |
+| **150 activities, 30 layers** | **59,918 ms** | **0 ms** | **59,918 ms** | **158,191 MB** |
+| 150 activities, 60 layers | 0 ms | 0 ms | 0 ms | 0 MB |
 
-Any such work would need an arrow equivalent of `PriorityListCorpus` first. The existing corpus is vertex-only.
+The passes are sub-millisecond at every size tried, including the pathological one. The rewrite is still worth keeping - it removes a quadratic sweep and, in Rust, a linear `shift_remove` per event, so it protects against a future caller that does drive the arrow path hard - but it should not be described as an optimisation of anything that was slow.
+
+### The real finding: `RemoveRedundantEdges` on the arrow path
+
+That third row is the thing worth acting on. **One 150-activity graph takes 60 seconds and churns 158 GB**, entirely inside the redundant-edge removal, on a shape no larger than its neighbours - 150 activities across 30 layers, five per layer. Its neighbours at 10, 60 and 120 layers complete in single-digit milliseconds, so this is a shape sensitivity rather than a smooth cost curve, and it is almost certainly a bug rather than an expense.
+
+This now sits ahead of everything else remaining in this document. It is also what `ArrowGraphBuilder.CalculateResourceSchedulesByPriorityList` would multiply by, since arrow's `CalculateCriticalPath` runs the reduction on every pass; that public method remains unused by its own compiler.
+
+A related property found while building the corpus, and worth knowing before touching any of this: **`CalculateCriticalPath` is not idempotent.** It removes redundant edges before calculating, so a second call on the same builder can produce different values - on `fan-in-5` a dummy activity's free slack moves from 2 to 1, with no shuffling involved. The equivalence tests therefore build a fresh graph per variant rather than recalculating one.
+
+### The safety net
+
+`ArrowCriticalPathCorpus` / `arrow_critical_path_corpus` build the same 56 networks as the priority-list corpus - both now draw their shapes from a shared `CorpusShapes` / `corpus_shapes`, and the vertex baselines staying byte-identical is what proved that extraction safe. The arrow baseline pins every value the engine produces: each event's earliest and latest finish time, and each activity's earliest start, latest finish and free slack, dummy activities included.
+
+The two languages agree byte-for-byte, so `ArrowCriticalPathBaseline.txt` is checked directly from the Rust suite as well. The oracle was verified to fail before being relied on: seeding a traversal bug (processing an event before its dependencies were ready) diverged all 56 cases.

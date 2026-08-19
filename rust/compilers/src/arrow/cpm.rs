@@ -1,13 +1,55 @@
 use super::state::ArrowGraphState;
 use crate::messages;
 use crate::shuffle::shuffle;
-use indexmap::IndexSet;
+use indexmap::IndexMap;
 use zametek_maths_graphs_primitives::{GraphError, InvalidConstraint, Key, NodeType};
 
 // The critical-path engine for Activity-on-Arrow graphs - the counterpart of
 // the C# `ArrowCriticalPathEngine`: forward pass (earliest event finish
 // times), backward pass (latest event finish times), and per-activity
 // critical-path variables.
+
+// Records that a forward-flow edge is complete, and queues the event at its head
+// once that was the last incoming edge it was waiting on.
+fn release_successor_event<K: Key, R: Key, W: Key>(
+    state: &ArrowGraphState<K, R, W>,
+    edge_id: K,
+    pending_incoming_edge_counts: &mut IndexMap<K, usize>,
+    ready_nodes: &mut Vec<K>,
+) {
+    let head_id = state
+        .edge_head_node_id(edge_id)
+        .expect("edge head must exist");
+    let pending = pending_incoming_edge_counts
+        .get_mut(&head_id)
+        .expect("event with incoming edges must have a pending count");
+    *pending -= 1;
+
+    if *pending == 0 {
+        ready_nodes.push(head_id);
+    }
+}
+
+// The backward-flow mirror: queues the event at an edge's tail once it has no
+// outgoing edges left outstanding.
+fn release_predecessor_event<K: Key, R: Key, W: Key>(
+    state: &ArrowGraphState<K, R, W>,
+    edge_id: K,
+    pending_outgoing_edge_counts: &mut IndexMap<K, usize>,
+    ready_nodes: &mut Vec<K>,
+) {
+    let tail_id = state
+        .edge_tail_node_id(edge_id)
+        .expect("edge tail must exist");
+    let pending = pending_outgoing_edge_counts
+        .get_mut(&tail_id)
+        .expect("event with outgoing edges must have a pending count");
+    *pending -= 1;
+
+    if *pending == 0 {
+        ready_nodes.push(tail_id);
+    }
+}
 
 pub(crate) fn calculate_event_earliest_finish_times<K: Key, R: Key, W: Key>(
     state: &mut ArrowGraphState<K, R, W>,
@@ -25,33 +67,84 @@ pub(crate) fn calculate_event_earliest_finish_times<K: Key, R: Key, W: Key>(
         return Ok(false);
     }
 
-    let mut completed_node_ids: IndexSet<K> = IndexSet::new();
-    let mut remaining_node_ids: IndexSet<K> = state.node_ids().into_iter().collect();
+    // An event can be given its earliest finish time once every event it depends
+    // on - the tail of each of its incoming edges - has been given one. Rather
+    // than sweeping the remaining events repeatedly to find which have become
+    // ready, each event counts how many incoming edges it is still waiting on and
+    // is queued the moment that count reaches zero. Only the Start node is
+    // excluded: it depends on nothing and is completed below.
+    //
+    // Removing the remaining-set bookkeeping matters more here than it did in C#,
+    // because retiring an event meant an `IndexSet::shift_remove`, which is linear
+    // in the size of the set.
+    let mut pending_incoming_edge_counts: IndexMap<K, usize> =
+        IndexMap::with_capacity(state.nodes.len());
+    let mut start_node_present = false;
 
-    // Make sure the remaining node IDs contain the Start node.
-    if !remaining_node_ids.contains(&start_node_id) {
+    for node in state.nodes.values() {
+        if node.id() == start_node_id {
+            start_node_present = true;
+            continue;
+        }
+        pending_incoming_edge_counts.insert(node.id(), node.incoming.len());
+    }
+
+    // Make sure the graph contains the Start node.
+    if !start_node_present {
         return Ok(false);
     }
 
-    // Complete the Start node first to ensure the completed node IDs contains something.
+    let mut ready_nodes: Vec<K> = Vec::new();
+
+    // An event with no incoming edges at all is ready from the outset, and nothing
+    // will ever release an edge into it to say so. The sweep this replaces reached
+    // such an event on its first pass, so it is queued here to match.
+    for (node_id, pending) in &pending_incoming_edge_counts {
+        if *pending == 0 {
+            ready_nodes.push(*node_id);
+        }
+    }
+
+    // Complete the Start node first, which seeds the first round.
     state
         .node_mut(start_node_id)
         .expect("start node must exist")
         .content
         .earliest_finish_time = Some(0);
-    completed_node_ids.insert(start_node_id);
-    remaining_node_ids.shift_remove(&start_node_id);
+    let mut completed_node_count = 1;
+
+    let start_outgoing: Vec<K> = state
+        .node(start_node_id)
+        .expect("start node must exist")
+        .outgoing
+        .iter()
+        .copied()
+        .collect();
+    for outgoing_edge_id in start_outgoing {
+        release_successor_event(
+            state,
+            outgoing_edge_id,
+            &mut pending_incoming_edge_counts,
+            &mut ready_nodes,
+        );
+    }
 
     // Forward flow algorithm.
-    while !remaining_node_ids.is_empty() {
-        let mut progress = false;
-        let mut remaining_list: Vec<K> = remaining_node_ids.iter().copied().collect();
-
+    //
+    // This walks the events in dependency order, visiting each once, instead of
+    // sweeping the remaining set repeatedly at O(depth x V) per pass. The value an
+    // event receives is still aggregated over all of its incoming edges, exactly
+    // as before, and an event is still only given a value once every event it
+    // depends on has one - so the numbers are unchanged.
+    let mut next_ready_nodes: Vec<K> = Vec::new();
+    while !ready_nodes.is_empty() {
         if shuffle_order {
-            shuffle(&mut remaining_list);
+            shuffle(&mut ready_nodes);
         }
 
-        for node_id in remaining_list {
+        next_ready_nodes.clear();
+
+        for node_id in ready_nodes.iter().copied() {
             let node = state.node(node_id).expect("node must exist");
 
             // Get the incoming edges and the dependency node IDs.
@@ -59,20 +152,6 @@ pub(crate) fn calculate_event_earliest_finish_times<K: Key, R: Key, W: Key>(
 
             if shuffle_order {
                 shuffle(&mut incoming_edges);
-            }
-
-            // If calculations for all the dependency nodes (the incoming edges'
-            // tail nodes) have been completed, then use them to complete the
-            // calculations for this node.
-            let all_dependency_nodes_completed = incoming_edges.iter().all(|edge_id| {
-                let tail_id = state
-                    .edge_tail_node_id(*edge_id)
-                    .expect("edge tail must exist");
-                completed_node_ids.contains(&tail_id)
-            });
-
-            if !all_dependency_nodes_completed {
-                continue;
             }
 
             let mut earliest_finish_time = 0;
@@ -120,19 +199,38 @@ pub(crate) fn calculate_event_earliest_finish_times<K: Key, R: Key, W: Key>(
                 .expect("node must exist")
                 .content
                 .earliest_finish_time = Some(earliest_finish_time);
-            completed_node_ids.insert(node_id);
-            remaining_node_ids.shift_remove(&node_id);
-            // Note we are making progress.
-            progress = true;
+            completed_node_count += 1;
+
+            // An End node has no outgoing edges to carry the flow onwards.
+            if state.node(node_id).expect("node must exist").node_type() != NodeType::End {
+                let outgoing: Vec<K> = state
+                    .node(node_id)
+                    .expect("node must exist")
+                    .outgoing
+                    .iter()
+                    .copied()
+                    .collect();
+                for outgoing_edge_id in outgoing {
+                    release_successor_event(
+                        state,
+                        outgoing_edge_id,
+                        &mut pending_incoming_edge_counts,
+                        &mut next_ready_nodes,
+                    );
+                }
+            }
         }
 
-        // If we have not made any progress then a cycle must exist in the
-        // graph and we will not be able to calculate the earliest finish times.
-        if !progress {
-            return Err(GraphError::new(
-                messages::MSG_CANNOT_CALCULATE_EARLIEST_FINISH_TIMES_DUE_TO_CYCLIC_DEPENDENCY,
-            ));
-        }
+        std::mem::swap(&mut ready_nodes, &mut next_ready_nodes);
+    }
+
+    // If some events were never reached once nothing more can become ready, then
+    // a cycle must exist in the graph and we will not be able to calculate the
+    // earliest finish times.
+    if completed_node_count != state.nodes.len() {
+        return Err(GraphError::new(
+            messages::MSG_CANNOT_CALCULATE_EARLIEST_FINISH_TIMES_DUE_TO_CYCLIC_DEPENDENCY,
+        ));
     }
     Ok(true)
 }
@@ -159,15 +257,28 @@ pub(crate) fn calculate_event_latest_finish_times<K: Key, R: Key, W: Key>(
         return Ok(false);
     }
 
-    let mut completed_node_ids: IndexSet<K> = IndexSet::new();
-    let mut remaining_node_ids: IndexSet<K> = state.node_ids().into_iter().collect();
+    // The mirror image of the forward flow: an event can be given its latest
+    // finish time once every event that depends on it - the head of each of its
+    // outgoing edges - has been given one. Only the End node is excluded; nothing
+    // depends on it and it is completed below.
+    let mut pending_outgoing_edge_counts: IndexMap<K, usize> =
+        IndexMap::with_capacity(state.nodes.len());
+    let mut end_node_present = false;
 
-    // Make sure the remaining node IDs contain the End node.
-    if !remaining_node_ids.contains(&end_node_id) {
+    for node in state.nodes.values() {
+        if node.id() == end_node_id {
+            end_node_present = true;
+            continue;
+        }
+        pending_outgoing_edge_counts.insert(node.id(), node.outgoing.len());
+    }
+
+    // Make sure the graph contains the End node.
+    if !end_node_present {
         return Ok(false);
     }
 
-    // Complete the End node first to ensure the completed node IDs contains something.
+    // Complete the End node first, which seeds the first round.
     let end_node_eft = state
         .node(end_node_id)
         .expect("end node must exist")
@@ -183,19 +294,44 @@ pub(crate) fn calculate_event_latest_finish_times<K: Key, R: Key, W: Key>(
         return Ok(false);
     };
 
-    completed_node_ids.insert(end_node_id);
-    remaining_node_ids.shift_remove(&end_node_id);
+    let mut completed_node_count = 1;
+    let mut ready_nodes: Vec<K> = Vec::new();
 
-    // Backward flow algorithm.
-    while !remaining_node_ids.is_empty() {
-        let mut progress = false;
-        let mut remaining_list: Vec<K> = remaining_node_ids.iter().copied().collect();
+    // An event that nothing depends on is ready from the outset, for the same
+    // reason its forward-flow counterpart is.
+    for (node_id, pending) in &pending_outgoing_edge_counts {
+        if *pending == 0 {
+            ready_nodes.push(*node_id);
+        }
+    }
 
+    let end_incoming: Vec<K> = state
+        .node(end_node_id)
+        .expect("end node must exist")
+        .incoming
+        .iter()
+        .copied()
+        .collect();
+    for incoming_edge_id in end_incoming {
+        release_predecessor_event(
+            state,
+            incoming_edge_id,
+            &mut pending_outgoing_edge_counts,
+            &mut ready_nodes,
+        );
+    }
+
+    // Backward flow algorithm - the reverse-order walk matching the forward flow
+    // above, visiting each event once rather than sweeping the remaining set.
+    let mut next_ready_nodes: Vec<K> = Vec::new();
+    while !ready_nodes.is_empty() {
         if shuffle_order {
-            shuffle(&mut remaining_list);
+            shuffle(&mut ready_nodes);
         }
 
-        for node_id in remaining_list {
+        next_ready_nodes.clear();
+
+        for node_id in ready_nodes.iter().copied() {
             let node = state.node(node_id).expect("node must exist");
 
             // Get the outgoing edges and the successor node IDs.
@@ -203,18 +339,6 @@ pub(crate) fn calculate_event_latest_finish_times<K: Key, R: Key, W: Key>(
 
             if shuffle_order {
                 shuffle(&mut outgoing_edges);
-            }
-
-            // Are all the successor nodes (the outgoing edges' head nodes) completed?
-            let all_successor_nodes_completed = outgoing_edges.iter().all(|edge_id| {
-                let head_id = state
-                    .edge_head_node_id(*edge_id)
-                    .expect("edge head must exist");
-                completed_node_ids.contains(&head_id)
-            });
-
-            if !all_successor_nodes_completed {
-                continue;
             }
 
             let mut latest_finish_time = end_node_latest_finish_time;
@@ -248,19 +372,38 @@ pub(crate) fn calculate_event_latest_finish_times<K: Key, R: Key, W: Key>(
                 .expect("node must exist")
                 .content
                 .latest_finish_time = Some(latest_finish_time);
-            completed_node_ids.insert(node_id);
-            remaining_node_ids.shift_remove(&node_id);
-            // Note we are making progress.
-            progress = true;
+            completed_node_count += 1;
+
+            // A Start node has no incoming edges to carry the flow backwards.
+            if state.node(node_id).expect("node must exist").node_type() != NodeType::Start {
+                let incoming: Vec<K> = state
+                    .node(node_id)
+                    .expect("node must exist")
+                    .incoming
+                    .iter()
+                    .copied()
+                    .collect();
+                for incoming_edge_id in incoming {
+                    release_predecessor_event(
+                        state,
+                        incoming_edge_id,
+                        &mut pending_outgoing_edge_counts,
+                        &mut next_ready_nodes,
+                    );
+                }
+            }
         }
 
-        // If we have not made any progress then a cycle must exist in the
-        // graph and we will not be able to calculate the latest finish times.
-        if !progress {
-            return Err(GraphError::new(
-                messages::MSG_CANNOT_CALCULATE_LATEST_FINISH_TIMES_DUE_TO_CYCLIC_DEPENDENCY,
-            ));
-        }
+        std::mem::swap(&mut ready_nodes, &mut next_ready_nodes);
+    }
+
+    // If some events were never reached once nothing more can become ready, then
+    // a cycle must exist in the graph and we will not be able to calculate the
+    // latest finish times.
+    if completed_node_count != state.nodes.len() {
+        return Err(GraphError::new(
+            messages::MSG_CANNOT_CALCULATE_LATEST_FINISH_TIMES_DUE_TO_CYCLIC_DEPENDENCY,
+        ));
     }
     Ok(true)
 }

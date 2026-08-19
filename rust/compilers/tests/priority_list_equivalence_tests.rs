@@ -26,6 +26,7 @@
 //! `matches_the_dotnet_baseline` test below checks exactly that, which turns the
 //! oracle into a cross-language parity check as well as a regression net.
 
+mod corpus_shapes;
 mod priority_list_corpus;
 
 use std::fs;

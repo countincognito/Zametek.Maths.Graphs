@@ -51,36 +51,76 @@ namespace Zametek.Maths.Graphs
             // For later when checking the Maximum LFT.
             Node<T, IEvent<T>> endNode = state.EndNode;
 
-            var completedNodeIds = new HashSet<T>();
-            var remainingNodeIds = new HashSet<T>(state.NodeIds);
+            // An event can be given its earliest finish time once every event it depends
+            // on - the tail of each of its incoming edges - has been given one. Rather
+            // than sweeping the remaining events repeatedly to find which have become
+            // ready, each event counts how many incoming edges it is still waiting on and
+            // is queued the moment that count reaches zero. Only the Start node is
+            // excluded: it depends on nothing and is completed below.
+            var pendingIncomingEdgeCounts = new Dictionary<T, int>(state.NodeCount);
+            bool startNodePresent = false;
 
-            // Make sure the remainingNodeIds contain the Start node.
-            if (!remainingNodeIds.Contains(startNode.Id))
+            foreach (Node<T, IEvent<T>> node in state.Nodes)
+            {
+                if (node == startNode)
+                {
+                    startNodePresent = true;
+                    continue;
+                }
+                pendingIncomingEdgeCounts[node.Id] = node.IncomingEdges.Count;
+            }
+
+            // Make sure the graph contains the Start node.
+            if (!startNodePresent)
             {
                 return false;
             }
 
-            // Complete the Start node first to ensure the completed node IDs contains something.
+            var readyNodes = new List<Node<T, IEvent<T>>>();
+
+            // An event with no incoming edges at all is ready from the outset, and nothing
+            // will ever release an edge into it to say so. The sweep this replaces reached
+            // such an event on its first pass, so it is queued here to match.
+            foreach (KeyValuePair<T, int> pendingIncomingEdgeCount in pendingIncomingEdgeCounts)
+            {
+                if (pendingIncomingEdgeCount.Value == 0)
+                {
+                    readyNodes.Add(state.Node(pendingIncomingEdgeCount.Key));
+                }
+            }
+
+            // Complete the Start node first, which seeds the first round.
             // Earliest Start Time.
             startNode.Content.EarliestFinishTime = 0;
-            completedNodeIds.Add(startNode.Id);
-            remainingNodeIds.Remove(startNode.Id);
+            int completedNodeCount = 1;
+
+            foreach (T outgoingEdgeId in startNode.OutgoingEdges)
+            {
+                ReleaseSuccessorEvent(state, outgoingEdgeId, pendingIncomingEdgeCounts, readyNodes);
+            }
 
             // Forward flow algorithm.
-            while (remainingNodeIds.Count != 0)
+            //
+            // This walks the events in dependency order, visiting each once, instead of
+            // sweeping the remaining set repeatedly at O(depth x V) per pass. The value an
+            // event receives is still aggregated over all of its incoming edges, exactly as
+            // before, and an event is still only given a value once every event it depends
+            // on has one - so the numbers are unchanged.
+            //
+            // Events are handled in rounds, and the shuffle hook shuffles each round as
+            // well as each event's incoming edges. Within a round the order genuinely
+            // cannot matter - that is what ShuffleProcessingOrder exists to demonstrate.
+            while (readyNodes.Count != 0)
             {
-                bool progress = false;
-                List<T> remainingNodeIdList = remainingNodeIds.ToList();
-
                 if (shuffle)
                 {
-                    remainingNodeIdList.Shuffle();
+                    readyNodes.Shuffle();
                 }
 
-                foreach (T nodeId in remainingNodeIdList)
-                {
-                    Node<T, IEvent<T>> node = state.Node(nodeId);
+                var nextReadyNodes = new List<Node<T, IEvent<T>>>();
 
+                foreach (Node<T, IEvent<T>> node in readyNodes)
+                {
                     // Get the incoming edges and the dependency nodes IDs.
                     List<T> incomingEdges = new List<T>(node.IncomingEdges);
 
@@ -89,88 +129,80 @@ namespace Zametek.Maths.Graphs
                         incomingEdges.Shuffle();
                     }
 
-                    // If calculations for all the dependency nodes (the incoming edges' tail
-                    // nodes) have been completed, then use them to complete the calculations
-                    // for this node. (Zero-allocation subset test - avoids building a HashSet
-                    // per node per pass.)
-                    bool allDependencyNodesCompleted = true;
+                    int earliestFinishTime = 0;
+
                     foreach (T incomingEdgeId in incomingEdges)
                     {
-                        if (!completedNodeIds.Contains(state.EdgeTailNode(incomingEdgeId).Id))
+                        Edge<T, TActivity> incomingEdge = state.Edge(incomingEdgeId);
+                        Node<T, IEvent<T>> incomingEdgeTailNode = state.EdgeTailNode(incomingEdgeId);
+
+                        if (incomingEdgeTailNode.Content.EarliestFinishTime.HasValue)
                         {
-                            allDependencyNodesCompleted = false;
-                            break;
+                            int proposedEarliestFinishTime = incomingEdgeTailNode.Content.EarliestFinishTime.Value + incomingEdge.Content.Duration;
+
+                            proposedEarliestFinishTime += incomingEdge.Content.MinimumFreeSlack.GetValueOrDefault();
+
+                            // Augment the earliest finish time artificially (if required).
+                            if (proposedEarliestFinishTime > earliestFinishTime)
+                            {
+                                earliestFinishTime = proposedEarliestFinishTime;
+                            }
+                        }
+
+                        if (incomingEdge.Content.MinimumEarliestStartTime.HasValue)
+                        {
+                            int proposedEarliestFinishTime = incomingEdge.Content.MinimumEarliestStartTime.Value + incomingEdge.Content.Duration;
+
+                            // Augment the earliest finish time artificially (if required).
+                            if (proposedEarliestFinishTime > earliestFinishTime)
+                            {
+                                earliestFinishTime = proposedEarliestFinishTime;
+                            }
+                        }
+
+                        // It is only necessary to check the Maximum LFT if the head node is not the
+                        // EndNode, and if the tail node is not the StartNode.
+                        // Otherwise, it ends up imposing an LFT value that is unnecessarily constrained
+                        // without any good reason (i.e. there is nothing before the StartNode or after
+                        // the EndNode to be impacted by the constraint).
+                        if (node != endNode && incomingEdgeTailNode != startNode)
+                        {
+                            if (incomingEdge.Content.MaximumLatestFinishTime.HasValue)
+                            {
+                                int proposedLatestFinishTime = incomingEdge.Content.MaximumLatestFinishTime.Value;
+
+                                // Diminish the earliest finish time artificially (if required).
+                                if (proposedLatestFinishTime < earliestFinishTime)
+                                {
+                                    earliestFinishTime = proposedLatestFinishTime;
+                                }
+                            }
                         }
                     }
 
-                    if (allDependencyNodesCompleted)
+                    node.Content.EarliestFinishTime = earliestFinishTime;
+                    completedNodeCount++;
+
+                    // An End node has no outgoing edges to carry the flow onwards, and
+                    // asking it for them throws.
+                    if (node.NodeType != NodeType.End)
                     {
-                        int earliestFinishTime = 0;
-
-                        foreach (T incomingEdgeId in incomingEdges)
+                        foreach (T outgoingEdgeId in node.OutgoingEdges)
                         {
-                            Edge<T, TActivity> incomingEdge = state.Edge(incomingEdgeId);
-                            Node<T, IEvent<T>> incomingEdgeTailNode = state.EdgeTailNode(incomingEdgeId);
-
-                            if (incomingEdgeTailNode.Content.EarliestFinishTime.HasValue)
-                            {
-                                int proposedEarliestFinishTime = incomingEdgeTailNode.Content.EarliestFinishTime.Value + incomingEdge.Content.Duration;
-
-                                proposedEarliestFinishTime += incomingEdge.Content.MinimumFreeSlack.GetValueOrDefault();
-
-                                // Augment the earliest finish time artificially (if required).
-                                if (proposedEarliestFinishTime > earliestFinishTime)
-                                {
-                                    earliestFinishTime = proposedEarliestFinishTime;
-                                }
-                            }
-
-                            if (incomingEdge.Content.MinimumEarliestStartTime.HasValue)
-                            {
-                                int proposedEarliestFinishTime = incomingEdge.Content.MinimumEarliestStartTime.Value + incomingEdge.Content.Duration;
-
-                                // Augment the earliest finish time artificially (if required).
-                                if (proposedEarliestFinishTime > earliestFinishTime)
-                                {
-                                    earliestFinishTime = proposedEarliestFinishTime;
-                                }
-                            }
-
-                            // It is only necessary to check the Maximum LFT if the head node is not the
-                            // EndNode, and if the tail node is not the StartNode.
-                            // Otherwise, it ends up imposing an LFT value that is unnecessarily constrained
-                            // without any good reason (i.e. there is nothing before the StartNode or after
-                            // the EndNode to be impacted by the constraint).
-                            if (node != endNode && incomingEdgeTailNode != startNode)
-                            {
-                                if (incomingEdge.Content.MaximumLatestFinishTime.HasValue)
-                                {
-                                    int proposedLatestFinishTime = incomingEdge.Content.MaximumLatestFinishTime.Value;
-
-                                    // Diminish the earliest finish time artificially (if required).
-                                    if (proposedLatestFinishTime < earliestFinishTime)
-                                    {
-                                        earliestFinishTime = proposedLatestFinishTime;
-                                    }
-                                }
-                            }
+                            ReleaseSuccessorEvent(state, outgoingEdgeId, pendingIncomingEdgeCounts, nextReadyNodes);
                         }
-
-                        node.Content.EarliestFinishTime = earliestFinishTime;
-                        completedNodeIds.Add(nodeId);
-                        remainingNodeIds.Remove(nodeId);
-                        // Note we are making progress.
-                        progress = true;
                     }
                 }
 
-                // If we have not made any progress then a cycle must exist in
-                // the graph and we will not be able to calculate the earliest
-                // finish times.
-                if (!progress)
-                {
-                    throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency);
-                }
+                readyNodes = nextReadyNodes;
+            }
+
+            // If some events were never reached once nothing more can become ready, then a
+            // cycle must exist in the graph and we will not be able to calculate the
+            // earliest finish times.
+            if (completedNodeCount != state.NodeCount)
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEarliestFinishTimesDueToCyclicDependency);
             }
             return true;
         }
@@ -207,16 +239,30 @@ namespace Zametek.Maths.Graphs
 
             Node<T, IEvent<T>> endNode = state.EndNode;
 
-            var completedNodeIds = new HashSet<T>();
-            var remainingNodeIds = new HashSet<T>(state.NodeIds);
+            // The mirror image of the forward flow: an event can be given its latest finish
+            // time once every event that depends on it - the head of each of its outgoing
+            // edges - has been given one. Only the End node is excluded; nothing depends on
+            // it and it is completed below.
+            var pendingOutgoingEdgeCounts = new Dictionary<T, int>(state.NodeCount);
+            bool endNodePresent = false;
 
-            // Make sure the remainingNodeIds contain the End node.
-            if (!remainingNodeIds.Contains(endNode.Id))
+            foreach (Node<T, IEvent<T>> node in state.Nodes)
+            {
+                if (node == endNode)
+                {
+                    endNodePresent = true;
+                    continue;
+                }
+                pendingOutgoingEdgeCounts[node.Id] = node.OutgoingEdges.Count;
+            }
+
+            // Make sure the graph contains the End node.
+            if (!endNodePresent)
             {
                 return false;
             }
 
-            // Complete the End node first to ensure the completed node IDs contains something.
+            // Complete the End node first, which seeds the first round.
             endNode.Content.LatestFinishTime = endNode.Content.EarliestFinishTime;
 
             if (!endNode.Content.LatestFinishTime.HasValue)
@@ -225,24 +271,37 @@ namespace Zametek.Maths.Graphs
             }
 
             int endNodeLatestFinishTime = endNode.Content.LatestFinishTime.Value;
-            completedNodeIds.Add(endNode.Id);
-            remainingNodeIds.Remove(endNode.Id);
+            int completedNodeCount = 1;
+            var readyNodes = new List<Node<T, IEvent<T>>>();
 
-            // Backward flow algorithm.
-            while (remainingNodeIds.Count != 0)
+            // An event that nothing depends on is ready from the outset, for the same
+            // reason its forward-flow counterpart is.
+            foreach (KeyValuePair<T, int> pendingOutgoingEdgeCount in pendingOutgoingEdgeCounts)
             {
-                bool progress = false;
-                var remainingNodeIdList = remainingNodeIds.ToList();
+                if (pendingOutgoingEdgeCount.Value == 0)
+                {
+                    readyNodes.Add(state.Node(pendingOutgoingEdgeCount.Key));
+                }
+            }
 
+            foreach (T incomingEdgeId in endNode.IncomingEdges)
+            {
+                ReleasePredecessorEvent(state, incomingEdgeId, pendingOutgoingEdgeCounts, readyNodes);
+            }
+
+            // Backward flow algorithm - the reverse-order walk matching the forward flow
+            // above, visiting each event once rather than sweeping the remaining set.
+            while (readyNodes.Count != 0)
+            {
                 if (shuffle)
                 {
-                    remainingNodeIdList.Shuffle();
+                    readyNodes.Shuffle();
                 }
 
-                foreach (T nodeId in remainingNodeIdList)
-                {
-                    Node<T, IEvent<T>> node = state.Node(nodeId);
+                var nextReadyNodes = new List<Node<T, IEvent<T>>>();
 
+                foreach (Node<T, IEvent<T>> node in readyNodes)
+                {
                     // Get the outgoing edges and the successor nodes IDs.
                     List<T> outgoingEdges = new List<T>(node.OutgoingEdges);
 
@@ -251,67 +310,97 @@ namespace Zametek.Maths.Graphs
                         outgoingEdges.Shuffle();
                     }
 
-                    // Zero-allocation subset test: are all the successor nodes (the outgoing
-                    // edges' head nodes) completed?
-                    bool allSuccessorNodesCompleted = true;
+                    int latestFinishTime = endNodeLatestFinishTime;
+
                     foreach (T outgoingEdgeId in outgoingEdges)
                     {
-                        if (!completedNodeIds.Contains(state.EdgeHeadNode(outgoingEdgeId).Id))
+                        Edge<T, TActivity> outgoingEdge = state.Edge(outgoingEdgeId);
+                        Node<T, IEvent<T>> outgoingEdgeHeadNode = state.EdgeHeadNode(outgoingEdgeId);
+
+                        if (outgoingEdgeHeadNode.Content.LatestFinishTime.HasValue)
                         {
-                            allSuccessorNodesCompleted = false;
-                            break;
+                            int proposedLatestFinishTime = outgoingEdgeHeadNode.Content.LatestFinishTime.Value - outgoingEdge.Content.Duration;
+
+                            // Diminish the latest finish time artificially (if required).
+                            if (proposedLatestFinishTime < latestFinishTime)
+                            {
+                                latestFinishTime = proposedLatestFinishTime;
+                            }
+                        }
+
+                        if (outgoingEdge.Content.MaximumLatestFinishTime.HasValue)
+                        {
+                            int proposedLatestFinishTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
+
+                            // Diminish the latest finish time artificially (if required).
+                            if (proposedLatestFinishTime < latestFinishTime)
+                            {
+                                latestFinishTime = proposedLatestFinishTime;
+                            }
                         }
                     }
 
-                    if (allSuccessorNodesCompleted)
+                    node.Content.LatestFinishTime = latestFinishTime;
+                    completedNodeCount++;
+
+                    // A Start node has no incoming edges to carry the flow backwards, and
+                    // asking it for them throws.
+                    if (node.NodeType != NodeType.Start)
                     {
-                        int latestFinishTime = endNodeLatestFinishTime;
-
-                        foreach (T outgoingEdgeId in outgoingEdges)
+                        foreach (T incomingEdgeId in node.IncomingEdges)
                         {
-                            Edge<T, TActivity> outgoingEdge = state.Edge(outgoingEdgeId);
-                            Node<T, IEvent<T>> outgoingEdgeHeadNode = state.EdgeHeadNode(outgoingEdgeId);
-
-                            if (outgoingEdgeHeadNode.Content.LatestFinishTime.HasValue)
-                            {
-                                int proposedLatestFinishTime = outgoingEdgeHeadNode.Content.LatestFinishTime.Value - outgoingEdge.Content.Duration;
-
-                                // Diminish the latest finish time artificially (if required).
-                                if (proposedLatestFinishTime < latestFinishTime)
-                                {
-                                    latestFinishTime = proposedLatestFinishTime;
-                                }
-                            }
-
-                            if (outgoingEdge.Content.MaximumLatestFinishTime.HasValue)
-                            {
-                                int proposedLatestFinishTime = outgoingEdge.Content.MaximumLatestFinishTime.Value - outgoingEdge.Content.Duration;
-
-                                // Diminish the latest finish time artificially (if required).
-                                if (proposedLatestFinishTime < latestFinishTime)
-                                {
-                                    latestFinishTime = proposedLatestFinishTime;
-                                }
-                            }
+                            ReleasePredecessorEvent(state, incomingEdgeId, pendingOutgoingEdgeCounts, nextReadyNodes);
                         }
-
-                        node.Content.LatestFinishTime = latestFinishTime;
-                        completedNodeIds.Add(nodeId);
-                        remainingNodeIds.Remove(nodeId);
-                        // Note we are making progress.
-                        progress = true;
                     }
                 }
 
-                // If we have not made any progress then a cycle must exist in
-                // the graph and we will not be able to calculate the latest
-                // finish times.
-                if (!progress)
-                {
-                    throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateLatestFinishTimesDueToCyclicDependency);
-                }
+                readyNodes = nextReadyNodes;
+            }
+
+            // If some events were never reached once nothing more can become ready, then a
+            // cycle must exist in the graph and we will not be able to calculate the latest
+            // finish times.
+            if (completedNodeCount != state.NodeCount)
+            {
+                throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateLatestFinishTimesDueToCyclicDependency);
             }
             return true;
+        }
+
+        // Records that a forward-flow edge is complete, and queues the event at its head
+        // once that was the last incoming edge it was waiting on.
+        private static void ReleaseSuccessorEvent(
+            IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T edgeId,
+            Dictionary<T, int> pendingIncomingEdgeCounts,
+            List<Node<T, IEvent<T>>> readyNodes)
+        {
+            Node<T, IEvent<T>> headNode = state.EdgeHeadNode(edgeId);
+            int pendingIncomingEdges = pendingIncomingEdgeCounts[headNode.Id] - 1;
+            pendingIncomingEdgeCounts[headNode.Id] = pendingIncomingEdges;
+
+            if (pendingIncomingEdges == 0)
+            {
+                readyNodes.Add(headNode);
+            }
+        }
+
+        // The backward-flow mirror: queues the event at an edge's tail once it has no
+        // outgoing edges left outstanding.
+        private static void ReleasePredecessorEvent(
+            IArrowGraphState<T, TResourceId, TWorkStreamId, TActivity> state,
+            T edgeId,
+            Dictionary<T, int> pendingOutgoingEdgeCounts,
+            List<Node<T, IEvent<T>>> readyNodes)
+        {
+            Node<T, IEvent<T>> tailNode = state.EdgeTailNode(edgeId);
+            int pendingOutgoingEdges = pendingOutgoingEdgeCounts[tailNode.Id] - 1;
+            pendingOutgoingEdgeCounts[tailNode.Id] = pendingOutgoingEdges;
+
+            if (pendingOutgoingEdges == 0)
+            {
+                readyNodes.Add(tailNode);
+            }
         }
 
         /// <inheritdoc/>
