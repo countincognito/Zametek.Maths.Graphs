@@ -739,14 +739,14 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPreCompilationConstraints(
-                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
+                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
 
         /// <summary>
         /// Finds activity constraints violated by the computed times after compilation.
         /// </summary>
         public List<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(
-                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
+                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
 
         /// <summary>
         /// Builds a lookup from each node ID to the full set of its ancestor node IDs. Returns null if the graph has unsatisfied or circular dependencies.
@@ -1039,23 +1039,55 @@ namespace Zametek.Maths.Graphs
             {
                 graphBuilder.CalculateCriticalPath();
 
-                // Get the critical path in order of earliest start time.
-                int minFloat = graphBuilder.Activities
-                    .Where(x => !x.IsDummy && x.TotalSlack.HasValue)
-                    .Select(x => x.TotalSlack!.Value)
-                    .DefaultIfEmpty()
-                    .Min();
-
-                IList<T> criticalActivityIds =
-                    graphBuilder.Activities
-                    .Where(x => x.TotalSlack == minFloat && !x.IsDummy)
-                    .OrderBy(x => x.EarliestStartTime)
-                    .Select(x => x.Id)
-                    .ToList();
-
-                if (criticalActivityIds.Any())
+                // Find the least slack among the activities still to be placed. An
+                // activity with no slack value at all is skipped here, and the default
+                // of zero stands in when none of them has one.
+                bool anySlackFound = false;
+                int minFloat = 0;
+                foreach (TActivity activity in graphBuilder.Activities)
                 {
-                    T criticalActivityId = criticalActivityIds.First();
+                    if (activity.IsDummy
+                        || !activity.TotalSlack.HasValue)
+                    {
+                        continue;
+                    }
+                    int totalSlack = activity.TotalSlack.GetValueOrDefault();
+                    if (!anySlackFound
+                        || totalSlack < minFloat)
+                    {
+                        minFloat = totalSlack;
+                        anySlackFound = true;
+                    }
+                }
+
+                // Of the activities sharing that slack, take the one that can start
+                // earliest, keeping the first of any that tie. This previously ordered
+                // every candidate and then used only the first of them; comparing as we
+                // go gives the same answer without sorting. Comparer<int?> is the same
+                // comparer the ordering used, so an activity without an earliest start
+                // time still sorts ahead of one with a value, exactly as before.
+                bool criticalActivityFound = false;
+                T criticalActivityId = default;
+                int? criticalEarliestStartTime = null;
+                foreach (TActivity activity in graphBuilder.Activities)
+                {
+                    // A null total slack never equals minFloat, so it is filtered here.
+                    if (activity.IsDummy
+                        || activity.TotalSlack != minFloat)
+                    {
+                        continue;
+                    }
+                    if (!criticalActivityFound
+                        || Comparer<int?>.Default.Compare(activity.EarliestStartTime, criticalEarliestStartTime) < 0)
+                    {
+                        criticalEarliestStartTime = activity.EarliestStartTime;
+                        criticalActivityId = activity.Id;
+                        criticalActivityFound = true;
+                    }
+                }
+
+                if (criticalActivityFound)
+                {
                     priorityList.Add(criticalActivityId);
                     // Set the processed activity to dummy.
                     graphBuilder.Activity(criticalActivityId).Duration = 0;

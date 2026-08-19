@@ -5,13 +5,15 @@ namespace Zametek.Maths.Graphs
 {
     // Shared constraint validation logic used by both ArrowGraphBuilder and VertexGraphBuilder.
     // Both builders have identical pre- and post-compilation constraint checks, so they live here.
+    // The activities are taken as a sequence and enumerated once, so callers on the
+    // critical-path hot path need not materialise a list of every activity per call.
     internal static class ConstraintChecker<T, TResourceId, TWorkStreamId>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
         internal static List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints(
-            List<IActivity<T, TResourceId, TWorkStreamId>> activities)
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities)
         {
             var output = new List<IInvalidConstraint<T>>();
 
@@ -39,7 +41,7 @@ namespace Zametek.Maths.Graphs
         }
 
         internal static List<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints(
-            List<IActivity<T, TResourceId, TWorkStreamId>> activities)
+            IEnumerable<IActivity<T, TResourceId, TWorkStreamId>> activities)
         {
             var output = new List<IInvalidConstraint<T>>();
 

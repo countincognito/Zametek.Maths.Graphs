@@ -104,7 +104,43 @@ What remains is the iteration count and a large constant factor. At 8,000 activi
 
 Note that the compile-level tables above 2,000 activities can no longer be reproduced through `Compile`, since `GraphLimits.MaximumActivityCount` now rejects such graphs with P0080; measure through `CalculateCriticalPathPriorityList` on the builder instead, as the timing harness does.
 
-Phase 2 removes per-iteration overhead that does not change the asymptotics but accounts for much of the allocation churn: single-pass selection of the most critical activity instead of `Min` + `Where` + `OrderBy` + `ToList`, and avoiding repeated re-enumeration of `Activities`.
+Phase 2 (**done**) removed per-iteration overhead. None of it changes the asymptotics; together it accounted for most of the allocation churn.
+
+The largest item was not on the original list. Each critical-path pass built two hash sets covering every edge in the graph - one of completed edges, one of remaining edges - purely to answer "is this edge done yet". With the node-order walk of Phase 1 that question has a cheaper answer: an edge is complete exactly when the node at its tail (forward) or head (backward) has been processed, so each node need only count how many of its own edges are outstanding and decrement as they complete. The counts start as the node's edge count, need no per-edge lookup to build, and the cycle check becomes a single integer reaching zero. Two edge-sized hash sets per pass, times a pass per activity, was the dominant allocation.
+
+The rest:
+
+- The LINQ chains on the hot path (`Select(...).Max(...)`, `Select(...).Min(...)`) allocated an enumerator and a closure per node per pass; they are now explicit loops. The replacements return zero for an empty edge set, matching the `DefaultIfEmpty` the Start and End node passes relied on.
+- The priority-list selection ordered every candidate activity and then used only the first. It now compares as it goes. `Comparer<int?>.Default` is used deliberately, because that is the comparer `OrderBy` would have used, so an activity with no earliest start time still sorts ahead of one that has a value.
+- `FindInvalidPreCompilationConstraints` materialised a list of every activity on each call - once per pass - although the checker only enumerates it once. `ConstraintChecker` now takes a sequence.
+
+Measured, for the priority-list calculation alone:
+
+| Activities (12 layers) | Phase 1 | Phase 2 | Allocated, Phase 1 | Allocated, Phase 2 |
+| - | - | - | - | - |
+| 250 | 177 ms | 130 ms | 48 MB | 8 MB |
+| 500 | 599 ms | 296 ms | 163 MB | 27 MB |
+| 1,000 | 850 ms | 770 ms | 623 MB | 104 MB |
+| 2,000 | 2,309 ms | 1,477 ms | 2,379 MB | 416 MB |
+
+| Layers, at 1,500 activities | Phase 1 | Phase 2 |
+| - | - | - |
+| 10 | 1,335 ms | 669 ms |
+| 60 | 1,316 ms | 677 ms |
+| 240 | 861 ms | 520 ms |
+
+On the realistic shape, where depth grows with size, measured against the numbers this investigation started from (those were full compiles, but the priority list accounts for effectively all of that time):
+
+| Activities | Depth | Start of investigation | After Phase 2 | Allocated, before | Allocated, after |
+| - | - | - | - | - | - |
+| 1,000 | 40 | 1.2 s | 0.88 s | 580 MB | 91 MB |
+| 2,000 | 80 | 6.9 s | 1.54 s | 2.8 GB | 375 MB |
+| 4,000 | 160 | 47.3 s | 5.96 s | 15.1 GB | 1.4 GB |
+| 8,000 | 320 | 413 s | 44.4 s | 91.4 GB | 5.7 GB |
+
+That is roughly 9x faster and 16x less allocation at 8,000 activities, and 4.5x faster at 2,000. Timings at the top end vary by several seconds between runs as the garbage collector reacts to the remaining churn, so treat 8,000 as "about 40 s" rather than a precise figure.
+
+What remains is dominated by the pending-count dictionaries, one per flow per pass. Removing those entirely would mean either checking readiness by rescanning a node's edges - which is cheap for sparse graphs but O(indegree) per completed edge, and so worse for the dense ones in the corpus - or giving nodes a scratch field, which puts transient algorithm state on a shared primitive type. Neither looked worth it against the remaining gain, so Phase 2 stops here; the iteration count that Phase 3 targets is now much the larger factor.
 
 Phase 3, only if still needed after measuring, attacks the iteration count itself. Recomputing incrementally is sound in principle, since zeroing one duration only affects that activity's descendants in the forward pass and its ancestors in the backward pass. Collecting a whole critical path per iteration instead of a single activity would cut the iteration count by the average path length, but is **not** obviously equivalent - zeroing the first activity changes the slack of the others - so it would need both an argument and corpus evidence, or to be rejected.
 

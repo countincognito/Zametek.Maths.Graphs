@@ -575,13 +575,13 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public List<IInvalidConstraint<T>> FindInvalidPreCompilationConstraints() =>
             ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPreCompilationConstraints(
-                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
+                Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
 
         /// <summary>
         /// Finds activity constraints violated by the computed times after compilation.
         /// </summary>
         public List<IInvalidConstraint<T>> FindInvalidPostCompilationConstraints() =>
-            ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>().ToList());
+            ConstraintChecker<T, TResourceId, TWorkStreamId>.FindInvalidPostCompilationConstraints(Activities.Cast<IActivity<T, TResourceId, TWorkStreamId>>());
 
         /// <summary>
         /// Builds a lookup from each node ID to the full set of its ancestor node IDs. Returns null if the graph has unsatisfied or circular dependencies.
