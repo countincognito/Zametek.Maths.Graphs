@@ -2,6 +2,10 @@
 
 Work identified during investigation, with what was observed, why it matters, and what a fix would need to establish - so anything picked up later starts from evidence rather than from scratch. Entries are marked done as they are undertaken, and keep their measurements.
 
+**Read this alongside [PERFORMANCE.md](PERFORMANCE.md).** That document is the plan and the running audit: what was originally identified across the whole library, what became of each item, what was reassessed and deliberately left alone, and what is still outstanding with a current verdict on whether it is worth doing. It also carries the guardrails that every change here was held to, and what the sequencing turned out to teach.
+
+This document is the investigation record for the items that were actually worked: the measurements before and after, the corpora and baselines that guard them, the counter-examples that settled design arguments, and the reasoning behind what was changed - including the reasoning behind approaches that were tried and abandoned. Where an entry here has a wider status, `PERFORMANCE.md` holds it; where an item there needs its evidence, it points back to a section here. Neither document is complete on its own, and the two use overlapping phase numbers for different sequences - "Phase 3" here is the incremental recalculation, "Phase 3" there is the topological CPM.
+
 **One item is outstanding**, and it is a Rust-only performance gap rather than a defect: the incremental critical-path walk reaches its nodes by ID and hashes for each one, where the C# session holds them by reference, which now makes Rust about twice as slow as C# on deep graphs. It is recorded in the section immediately below. Everything else identified during this investigation has been done, in both languages:
 
 - **Priority-list Phases 0 to 3** - the calculation was cubic on a layered graph and is now roughly 80x faster at 8,000 activities than where it started, with allocation down from 91 GB to 721 MB. Phase 3 was the item held back as conditional; it is now implemented, and with it the case for keeping `GraphLimits.MaximumActivityCount` at 2,000 is a domain decision rather than a performance one. Raising it is deliberately left to whoever owns that call.
@@ -277,6 +281,8 @@ Rust, same calculation:
 ### What this does for the activity limit
 
 `GraphLimits.MaximumActivityCount` is 2,000, and that ceiling was set by what was affordable. At exactly that limit the priority-list calculation now takes **0.29 seconds** on the realistic shape, against 1.54 seconds after Phase 2 and 6.9 seconds when this began. At 8,000 activities it takes 5.2 seconds, where before Phase 3 it took 44.
+
+A whole compile at the limit - not just this calculation - has since been measured at about **0.36 seconds**, of which this is roughly two thirds; the breakdown is in the compile-split section of [PERFORMANCE.md](PERFORMANCE.md). So the affordability argument that set the ceiling has moved by a factor of nearly twenty, and it is now the whole compile that fits inside an interactive edit cycle rather than just a part of it.
 
 The limit has deliberately **not** been raised here - that is a domain decision about what the library should accept, not a consequence of making it faster, and it belongs to whoever owns the product rather than to this optimisation. But the argument the earlier note made for keeping it at 2,000 no longer holds: a limit of 5,000 to 10,000 is now defensible on performance grounds. Real plans sit far below either figure in any case - the production graph that prompted this whole investigation had 39 activities.
 

@@ -327,7 +327,7 @@ These are sanity bounds, not algorithmic ceilings: they exist so that absurd or 
 
 The time limit is what keeps memory predictable. Each resource schedule retains five per-time-unit allocation streams, so what a compilation holds grows as (horizon x resources), independently of activity count. Those streams are stored packed one bit per flag rather than one byte, which keeps the worst case permitted by these limits - a 100,000-unit horizon across 1,000 resources - at about 60 MB rather than 476 MB.
 
-A note on scale: the activity limit bounds what is *accepted*, not what is comfortable. Compilation cost grows steeply with activity count (the priority-list calculation dominates), so in practice graphs of a few hundred to around a thousand activities compile in about a second, while larger ones take considerably longer.
+A note on scale: the activity limit bounds what is *accepted*, not what is comfortable, though the two are much closer together than they used to be. Measured on a layered graph across 20 resources, a full compile takes about 30 ms at 250 activities, 110 ms at 1,000 and 360 ms at the 2,000 limit - so anything the limit accepts now compiles comfortably inside an interactive edit-recompile cycle. Cost still grows faster than linearly, and the priority-list calculation is still the largest single part of it at roughly two thirds. The figures come from `CompileScalingTests`, and the [performance notes](docs/PERFORMANCE.md) carry the full breakdown.
 
 ## Compilation errors
 
