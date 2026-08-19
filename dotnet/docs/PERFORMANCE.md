@@ -1,6 +1,6 @@
 # Performance & memory plan
 
-A phased plan to reduce compile wall-clock time, cut allocation/GC pressure, and harden the deep-graph paths in `Zametek.Maths.Graphs`. Nothing here is implemented yet - it is a backlog to work through, each phase shippable behind the green test suite.
+A phased plan to reduce compile wall-clock time, cut allocation/GC pressure, and harden the deep-graph paths in `Zametek.Maths.Graphs`. Most of it has since been implemented - see the status below, and `TODO.md` for the work that remains.
 
 Target scale: **low thousands of activities** (interactive project plans, repeated re-compiles on edit). Scope: **vertex (analysis) and arrow (rendering) paths**.
 
@@ -9,19 +9,19 @@ Target scale: **low thousands of activities** (interactive project plans, repeat
 Applied (all behaviour-preserving; full test suite green):
 
 - **Phase 2** - the scheduler resolves each activity's strong dependency set once before the tick loop instead of re-walking the graph on every time tick (`PriorityListResourceScheduler`). Shared by both graph flavours.
-- **Phase 3, scoped to the allocation cut** - the CPM label-correcting loops (`VertexCriticalPathEngine`, `ArrowCriticalPathEngine`) no longer build a throwaway `HashSet` per edge/node per pass; a zero-allocation membership test is used and each node's own edge set is read directly (it is not mutated during CPM). The full O(V+E) topological restructure is **deferred** (higher risk; wants the benchmark harness and a dedicated review to prove it stays behaviour-identical).
+- **Phase 3, allocation cut** - the CPM label-correcting loops (`VertexCriticalPathEngine`, `ArrowCriticalPathEngine`) no longer build a throwaway `HashSet` per edge/node per pass; a zero-allocation membership test is used and each node's own edge set is read directly (it is not mutated during CPM).
+- **Phase 3, full topological restructure - done for the vertex engine.** `VertexCriticalPathEngine` now walks nodes in dependency order rather than sweeping the remaining edge set repeatedly, taking a pass from O(depth x E) to O(V + E), and its per-pass allocation was removed as well. This was undertaken as part of the priority-list investigation, since the two turned out to be the same bottleneck; the benchmark harness and equivalence corpus that this entry asked for exist now, in `PriorityListEquivalenceTests`. `ArrowCriticalPathEngine` still uses the label-correcting form - see `TODO.md` for why that is low priority.
 - **Phase 4** - the transitive reducers (`VertexTransitiveReducer`, `ArrowTransitiveReducer.RemoveRedundantIncomingDummyEdges`) and the strong-dependency walks (`VertexGraphBuilder`/`ArrowGraphBuilder.StrongActivityDependencyIds`) are now iterative with visited sets - no more StackOverflow risk on deep chains, and no redundant re-traversal of shared sub-paths. `DeepGraphReductionTests` covers the vertex paths.
 - **Phase 1 (partial)** - `SetActivityDependencies` uses an O(1) node-key lookup (P6).
 - **Scheduler livelock guardrails (added after a production hang was diagnosed from a dump)** - the `PriorityListResourceScheduler` tick loop now skips idle stretches (jumping straight to the next running-activity finish or time-gate opening, provably without changing any schedule) and fails fast with a diagnostic when no future event exists while activities remain - surfaced as compilation error `C0020` through the compilers, or `ResourceSchedulingStallException` from direct engine calls. A pre-compilation self-consistency probe (`P0070`) rejects structurally corrupted input sets (a `HashSet` whose `Contains` disagrees with its own enumeration - the torn-copy signature of unsynchronized concurrent modification, which previously trapped the loop forever). `Compile` and the scheduling entry points now require a `CancellationToken` (a deliberate breaking change - the sole consumer opted in), checked between pipeline phases and on every scheduling tick. See `SchedulerGuardrailTests` and `SchedulerTimeGateTests`.
 - **Domain limits and bit-packed allocation streams.** `GraphLimits` publishes the accepted ranges (time values 0 to 100,000; 2,000 activities; 1,000 resources; 100 work streams) so consumers can validate input before compiling; violations are reported as `P0080`, and a computed schedule running past the horizon as `C0020`. The five per-time-unit allocation streams on each resource schedule are now stored one bit per flag (`PackedBoolList`) instead of one byte, since they are what a compilation retains and they scale as (horizon x resources): measured at the limits, 1,000 resources across a 100,000-unit horizon now retains 60 MB rather than 476 MB. The public surface is unchanged - the streams were already `IEnumerable<bool>` on both the interface and the `ResourceSchedule` constructor.
 
-The measured cost of compilation against activity count, and the priority-list calculation that dominates it, are recorded in `TODO.md` rather than here, since that work has not been undertaken.
+- **Priority-list calculation** - the loop that dominates compile time was reworked in three stages, measured throughout. `TODO.md` holds the measurements, the equivalence corpus that guards them, and the analysis of what remains.
 
 Reassessed as **not** behaviour-safe and intentionally left as-is:
 
-- **P4 (remove the double clone)** - load-bearing: the priority-list clone is destroyed (durations zeroed, CPM state overwritten) while the separate scheduling clone must retain valid CPM times. Collapsing them would feed the scheduler corrupted times.
+- **P4 (remove the double clone)** - load-bearing: the priority-list clone is destroyed (durations zeroed, CPM state overwritten) while the separate scheduling clone must retain valid CPM times. Collapsing them would feed the scheduler corrupted times. Unaffected by the later work: the clone is taken once per scheduling call, not once per critical-path pass, so it never showed up in the measurements.
 - **P5 (dedup `SetActivityDependencies` LINQ)** - mutation-order-dependent; each of the four blocks re-reads state (dependencies, graph edges) that the previous block mutated.
-- **Phase 3 full topological CPM** - deferred as above.
 
 ### Finding surfaced while adding regression tests
 

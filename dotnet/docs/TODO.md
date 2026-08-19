@@ -1,8 +1,15 @@
 # TODO
 
-Work identified but not yet undertaken. Each entry records what was observed, why it matters, and what a fix would need to establish - so the investigation can start from evidence rather than from scratch.
+Work identified during investigation, with what was observed, why it matters, and what a fix would need to establish - so anything picked up later starts from evidence rather than from scratch. Entries are marked done as they are undertaken, and keep their measurements.
 
-## Priority-list calculation scales cubically
+In rough order of remaining value:
+
+1. **Rust port parity** - the port is green, but mirrors the C# code from before all of the recent work, and still carries the scheduling livelock. The largest outstanding item.
+2. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
+3. **Recursive dummy-edge ordering** - a latent stack-depth risk on the arrow construction path.
+4. **Topological CPM for the arrow engine** - low priority, because arrow runs one pass per compile rather than one per activity.
+
+## Priority-list calculation (was cubic; Phases 0 to 2 done)
 
 `CalculateCriticalPathPriorityList` (in both `VertexGraphBuilder` and `ArrowGraphBuilder`) appends exactly **one** activity to the priority list per iteration: it runs a full `CalculateCriticalPath()`, takes the first activity on the current critical path, zeroes that activity's duration, and repeats until every activity has been placed. Compile time is dominated by this loop for anything beyond a few hundred activities.
 
@@ -142,20 +149,86 @@ That is roughly 9x faster and 16x less allocation at 8,000 activities, and 4.5x 
 
 What remains is dominated by the pending-count dictionaries, one per flow per pass. Removing those entirely would mean either checking readiness by rescanning a node's edges - which is cheap for sparse graphs but O(indegree) per completed edge, and so worse for the dense ones in the corpus - or giving nodes a scratch field, which puts transient algorithm state on a shared primitive type. Neither looked worth it against the remaining gain, so Phase 2 stops here; the iteration count that Phase 3 targets is now much the larger factor.
 
-Phase 3, only if still needed after measuring, attacks the iteration count itself. Recomputing incrementally is sound in principle, since zeroing one duration only affects that activity's descendants in the forward pass and its ancestors in the backward pass. Collecting a whole critical path per iteration instead of a single activity would cut the iteration count by the average path length, but is **not** obviously equivalent - zeroing the first activity changes the slack of the others - so it would need both an argument and corpus evidence, or to be rejected.
+Phase 3 attacks the iteration count itself. It has been **investigated but not implemented**; the findings below revise what was originally proposed, in both directions.
+
+**Collecting a whole critical path per iteration is not equivalent, and is rejected.** A counter-example settles it. Take A (duration 10) and B (duration 1) with no dependencies, and C (duration 1) depending on both. On the first pass the slack is 0 for A, 9 for B and 0 for C, so the critical set in earliest-start order is {A, C}; taking it whole would place A, C, B. Taking one activity at a time places A, then re-evaluates - and with A zeroed, B has become critical too - giving A, B, C. Verified against the implementation, which produces A, B, C.
+
+**Recomputing incrementally is viable, and the objection raised against it was wrong.** The concern was that zeroing an activity moves the project finish time, from which every latest-finish time is measured, forcing a full backward pass anyway. Measured, the finish time moves in a *decreasing* share of iterations as the graph grows, because the number of moves is bounded by the length of the critical path rather than by the activity count:
+
+| Activities | Iterations | Iterations where the finish time moved |
+| - | - | - |
+| 250 | 250 | 82 (33%) |
+| 500 | 500 | 91 (18%) |
+| 1,000 | 1,000 | 94 (9%) |
+| 2,000 | 2,000 | 98 (5%) |
+
+**Most of each pass is wasted work.** Counting how many activities actually take a new value between consecutive passes:
+
+| Activities | Earliest start times changed, per iteration | Latest finish times changed | Share of the graph |
+| - | - | - | - |
+| 250 | 18.3 | 67.0 | 17.1% |
+| 500 | 20.6 | 81.7 | 10.2% |
+| 1,000 | 19.4 | 90.7 | 5.5% |
+| 2,000 | 19.3 | 98.8 | 3.0% |
+
+The absolute figures barely move as the graph grows, so the share falls roughly as 1/N: at 2,000 activities a pass recomputes 2,000 activities in order to change about 118 of them, and around 97% of the work is discarded. Propagating only where values actually change would make the per-iteration cost roughly independent of graph size, turning the whole calculation from about O(N^2) into about O(N) on this family of graphs - on the order of 15x to 20x at 2,000 activities, and more above that.
+
+The cost is concentrated in the right place for this to pay off: of a single pass at 4,000 activities, 91% is the two flows themselves, 7% is `ClearCriticalPathVariables` and 2% the pre-compilation constraint check.
+
+### What implementing it would involve
+
+The intricacy is in preserving behaviour exactly, and the risk is that an incremental path and the full path drift apart.
+
+- The per-node value computations - earliest start, the earliest finish given to outgoing edges, latest finish, free slack, each with its clamping, and with Start, End and Isolated nodes clamped differently - would need factoring into helpers shared by the full and incremental paths, so the arithmetic exists once.
+- Propagation must run in topological order and stop wherever a recomputed value equals the old one; that early stop is the entire saving.
+- Free slack depends on the successors' earliest start times as well as on the node's own values, so it needs tracking separately from the two flows.
+- The current passes clear every value and recompute, which makes the "only assign if not already set" guards behave as first-write-wins. Incremental updates rewrite existing values, so those guards would need restructuring rather than reusing.
+- When the finish time does move, fall back to a full recompute. At 5% of iterations that costs little.
+- The engine interface is currently stateless whole-graph recomputation. An incremental entry point (recalculate after a single duration change) is new public surface on `IVertexCriticalPathEngine`, and only the priority-list calculation would use it.
+
+### Why it was not implemented
+
+`GraphLimits.MaximumActivityCount` is 2,000. At exactly that ceiling the priority-list calculation now takes about 1.5 seconds, down from 6.9 seconds; Phase 3 would take it to roughly a tenth of a second. Everything above 2,000 - where the advantage grows to fifteen-fold and beyond - is rejected by `P0080` before scheduling begins. Real plans sit far below the limit in any case: the production graph that prompted this whole investigation had 39 activities, which compiles in milliseconds and always did.
+
+So Phase 3 would currently be optimising a region the limits forbid, for a size nobody runs. Its real value is conditional: **it is the enabler if the activity limit is ever to be raised.** With it, 8,000 activities becomes a few seconds instead of around 44, and a limit of 5,000 to 10,000 becomes defensible. Without it, 2,000 is the honest ceiling. Revisit this if raising the limit is ever wanted; everything needed to pick it up - the corpus, the harness, the measurements, the design and the two rejected alternatives - is recorded above.
 
 Any change here must preserve the exact priority ordering, since that ordering determines resource assignment and therefore the final schedule. `CompileBehaviourTests` (order-independence across 50 random DAGs) and the golden tests in both the C# and Rust suites are the regression net; a benchmark harness comparing before/after priority lists on random graphs would be worth building first.
 
 This is the change that would move the usable ceiling. The `GraphLimits.MaximumActivityCount` limit of 2,000 currently bounds what is *accepted*; it does not make large graphs fast, and raising it would not be sensible until this is addressed.
 
-## Rust port parity for the scheduling guardrails
+## Rust port parity
 
-The dotnet side has scheduler stall detection with skip-ahead (`C0020`), the input self-consistency probe (`P0070`), the domain limits (`P0080`, `GraphLimits`), mandatory cancellation tokens, and bit-packed allocation streams. None of this has been ported to `rust/` yet. The port's golden tests mirror the C# suite verbatim, so the ported behaviour needs to match message-for-message where the tests assert on content.
+The `rust/` port is currently green at 361 tests, but it mirrors the C# code as it stood before any of the recent work. Its golden tests are mirrored copies rather than shared, so it passes against its own behaviour; the divergence is real but latent, and it has widened with each change. This is now the largest outstanding item in the repo.
+
+The port's error codes stop at `P0060` and `C0010` (`primitives/src/enums.rs`); its scheduler still advances `time_counter += 1` with no bound and no stall detection (`compilers/src/scheduling/scheduler.rs`); its critical-path engines still sweep with a `progress` flag (`compilers/src/vertex/cpm.rs`, `compilers/src/arrow/cpm.rs`); and its allocation streams are `Vec<bool>`, which like the C# `List<bool>` spends a byte per flag (`primitives/src/schedule.rs`).
+
+### Behavioural divergence - the port now computes different results
+
+- **Scheduler stall detection, skip-ahead and the time horizon (`C0020`).** The port still has the livelock that started this investigation: given an activity that can never be scheduled, it spins for ever. This is the highest-value item, because it is a real defect in the port rather than a difference of opinion. Note that the *original trigger* cannot occur in safe Rust (see `P0070` below), but the other routes can - an unsatisfiable `AND` target through the engine directly, or time values that run past the horizon.
+- **Domain limits and `P0080`.** No equivalent of `GraphLimits` exists, so the port accepts graphs the C# side rejects, with the unbounded time and memory that motivated the limits.
+- **`P0070`, the input self-consistency probe.** Recommend **not** porting. It detects a `HashSet` whose lookups disagree with its contents, which arises from unsynchronized concurrent mutation - a state safe Rust cannot produce, since a collection cannot be mutated from two threads without synchronization and the compiler enforces it. Porting it would mean writing a check for a condition that cannot occur, and no test could construct the input to exercise it.
+- **Mandatory cancellation tokens.** No natural equivalent; the Rust idiom would be an `AtomicBool` or a callback, and the port has no consumer that needs it. Recommend skipping unless strict code-parity is the goal, in which case it should be designed as Rust rather than transliterated.
+
+### Performance parity - same results, different speed
+
+- **Bit-packed allocation streams.** Self-contained and worth doing: `Vec<bool>` carries the same eight-fold waste, and the same reasoning about (horizon x resources) applies.
+- **Phase 1, the topological walk.** A larger mechanical port of the vertex engine change. It needs a Rust equivalent of `PriorityListCorpus` and its committed baseline first, for the same reason the C# change did - without it there is nothing to prove the ordering is unchanged.
+- **Phase 2, per-pass allocation.** Partly applicable. Removing the per-pass edge sets carries over directly. The LINQ-to-loops part has no analogue, since Rust iterators are already zero-cost; and note that Rust's default `HashMap` hashing is slower than .NET's, so the per-pass constant may need separate attention rather than assuming the C# findings transfer.
+
+### Suggested order
+
+Fix the defect first (stall detection and the horizon), then the limits, then bit-packing - each self-contained and independently verifiable. The topological walk last, behind its own corpus, and only if the port's performance is judged to matter. `P0070` and cancellation are recommended out of scope, with the reasoning above.
 
 ## Recursive dummy-edge ordering on the arrow construction path
 
 `DummyEdgeOrchestrator.GetEdgesInDescendingOrder` is still recursive, unlike the transitive reducers and dependency walks which were made iterative. It sits on the arrow edge-cleanup path rather than the analysis path, so it has not been a problem in practice, but it remains a stack-depth risk on very deep arrow graphs.
 
-## Full topological CPM rewrite (deferred from the performance work)
+## Topological CPM rewrite for the arrow engine
 
-The critical-path engines use label-correcting passes. A full O(V+E) topological restructure was scoped during the performance work and deliberately deferred as higher risk, wanting both a benchmark harness and a dedicated review to prove it stays behaviour-identical. See `PERFORMANCE.md` for the original analysis.
+Done for the vertex engine as Phase 1 above; `ArrowCriticalPathEngine` still uses label-correcting passes, sweeping the remaining event set repeatedly at O(depth x E) per pass.
+
+This is **low priority**, because arrow does not repeat the pass. `ArrowGraphCompiler.Compile()` performs no resource scheduling - it validates, reduces and runs the critical path once, purely to prepare a structure for `ToGraph()` - so the cost is paid once per compile rather than once per activity. The multiplier that made this urgent on the vertex side does not exist here.
+
+Arrow does expose the same pattern through `ArrowGraphBuilder.CalculateResourceSchedulesByPriorityList`, which is public but is not used by its own compiler. If anything ever drives that, it would be considerably worse than the vertex version ever was, because arrow's `CalculateCriticalPath` really does perform a transitive reduction on every pass - the extra factor that was wrongly attributed to the vertex path earlier in this file. Should that path matter, hoisting the reduction is the first move, since the graph structure does not change between iterations; only then does the topological rewrite become the next one.
+
+Any such work would need an arrow equivalent of `PriorityListCorpus` first. The existing corpus is vertex-only.
