@@ -4,10 +4,11 @@ Work identified during investigation, with what was observed, why it matters, an
 
 In rough order of remaining value:
 
-1. **Rust port parity** - underway. The scheduling livelock, the domain limits and the bit-packing are done; only the topological walk remains, and it needs a Rust corpus first.
-2. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
-3. **Recursive dummy-edge ordering** - a latent stack-depth risk on the arrow construction path.
-4. **Topological CPM for the arrow engine** - low priority, because arrow runs one pass per compile rather than one per activity.
+1. **Priority-list Phase 3** - investigated and designed, deliberately not implemented. Its value is conditional on raising `GraphLimits.MaximumActivityCount`; see the reassessment at the end of that section.
+2. **Recursive dummy-edge ordering** - a latent stack-depth risk on the arrow construction path.
+3. **Topological CPM for the arrow engine** - low priority, because arrow runs one pass per compile rather than one per activity. It is now the only place either language still sweeps, and it is deferred in both, so the two remain in step.
+
+**Rust port parity is complete** - all four items done, each with its own measurement; see that section for what was ported and what was deliberately left out.
 
 ## Priority-list calculation (was cubic; Phases 0 to 2 done)
 
@@ -198,9 +199,11 @@ This is the change that would move the usable ceiling. The `GraphLimits.MaximumA
 
 ## Rust port parity
 
-The `rust/` port mirrors the C# code as it stood before any of the recent work, and is being brought forward one self-contained item at a time. Its golden tests are mirrored copies rather than shared, so it passes against its own behaviour; the divergence is real but latent, and it widened with each change. This is still the largest outstanding item in the repo.
+**Complete.** The `rust/` port mirrored the C# code as it stood before any of the recent work, and was brought forward one self-contained item at a time: the scheduling stall detection, the domain limits, the bit-packed allocation streams, and the topological walk. Each is recorded below with what was measured.
 
-What remains is performance rather than behaviour: its critical-path engines still sweep with a `progress` flag (`compilers/src/vertex/cpm.rs`, `compilers/src/arrow/cpm.rs`).
+The port's golden tests were mirrored copies rather than shared, so it only ever passed against its own behaviour - the divergence was real but latent. The priority-list corpus built for the last item closes that gap for the calculation that matters most: it generates the same graphs in both languages and checks the Rust output against the **C# baseline file itself**, so a future change to either side that breaks agreement now fails a test.
+
+The only sweep left in either language is the arrow critical-path engine (`compilers/src/arrow/cpm.rs` and its C# counterpart), deliberately deferred in both - see the arrow section at the end of this document.
 
 ### Behavioural divergence - the port now computes different results
 
@@ -212,12 +215,24 @@ What remains is performance rather than behaviour: its critical-path engines sti
 ### Performance parity - same results, different speed
 
 - **Bit-packed allocation streams - DONE.** `primitives/src/packed_bool_list.rs` stores one bit per flag over a `Vec<u64>`, using the same shift/mask idiom as the ancestor bit sets, and the five `ResourceSchedule` streams are now `PackedBoolList` rather than `Vec<bool>`. Measured with a counting global allocator at a 100,000 horizon x 100 resources x 5 streams: **47.7 MB to 6.0 MB**, the expected eight-fold reduction, and at the full 1,000-resource shape that scales to roughly 477 MB to 60 MB - within a whisker of the C# figures. The type compares equal to a `Vec<bool>` of the same flags and renders as a list of flags when formatted, so the 375 existing allocation assertions across the suite were left untouched; that they still pass is what shows the packing preserved every value. There is deliberately no `Index` implementation, because indexing must return a reference and a bit inside a word has no address to borrow - reads go through `get`, and the two tests that sliced a stream now use the iterator. 11 tests ported (`packed_bool_list_tests.rs`); suite 387 to 399 green.
-- **Phase 1, the topological walk.** A larger mechanical port of the vertex engine change. It needs a Rust equivalent of `PriorityListCorpus` and its committed baseline first, for the same reason the C# change did - without it there is nothing to prove the ordering is unchanged.
-- **Phase 2, per-pass allocation.** Partly applicable. Removing the per-pass edge sets carries over directly. The LINQ-to-loops part has no analogue, since Rust iterators are already zero-cost; and note that Rust's default `HashMap` hashing is slower than .NET's, so the per-pass constant may need separate attention rather than assuming the C# findings transfer.
+- **Phases 1 and 2, the topological walk and per-pass allocation - DONE, together.** The oracle was built first, as on the C# side: `tests/priority_list_corpus/mod.rs` is a value-for-value port of the C# generator, so both languages build the same 56 graphs. That paid off immediately - the Rust baseline came out **byte-identical to the committed C# one**, which means the port already agreed with the original on every shape, and a `matches_the_dotnet_baseline` test now keeps checking that. The oracle was then verified to fail: perturbing only the tie order in the priority-list selection (same primary key, reversed IDs within ties) broke 44 of the 56 cases, which is the exact failure mode the rewrite risked.
+
+  `compilers/src/vertex/cpm.rs` then moved from label-correcting sweeps to node-order walks with per-node pending-edge counters, exactly as the C# engine did, with cycle detection via a leftover outstanding-edge count. Only the traversal changed; every value computation was left alone, and the baseline stayed byte-identical.
+
+  | Activities (12 layers) | Before | After | | Depth (1,500 activities) | Before | After |
+  | - | - | - | - | - | - | - |
+  | 250 | 77 ms | 20 ms | | 10 layers | 11,637 ms | 901 ms |
+  | 500 | 582 ms | 90 ms | | 30 layers | 14,901 ms | 999 ms |
+  | 1,000 | 4,077 ms | 418 ms | | 60 layers | 14,971 ms | 1,024 ms |
+  | 2,000 | 31,564 ms | 1,854 ms | | 240 layers | 14,960 ms | 653 ms |
+
+  Phase 2 came along for free, because the C# design has no per-pass edge sets to begin with. That mattered more here than it did in C#: the Rust "before" profile was flat in depth rather than growing with it, because the dominant cost was not the O(depth x E) sweep at all but `IndexSet::shift_remove`, which is linear in the set size, making each pass O(E^2). Removing the sets removed that.
+
+  Worth recording honestly: at 2,000 activities Rust is now 1.85 s against C#'s 1.54 s - comparable, where before it was 31.6 s against 1.54 s. The remaining gap is small enough not to be worth chasing without a specific reason.
 
 ### Suggested order
 
-Fix the defect first (stall detection and the horizon - **done**), then the limits (**done**), then bit-packing (**done**) - each self-contained and independently verifiable. The topological walk last, behind its own corpus, and only if the port's performance is judged to matter. `P0070` and cancellation are recommended out of scope, with the reasoning above.
+This was the order followed, and it held up: the defect first (stall detection and the horizon), then the limits, then bit-packing - each self-contained and independently verifiable - and the topological walk last, behind its own corpus. `P0070` and cancellation were left out of scope, with the reasoning above.
 
 ## Recursive dummy-edge ordering on the arrow construction path
 

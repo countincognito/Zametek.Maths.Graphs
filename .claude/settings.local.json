@@ -3,7 +3,12 @@
     "allow": [
       "Bash(dotnet build *)",
       "Bash(dotnet test *)",
-      "PowerShell(dotnet test *)"
+      "PowerShell(dotnet test *)",
+      "Bash(cargo test *)",
+      "Bash(cargo build *)",
+      "Bash(awk '{s+=$1} END {print \"PASSED:\", s}')",
+      "Bash(cargo fmt *)",
+      "Bash(cargo clippy *)"
     ]
   }
 }
