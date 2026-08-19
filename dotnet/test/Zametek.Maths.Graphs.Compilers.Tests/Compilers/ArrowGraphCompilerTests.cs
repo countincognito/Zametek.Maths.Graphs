@@ -10,7 +10,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowGraphCompiler_GivenCyclomaticComplexityWithNoNodes_ThenFindsZero()
         {
             var graphCompiler = new ArrowGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
             graphCompiler.CyclomaticComplexity.ShouldBe(0);
         }
 
@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId8, 4, [activityId4, activityId6]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId9, 10, [activityId5]));
 
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             graphCompiler.CyclomaticComplexity.ShouldBe(6);
         }
@@ -59,7 +59,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId5, 8, [activityId2]));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId6, 7, [activityId3]));
 
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }
@@ -77,7 +77,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId3, 8));
             graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId4, 11, [activityId1]));
 
-            graphCompiler.Compile();
+            graphCompiler.Compile(TestContext.Current.CancellationToken);
 
             graphCompiler.CyclomaticComplexity.ShouldBe(3);
         }

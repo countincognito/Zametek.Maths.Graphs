@@ -118,8 +118,8 @@ namespace Zametek.Maths.Graphs.Tests
         {
             foreach (CorpusShapes.GraphSpec spec in CorpusShapes.Generate())
             {
-                List<int> incremental = Build(spec).CalculateCriticalPathPriorityList();
-                List<int> full = Build(spec, new FullRecalculationOnlyEngine()).CalculateCriticalPathPriorityList();
+                List<int> incremental = Build(spec).CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
+                List<int> full = Build(spec, new FullRecalculationOnlyEngine()).CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
 
                 incremental.ShouldBe(full, $@"case {spec.Name}");
             }
@@ -136,8 +136,8 @@ namespace Zametek.Maths.Graphs.Tests
         {
             CorpusShapes.GraphSpec spec = LayeredSpec(size, layers);
 
-            List<int> incremental = Build(spec).CalculateCriticalPathPriorityList();
-            List<int> full = Build(spec, new FullRecalculationOnlyEngine()).CalculateCriticalPathPriorityList();
+            List<int> incremental = Build(spec).CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
+            List<int> full = Build(spec, new FullRecalculationOnlyEngine()).CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
 
             incremental.ShouldBe(full);
             incremental.Count.ShouldBe(size);

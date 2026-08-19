@@ -2,7 +2,7 @@
 
 Work identified during investigation, with what was observed, why it matters, and what a fix would need to establish - so anything picked up later starts from evidence rather than from scratch. Entries are marked done as they are undertaken, and keep their measurements.
 
-**Nothing is outstanding.** Everything identified during this investigation has been done, in both languages:
+**One item is outstanding**, and it is a Rust-only performance gap rather than a defect: the incremental critical-path walk reaches its nodes by ID and hashes for each one, where the C# session holds them by reference, which now makes Rust about twice as slow as C# on deep graphs. It is recorded in the section immediately below. Everything else identified during this investigation has been done, in both languages:
 
 - **Priority-list Phases 0 to 3** - the calculation was cubic on a layered graph and is now roughly 80x faster at 8,000 activities than where it started, with allocation down from 91 GB to 721 MB. Phase 3 was the item held back as conditional; it is now implemented, and with it the case for keeping `GraphLimits.MaximumActivityCount` at 2,000 is a domain decision rather than a performance one. Raising it is deliberately left to whoever owns that call.
 
@@ -12,7 +12,31 @@ Work identified during investigation, with what was observed, why it matters, an
 - **Rust port parity**, all four items, each with its own measurement; see that section for what was ported and what was deliberately left out.
 - **The arrow topological CPM**, in both languages, though the measurement showed it buys nothing - the section at the end records why, and what it turned up instead.
 
-Each is recorded in full below, with its measurements. Two things noted along the way were deliberately *not* acted on, and say so where they are recorded: raising the activity limit, which is a domain decision, and the residual gap between the two languages on deep graphs.
+Each is recorded in full below, with its measurements. One thing noted along the way was deliberately *not* acted on and says so where it is recorded: raising the activity limit, which is a domain decision rather than a performance one.
+
+## Rust: the incremental walk reaches its nodes by ID - OUTSTANDING
+
+**Rust is about twice as slow as C# on deep graphs**, where the two were comparable before Phase 3 - 319 ms against 155 ms at 240 layers, and around 13 s against 5.2 s on the 8,000-activity deep shape. Both languages run the same algorithm and produce byte-identical output; the difference is how each one reaches the data.
+
+The cause is believed to be structural rather than algorithmic, and it is worth stating as a belief rather than a measurement: it has not been confirmed with a profiler. `IncrementalCriticalPath` in `rust/compilers/src/vertex/incremental.rs` holds node **IDs** - in `nodes_in_topological_order`, `end_nodes`, `isolated_nodes` and the three changed-node sets - and resolves each one through `state.node(id)`, which is a hash lookup into an `IndexMap`. Reaching a successor costs two: `state.edge_head_node_id(edge_id)` hashes into `edge_head`, and the resulting node ID then hashes into `nodes`. The C# session holds `Node<T, TActivity>` references directly and dereferences them. A node is visited several times per propagation step, so the multiplier lands on the innermost loop of the hottest path.
+
+The cheap thing was tried first and did not help. Caching the End and Isolated node lists in the session removes a whole-graph scan per iteration, which was a real inefficiency in **both** languages and was backported to C# for that reason - but it barely moved the gap, which is what points at the per-visit cost rather than at anything per-iteration.
+
+### What a fix would involve
+
+`state.nodes` is an `IndexMap`, so dense indices already exist: `get_index_of` at session start, `get_index` per visit, no hashing thereafter. Storing those indices instead of keys would suit the topological order especially well, since it is built once and never changes. The `edge_head` and `edge_tail` maps would need the same treatment, or the head node's index would need caching per edge, since resolving a successor is where two lookups become one.
+
+Three things to be careful of. Indices into an `IndexMap` are invalidated by removal, so a session must remain valid only while the structure does not change - which is already its documented contract, but that contract would go from "the ordering would be stale" to "the indices point at the wrong nodes", a considerably sharper failure. The borrow checker is the reason several of the work lists are `mem::take`-ed during propagation; indices do not change that, but any rework should expect it. And the C# and Rust implementations are currently close enough to read side by side, which has been worth a great deal during this work - an index-based Rust walk would diverge structurally from its C# counterpart, so the shared comments would need to carry the equivalence argument explicitly.
+
+### Whether it is worth doing
+
+Nothing depends on it today. The Rust port has no consumer, C# is the shipping implementation, and 13 s at 8,000 activities is far beyond the 2,000-activity limit and further still beyond real plans - the production graph that prompted this investigation had 39 activities. It is recorded because the gap is new, it is understood, and a future reader comparing the two languages deserves to find the reason here rather than rediscover it.
+
+The measurement to reproduce it, after a release build:
+
+```
+cargo test --release --test priority_list_equivalence_tests -- --ignored --nocapture measure_priority_list_scaling
+```
 
 ## Priority-list calculation (was cubic; Phases 0 to 3 done)
 
@@ -248,7 +272,7 @@ Rust, same calculation:
 | 1,000 | 418 ms | 48 ms | | 60 | 1,024 ms | 208 ms |
 | 2,000 | 1,854 ms | 166 ms | | 240 | 653 ms | 319 ms |
 
-**Worth recording honestly: on deep graphs Rust is now about twice as slow as C#** - 319 ms against 155 ms at 240 layers, and around 13 s against 5.2 s on the 8,000-activity deep shape, where the two were comparable before. The likely cause is structural rather than algorithmic: the C# session holds the nodes it walks by reference, while the Rust one holds their IDs and looks each up in the state's map on every access, several times per node visited. Caching the End and Isolated node lists in the session, which removes a whole-graph scan per iteration in both languages, was tried first and barely moved it. Chasing the rest would mean giving the incremental walk index-based access into the state's node storage, which is a wider change than this item warrants; it is recorded here rather than done.
+**Worth recording honestly: on deep graphs Rust is now about twice as slow as C#** - 319 ms against 155 ms at 240 layers, and around 13 s against 5.2 s on the 8,000-activity deep shape, where the two were comparable before. That is the one outstanding item in this document; the analysis, what a fix would involve and why it was not done here are in the Rust node-lookup section at the top.
 
 ### What this does for the activity limit
 

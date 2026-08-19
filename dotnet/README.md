@@ -135,12 +135,13 @@ The domain types (in **Zametek.Maths.Graphs.Primitives**) are:
    | | `VertexGraphCompiler` | `ArrowGraphCompiler` |
    | - | - | - |
    | `Compile(...)` returns | `IGraphCompilation<…>` (activities, resource schedules, work streams, errors) | `void` |
+   | `Compile(ct)` | yes | yes |
    | `Compile(resources, ct)` / `Compile(resources, workStreams, ct)` | yes | **no** |
    | Resource scheduling and work streams | yes | **no** |
    | Critical-path times | yes | yes |
    | `ToGraph()` | yes | yes |
 
-The arrow compiler's `Compile()` only sanity-checks the graph, applies transitive reduction and runs the critical-path calculation so the network can be laid out. It returns nothing and performs **no resource scheduling** - its sole purpose is to prepare a structure for `ToGraph()`.
+The arrow compiler's `Compile(ct)` only sanity-checks the graph, applies transitive reduction and runs the critical-path calculation so the network can be laid out. It returns nothing and performs **no resource scheduling** - its sole purpose is to prepare a structure for `ToGraph()`.
 
 The intended workflow is therefore: do the real scheduling with the vertex compiler; then, *if* you want to display an AoA network diagram, feed the same activities into an arrow compiler purely to build the renderable graph:
 
@@ -152,7 +153,7 @@ arrow.AddActivity(new DependentActivity<int, int, int>(2, 7));
 arrow.AddActivity(new DependentActivity<int, int, int>(3, 8, new[] { 1, 2 }));
 arrow.AddActivity(new DependentActivity<int, int, int>(4, 4, new[] { 3 }));
 
-arrow.Compile();   // lays out the network; returns void, schedules nothing
+arrow.Compile(cancellationToken);   // lays out the network; returns void, schedules nothing
 Graph<int, IDependentActivity<int, int, int>, IEvent<int>> diagram = arrow.ToGraph();
 // Hand `diagram` (nodes = events, edges = activities + dummy edges) to your renderer.
 ```
@@ -330,7 +331,7 @@ A note on scale: the activity limit bounds what is *accepted*, not what is comfo
 
 ## Compilation errors
 
-`VertexGraphCompiler.Compile(...)` does not throw for *modelling* problems - it collects them in `IGraphCompilation.CompilationErrors` so you can surface several at once. (It still throws `ArgumentNullException` for a null `resources` / `workStreams` argument, and `InvalidOperationException` for internal failures such as an impossible back-fill.) Every `Compile` form requires a `CancellationToken` - checked between pipeline phases and inside the resource-scheduling loop - and throws `OperationCanceledException` on cancellation; pass `CancellationToken.None` to opt out. Each entry is an `IGraphCompilationError` with a `GraphCompilationErrorCode` and a human-readable `ErrorMessage`. Always check the list before trusting the schedule:
+`VertexGraphCompiler.Compile(...)` does not throw for *modelling* problems - it collects them in `IGraphCompilation.CompilationErrors` so you can surface several at once. (It still throws `ArgumentNullException` for a null `resources` / `workStreams` argument, and `InvalidOperationException` for internal failures such as an impossible back-fill.) Each entry is an `IGraphCompilationError` with a `GraphCompilationErrorCode` and a human-readable `ErrorMessage`. Always check the list before trusting the schedule:
 
 ```csharp
 IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> result = compiler.Compile(CancellationToken.None);
@@ -459,6 +460,16 @@ var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, in
 The critical-path engines and SCC finders read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts. The transitive reducers and the dummy-edge orchestrator restructure the graph, so they take the concrete `ArrowGraphState<…>` / `VertexGraphState<…>` directly: the state type is public, but its structural-mutation API is `internal`, so an external engine can read the state yet only the library's own engines can restructure it. Injected engines are preserved through `CloneObject()`.
 
 ## Breaking changes
+
+### Unreleased
+
+Cancellation is now mandatory on every entry point whose cost grows with the size of the graph, on both flavours. The token is not decorative: it is checked once per activity placed in the priority-list calculation, which is the loop that dominates, as well as between pipeline phases and on every resource-scheduling tick. Pass `CancellationToken.None` to opt out.
+
+- `VertexGraphCompiler.Compile()` is replaced by `Compile(cancellationToken)`, and likewise for the `resources` and `resources, workStreams` forms. `VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(resources, cancellationToken)` and `IResourceSchedulingEngine.CalculateResourceSchedules(…, cancellationToken)` gain the token too.
+- `ArrowGraphCompiler.Compile()` is replaced by `Compile(cancellationToken)`.
+- `ArrowGraphBuilder.CalculateCriticalPath()` is replaced by `CalculateCriticalPath(cancellationToken)`, and both builders' `CalculateCriticalPathPriorityList()` by `CalculateCriticalPathPriorityList(cancellationToken)`.
+
+What the token cannot do is worth knowing. The engine seams (`IArrowCriticalPathEngine`, `IArrowTransitiveReducer`, `IDummyEdgeOrchestrator`, `IVertexCriticalPathEngine`) deliberately carry no token, so a cancellation arriving during one of those calls is observed when it returns rather than immediately. That bounds the delay to a single engine call; on a graph that was never transitively reduced, the dummy-edge redirection inside a critical-path calculation is the longest such call.
 
 ### 3.1.0
 

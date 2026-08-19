@@ -36,7 +36,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -130,7 +130,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -224,7 +224,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -318,7 +318,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10) { MinimumFreeSlack = 15 }, [activityId5]);
 
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -412,7 +412,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId8, 4), [activityId4, activityId6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(10);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(16);
@@ -507,7 +507,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -602,7 +602,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10) { MinimumEarliestStartTime = 20 }, [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -698,7 +698,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -793,7 +793,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(-1);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(5);
@@ -888,7 +888,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -983,7 +983,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -1088,7 +1088,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -1183,7 +1183,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(activityId9, 10), [activityId5]);
 
             graphBuilder.TransitiveReduction();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             graphBuilder.Activity(activityId1).EarliestStartTime.ShouldBe(0);
             graphBuilder.Activity(activityId1).EarliestFinishTime.ShouldBe(6);
@@ -1294,7 +1294,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             graphBuilder.TransitiveReduction();
 
-            Action act = () => graphBuilder.CalculateCriticalPath();
+            Action act = () => graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
             act.ShouldThrow<InvalidOperationException>();
         }
 
@@ -1317,7 +1317,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
-            List<int> priorityList = graphBuilder.CalculateCriticalPathPriorityList();
+            List<int> priorityList = graphBuilder.CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
 
             priorityList.ShouldBeEquivalentTo(new List<int> { 3, 2, 1, 5, 4, 6, 9, 7, 8 });
         }

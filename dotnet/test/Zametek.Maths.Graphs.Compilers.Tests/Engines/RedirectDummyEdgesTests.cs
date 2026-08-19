@@ -47,7 +47,7 @@ namespace Zametek.Maths.Graphs.Tests
             // process-wide counter measures whatever else happens to be running too.
             long allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
 
-            builder.CalculateCriticalPath();
+            builder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             long allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
 

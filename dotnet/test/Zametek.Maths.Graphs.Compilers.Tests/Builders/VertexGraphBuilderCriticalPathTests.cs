@@ -1949,7 +1949,7 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.AddActivity(new Activity<int, int, int>(8, 4), [4, 6]);
             graphBuilder.AddActivity(new Activity<int, int, int>(9, 10), [5]);
 
-            List<int> priorityList = graphBuilder.CalculateCriticalPathPriorityList();
+            List<int> priorityList = graphBuilder.CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
 
             priorityList.ShouldBeEquivalentTo(new List<int> { 3, 2, 1, 5, 4, 6, 9, 7, 8 });
         }

@@ -37,7 +37,7 @@ namespace Zametek.Maths.Graphs.Tests
 
         private static string FormatCase(PriorityListCorpus.Case testCase)
         {
-            List<int> priorityList = testCase.GraphBuilder.CalculateCriticalPathPriorityList();
+            List<int> priorityList = testCase.GraphBuilder.CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
             return $@"{testCase.Name}: {string.Join(@",", priorityList)}";
         }
 
@@ -102,10 +102,10 @@ namespace Zametek.Maths.Graphs.Tests
             // rewrite of that engine is free to change the schedule silently.
             foreach (PriorityListCorpus.Case testCase in PriorityListCorpus.Generate())
             {
-                List<int> ordered = testCase.GraphBuilder.CalculateCriticalPathPriorityList();
+                List<int> ordered = testCase.GraphBuilder.CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
 
                 testCase.GraphBuilder.ShuffleProcessingOrder = true;
-                List<int> shuffled = testCase.GraphBuilder.CalculateCriticalPathPriorityList();
+                List<int> shuffled = testCase.GraphBuilder.CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
                 testCase.GraphBuilder.ShuffleProcessingOrder = false;
 
                 shuffled.ShouldBe(ordered, $@"case {testCase.Name}");
@@ -125,7 +125,7 @@ namespace Zametek.Maths.Graphs.Tests
                     .OrderBy(x => x)
                     .ToList();
 
-                List<int> priorityList = testCase.GraphBuilder.CalculateCriticalPathPriorityList();
+                List<int> priorityList = testCase.GraphBuilder.CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
 
                 priorityList.Count.ShouldBe(priorityList.Distinct().Count(), $@"case {testCase.Name} has duplicates");
                 priorityList.OrderBy(x => x).ToList().ShouldBe(expected, $@"case {testCase.Name}");
@@ -210,7 +210,7 @@ namespace Zametek.Maths.Graphs.Tests
             GC.Collect();
             long allocatedBefore = GC.GetTotalAllocatedBytes(precise: false);
             var stopwatch = Stopwatch.StartNew();
-            graphBuilder.CalculateCriticalPathPriorityList();
+            graphBuilder.CalculateCriticalPathPriorityList(TestContext.Current.CancellationToken);
             stopwatch.Stop();
             long allocatedAfter = GC.GetTotalAllocatedBytes(precise: false);
 

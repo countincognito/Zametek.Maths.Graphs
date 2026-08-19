@@ -625,14 +625,25 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <summary>
-        /// Calculates the critical path across the whole graph.
+        /// Calculates the critical path across the whole graph, honouring the given cancellation token. The token is checked between the steps of the calculation, so the longest uninterruptible stretch is a single engine call - see the remarks on <see cref="ArrowGraphCompiler{T, TResourceId, TWorkStreamId, TDependentActivity}.Compile(System.Threading.CancellationToken)"/>.
         /// </summary>
-        public void CalculateCriticalPath()
+        public void CalculateCriticalPath(CancellationToken cancellationToken)
         {
+            // The token is checked between steps rather than within them, because each
+            // step below is a single call into an injected engine and the engine seams
+            // deliberately do not carry a token. That bounds the delay after a
+            // cancellation to one engine call rather than to nothing at all, which is
+            // worth having but is not the same as being promptly interruptible: the
+            // redirection at the end can take seconds on a graph that was never
+            // transitively reduced, and it will finish before the next check is reached.
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!RemoveRedundantEdges())
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotRemoveRedundantEdges);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             ClearCriticalPathVariables();
 
@@ -645,15 +656,21 @@ namespace Zametek.Maths.Graphs
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventEarliestFinishTimes);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!m_CriticalPathEngine.CalculateEventLatestFinishTimes(m_State, constraints, ShuffleProcessingOrder))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateEventLatestFinishTimes);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!m_CriticalPathEngine.CalculateCriticalPathVariables(m_State, constraints))
             {
                 throw new InvalidOperationException(Properties.Resources.Message_CannotCalculateCriticalPath);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (!RedirectEdges())
             {
@@ -662,12 +679,12 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <summary>
-        /// Returns the activity IDs in scheduling priority order (most critical first).
+        /// Returns the activity IDs in scheduling priority order (most critical first), honouring the given cancellation token. The token is checked once per activity placed, which is the loop that dominates the cost.
         /// </summary>
-        public List<T> CalculateCriticalPathPriorityList()
+        public List<T> CalculateCriticalPathPriorityList(CancellationToken cancellationToken)
         {
             var tmpGraphBuilder = (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)CloneObject();
-            return CalculateCriticalPathPriorityList(tmpGraphBuilder);
+            return CalculateCriticalPathPriorityList(tmpGraphBuilder, cancellationToken);
         }
 
         /// <summary>
@@ -699,8 +716,14 @@ namespace Zametek.Maths.Graphs
             }
 
             var tmpGraphBuilder = (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)CloneObject();
+
+            // The token reaches the priority list as well as the scheduling engine
+            // below. It previously reached only the engine, so this method accepted a
+            // token and then ran a full critical-path pass per activity - the dominant
+            // cost - without ever looking at it.
             List<T> priorityList = CalculateCriticalPathPriorityList(
-                (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)tmpGraphBuilder.CloneObject());
+                (ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)tmpGraphBuilder.CloneObject(),
+                cancellationToken);
 
             return m_ResourceSchedulingEngine.CalculateResourceSchedules(
                 priorityList,
@@ -860,7 +883,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        private static List<T> CalculateCriticalPathPriorityList(ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
+        private static List<T> CalculateCriticalPathPriorityList(
+            ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder,
+            CancellationToken cancellationToken)
         {
             if (graphBuilder is null)
             {
@@ -870,7 +895,13 @@ namespace Zametek.Maths.Graphs
             bool cont = true;
             while (cont)
             {
-                graphBuilder.CalculateCriticalPath();
+                // Once per activity placed. This is the check that matters: the loop
+                // runs an iteration per activity and each one recalculates the whole
+                // critical path, so without it the token could not be observed until
+                // every activity had been placed.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                graphBuilder.CalculateCriticalPath(cancellationToken);
 
                 // Get the critical path in order of earliest start time.
                 int minFloat = graphBuilder.Activities

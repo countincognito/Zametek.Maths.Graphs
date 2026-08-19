@@ -861,12 +861,12 @@ namespace Zametek.Maths.Graphs
 
         // Exposes the priority list calculation used internally by CalculateResourceSchedulesByPriorityList.
         /// <summary>
-        /// Returns the activity IDs in scheduling priority order (most critical first).
+        /// Returns the activity IDs in scheduling priority order (most critical first), honouring the given cancellation token. The token is checked once per activity placed, which is the loop that dominates the cost.
         /// </summary>
-        public List<T> CalculateCriticalPathPriorityList()
+        public List<T> CalculateCriticalPathPriorityList(CancellationToken cancellationToken)
         {
             var tmpGraphBuilder = (VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)CloneObject();
-            return CalculateCriticalPathPriorityList(tmpGraphBuilder);
+            return CalculateCriticalPathPriorityList(tmpGraphBuilder, cancellationToken);
         }
 
         /// <summary>
@@ -953,8 +953,15 @@ namespace Zametek.Maths.Graphs
 
             // Use a separate clone for the priority list calculation so that tmpGraphBuilder retains
             // original activity durations for the scheduling loop below.
+            //
+            // The token reaches the priority list as well as the scheduling engine below.
+            // It previously reached only the engine, so this method accepted a token and
+            // then ran the whole priority list without ever looking at it - seconds of
+            // uninterruptible work on a large graph, inside a method whose signature
+            // promised otherwise.
             List<T> priorityList = CalculateCriticalPathPriorityList(
-                (VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)tmpGraphBuilder.CloneObject());
+                (VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>)tmpGraphBuilder.CloneObject(),
+                cancellationToken);
 
             return m_ResourceSchedulingEngine.CalculateResourceSchedules(
                 priorityList,
@@ -1027,7 +1034,9 @@ namespace Zametek.Maths.Graphs
             }
         }
 
-        private static List<T> CalculateCriticalPathPriorityList(VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder)
+        private static List<T> CalculateCriticalPathPriorityList(
+            VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> graphBuilder,
+            CancellationToken cancellationToken)
         {
             if (graphBuilder is null)
             {
@@ -1050,6 +1059,10 @@ namespace Zametek.Maths.Graphs
             bool cont = true;
             while (cont)
             {
+                // Once per activity placed. An iteration is cheap since Phase 3 made it
+                // incremental, but there is still one per activity, so this is the only
+                // place the token can be observed before the whole list is built.
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Find the least slack among the activities still to be placed. An
                 // activity with no slack value at all is skipped here, and the default

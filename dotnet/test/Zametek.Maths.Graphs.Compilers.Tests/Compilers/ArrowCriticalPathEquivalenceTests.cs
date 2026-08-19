@@ -99,7 +99,7 @@ namespace Zametek.Maths.Graphs.Tests
         // slack. Ordered by ID so the line is stable regardless of iteration order.
         private static string FormatCase(ArrowCriticalPathCorpus.Case testCase)
         {
-            testCase.GraphBuilder.CalculateCriticalPath();
+            testCase.GraphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             var output = new StringBuilder();
             output.Append(testCase.Name);
@@ -202,7 +202,7 @@ namespace Zametek.Maths.Graphs.Tests
             // miss if the baseline were ever regenerated against it.
             foreach (ArrowCriticalPathCorpus.Case testCase in ArrowCriticalPathCorpus.Generate())
             {
-                testCase.GraphBuilder.CalculateCriticalPath();
+                testCase.GraphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
                 testCase.GraphBuilder.Events.ShouldAllBe(x => x.EarliestFinishTime.HasValue, $@"case {testCase.Name}");
                 testCase.GraphBuilder.Events.ShouldAllBe(x => x.LatestFinishTime.HasValue, $@"case {testCase.Name}");
@@ -294,7 +294,7 @@ namespace Zametek.Maths.Graphs.Tests
             long allocatedBefore = GC.GetTotalAllocatedBytes(precise: false);
             timingEngine.Elapsed.Reset();
             var stopwatch = Stopwatch.StartNew();
-            graphBuilder.CalculateCriticalPath();
+            graphBuilder.CalculateCriticalPath(TestContext.Current.CancellationToken);
             stopwatch.Stop();
             long allocatedAfter = GC.GetTotalAllocatedBytes(precise: false);
 

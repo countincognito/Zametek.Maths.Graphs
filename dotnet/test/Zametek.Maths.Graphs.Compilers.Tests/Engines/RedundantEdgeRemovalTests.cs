@@ -45,7 +45,7 @@ namespace Zametek.Maths.Graphs.Tests
             // process-wide counter measures whatever else happens to be running too.
             long allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
 
-            builder.CalculateCriticalPath();
+            builder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             long allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
 
@@ -74,7 +74,7 @@ namespace Zametek.Maths.Graphs.Tests
             // reduced is slow for an unrelated reason, recorded against RedirectDummyEdges.
             builder.TransitiveReduction().ShouldBeTrue();
 
-            builder.CalculateCriticalPath();
+            builder.CalculateCriticalPath(TestContext.Current.CancellationToken);
 
             // A chain of unit durations, so the last activity starts once every earlier one
             // has finished - which also shows the walk reached the far end of the graph.

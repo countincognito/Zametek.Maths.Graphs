@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Zametek.Maths.Graphs
 {
@@ -208,12 +209,21 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <summary>
-        /// Validates the graph, applies transitive reduction and runs the critical-path calculation so the network can be laid out. Performs no resource scheduling.
+        /// Validates the graph, applies transitive reduction and runs the critical-path calculation so the network can be laid out. Performs no resource scheduling. The cancellation token is checked between pipeline phases and within the critical-path calculation, and cancellation surfaces as <see cref="OperationCanceledException"/>.
         /// </summary>
-        public void Compile()
+        /// <remarks>
+        /// The token cannot interrupt the transitive reduction, which is a single call
+        /// into the injected reducer: the engine seams carry no token, so a cancellation
+        /// arriving during a reduction is observed once it returns. That is a bound on
+        /// the delay rather than prompt cancellation, and it is stated here so a caller
+        /// does not assume otherwise.
+        /// </remarks>
+        public void Compile(CancellationToken cancellationToken)
         {
             lock (m_Lock)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Sanity check the graph data.
                 IEnumerable<T> invalidDependencies = m_ArrowGraphBuilder.InvalidDependencies;
                 if (invalidDependencies.Any())
@@ -221,7 +231,10 @@ namespace Zametek.Maths.Graphs
                     throw new InvalidOperationException(Properties.Resources.Message_CannotConstructArrowGraphDueToInvalidDependencies);
                 }
                 TransitiveReduction();
-                m_ArrowGraphBuilder.CalculateCriticalPath();
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                m_ArrowGraphBuilder.CalculateCriticalPath(cancellationToken);
             }
         }
 
