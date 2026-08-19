@@ -461,15 +461,42 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ## Breaking changes
 
-### Unreleased
+### 3.2.0
 
-Cancellation is now mandatory on every entry point whose cost grows with the size of the graph, on both flavours. The token is not decorative: it is checked once per activity placed in the priority-list calculation, which is the loop that dominates, as well as between pipeline phases and on every resource-scheduling tick. Pass `CancellationToken.None` to opt out.
+A release driven by one production hang and the investigation it started. The hang is fixed and guarded; compiling a graph at the activity limit went from about 6.9 seconds to about 0.4; every recursive traversal in the library is now iterative; and the library will now tell you when it cannot schedule something rather than looping forever. The full account, with measurements, is in the [performance notes](docs/PERFORMANCE.md) and [TODO](docs/TODO.md).
 
-- `VertexGraphCompiler.Compile()` is replaced by `Compile(cancellationToken)`, and likewise for the `resources` and `resources, workStreams` forms. `VertexGraphBuilder.CalculateResourceSchedulesByPriorityList(resources, cancellationToken)` and `IResourceSchedulingEngine.CalculateResourceSchedules(…, cancellationToken)` gain the token too.
+**Cancellation is now mandatory** on every entry point whose cost grows with the size of the graph, on both flavours. The token is not decorative: it is checked once per activity placed in the priority-list calculation, which is the loop that dominates, as well as between pipeline phases and on every resource-scheduling tick. Pass `CancellationToken.None` to opt out.
+
+- `VertexGraphCompiler.Compile()` is replaced by `Compile(cancellationToken)`, and likewise for the `resources` and `resources, workStreams` forms.
 - `ArrowGraphCompiler.Compile()` is replaced by `Compile(cancellationToken)`.
-- `ArrowGraphBuilder.CalculateCriticalPath()` is replaced by `CalculateCriticalPath(cancellationToken)`, and both builders' `CalculateCriticalPathPriorityList()` by `CalculateCriticalPathPriorityList(cancellationToken)`.
+- `ArrowGraphBuilder.CalculateCriticalPath()` is replaced by `CalculateCriticalPath(cancellationToken)`; both builders' `CalculateCriticalPathPriorityList()` by `CalculateCriticalPathPriorityList(cancellationToken)`; and both builders' `CalculateResourceSchedulesByPriorityList(resources)` by the form taking a token.
+- `IResourceSchedulingEngine.CalculateResourceSchedules(…)` gains the token, so any custom scheduling engine must be updated.
 
 What the token cannot do is worth knowing. The engine seams (`IArrowCriticalPathEngine`, `IArrowTransitiveReducer`, `IDummyEdgeOrchestrator`, `IVertexCriticalPathEngine`) deliberately carry no token, so a cancellation arriving during one of those calls is observed when it returns rather than immediately. That bounds the delay to a single engine call; on a graph that was never transitively reduced, the dummy-edge redirection inside a critical-path calculation is the longest such call.
+
+The other breaking changes:
+
+- **`IVertexCriticalPathEngine` gains `BeginIncrementalCriticalPath`.** Any external implementation of that interface must add it. Returning `null` is a valid implementation and makes the priority-list calculation recalculate in full after every duration change, exactly as it did before - so the cheapest way to restore an existing engine is a one-line `=> null`.
+- **`VertexGraphBuilder.AddPreCompilationErrors` gains a `workStreams` parameter**, because the work-stream count is one of the limits now validated and the method had no way to see it.
+- **`GraphCompilationErrorCode` gains `P0070`, `P0080` and `C0020`**, and its members now carry explicit numeric values. The values are pinned deliberately - consumers serialise them into saved project files - so they are appended at the next unused number rather than in code order: `C0010 = 6`, `P0070 = 7`, `C0020 = 8`, `P0080 = 9`. Existing codes keep the values they already had. A `switch` over the enum that was previously exhaustive no longer is.
+- **The `ResourceSchedule` allocation streams are stored bit-packed.** The public surface is unchanged - they were already `IEnumerable<bool>` on both the interface and the constructor - but the concrete type behind them is now `PackedBoolList` rather than `List<bool>`, so a consumer casting to `List<bool>` will break. Measured at the published limits, 1,000 resources across a 100,000-unit horizon retains 60 MB rather than 476 MB.
+
+New, additive:
+
+- **`GraphLimits`** publishes the accepted ranges (time values 0 to 100,000; 2,000 activities; 1,000 resources; 100 work streams) so input can be validated before compiling. Violations are reported as `P0080`, and a *computed* schedule running past the horizon as `C0020` - the case per-value limits cannot catch, because individually legal durations still sum. See [Limits](#limits).
+- **Stall detection.** The scheduler proves when one or more activities can never be scheduled onto the supplied resources and reports `C0020` with a diagnosis naming them, instead of looping forever. Driving a scheduling engine directly surfaces the same thing as `ResourceSchedulingStallException`. `P0070` rejects structurally corrupted input up front - a set whose lookups disagree with its own contents, the signature of unsynchronized concurrent modification.
+- **`IVertexIncrementalCriticalPath<T>`**, the incremental recalculation behind the priority-list speedup, available to callers that change one duration at a time.
+- **`ResourceScheduleBuilder.FirstActivityStartTime`**, alongside the existing `LastActivityFinishTime`.
+
+Behaviour-preserving, and the reason the numbers moved:
+
+- The critical-path engines walk nodes and events in dependency order instead of sweeping the remaining set repeatedly, taking a pass from O(depth x E) to O(V + E) in both flavours.
+- The priority-list calculation recalculates once and thereafter propagates only what a duration change actually moves.
+- Every recursive traversal is now iterative, removing stack-overflow risk on deep chains - two of them were confirmed to kill the process, not merely thought to be at risk.
+- Transitive reduction computes ancestors as compact bitsets rather than a dictionary of hash sets.
+- Two defects in the arrow dummy-edge path: a walk that enumerated every start-to-node path rather than visiting each edge once (60 seconds and 158 GB on a 150-activity graph, now 2 ms and 1 MB), and a redirection that copied an edge set purely to ask whether it was empty.
+
+Every one of these is guarded by a committed golden baseline over a 56-graph corpus, checked byte-for-byte from both the C# and Rust suites.
 
 ### 3.1.0
 

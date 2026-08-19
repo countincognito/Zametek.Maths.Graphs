@@ -21,9 +21,10 @@ The Rust workspace version tracks the NuGet package version: matching versions m
 
 ## Documentation
 
-- [C# library guide](dotnet/README.md) - concepts (CPM, slack, the two graph flavours, resource scheduling) and a full API walkthrough.
+- [C# library guide](dotnet/README.md) - concepts (CPM, slack, the two graph flavours, resource scheduling), a full API walkthrough, and the breaking changes per release.
 - [Rust port guide](rust/README.md) - crate layout, design notes and how the C# patterns map onto Rust.
-- [Performance notes](dotnet/docs/PERFORMANCE.md) - the .NET performance and deep-graph-hardening plan, with the applied phases recorded.
+- [Performance notes](dotnet/docs/PERFORMANCE.md) - the plan and the running audit: what was identified across the library, what became of each item, and what remains with a current verdict.
+- [Investigation record](dotnet/docs/TODO.md) - the measurements behind those items, the corpora that guard them, and the reasoning for what was changed and what was deliberately left alone.
 
 ## Licence
 
