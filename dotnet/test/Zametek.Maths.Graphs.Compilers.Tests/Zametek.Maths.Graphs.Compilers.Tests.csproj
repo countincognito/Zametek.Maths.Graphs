@@ -10,9 +10,13 @@
 	  <None Remove="Builders\TestFiles\ResourceSchedule1.json" />
 	  <None Remove="Builders\TestFiles\ResourceSchedule2.json" />
 	  <None Remove="Builders\TestFiles\ResourceSchedule3.json" />
+	  <None Remove="Compilers\TestFiles\PriorityListBaseline.txt" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Content Include="Compilers\TestFiles\PriorityListBaseline.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	  <Content Include="Builders\TestFiles\ResourceSchedule3.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
