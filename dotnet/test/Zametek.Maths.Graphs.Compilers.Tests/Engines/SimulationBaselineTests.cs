@@ -133,6 +133,59 @@ namespace Zametek.Maths.Graphs.Tests
                         draws.Select(x => $@"{Hex(x)}={DurationSampler.RoundToWholeUnits(x, estimate).ToString(CultureInfo.InvariantCulture)}"));
                 }
             }
+
+            foreach (string line in SimulationLines())
+            {
+                yield return line;
+            }
+        }
+
+        // The iterations of whole simulations: the finish times, how often each activity was critical,
+        // the distinct paths in the order of their first appearance, and the paths of each
+        // iteration. The plans are built from numbers, so that the Rust port can build the same.
+        private static IEnumerable<string> SimulationLines()
+        {
+            var cases = new List<(string Name, SpikePlan Plan, bool UseResources, DurationDistribution Distribution, ulong Seed, int Iterations)>
+            {
+                (@"reference-15", SpikePlan.ReferenceSample(), false, DurationDistribution.BetaPert, 2026UL, 200),
+                (@"reference-15", SpikePlan.ReferenceSample(), false, DurationDistribution.Triangular, 7UL, 130),
+                (@"layered-40", SpikePlan.Layered(40, 5, 4), true, DurationDistribution.BetaPert, 99UL, 130),
+                (@"layered-40", SpikePlan.Layered(40, 5, 4), true, DurationDistribution.ModifiedBetaPert, 100UL, 70),
+            };
+
+            foreach ((string name, SpikePlan plan, bool useResources, DurationDistribution distribution, ulong seed, int iterations) in cases)
+            {
+                var simulator = new ScheduleSimulator<int, int, int>(
+                    plan.Activities.Select(x => (IDependentActivity<int, int, int>)plan.NewActivity(x, new DurationEstimate(x.Optimistic, x.Duration, x.Pessimistic).ExpectedDuration)).ToList(),
+                    plan.NewResources(useResources),
+                    plan.NewWorkStreams(),
+                    plan.Activities.ToDictionary(x => x.Id, x => new DurationEstimate(x.Optimistic, x.Duration, x.Pessimistic)));
+                SimulationResult<int> result = simulator.Run(new SimulationSettings
+                {
+                    Iterations = iterations,
+                    Seed = seed,
+                    Distribution = distribution,
+                    MaxDegreeOfParallelism = 1,
+                });
+
+                string key = $@"simulation {name} {distribution} seed={seed.ToString(CultureInfo.InvariantCulture)} iterations={iterations.ToString(CultureInfo.InvariantCulture)}";
+                yield return Line($@"{key} planned", new[] { simulator.PlannedFinishTime.ToString(CultureInfo.InvariantCulture) });
+                yield return Line($@"{key} finish", result.FinishTimes.Select(x => x.ToString(CultureInfo.InvariantCulture)));
+                yield return Line(
+                    $@"{key} critical",
+                    Enumerable.Range(0, result.ActivityIds.Count)
+                        .Select(a => Enumerable.Range(0, iterations).Count(i => result.IsCritical(i, a)).ToString(CultureInfo.InvariantCulture)));
+                yield return Line(
+                    $@"{key} paths",
+                    result.CriticalPaths.Select(path => string.Join(
+                        @">",
+                        path.Steps.Select(s => (s.Link == CriticalPathLink.Resource ? @"~" : string.Empty) + s.ActivityId.ToString(CultureInfo.InvariantCulture)))));
+                yield return Line(
+                    $@"{key} pathsof",
+                    Enumerable.Range(0, iterations).Select(i =>
+                        string.Join(@"+", result.CriticalPathIndexes(i).ToArray().Select(x => x.ToString(CultureInfo.InvariantCulture)))
+                        + (result.IsCriticalPathListComplete(i) ? string.Empty : @"!")));
+            }
         }
 
         #endregion
