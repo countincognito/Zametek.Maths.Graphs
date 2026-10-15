@@ -24,6 +24,22 @@ namespace Zametek.Maths.Graphs.Tests
     // It reads the finish time and the critical activities from the builder after step 4.
     // The compile is the oracle: the tests compare every result of this class with the
     // result of a full compile of the same plan with the same durations.
+    // How the order of the activities is found before they are offered resources.
+    internal enum SpikePriorityList
+    {
+        // The calculation of the library: take the activity with the least slack, make its
+        // duration zero, calculate again, and repeat.
+        Exact,
+
+        // An approximation: the list that the exact calculation gives for the most likely
+        // durations, used unchanged in every iteration.
+        FrozenFromTheMostLikelyDurations,
+
+        // An approximation: one ordering of the activities of the iteration by total slack
+        // and then by earliest start, with no repeated calculation.
+        StaticSlackOrder,
+    }
+
     internal sealed class SpikeLeanScheduler
     {
         // Ticks of the stopwatch for each part of one iteration, added up over many
@@ -54,9 +70,12 @@ namespace Zametek.Maths.Graphs.Tests
         private readonly List<IResource<int, int>> m_Resources;
         private readonly List<IWorkStream<int>> m_WorkStreams;
         private readonly bool m_Infinite;
+        private readonly int[] m_MostLikelyDurations;
+        private List<int> m_FrozenList;
 
         internal SpikeLeanScheduler(SpikePlan plan, bool useResources)
         {
+            m_MostLikelyDurations = plan.MostLikelyDurations();
             m_Compiler = plan.NewCompiler(plan.MostLikelyDurations());
             m_Builder = m_Compiler.Builder;
             m_Resources = plan.NewResources(useResources);
@@ -73,6 +92,8 @@ namespace Zametek.Maths.Graphs.Tests
 
         // The two faults that the test of the oracle seeds, to show that the oracle fails
         // when the lean path is wrong.
+        internal SpikePriorityList PriorityListMode { get; set; }
+
         internal bool FaultSkipReset { get; set; }
 
         internal bool FaultSkipSecondPass { get; set; }
@@ -121,8 +142,7 @@ namespace Zametek.Maths.Graphs.Tests
                     last = Stopwatch.GetTimestamp();
                 }
 
-                List<IResourceSchedule<int, int, int>> schedules =
-                    m_Builder.CalculateResourceSchedulesByPriorityList(m_Resources, cancellationToken);
+                List<IResourceSchedule<int, int, int>> schedules = Schedule(cancellationToken);
                 if (m_Infinite)
                 {
                     schedules = m_Builder.ResourceSchedulingEngine.ReplaceWithSyntheticResources(schedules);
@@ -154,6 +174,57 @@ namespace Zametek.Maths.Graphs.Tests
                 timing.Iterations++;
             }
             return finish;
+        }
+
+        // Step 2. With the exact list this is the library's own method. With an approximate
+        // list it takes the same steps as that method (one copy of the graph for the
+        // scheduler, which keeps the durations and the times of the first pass) and gives
+        // the scheduler a list that it found some other way.
+        private List<IResourceSchedule<int, int, int>> Schedule(CancellationToken cancellationToken)
+        {
+            if (PriorityListMode == SpikePriorityList.Exact)
+            {
+                return m_Builder.CalculateResourceSchedulesByPriorityList(m_Resources, cancellationToken);
+            }
+
+            List<IResource<int, int>> filtered = m_Resources.Where(x => !x.IsInactive).ToList();
+            var forTheScheduler = (VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>)m_Builder.CloneObject();
+            List<int> priorityList = PriorityListMode == SpikePriorityList.FrozenFromTheMostLikelyDurations
+                ? FrozenList(cancellationToken)
+                : m_ActivityList
+                    .Where(x => !x.IsDummy)
+                    .OrderBy(x => x.TotalSlack.GetValueOrDefault())
+                    .ThenBy(x => x.EarliestStartTime.GetValueOrDefault())
+                    .Select(x => x.Id)
+                    .ToList();
+            return m_Builder.ResourceSchedulingEngine
+                .CalculateResourceSchedules(priorityList, filtered, m_Infinite, forTheScheduler, cancellationToken)
+                .ToList();
+        }
+
+        // The exact list for the most likely durations, found once. It leaves the builder in
+        // the state of the first pass of the iteration under way, which the next steps need,
+        // and so the iteration's own durations are put back and its first pass is repeated.
+        private List<int> FrozenList(CancellationToken cancellationToken)
+        {
+            if (m_FrozenList is null)
+            {
+                int[] current = m_ByIndex.Select(x => x.Duration).ToArray();
+                for (int i = 0; i < m_ByIndex.Length; i++)
+                {
+                    m_ByIndex[i].Duration = m_MostLikelyDurations[i];
+                }
+                m_Builder.ResetResourceState(m_ActivityList);
+                m_Builder.CalculateCriticalPath();
+                m_FrozenList = m_Builder.CalculateCriticalPathPriorityList(cancellationToken);
+                for (int i = 0; i < m_ByIndex.Length; i++)
+                {
+                    m_ByIndex[i].Duration = current[i];
+                }
+                m_Builder.ResetResourceState(m_ActivityList);
+                m_Builder.CalculateCriticalPath();
+            }
+            return m_FrozenList;
         }
 
         // What a plain Compile costs on this scheduler's own compiler when the caller only
@@ -263,7 +334,8 @@ namespace Zametek.Maths.Graphs.Tests
             int threads,
             bool useResources,
             bool withLabels,
-            bool criticalPathOnlyWithoutResources = true)
+            bool criticalPathOnlyWithoutResources = true,
+            SpikePriorityList priorityList = SpikePriorityList.Exact)
         {
             var result = new Result
             {
@@ -287,6 +359,7 @@ namespace Zametek.Maths.Graphs.Tests
                     Scheduler = new SpikeLeanScheduler(plan, useResources)
                     {
                         CriticalPathOnlyWithoutResources = criticalPathOnlyWithoutResources,
+                        PriorityListMode = priorityList,
                     },
                     Durations = new int[plan.Activities.Count],
                     Critical = new bool[plan.Activities.Count],

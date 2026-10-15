@@ -475,6 +475,32 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void PriorityListModes_GivenTheMostLikelyDurations_ThenTheFrozenListGivesTheExactFinishAndCriticalActivities()
+        {
+            // The check on the experiment that follows. The frozen list is the exact list
+            // for the most likely durations, so for those durations the two must agree. The
+            // static order must at least schedule every iteration without a stall.
+            SpikePlan plan = SpikePlan.LoadSample();
+            int[] mostLikely = plan.MostLikelyDurations();
+            var exactCritical = new bool[plan.Activities.Count];
+            var frozenCritical = new bool[plan.Activities.Count];
+
+            int exact = new SpikeLeanScheduler(plan, useResources: true).Run(mostLikely, exactCritical, CancellationToken.None);
+            int frozen = new SpikeLeanScheduler(plan, useResources: true)
+            {
+                PriorityListMode = SpikePriorityList.FrozenFromTheMostLikelyDurations,
+            }.Run(mostLikely, frozenCritical, CancellationToken.None);
+
+            frozen.ShouldBe(exact);
+            frozenCritical.ShouldBe(exactCritical);
+
+            SpikeSimulation.Result staticOrder = SpikeSimulation.Run(
+                plan, SpikeDistribution.BetaPertMomentMatched, 128, seed: 3, threads: 1, useResources: true, withLabels: false,
+                priorityList: SpikePriorityList.StaticSlackOrder);
+            staticOrder.Failed.ShouldBe(0);
+        }
+
+        [Fact]
         public void Run_GivenNoSpreadInTheEstimates_ThenEveryIterationGivesTheFinishOfThePlan()
         {
             // The zero-variance check: when O, ML and P are equal, each iteration is the
@@ -703,6 +729,66 @@ namespace Zametek.Maths.Graphs.Tests
                 SpikeSimulation.Result compile = SpikeSimulation.Run(
                     plan, distribution, iterations / 3, seed: 2026, threads: 2, useResources: false, withLabels: true, criticalPathOnlyWithoutResources: false);
                 WriteSummary(string.Empty, "compile", Summarise(compile.Finishes.Select(x => (double)x).ToList(), compile.Labels));
+            }
+        }
+
+        [Fact(Explicit = true)]
+        public void MeasurePriorityListApproximations()
+        {
+            // What it costs in accuracy to find the priority list in a cheaper way, and what it
+            // saves in time. The exact list is the library's calculation. The two others are
+            // approximations (refer to SpikePriorityList). All three use the same random
+            // durations, so each difference is a difference of the list and nothing else.
+            //
+            // The time of the frozen list is also the best that any faster but exact
+            // calculation of the list could do: that calculation cannot cost less than nothing.
+            m_Output.WriteLine(@"Same durations in every mode. 'differ' = the share of the iterations whose finish time differs from the exact mode.");
+            m_Output.WriteLine(
+                $@"{"plan",-12} {"mode",-10} {"failed",7} {"mean",8} {"sd",7} {"P50",6} {"P80",6} {"P90",6} {"differ",8} {"mean |diff|",12} {"mean diff",10} {"ms/iter",9} {"speed-up",9}");
+
+            foreach ((SpikePlan plan, int iterations, int timedIterations) in new[]
+            {
+                (SpikePlan.LoadSample(), 3_072, 300),
+                (SpikePlan.Layered(100, layers: 4, resourceCount: 10), 2_048, 200),
+                (SpikePlan.Layered(250, layers: 10, resourceCount: 20), 1_024, 40),
+            })
+            {
+                const ulong seed = 41;
+                SpikeSimulation.Result exact = SpikeSimulation.Run(
+                    plan, SpikeDistribution.BetaPertMomentMatched, iterations, seed, threads: 2, useResources: true, withLabels: false);
+
+                double exactMilliseconds = 0;
+                foreach ((SpikePriorityList mode, string name) in new[]
+                {
+                    (SpikePriorityList.Exact, "exact"),
+                    (SpikePriorityList.FrozenFromTheMostLikelyDurations, "frozen"),
+                    (SpikePriorityList.StaticSlackOrder, "static"),
+                })
+                {
+                    SpikeSimulation.Result result = mode == SpikePriorityList.Exact
+                        ? exact
+                        : SpikeSimulation.Run(
+                            plan, SpikeDistribution.BetaPertMomentMatched, iterations, seed, threads: 2, useResources: true, withLabels: false, priorityList: mode);
+
+                    int[] a = exact.Finishes;
+                    int[] b = result.Finishes;
+                    int ok = Enumerable.Range(0, iterations).Count(i => b[i] >= 0);
+                    int differ = Enumerable.Range(0, iterations).Count(i => b[i] >= 0 && a[i] != b[i]);
+                    double meanAbsolute = Enumerable.Range(0, iterations).Where(i => b[i] >= 0).Average(i => Math.Abs(b[i] - a[i]));
+                    double meanSigned = Enumerable.Range(0, iterations).Where(i => b[i] >= 0).Average(i => b[i] - a[i]);
+                    List<double> finishes = b.Where(x => x >= 0).Select(x => (double)x).ToList();
+                    Summary s = Summarise(finishes, finishes.Select(x => string.Empty).ToList());
+
+                    // The time, on one thread and warmed up.
+                    var timed = new SpikeLeanScheduler(plan, useResources: true) { PriorityListMode = mode };
+                    var critical = new bool[plan.Activities.Count];
+                    List<int[]> vectors = DrawVectors(plan, SpikeDistribution.BetaPertMomentMatched, 24, seed: 5);
+                    double milliseconds = BestMillisecondsPerIteration(v => timed.Run(v, critical, CancellationToken.None), vectors, timedIterations);
+                    exactMilliseconds = mode == SpikePriorityList.Exact ? milliseconds : exactMilliseconds;
+
+                    m_Output.WriteLine(
+                        $@"{plan.Name,-12} {name,-10} {result.Failed,7} {s.Mean,8:F2} {s.StandardDeviation,7:F2} {s.P50,6:F0} {s.P80,6:F0} {s.P90,6:F0} {(100.0 * differ / ok).ToString("F1") + "%",8} {meanAbsolute,12:F2} {meanSigned,10:F2} {milliseconds,9:F2} {(exactMilliseconds / milliseconds).ToString("F2") + "x",9}");
+                }
             }
         }
 
