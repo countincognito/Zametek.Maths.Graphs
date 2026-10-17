@@ -12,6 +12,7 @@ jobs:
     name: Verify PR source is develop
     # Pinned rather than ubuntu-latest, so that the image changes only when this line does.
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - name: Reject non-develop source
         # The branch name is chosen by whoever opens the pull request, so it reaches the script through the
