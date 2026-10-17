@@ -12,19 +12,24 @@ permissions:
 jobs:
   build-and-test:
     name: Build & Test
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest, so that the image changes only when this line does.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: dotnet
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '10.x'
+          # Pinned rather than '10.x', so that a new SDK's analyzers cannot fail the build without a change to the code.
+          # Bump it deliberately.
+          dotnet-version: '10.0.402'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -43,14 +48,14 @@ jobs:
       # Note: `uses:` action inputs resolve from the workspace root, not from
       # the job's run working-directory, hence the dotnet/ prefixes below.
       - name: Upload test results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: test-results
           path: dotnet/TestResults/**/*.trx
 
       - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # 5.5.11
         if: always()
         with:
           reports: dotnet/TestResults/**/coverage.cobertura.xml
@@ -62,7 +67,7 @@ jobs:
         run: cat ./CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: coverage-report
@@ -73,34 +78,34 @@ jobs:
   # alarm for cross-language divergence.
   rust:
     name: Rust
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: rust
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      # The runner image ships rustup with a stable toolchain; make sure it is
-      # current and has the components the checks below need.
-      - name: Update Rust toolchain
-        run: |
-          rustup update stable
-          rustup default stable
-          rustup component add clippy rustfmt
+      # rust-toolchain.toml names the compiler and the components the checks below need. The rustup that the runner
+      # image ships installs exactly that, so no new release of Rust can change this job without a change to the file.
+      - name: Install Rust toolchain
+        run: rustup toolchain install
 
       - name: Check formatting
         run: cargo fmt --all --check
 
       # Warnings are errors: any clippy finding must fail the build.
+      # --locked: the build uses the versions in Cargo.lock, and fails if the lock file is out of date.
       - name: Lint
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --all-targets --locked -- -D warnings
 
       - name: Run tests
-        run: cargo test
+        run: cargo test --locked
 
       # The sample-project example self-asserts against a schedule computed by
       # the C# implementation, so running it is an end-to-end parity check.
       - name: Run parity example
-        run: cargo run --example sample_project
+        run: cargo run --locked --example sample_project
