@@ -19,7 +19,7 @@ namespace Zametek.Maths.Graphs.Tests
     {
         #region Helpers
 
-        private static List<IDependentActivity<int, int, int>> ActivitiesOf(SpikePlan plan) =>
+        internal static List<IDependentActivity<int, int, int>> ActivitiesOf(SpikePlan plan) =>
             plan.Activities
                 .Select(x => (IDependentActivity<int, int, int>)plan.NewActivity(x, EstimateOf(x).ExpectedDuration))
                 .ToList();
@@ -27,7 +27,7 @@ namespace Zametek.Maths.Graphs.Tests
         private static DurationEstimate EstimateOf(SpikePlan.ActivityRecord record) =>
             new DurationEstimate(record.Optimistic, record.Duration, record.Pessimistic);
 
-        private static Dictionary<int, DurationEstimate> EstimatesOf(SpikePlan plan) =>
+        internal static Dictionary<int, DurationEstimate> EstimatesOf(SpikePlan plan) =>
             plan.Activities.ToDictionary(x => x.Id, EstimateOf);
 
         private static ScheduleSimulator<int, int, int> SimulatorOf(SpikePlan plan, bool useResources) =>
@@ -63,7 +63,7 @@ namespace Zametek.Maths.Graphs.Tests
                     @">",
                     result.CriticalPaths[x].Steps.Select(s => s.Link == CriticalPathLink.Resource ? $@"~{s.ActivityId}" : s.ActivityId.ToString()))));
 
-        private static void ShouldBeTheSame(SimulationResult<int> actual, SimulationResult<int> expected)
+        internal static void ShouldBeTheSame(SimulationResult<int> actual, SimulationResult<int> expected)
         {
             actual.FinishTimes.ShouldBe(expected.FinishTimes);
             actual.CriticalPaths.Count.ShouldBe(expected.CriticalPaths.Count);
@@ -90,7 +90,8 @@ namespace Zametek.Maths.Graphs.Tests
         // simulation, so that any state that an iteration leaves behind shows in the next one.
         private static void ShouldAgreeWithTheCompile(SpikePlan plan, bool useResources, bool scheduleOntoSyntheticResources, int iterations, DurationDistribution distribution)
         {
-            var runner = new SimulationIterationRunner<int, int, int>(
+            var runner = new SimulationIterationRunner<int, int, int, IDependentActivity<int, int, int>>(
+                new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(new PreviousIdGenerator<int>()),
                 plan.Activities.Select(x => (IDependentActivity<int, int, int>)plan.NewActivity(x, x.Duration)).ToList(),
                 plan.NewResources(useResources),
                 scheduleOntoSyntheticResources);

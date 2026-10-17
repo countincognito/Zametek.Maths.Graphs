@@ -27,18 +27,23 @@ namespace Zametek.Maths.Graphs
     // many random durations, on one runner (and so they also find state that an iteration leaves
     // behind for the next).
     //
+    // The builder is the caller's. It holds the engines that decide how a plan is scheduled (the
+    // critical-path engine, the resource scheduler and the others), and so a plan is simulated with
+    // the engines that its caller compiles it with. The builder must be new and empty.
+    //
     // A runner holds a builder and the objects of one plan, and it is not safe for use by more
     // than one thread at a time. A simulation gives each thread a runner of its own.
-    internal sealed class SimulationIterationRunner<T, TResourceId, TWorkStreamId>
+    internal sealed class SimulationIterationRunner<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
+        where TActivity : class, IDependentActivity<T, TResourceId, TWorkStreamId>
     {
         internal const int Failed = SimulationResult<T>.FailedFinishTime;
 
-        private readonly VertexGraphBuilder<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>> m_Builder;
-        private readonly IDependentActivity<T, TResourceId, TWorkStreamId>[] m_Activities;
-        private readonly List<IDependentActivity<T, TResourceId, TWorkStreamId>> m_ActivityList;
+        private readonly VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> m_Builder;
+        private readonly TActivity[] m_Activities;
+        private readonly List<TActivity> m_ActivityList;
         private readonly List<IResource<TResourceId, TWorkStreamId>> m_ActiveResources;
         private readonly bool m_StopAfterTheFirstPass;
         private readonly bool m_ReplaceWithSyntheticResources;
@@ -46,18 +51,21 @@ namespace Zametek.Maths.Graphs
         // The activities are the runner's own: it changes their durations and their times, and so
         // the caller gives it copies. The resources are the runner's own too.
         internal SimulationIterationRunner(
-            IReadOnlyList<IDependentActivity<T, TResourceId, TWorkStreamId>> activities,
+            VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> builder,
+            IReadOnlyList<TActivity> activities,
             IEnumerable<IResource<TResourceId, TWorkStreamId>> resources,
             bool scheduleOntoSyntheticResources)
         {
-            T edgeId = default;
-            m_Builder = new VertexGraphBuilder<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>(
-                new PreviousIdGenerator<T>(edgeId));
+            m_Builder = builder ?? throw new ArgumentNullException(nameof(builder));
+            if (m_Builder.Activities.Any())
+            {
+                throw new InvalidOperationException(@"The builder already holds activities. A simulation needs a new, empty builder from its factory each time.");
+            }
 
-            m_Activities = new IDependentActivity<T, TResourceId, TWorkStreamId>[activities.Count];
+            m_Activities = new TActivity[activities.Count];
             for (int i = 0; i < activities.Count; i++)
             {
-                IDependentActivity<T, TResourceId, TWorkStreamId> activity = activities[i];
+                TActivity activity = activities[i];
                 m_Activities[i] = activity;
                 m_Builder.AddActivity(activity, new HashSet<T>(activity.Dependencies.Union(activity.PlanningDependencies)));
             }
@@ -74,7 +82,7 @@ namespace Zametek.Maths.Graphs
         }
 
         // The activities, in the order of the plan.
-        internal IReadOnlyList<IDependentActivity<T, TResourceId, TWorkStreamId>> Activities => m_Activities;
+        internal IReadOnlyList<TActivity> Activities => m_Activities;
 
         // Gives each activity its duration (in the order of the plan), schedules the plan, and
         // returns the finish time, or Failed when the resource scheduler could not place every

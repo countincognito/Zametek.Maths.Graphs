@@ -33,6 +33,13 @@ namespace Zametek.Maths.Graphs
     /// its token is cancelled.
     /// </para>
     /// <para>
+    /// The simulation schedules a plan with the builder that its caller gives it (as a factory, because each
+    /// thread needs a builder of its own). The engines of the builder decide how the plan is scheduled: the
+    /// critical-path engine, the resource scheduler and the others. Thus, a caller that compiles with engines
+    /// of its own gets a simulation that schedules in the same way. <see cref="ScheduleSimulator{T, TResourceId, TWorkStreamId}"/>
+    /// is this class with the standard engines. The Rust port has the standard engines only.
+    /// </para>
+    /// <para>
     /// An instance is safe for use by many threads: it never changes after it is made, and each run
     /// has its own copies of the plan.
     /// </para>
@@ -40,10 +47,12 @@ namespace Zametek.Maths.Graphs
     /// <typeparam name="T">The activity ID type.</typeparam>
     /// <typeparam name="TResourceId">The resource ID type.</typeparam>
     /// <typeparam name="TWorkStreamId">The work-stream ID type.</typeparam>
-    public sealed class ScheduleSimulator<T, TResourceId, TWorkStreamId>
+    /// <typeparam name="TActivity">The activity type of the builder. <see cref="ICloneObject.CloneObject"/> of an activity must give an object of this type.</typeparam>
+    public class ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>
         where T : struct, IComparable<T>, IEquatable<T>
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
+        where TActivity : class, IDependentActivity<T, TResourceId, TWorkStreamId>
     {
         // The number of iterations that share a generator of random numbers. It is part of the
         // result: a different size gives different draws for the same seed.
@@ -51,8 +60,9 @@ namespace Zametek.Maths.Graphs
 
         private readonly T[] m_ActivityIds;
         private readonly Dictionary<T, int> m_IndexById;
-        private readonly List<IDependentActivity<T, TResourceId, TWorkStreamId>> m_Activities;
+        private readonly List<TActivity> m_Activities;
         private readonly List<IResource<TResourceId, TWorkStreamId>> m_Resources;
+        private readonly Func<VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>> m_BuilderFactory;
         private readonly DurationEstimate[]? m_Estimates;
 
         /// <summary>
@@ -67,12 +77,20 @@ namespace Zametek.Maths.Graphs
         /// The estimates of the activities that have them. An activity that has none keeps its
         /// duration in every iteration. The key must be the ID of an activity of the plan.
         /// </param>
-        /// <exception cref="ArgumentException">An estimate belongs to an activity that is not in the plan, or two activities have the same ID.</exception>
+        /// <param name="builderFactory">
+        /// Makes the builder that schedules the plan: a new, empty builder each time it is called. The
+        /// simulation calls it once for the first check of the plan, and once for each thread that runs
+        /// iterations, and it calls it from any thread. A builder holds the engines that decide how a plan
+        /// is scheduled, and the engines of a builder must not be shared with another builder if they hold
+        /// state.
+        /// </param>
+        /// <exception cref="ArgumentException">An estimate belongs to an activity that is not in the plan, two activities have the same ID, or an activity clones itself to an object that is not a <typeparamref name="TActivity"/>.</exception>
         public ScheduleSimulator(
-            IEnumerable<IDependentActivity<T, TResourceId, TWorkStreamId>> activities,
+            IEnumerable<TActivity> activities,
             IEnumerable<IResource<TResourceId, TWorkStreamId>> resources,
             IEnumerable<IWorkStream<TWorkStreamId>> workStreams,
-            IReadOnlyDictionary<T, DurationEstimate> estimates)
+            IReadOnlyDictionary<T, DurationEstimate> estimates,
+            Func<VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>> builderFactory)
         {
             if (activities is null)
             {
@@ -90,8 +108,13 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(estimates));
             }
+            if (builderFactory is null)
+            {
+                throw new ArgumentNullException(nameof(builderFactory));
+            }
 
-            m_Activities = activities.Select(x => (IDependentActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList();
+            m_BuilderFactory = builderFactory;
+            m_Activities = activities.Select(CloneActivity).ToList();
             m_Resources = resources.Select(x => (IResource<TResourceId, TWorkStreamId>)x.CloneObject()).ToList();
             m_ActivityIds = m_Activities.Select(x => x.Id).ToArray();
 
@@ -114,12 +137,12 @@ namespace Zametek.Maths.Graphs
             // The plan is compiled once, as it stands, to find out whether it can be scheduled at
             // all. The iterations check nothing: they would find the same errors again and again.
             // The compile also gives the finish time that the plan itself has.
-            var compiler = new VertexGraphCompiler<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>();
-            foreach (IDependentActivity<T, TResourceId, TWorkStreamId> activity in m_Activities)
+            var compiler = new VertexGraphCompiler<T, TResourceId, TWorkStreamId, TActivity>(NewBuilder());
+            foreach (TActivity activity in m_Activities)
             {
-                compiler.AddActivity((IDependentActivity<T, TResourceId, TWorkStreamId>)activity.CloneObject());
+                compiler.AddActivity(CloneActivity(activity));
             }
-            IGraphCompilation<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>> compilation = compiler.Compile(
+            IGraphCompilation<T, TResourceId, TWorkStreamId, TActivity> compilation = compiler.Compile(
                 m_Resources.Select(x => (IResource<TResourceId, TWorkStreamId>)x.CloneObject()).ToList(),
                 workStreams.ToList(),
                 CancellationToken.None);
@@ -132,6 +155,19 @@ namespace Zametek.Maths.Graphs
                     .ToArray();
             }
         }
+
+        // A copy of an activity, as the type of the simulator. The builder holds activities of this type, and
+        // so an activity that clones itself to another type is refused here and not in the middle of a run.
+        private static TActivity CloneActivity(TActivity activity) =>
+            activity.CloneObject() as TActivity
+            ?? throw new ArgumentException(
+                $@"The activity {activity.Id} cloned itself to an object that is not a {typeof(TActivity)}. CloneObject of an activity must give an object of the type of the simulator.",
+                @"activities");
+
+        // A new builder from the factory of the caller.
+        private VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> NewBuilder() =>
+            m_BuilderFactory()
+            ?? throw new InvalidOperationException(@"The builder factory gave null. It must give a new, empty builder each time.");
 
         /// <summary>
         /// The activities, in the order in which the plan gave them: the order of the columns of a result.
@@ -319,18 +355,19 @@ namespace Zametek.Maths.Graphs
         // The state that one thread keeps for the chunks that it runs: its own copy of the plan.
         private sealed class Worker
         {
-            private readonly ScheduleSimulator<T, TResourceId, TWorkStreamId> m_Simulator;
+            private readonly ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity> m_Simulator;
             private readonly SimulationSettings m_Settings;
-            private readonly SimulationIterationRunner<T, TResourceId, TWorkStreamId> m_Runner;
+            private readonly SimulationIterationRunner<T, TResourceId, TWorkStreamId, TActivity> m_Runner;
             private readonly CriticalPathTracer<T, TResourceId, TWorkStreamId> m_Tracer;
             private readonly int[] m_Durations;
 
-            internal Worker(ScheduleSimulator<T, TResourceId, TWorkStreamId> simulator, SimulationSettings settings)
+            internal Worker(ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity> simulator, SimulationSettings settings)
             {
                 m_Simulator = simulator;
                 m_Settings = settings;
-                m_Runner = new SimulationIterationRunner<T, TResourceId, TWorkStreamId>(
-                    simulator.m_Activities.Select(x => (IDependentActivity<T, TResourceId, TWorkStreamId>)x.CloneObject()).ToList(),
+                m_Runner = new SimulationIterationRunner<T, TResourceId, TWorkStreamId, TActivity>(
+                    simulator.NewBuilder(),
+                    simulator.m_Activities.Select(CloneActivity).ToList(),
                     simulator.m_Resources.Select(x => (IResource<TResourceId, TWorkStreamId>)x.CloneObject()).ToList(),
                     settings.ScheduleOntoSyntheticResources);
                 m_Tracer = new CriticalPathTracer<T, TResourceId, TWorkStreamId>(m_Runner.Activities, simulator.m_IndexById);
@@ -371,7 +408,7 @@ namespace Zametek.Maths.Graphs
                         result.PathOffsets[k] = pathIndexes.Count;
                         result.PathsComplete![k] = true;
                     }
-                    if (finish == SimulationIterationRunner<T, TResourceId, TWorkStreamId>.Failed)
+                    if (finish == SimulationResult<T>.FailedFinishTime)
                     {
                         continue;
                     }
