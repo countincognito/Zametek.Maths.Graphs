@@ -533,11 +533,12 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ### 3.3.0
 
-Additive: nothing in 3.2.0 changes. The release adds a Monte Carlo simulation of a schedule. See [Simulating a schedule](#simulating-a-schedule).
+Additive, with one change to the dependencies: no type of 3.2.0 changes. The release adds a Monte Carlo simulation of a schedule. See [Simulating a schedule](#simulating-a-schedule).
 
 - **`ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>`** (in `Zametek.Maths.Graphs.Compilers`) runs the simulation with the builder that a factory of the caller gives it, and so with the engines of the caller. **`ScheduleSimulator<T, TResourceId, TWorkStreamId>`** is the same with the standard engines. Each iteration draws a duration for every activity that has estimates, schedules the plan again onto its resources, and records the finish time, the critical activities and the critical paths.
 - **`DurationEstimate`, `DurationDistribution`, `SimulationSettings`, `SimulationResult<T>`, `CriticalPath<T>`, `CriticalPathStep<T>` and `CriticalPathLink`** (in `Zametek.Maths.Graphs.Primitives`) are the input and the result. `DurationEstimate` holds the three estimates (0 <= O <= ML <= P) and works out the PERT expected duration and standard deviation.
 - **`GraphLimits.MaximumSimulationIterations`** is 1,000,000.
+- **`Zametek.Maths.Graphs.Compilers` no longer depends on `Zametek.Utility`.** The package used it for one list shuffle, which is now part of the package. Thus, the package no longer brings `Zametek.Utility`, `Newtonsoft.Json`, `System.Reflection.TypeExtensions` and `System.ValueTuple` into your project. If your code uses one of them through this package, add a reference of your own.
 - **The same result in .NET and in Rust.** For the same plan and settings, both ports give the same finish times, critical activities and critical paths. The logarithm, the exponential, the generator (xoshiro256**) and every sampler are written out in both, and a shared baseline file is checked by both test suites.
 
 ### 3.2.0
