@@ -40,3 +40,8 @@ pub const MAXIMUM_RESOURCE_COUNT: usize = 1_000;
 
 /// The largest accepted number of work streams supplied to a compilation.
 pub const MAXIMUM_WORK_STREAM_COUNT: usize = 100;
+
+/// The largest accepted number of iterations in one simulation. Each iteration
+/// schedules the plan again, so a simulation costs this many compiles at most,
+/// and the result holds the finish time of every iteration.
+pub const MAXIMUM_SIMULATION_ITERATIONS: usize = 1_000_000;

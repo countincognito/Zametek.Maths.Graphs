@@ -37,6 +37,7 @@ mod limit_checker;
 pub mod messages;
 mod scheduling;
 mod shuffle;
+pub mod simulation;
 mod tarjan;
 pub mod vertex;
 
@@ -54,6 +55,7 @@ pub use arrow::{
 pub use generators::{DummyActivityGenerator, EventGenerator, RemovableEventGenerator};
 pub use id_gen::{NextIdGenerator, PreviousIdGenerator};
 pub use scheduling::{PriorityListResourceScheduler, ResourceScheduleBuilder};
+pub use simulation::ScheduleSimulator;
 pub use vertex::{
     VertexCriticalPathEngine, VertexGraphBuilder, VertexGraphBuilderEngines, VertexGraphCompiler,
     VertexGraphState, VertexTarjanStronglyConnectedComponentsFinder, VertexTransitiveReducer,

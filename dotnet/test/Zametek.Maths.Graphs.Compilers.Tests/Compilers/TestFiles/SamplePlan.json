@@ -1,0 +1,925 @@
+{
+ "description": "Distilled from docs/assets/sample.zpp of Zametek.ProjectPlan (current scenario): the inputs the library compiler needs, and the finish time and critical activities the application stored for it.",
+ "storedFinishTime": 210,
+ "workStreams": [
+  1
+ ],
+ "resources": [
+  {
+   "id": 1,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 0,
+   "interActivityPhases": [],
+   "allocationOrder": 0
+  },
+  {
+   "id": 2,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 0,
+   "interActivityPhases": [],
+   "allocationOrder": 0
+  },
+  {
+   "id": 3,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 0
+  },
+  {
+   "id": 4,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 6
+  },
+  {
+   "id": 5,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 5
+  },
+  {
+   "id": 6,
+   "isExplicitTarget": false,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 4
+  },
+  {
+   "id": 7,
+   "isExplicitTarget": false,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 3
+  },
+  {
+   "id": 8,
+   "isExplicitTarget": false,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 2
+  },
+  {
+   "id": 9,
+   "isExplicitTarget": false,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 1
+  },
+  {
+   "id": 10,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 1,
+   "interActivityPhases": [],
+   "allocationOrder": 0
+  },
+  {
+   "id": 11,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 2,
+   "interActivityPhases": [
+    1
+   ],
+   "allocationOrder": 0
+  },
+  {
+   "id": 12,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 2,
+   "interActivityPhases": [
+    1
+   ],
+   "allocationOrder": 0
+  },
+  {
+   "id": 13,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 2,
+   "interActivityPhases": [],
+   "allocationOrder": 0
+  },
+  {
+   "id": 14,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 2,
+   "interActivityPhases": [],
+   "allocationOrder": 0
+  },
+  {
+   "id": 15,
+   "isExplicitTarget": true,
+   "isInactive": false,
+   "interActivityAllocationType": 2,
+   "interActivityPhases": [],
+   "allocationOrder": 0
+  }
+ ],
+ "activities": [
+  {
+   "id": 1,
+   "name": "Start",
+   "duration": 0,
+   "dependencies": [],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 2,
+   "name": "Requirements & Architecture",
+   "duration": 25,
+   "dependencies": [
+    1
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    13,
+    15
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 3,
+   "name": "Project Planning",
+   "duration": 15,
+   "dependencies": [
+    2
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    13,
+    14,
+    15
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 4,
+   "name": "Management Education",
+   "duration": 5,
+   "dependencies": [
+    3
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    13,
+    14,
+    15
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 5,
+   "name": "SDP Review",
+   "duration": 0,
+   "dependencies": [
+    2,
+    4
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    13,
+    14,
+    15
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 6,
+   "name": "UX Design",
+   "duration": 15,
+   "dependencies": [
+    7
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    2
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 7,
+   "name": "Dev Training",
+   "duration": 5,
+   "dependencies": [
+    5
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    15
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 8,
+   "name": "Test Plan",
+   "duration": 25,
+   "dependencies": [
+    7
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    3
+   ],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 9,
+   "name": "Test Harness",
+   "duration": 25,
+   "dependencies": [
+    8
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    3
+   ],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 10,
+   "name": "CM and setup",
+   "duration": 19,
+   "dependencies": [
+    5
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    12
+   ],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 11,
+   "name": "UI Design",
+   "duration": 20,
+   "dependencies": [
+    6
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    2
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 12,
+   "name": "Manual",
+   "duration": 20,
+   "dependencies": [
+    11
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    13
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 13,
+   "name": "Logging",
+   "duration": 10,
+   "dependencies": [
+    7
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 14,
+   "name": "Message Bus",
+   "duration": 15,
+   "dependencies": [
+    7
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    15
+   ],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 15,
+   "name": "Security",
+   "duration": 20,
+   "dependencies": [
+    7
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 16,
+   "name": "Metrics DB ",
+   "duration": 5,
+   "dependencies": [
+    10,
+    13,
+    14,
+    15,
+    42
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 17,
+   "name": "Members DB ",
+   "duration": 5,
+   "dependencies": [
+    10,
+    13,
+    14,
+    15,
+    21,
+    42
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 18,
+   "name": "Portfolios DB ",
+   "duration": 5,
+   "dependencies": [
+    10,
+    13,
+    14,
+    15,
+    17,
+    42
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 19,
+   "name": "Profiles DB ",
+   "duration": 5,
+   "dependencies": [
+    10,
+    13,
+    14,
+    15,
+    18,
+    42
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 20,
+   "name": "Workflows Repository",
+   "duration": 15,
+   "dependencies": [
+    14,
+    42
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 21,
+   "name": "Regulations DB",
+   "duration": 5,
+   "dependencies": [
+    10,
+    13,
+    14,
+    15,
+    42
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 22,
+   "name": "Data Migration",
+   "duration": 10,
+   "dependencies": [
+    16,
+    17,
+    18,
+    19,
+    21,
+    43
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 23,
+   "name": "Metrics Access ",
+   "duration": 10,
+   "dependencies": [
+    16,
+    43
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 24,
+   "name": "Members Access ",
+   "duration": 10,
+   "dependencies": [
+    17,
+    43
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 25,
+   "name": "Portfolios Access ",
+   "duration": 10,
+   "dependencies": [
+    18,
+    43
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 26,
+   "name": "Profiles Access ",
+   "duration": 10,
+   "dependencies": [
+    19,
+    43
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 27,
+   "name": "Workflows Access ",
+   "duration": 20,
+   "dependencies": [
+    20,
+    43
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 28,
+   "name": "Regulations Access",
+   "duration": 10,
+   "dependencies": [
+    21,
+    43
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 29,
+   "name": "Regulations Engine ",
+   "duration": 30,
+   "dependencies": [
+    28,
+    44
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 30,
+   "name": "Search Engine ",
+   "duration": 15,
+   "dependencies": [
+    24,
+    25,
+    44
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 31,
+   "name": "Analysis Engine",
+   "duration": 15,
+   "dependencies": [
+    25,
+    26,
+    29,
+    44
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 32,
+   "name": "Abstract Manager",
+   "duration": 30,
+   "dependencies": [
+    27,
+    44
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 33,
+   "name": "Membership Manager ",
+   "duration": 10,
+   "dependencies": [
+    23,
+    24,
+    29,
+    32,
+    44,
+    45
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 34,
+   "name": "Market Manager",
+   "duration": 10,
+   "dependencies": [
+    25,
+    30,
+    31,
+    32,
+    44,
+    45
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 35,
+   "name": "Performance Manager",
+   "duration": 10,
+   "dependencies": [
+    32,
+    45
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 36,
+   "name": "Investor Portal",
+   "duration": 15,
+   "dependencies": [
+    11,
+    33,
+    34,
+    35,
+    46
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 37,
+   "name": "Investee Portal",
+   "duration": 15,
+   "dependencies": [
+    11,
+    33,
+    34,
+    35,
+    46
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 38,
+   "name": "Mobile App",
+   "duration": 25,
+   "dependencies": [
+    11,
+    33,
+    34,
+    35,
+    46
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 39,
+   "name": "Manual Polishing",
+   "duration": 10,
+   "dependencies": [
+    36,
+    37,
+    38
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    13
+   ],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 40,
+   "name": "System Testing",
+   "duration": 10,
+   "dependencies": [
+    9,
+    36,
+    37,
+    38
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    10,
+    11
+   ],
+   "targetWorkStreams": [
+    1
+   ],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 41,
+   "name": "System Rollout",
+   "duration": 10,
+   "dependencies": [
+    12,
+    22,
+    39,
+    40
+   ],
+   "planningDependencies": [],
+   "targetResources": [
+    12,
+    13,
+    14,
+    15
+   ],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 42,
+   "name": "iFX Milestone",
+   "duration": 0,
+   "dependencies": [
+    10,
+    13,
+    14,
+    15
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 43,
+   "name": "DB Milestone",
+   "duration": 0,
+   "dependencies": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 44,
+   "name": "Access Milestone",
+   "duration": 0,
+   "dependencies": [
+    23,
+    24,
+    25,
+    26,
+    27,
+    28
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 45,
+   "name": "Engine Milestone",
+   "duration": 0,
+   "dependencies": [
+    30,
+    31,
+    32
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  },
+  {
+   "id": 46,
+   "name": "Manager Milestone",
+   "duration": 0,
+   "dependencies": [
+    33,
+    34,
+    35
+   ],
+   "planningDependencies": [],
+   "targetResources": [],
+   "targetWorkStreams": [],
+   "targetResourceOperator": 0,
+   "canBeRemoved": false
+  }
+ ]
+}
