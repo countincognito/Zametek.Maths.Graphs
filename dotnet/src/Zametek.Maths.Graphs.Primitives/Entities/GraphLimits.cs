@@ -49,5 +49,12 @@ namespace Zametek.Maths.Graphs
         /// The largest accepted number of work streams supplied to a compilation.
         /// </summary>
         public const int MaximumWorkStreamCount = 100;
+
+        /// <summary>
+        /// The largest accepted number of iterations in one simulation. Each iteration schedules
+        /// the plan again, so a simulation costs this many compiles at most, and the result holds
+        /// the finish time of every iteration.
+        /// </summary>
+        public const int MaximumSimulationIterations = 1_000_000;
     }
 }

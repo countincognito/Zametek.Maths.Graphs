@@ -12,6 +12,8 @@
 	  <None Remove="Builders\TestFiles\ResourceSchedule3.json" />
 	  <None Remove="Compilers\TestFiles\PriorityListBaseline.txt" />
 	  <None Remove="Compilers\TestFiles\ArrowCriticalPathBaseline.txt" />
+	  <None Remove="Compilers\TestFiles\SamplePlan.json" />
+	  <None Remove="Compilers\TestFiles\SimulationBaseline.txt" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -19,6 +21,12 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="Compilers\TestFiles\ArrowCriticalPathBaseline.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Compilers\TestFiles\SamplePlan.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Compilers\TestFiles\SimulationBaseline.txt">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="Builders\TestFiles\ResourceSchedule3.json">
@@ -33,13 +41,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Shouldly" Version="4.3.0" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+		<PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="10.0.1">
+		<PackageReference Include="coverlet.collector" Version="10.1.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

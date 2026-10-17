@@ -13,6 +13,7 @@
 
 mod activity;
 mod compilation;
+mod duration;
 mod edge;
 mod enums;
 mod error;
@@ -25,6 +26,7 @@ mod node;
 mod packed_bool_list;
 mod resource;
 mod schedule;
+mod simulation;
 mod work_stream;
 
 pub use activity::{Activity, DependentActivity};
@@ -32,6 +34,7 @@ pub use compilation::{
     CircularDependency, GraphCompilation, GraphCompilationError, InvalidConstraint,
     UnavailableResources,
 };
+pub use duration::{DurationDistribution, DurationEstimate};
 pub use edge::{Edge, HasId};
 pub use enums::{
     GraphCompilationErrorCode, InterActivityAllocationType, LogicalOperator, NodeType,
@@ -45,4 +48,7 @@ pub use node::Node;
 pub use packed_bool_list::{Iter as PackedBoolListIter, PackedBoolList};
 pub use resource::Resource;
 pub use schedule::{ResourceSchedule, ScheduledActivity};
+pub use simulation::{
+    CriticalPath, CriticalPathLink, CriticalPathStep, SimulationResult, SimulationSettings,
+};
 pub use work_stream::WorkStream;

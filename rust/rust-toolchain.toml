@@ -1,0 +1,6 @@
+# The compiler that CI and every developer use. Bump it deliberately, and nowhere else: a new release can add lints that
+# fail `cargo clippy -- -D warnings` without any change to the code. After a bump, run `rustup toolchain install` here.
+[toolchain]
+channel = "1.97.1"
+profile = "minimal"
+components = ["clippy", "rustfmt"]

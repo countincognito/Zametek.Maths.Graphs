@@ -25,6 +25,7 @@ The Rust workspace version tracks the NuGet package version: matching versions m
 - [Rust port guide](rust/README.md) - crate layout, design notes and how the C# patterns map onto Rust.
 - [Performance notes](dotnet/docs/PERFORMANCE.md) - the plan and the running audit: what was identified across the library, what became of each item, and what remains with a current verdict.
 - [Investigation record](dotnet/docs/TODO.md) - the measurements behind those items, the corpora that guard them, and the reasoning for what was changed and what was deliberately left alone.
+- [Releasing](RELEASING.md) - how a release is made: the version, the tag, the workflow that packs the NuGet packages, and the upload to nuget.org.
 
 ## Licence
 

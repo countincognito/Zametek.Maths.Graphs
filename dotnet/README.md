@@ -311,6 +311,75 @@ Work streams (`IWorkStream`) group activities into phases of a project; an activ
 
 Each compiler guards its state with an internal lock, so individual operations are thread-safe.
 
+## Simulating a schedule
+
+`ScheduleSimulator` runs a Monte Carlo simulation of a plan. A plan gives each activity one duration. A real activity has a range: an optimistic duration (O), a most likely duration (ML) and a pessimistic duration (P). Each iteration of the simulation draws a duration for every activity that has a range. It then schedules the whole plan again, onto its resources, as a compile does. The result tells you how the finish time of the plan varies, and which activities and paths decide it.
+
+```csharp
+// The activities are those that a compile takes, and each has the duration that the plan
+// schedules: the expected duration (O + 4 ML + P) / 6, rounded to the nearest whole unit
+// with halves up. DurationEstimate gives the expected duration, and checks 0 <= O <= ML <= P.
+var estimates = new Dictionary<int, DurationEstimate>
+{
+    [1] = new DurationEstimate(2, 4, 6),
+    [2] = new DurationEstimate(4, 5, 12),
+};
+var simulator = new ScheduleSimulator<int, int, int>(activities, resources, workStreams, estimates);
+
+if (simulator.CompilationErrors.Count > 0)
+{
+    // The plan cannot be scheduled, and the simulator reports why.
+}
+
+SimulationResult<int> result = simulator.Run(
+    new SimulationSettings { Iterations = 10_000, Seed = 42, Distribution = DurationDistribution.BetaPert },
+    progress: null,
+    CancellationToken.None);
+```
+
+An activity that has no entry in `estimates` keeps its duration in every iteration.
+
+**Engines of your own.** `ScheduleSimulator<T, TResourceId, TWorkStreamId>` schedules the plan with the standard engines. If you compile with engines of your own, use `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` and give it a factory for the builder. The simulation then schedules the plan in the same way as your compile does.
+
+```csharp
+var simulator = new ScheduleSimulator<int, int, int, MyActivity>(
+    activities, resources, workStreams, estimates,
+    () => new VertexGraphBuilder<int, int, int, MyActivity>(
+        new VertexGraphBuilderEngines<int, int, int, MyActivity>
+        {
+            ResourceSchedulingEngine = new MyScheduler(),
+        }));
+```
+
+- The factory gives a new, empty builder each time. The simulation calls it once for the first check of the plan, and once for each task that runs iterations. It can call it from any thread.
+- An engine that holds state must not be shared between builders.
+- `CloneObject` of an activity must give an object of the type `TActivity`. The constructor throws an `ArgumentException` when it does not.
+- An iteration calls the same methods of the builder as a compile does: the critical-path calculation, the resource scheduler and the other engines. It does not call `VertexGraphCompiler.Compile`. Thus, the engines decide how a simulation schedules a plan, and anything that a compiler adds to them is not a part of it.
+
+**What the result holds.** The result is raw, and it holds no statistics: you make the mean, the percentiles, the histogram and the criticality index from it. For each iteration it holds the finish time (`FinishTimes`), the activities that were critical (`IsCritical(iteration, activityIndex)`, one bit for each) and the critical paths (`CriticalPathIndexes(iteration)`, as indexes into `CriticalPaths`). An iteration that failed has the finish time `SimulationResult.FailedFinishTime`: the resource scheduler could not place every activity, or the schedule ran past `GraphLimits.MaximumTimeValue`. Both the critical activities and the paths can be left out (`RecordCriticalActivities`, `RecordCriticalPaths`) to save memory.
+
+**The distributions.** `DurationDistribution` has five members, and every one stays within the range from O to P.
+
+| Member | What it is |
+| - | - |
+| `BetaPert` (the default) | The beta of the reference PERT tools: its mean is the PERT mean and its variance is the PERT variance, ((P - O) / 6) squared. It matches the expected duration and the standard deviation that `DurationEstimate` gives. |
+| `ModifiedBetaPert` | The usual modified PERT beta: its mode is ML, and `ModifiedBetaShape` (4 by default) sets how tightly it is drawn around the mode. |
+| `Triangular` | A triangle with its minimum at O, its mode at ML and its maximum at P. |
+| `Normal` | A normal distribution with the PERT mean and the PERT standard deviation, held to the range from O to P. |
+| `Uniform` | A uniform distribution from O to P. |
+
+A draw is rounded to the nearest whole time unit, with halves up, because the scheduler works in whole units. A draw of 0 for an activity that takes time stays 0: the activity is then as short as a milestone in that iteration.
+
+**Repeatable results.** The same plan and the same settings give the same result. The iterations are split into chunks of 64, each with a generator of its own, and its seed comes from `Seed` and the number of the chunk. A result therefore does not depend on `MaxDegreeOfParallelism`, nor on the order in which the threads finish, and a run of fewer iterations is the start of a longer run with the same seed. The generator is xoshiro256** and the draws use only the operations that IEEE 754 fixes to the bit (the logarithm and the exponential are written out in the library), so the Rust port gives the same result, bit for bit, for the same plan and settings. `SimulationBaseline.txt` in the tests pins this, and both test suites check it.
+
+**Critical paths.** A critical path is a chain of critical activities, each of which starts at the moment that the one before it finishes, from the start of the plan to its finish. The link between two steps is `CriticalPathLink.Dependency` (the plan says so) or `CriticalPathLink.Resource` (the activities share a resource, and the resource is busy with the one before). An activity of zero duration (a milestone) is passed through and does not appear on the path, and so two chains that differ only by a milestone are one path. Whole days make ties common, and so an iteration can have several critical paths. The result gives all of them, up to `MaximumCriticalPathsPerIteration` (32 by default), and `IsCriticalPathListComplete(iteration)` says when the list was cut short. How to share the weight of an iteration among its tied paths is for the caller to decide.
+
+**Cost.** An iteration costs about as much as a compile, and the cost grows with the square of the number of activities. On the sample plan of the application (46 activities and 15 resources), one iteration takes about 0.8 ms; on a layered plan of 1,000 activities it takes about 100 ms. The simulator reports its progress to an `IProgress<int>`, and it stops between iterations when its token is cancelled. Behind the simulator, one internal class (`SimulationIterationRunner`) does the scheduling of an iteration, and the tests hold it to a full compile of the same plan with the same durations, so that a faster scheduler can replace it later.
+
+**A plan with no resources.** With no resources, a compile schedules the plan onto synthetic resources, and that can make more activities critical when two activities meet at the same moment. By default a simulation of such a plan stops after the first critical-path calculation: the finish times are those of a compile, and the critical activities are those of the plan alone. Set `ScheduleOntoSyntheticResources` to do what the compile does.
+
+The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator` uses the standard engines only. It does not take a builder, although the Rust `VertexGraphBuilder` does take engines (`VertexGraphBuilder::with_engines`).
+
 ## Limits
 
 Compilation applies sanity limits to its inputs, exposed as public constants on `GraphLimits` so you can validate user input at the point of entry rather than waiting for a compile:
@@ -322,6 +391,7 @@ Compilation applies sanity limits to its inputs, exposed as public constants on 
 | `GraphLimits.MaximumActivityCount` | `2_000` | activities in the graph |
 | `GraphLimits.MaximumResourceCount` | `1_000` | resources supplied to `Compile` (after inactive ones are filtered out) |
 | `GraphLimits.MaximumWorkStreamCount` | `100` | work streams supplied to `Compile` |
+| `GraphLimits.MaximumSimulationIterations` | `1_000_000` | iterations in one simulation (`SimulationSettings.Iterations`) |
 
 These are sanity bounds, not algorithmic ceilings: they exist so that absurd or corrupted input fails with a clear error instead of consuming unbounded time and memory. Declared values and counts are checked before compilation and reported as `P0080`. The *computed* schedule length is checked separately, after scheduling, and reported as `C0020` - per-value limits cannot bound it on their own, because individually legal durations still sum.
 
@@ -460,6 +530,16 @@ var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, in
 The critical-path engines and SCC finders read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts. The transitive reducers and the dummy-edge orchestrator restructure the graph, so they take the concrete `ArrowGraphState<…>` / `VertexGraphState<…>` directly: the state type is public, but its structural-mutation API is `internal`, so an external engine can read the state yet only the library's own engines can restructure it. Injected engines are preserved through `CloneObject()`.
 
 ## Breaking changes
+
+### 3.3.0
+
+Additive, with one change to the dependencies: no type of 3.2.0 changes. The release adds a Monte Carlo simulation of a schedule. See [Simulating a schedule](#simulating-a-schedule).
+
+- **`ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>`** (in `Zametek.Maths.Graphs.Compilers`) runs the simulation with the builder that a factory of the caller gives it, and so with the engines of the caller. **`ScheduleSimulator<T, TResourceId, TWorkStreamId>`** is the same with the standard engines. Each iteration draws a duration for every activity that has estimates, schedules the plan again onto its resources, and records the finish time, the critical activities and the critical paths.
+- **`DurationEstimate`, `DurationDistribution`, `SimulationSettings`, `SimulationResult<T>`, `CriticalPath<T>`, `CriticalPathStep<T>` and `CriticalPathLink`** (in `Zametek.Maths.Graphs.Primitives`) are the input and the result. `DurationEstimate` holds the three estimates (0 <= O <= ML <= P) and works out the PERT expected duration and standard deviation.
+- **`GraphLimits.MaximumSimulationIterations`** is 1,000,000.
+- **`Zametek.Maths.Graphs.Compilers` no longer depends on `Zametek.Utility`.** The package used it for one list shuffle, which is now part of the package. Thus, the package no longer brings `Zametek.Utility`, `Newtonsoft.Json`, `System.Reflection.TypeExtensions` and `System.ValueTuple` into your project. If your code uses one of them through this package, add a reference of your own.
+- **The same result in .NET and in Rust.** For the same plan and settings, both ports give the same finish times, critical activities and critical paths. The logarithm, the exponential, the generator (xoshiro256**) and every sampler are written out in both, and a shared baseline file is checked by both test suites.
 
 ### 3.2.0
 

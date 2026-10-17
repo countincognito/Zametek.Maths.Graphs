@@ -1,0 +1,124 @@
+name: Release
+
+# A version tag builds, tests and packs the two NuGet packages, and keeps them as the artifact 'nuget-packages'.
+# Nothing is published from here: download the artifact and upload the packages to nuget.org by hand (RELEASING.md).
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+  # A dry run from the Actions tab: the same build, tests and pack, on any branch, without the checks of the tag.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    name: Pack the NuGet packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: dotnet
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The whole history, to see whether master holds the tagged commit.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check the tag
+        if: github.ref_type == 'tag'
+        working-directory: ${{ github.workspace }}
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' dotnet/src/Directory.Build.props)
+          crates=$(sed -n '/^\[workspace\.package\]/,/^\[/ s/^version *= *"\(.*\)"/\1/p' rust/Cargo.toml)
+          echo "Tag $TAG; NuGet packages $version; Rust crates $crates"
+
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::The tag $TAG is not v$version, the version in dotnet/src/Directory.Build.props."
+            exit 1
+          fi
+
+          # The Rust workspace version tracks the NuGet package version (README.md).
+          if [ "$crates" != "$version" ]; then
+            echo "::error::The version of the Rust crates, $crates, is not $version. Change rust/Cargo.toml and Cargo.lock."
+            exit 1
+          fi
+
+          # A release comes from master. A pre-release, a tag with a suffix, may come from any branch.
+          if [[ "$TAG" != *-* ]] && ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::The commit of $TAG is not on master. Merge develop into master, then tag."
+            exit 1
+          fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          # Pinned, as in ci.yml: bump the two together.
+          dotnet-version: '10.0.402'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # No package leaves this workflow from a failing build.
+      - name: Run tests
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+      # GitHub sets CI=true, which makes the build deterministic (ContinuousIntegrationBuild in Directory.Build.props), and
+      # each package records the repository and the commit it was built from.
+      - name: Pack
+        run: bash ../.github/scripts/pack.sh "$GITHUB_WORKSPACE/dotnet/artifacts"
+
+      - name: Check the packages
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/Directory.Build.props)
+          cd artifacts
+          for id in Zametek.Maths.Graphs.Primitives Zametek.Maths.Graphs.Compilers; do
+            for extension in nupkg snupkg; do
+              if [ ! -f "$id.$version.$extension" ]; then
+                echo "::error::$id.$version.$extension was not packed."
+                exit 1
+              fi
+            done
+          done
+          if [ "$(ls | wc -l)" -ne 4 ]; then
+            echo "::error::Four files were expected in the artifacts folder:"
+            ls -l
+            exit 1
+          fi
+          ls -l
+          {
+            echo "## NuGet packages $version"
+            echo
+            if [ "$REF_TYPE" = "tag" ]; then
+              echo "Built from the tag $REF_NAME, commit $GITHUB_SHA."
+            else
+              echo "**A dry run, not a release:** built from the branch $REF_NAME, commit $GITHUB_SHA."
+            fi
+            echo
+            echo '```'
+            sha256sum ./*.nupkg ./*.snupkg
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nuget-packages
+          path: |
+            dotnet/artifacts/*.nupkg
+            dotnet/artifacts/*.snupkg
+          if-no-files-found: error
+          retention-days: 30
