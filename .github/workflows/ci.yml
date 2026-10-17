@@ -40,9 +40,11 @@ jobs:
 
       # No continue-on-error here: a failing test suite must fail the build.
       - name: Run tests
+        # No --results-directory: each test project then writes its results into its own TestResults folder.
+        # With one shared folder the two projects wrote the same results.trx, and only the last to finish was kept.
         run: |
           dotnet test --no-build --configuration Release --verbosity normal \
-            --logger "trx;LogFileName=results.trx" --results-directory ./TestResults \
+            --logger "trx;LogFileName=test-results.trx" \
             --collect:"XPlat Code Coverage"
 
       # Note: `uses:` action inputs resolve from the workspace root, not from
@@ -52,13 +54,13 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: dotnet/TestResults/**/*.trx
+          path: dotnet/test/*/TestResults/test-results.trx
 
       - name: Generate coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # 5.5.11
         if: always()
         with:
-          reports: dotnet/TestResults/**/coverage.cobertura.xml
+          reports: dotnet/test/*/TestResults/**/coverage.cobertura.xml
           targetdir: dotnet/CoverageReport
           reporttypes: HtmlInline;MarkdownSummaryGithub
 
