@@ -33,7 +33,7 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IResource<TResourceId, TWorkStreamId>> resources,
             IEnumerable<IWorkStream<TWorkStreamId>> workStreams,
             IReadOnlyDictionary<T, DurationEstimate> estimates)
-            : base(activities, resources, workStreams, estimates, NewStandardBuilder)
+            : base(activities, resources, workStreams, estimates, NewStandardBuilder, NewStandardCompiler)
         {
         }
 
@@ -43,6 +43,12 @@ namespace Zametek.Maths.Graphs
             T edgeId = default;
             return new VertexGraphBuilder<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>(
                 new PreviousIdGenerator<T>(edgeId));
+        }
+
+        // What a compile uses when it is not given another compiler: the standard one, around the builder.
+        private static VertexGraphCompiler<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>> NewStandardCompiler(VertexGraphBuilder<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>> builder)
+        {
+            return new VertexGraphCompiler<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>(builder);
         }
     }
 }

@@ -7,7 +7,8 @@
 
 use super::iteration_runner::SimulationIterationRunner;
 use super::random::SimulationRandom;
-use crate::vertex::VertexGraphCompiler;
+use crate::id_gen::PreviousIdGenerator;
+use crate::vertex::{VertexGraphBuilder, VertexGraphCompiler};
 use zametek_maths_graphs_primitives::{DependentActivity, InterActivityAllocationType, Resource};
 
 // A layered plan of 30 activities, as in the tests of the simulator.
@@ -47,7 +48,13 @@ fn resources(count: i32) -> Vec<Resource<i32, i32>> {
 fn assert_agrees_with_the_compile(resource_count: i32, onto_synthetic: bool) {
     let activities = plan();
     let resources = resources(resource_count);
-    let mut runner = SimulationIterationRunner::new(&activities, &resources, onto_synthetic);
+    let mut runner = SimulationIterationRunner::new(
+        VertexGraphBuilder::new(PreviousIdGenerator::new(0)),
+        &activities,
+        &resources,
+        onto_synthetic,
+    )
+    .unwrap();
     let ids: Vec<i32> = activities.iter().map(|x| x.id()).collect();
     let shortcut = resource_count == 0 && !onto_synthetic;
     let mut random = SimulationRandom::new(2024);
@@ -97,4 +104,17 @@ fn run_given_no_resources_and_the_compile_way_then_gives_the_critical_activities
 #[test]
 fn run_given_no_resources_and_the_shortcut_then_gives_the_finish_of_a_compile() {
     assert_agrees_with_the_compile(0, false);
+}
+
+#[test]
+fn new_given_a_builder_that_already_holds_activities_then_fails() {
+    let activities = plan();
+    let mut builder = VertexGraphBuilder::new(PreviousIdGenerator::new(0));
+    builder.add_activity(activities[0].clone());
+
+    let error = SimulationIterationRunner::new(builder, &activities, &resources(3), false)
+        .err()
+        .expect("a builder that holds activities is refused");
+
+    assert!(error.message().contains("empty"), "{}", error.message());
 }

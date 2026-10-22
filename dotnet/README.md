@@ -339,7 +339,7 @@ SimulationResult<int> result = simulator.Run(
 
 An activity that has no entry in `estimates` keeps its duration in every iteration.
 
-**Engines of your own.** `ScheduleSimulator<T, TResourceId, TWorkStreamId>` schedules the plan with the standard engines. If you compile with engines of your own, use `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` and give it a factory for the builder. The simulation then schedules the plan in the same way as your compile does.
+**Engines of your own.** `ScheduleSimulator<T, TResourceId, TWorkStreamId>` schedules the plan with the standard engines. If you compile with engines of your own, use `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` and give it two factories: one for the builder, and one for the compiler of the first check of the plan. The simulation then schedules the plan in the same way as your compile does.
 
 ```csharp
 var simulator = new ScheduleSimulator<int, int, int, MyActivity>(
@@ -348,13 +348,16 @@ var simulator = new ScheduleSimulator<int, int, int, MyActivity>(
         new VertexGraphBuilderEngines<int, int, int, MyActivity>
         {
             ResourceSchedulingEngine = new MyScheduler(),
-        }));
+        }),
+    builder => new VertexGraphCompiler<int, int, int, MyActivity>(builder));
 ```
 
-- The factory gives a new, empty builder each time. The simulation calls it once for the first check of the plan, and once for each task that runs iterations. It can call it from any thread.
+- The builder factory gives a new, empty builder each time. The simulation calls it once for the first check of the plan, and once for each task that runs iterations. It can call it from any thread.
+- The compiler factory is given the builder of the first check, and it gives a compiler for it. Normally this is a `VertexGraphCompiler` around that builder, as in the example. The simulation calls the factory once, when it makes the simulator, and never for an iteration. The compile of the first check gives `CompilationErrors` and `PlannedFinishTime`.
+- The constructor throws an `ArgumentNullException` for a factory that is null, and an `InvalidOperationException` for a factory that gives null.
 - An engine that holds state must not be shared between builders.
 - `CloneObject` of an activity must give an object of the type `TActivity`. The constructor throws an `ArgumentException` when it does not.
-- An iteration calls the same methods of the builder as a compile does: the critical-path calculation, the resource scheduler and the other engines. It does not call `VertexGraphCompiler.Compile`. Thus, the engines decide how a simulation schedules a plan, and anything that a compiler adds to them is not a part of it.
+- An iteration calls the same methods of the builder as a compile does: the critical-path calculation, the resource scheduler and the other engines. It does not call `VertexGraphCompiler.Compile`. Only the first check of the plan does that, with the compiler from the compiler factory. Thus, the engines decide how a simulation schedules a plan, and anything that a compiler adds to them is not a part of the iterations.
 
 **What the result holds.** The result is raw, and it holds no statistics: you make the mean, the percentiles, the histogram and the criticality index from it. For each iteration it holds the finish time (`FinishTimes`), the activities that were critical (`IsCritical(iteration, activityIndex)`, one bit for each) and the critical paths (`CriticalPathIndexes(iteration)`, as indexes into `CriticalPaths`). An iteration that failed has the finish time `SimulationResult.FailedFinishTime`: the resource scheduler could not place every activity, or the schedule ran past `GraphLimits.MaximumTimeValue`. Both the critical activities and the paths can be left out (`RecordCriticalActivities`, `RecordCriticalPaths`) to save memory.
 
@@ -378,7 +381,7 @@ A draw is rounded to the nearest whole time unit, with halves up, because the sc
 
 **A plan with no resources.** With no resources, a compile schedules the plan onto synthetic resources, and that can make more activities critical when two activities meet at the same moment. By default a simulation of such a plan stops after the first critical-path calculation: the finish times are those of a compile, and the critical activities are those of the plan alone. Set `ScheduleOntoSyntheticResources` to do what the compile does.
 
-The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator` uses the standard engines only. It does not take a builder, although the Rust `VertexGraphBuilder` does take engines (`VertexGraphBuilder::with_engines`).
+The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator::new` uses the standard engines, and `ScheduleSimulator::with_factories` takes the same two factories as the constructor above, as closures that make a `VertexGraphBuilder` (which can have engines of the caller, with `VertexGraphBuilder::with_engines`) and a `VertexGraphCompiler`.
 
 ## Limits
 

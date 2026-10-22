@@ -12,6 +12,11 @@ namespace Zametek.Maths.Graphs.Tests
     // factory, in the first check of the plan and in every iteration, that a builder with the standard
     // engines gives the result of the simulator with no factory, that an engine that schedules in
     // another way changes the result, and that a type of activity of the caller's own is kept.
+    //
+    // The first check of the plan is a compile, and the compiler for it comes from a second factory of the
+    // caller, which is given the builder of the check. These tests also show that the simulator asks that
+    // factory once, that the check is a compile by the compiler that it gives, and that a factory that
+    // is missing, or that gives nothing, is refused.
     public class ScheduleSimulatorBuilderTests
     {
         #region Helpers
@@ -25,15 +30,28 @@ namespace Zametek.Maths.Graphs.Tests
                 new VertexCriticalPathEngine<int, int, int, IDependentActivity<int, int, int>>(),
                 scheduler);
 
+        // The compiler that a compile uses when it is not given another: the standard one, around the builder.
+        private static VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>> CompilerOf(
+            VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>> builder) =>
+            new(builder);
+
+        // With the standard compiler for the builder of the factory.
         private static ScheduleSimulator<int, int, int, IDependentActivity<int, int, int>> SimulatorOf(
             SpikePlan plan,
             Func<VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>> builderFactory) =>
+            SimulatorOf(plan, builderFactory, CompilerOf);
+
+        private static ScheduleSimulator<int, int, int, IDependentActivity<int, int, int>> SimulatorOf(
+            SpikePlan plan,
+            Func<VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>> builderFactory,
+            Func<VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>, VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>> compilerFactory) =>
             new(
                 ScheduleSimulatorTests.ActivitiesOf(plan),
                 plan.NewResources(true),
                 plan.NewWorkStreams(),
                 ScheduleSimulatorTests.EstimatesOf(plan),
-                builderFactory);
+                builderFactory,
+                compilerFactory);
 
         private static ScheduleSimulator<int, int, int> StandardSimulatorOf(SpikePlan plan) =>
             new(
@@ -88,19 +106,25 @@ namespace Zametek.Maths.Graphs.Tests
                 m_Inner.GetResourcePhasesUsed(totalSchedules, workstreamsUsed);
         }
 
-        // Counts the plans that it is asked to schedule. The count is shared by the schedulers of all the builders.
+        // Counts the plans that it is asked to schedule, the builders that the factory makes and the compilers that
+        // the second factory makes. The count is shared by the schedulers of all the builders.
         private sealed class Counter
         {
             private int m_Schedules;
             private int m_Builders;
+            private int m_Compilers;
 
             public int Schedules => Volatile.Read(ref m_Schedules);
 
             public int Builders => Volatile.Read(ref m_Builders);
 
+            public int Compilers => Volatile.Read(ref m_Compilers);
+
             public void CountSchedule() => Interlocked.Increment(ref m_Schedules);
 
             public void CountBuilder() => Interlocked.Increment(ref m_Builders);
+
+            public void CountCompiler() => Interlocked.Increment(ref m_Compilers);
         }
 
         private sealed class CountingScheduler
@@ -165,6 +189,21 @@ namespace Zametek.Maths.Graphs.Tests
 
         private static SimulationSettings SettingsOf(int iterations, int threads) =>
             new() { Iterations = iterations, Seed = 4242, MaxDegreeOfParallelism = threads };
+
+        // The finish time of a compile of the plan by a compiler around a builder with the given scheduler. This is
+        // what the check of a simulator gives when its compiler has that scheduler.
+        private static int FinishOf(SpikePlan plan, IResourceSchedulingEngine<int, int, int> scheduler)
+        {
+            VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>> compiler = CompilerOf(BuilderOf(scheduler));
+            foreach (IDependentActivity<int, int, int> activity in ScheduleSimulatorTests.ActivitiesOf(plan))
+            {
+                compiler.AddActivity(activity);
+            }
+
+            compiler.Compile(plan.NewResources(true), plan.NewWorkStreams(), TestContext.Current.CancellationToken)
+                .CompilationErrors.ShouldBeEmpty();
+            return compiler.FinishTime;
+        }
 
         #endregion
 
@@ -245,6 +284,96 @@ namespace Zametek.Maths.Graphs.Tests
 
         #endregion
 
+        #region The compiler of the factory
+
+        [Fact]
+        public void Ctor_Given_ACompilerFactory_Then_AsksForOneCompilerForTheBuilderOfTheCheck()
+        {
+            var made = new List<VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>>();
+            var given = new List<VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>>();
+
+            ScheduleSimulator<int, int, int, IDependentActivity<int, int, int>> simulator = SimulatorOf(
+                SpikePlan.LoadSample(),
+                () =>
+                {
+                    VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>> builder = BuilderOf();
+                    made.Add(builder);
+                    return builder;
+                },
+                builder =>
+                {
+                    given.Add(builder);
+                    return CompilerOf(builder);
+                });
+
+            // The builder of the check is the one that the builder factory made, and the compiler is made around it.
+            made.Count.ShouldBe(1);
+            given.Count.ShouldBe(1);
+            given[0].ShouldBeSameAs(made[0]);
+            simulator.CompilationErrors.ShouldBeEmpty();
+        }
+
+        [Fact]
+        public void Run_Given_ManyThreads_Then_TheCompilerFactoryIsNotAskedAgain()
+        {
+            var counter = new Counter();
+            ScheduleSimulator<int, int, int, IDependentActivity<int, int, int>> simulator = SimulatorOf(
+                SpikePlan.LoadSample(),
+                () =>
+                {
+                    counter.CountBuilder();
+                    return BuilderOf();
+                },
+                builder =>
+                {
+                    counter.CountCompiler();
+                    return CompilerOf(builder);
+                });
+
+            simulator.Run(SettingsOf(640, 4), TestContext.Current.CancellationToken);
+
+            // Only the check of the plan is a compile. An iteration schedules with the builder of its thread.
+            counter.Compilers.ShouldBe(1);
+            counter.Builders.ShouldBeGreaterThan(1);
+        }
+
+        [Fact]
+        public void Ctor_Given_ACompilerOverAnotherBuilder_Then_TheCheckOfThePlanIsACompileByThatCompiler()
+        {
+            var ofTheBuilderFactory = new Counter();
+            var ofTheCompiler = new Counter();
+
+            ScheduleSimulator<int, int, int, IDependentActivity<int, int, int>> simulator = SimulatorOf(
+                SpikePlan.LoadSample(),
+                () => BuilderOf(new CountingScheduler(ofTheBuilderFactory)),
+                _ => CompilerOf(BuilderOf(new CountingScheduler(ofTheCompiler))));
+
+            // The compile went through the compiler. The builder that the builder factory made has scheduled nothing.
+            simulator.CompilationErrors.ShouldBeEmpty();
+            ofTheCompiler.Schedules.ShouldBeGreaterThan(0);
+            ofTheBuilderFactory.Schedules.ShouldBe(0);
+        }
+
+        [Fact]
+        public void Ctor_Given_ACompilerOfAnotherScheduler_Then_ThePlannedFinishIsTheFinishOfThatCompiler()
+        {
+            // Few resources for many activities, so that the order in which they are scheduled decides the finish.
+            SpikePlan plan = SpikePlan.Layered(100, 10, 3);
+            int standard = StandardSimulatorOf(plan).PlannedFinishTime;
+            int reversed = FinishOf(plan, new ReversingScheduler());
+            reversed.ShouldNotBe(standard);
+
+            // The builder of the factory has the standard engines, and the compiler is around a builder that reverses.
+            ScheduleSimulator<int, int, int, IDependentActivity<int, int, int>> simulator = SimulatorOf(
+                plan,
+                () => BuilderOf(),
+                _ => CompilerOf(BuilderOf(new ReversingScheduler())));
+
+            simulator.PlannedFinishTime.ShouldBe(reversed);
+        }
+
+        #endregion
+
         #region The type of the activity
 
         [Fact]
@@ -256,7 +385,8 @@ namespace Zametek.Maths.Graphs.Tests
                 plan.NewResources(true),
                 plan.NewWorkStreams(),
                 ScheduleSimulatorTests.EstimatesOf(plan),
-                () => new VertexGraphBuilder<int, int, int, SpecialActivity>(new PreviousIdGenerator<int>()));
+                () => new VertexGraphBuilder<int, int, int, SpecialActivity>(new PreviousIdGenerator<int>()),
+                (x) => new VertexGraphCompiler<int, int, int, SpecialActivity>(x));
 
             SimulationResult<int> actual = simulator.Run(SettingsOf(200, 2), TestContext.Current.CancellationToken);
             SimulationResult<int> expected = StandardSimulatorOf(plan).Run(SettingsOf(200, 2), TestContext.Current.CancellationToken);
@@ -274,7 +404,8 @@ namespace Zametek.Maths.Graphs.Tests
                 plan.NewResources(true),
                 plan.NewWorkStreams(),
                 ScheduleSimulatorTests.EstimatesOf(plan),
-                () => new VertexGraphBuilder<int, int, int, WrongCloneActivity>(new PreviousIdGenerator<int>())));
+                () => new VertexGraphBuilder<int, int, int, WrongCloneActivity>(new PreviousIdGenerator<int>()),
+                (x) => new VertexGraphCompiler<int, int, int, WrongCloneActivity>(x)));
 
             thrown.Message.ShouldContain(nameof(WrongCloneActivity));
         }
@@ -297,6 +428,27 @@ namespace Zametek.Maths.Graphs.Tests
             SpikePlan plan = SpikePlan.LoadSample();
 
             Should.Throw<InvalidOperationException>(() => SimulatorOf(plan, () => null!));
+        }
+
+        [Fact]
+        public void Ctor_Given_NoCompilerFactory_Then_Throws()
+        {
+            SpikePlan plan = SpikePlan.LoadSample();
+
+            var thrown = Should.Throw<ArgumentNullException>(() => SimulatorOf(plan, () => BuilderOf(), null!));
+
+            thrown.ParamName.ShouldBe("compilerFactory");
+        }
+
+        [Fact]
+        public void Ctor_Given_ACompilerFactoryThatGivesNull_Then_Throws()
+        {
+            SpikePlan plan = SpikePlan.LoadSample();
+
+            var thrown = Should.Throw<InvalidOperationException>(() => SimulatorOf(plan, () => BuilderOf(), _ => null!));
+
+            // The message names the compiler, so that it cannot be taken for the message about the builder.
+            thrown.Message.ShouldContain("compiler", Case.Insensitive);
         }
 
         [Fact]
