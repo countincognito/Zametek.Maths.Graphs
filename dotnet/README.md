@@ -534,6 +534,13 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ## Breaking changes
 
+### 3.4.0
+
+One breaking change, to the constructor of the simulator that takes the engines of the caller. Nothing else in the public API of 3.3.0 changes, and `ScheduleSimulator<T, TResourceId, TWorkStreamId>` (the standard engines) is the same.
+
+- **`ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` takes a compiler factory.** The constructor has a new last parameter, `compilerFactory`, a `Func<VertexGraphBuilder<…>, VertexGraphCompiler<…>>`. The first check of the plan is a compile by the compiler that it gives, and `CompilationErrors` and `PlannedFinishTime` come from that compile. The simulator calls the factory once, with the builder that the builder factory made for the check, and never for an iteration. The constructor of 3.3.0, with five parameters, is gone. To move to 3.4.0, add `builder => new VertexGraphCompiler<T, TResourceId, TWorkStreamId, TActivity>(builder)` as the last argument. This is what 3.3.0 did. See [Simulating a schedule](#simulating-a-schedule).
+- **The Rust `ScheduleSimulator` takes the same two factories.** `ScheduleSimulator::with_factories` is new, and `ScheduleSimulator::new` is the same as before. In both languages, a builder that already holds activities makes the run fail.
+
 ### 3.3.0
 
 Additive, with one change to the dependencies: no type of 3.2.0 changes. The release adds a Monte Carlo simulation of a schedule. See [Simulating a schedule](#simulating-a-schedule).
