@@ -15,15 +15,23 @@
 //! (SCC finder, CPM engine, transitive reducer, resource scheduler, generators).
 //! This port preserves those seams as the traits in [`contracts`], each with a
 //! default engine struct that keeps the C# name. As in the C# reference the
-//! engines are stateless (they take the graph state as a parameter), so neither
-//! has `…Factory` seams. The C# thread-safety locks are replaced by Rust's
-//! `&mut` ownership rules.
+//! engines are stateless (they take the graph state as a parameter), so they
+//! have no `…Factory` seams, and one engine serves every builder and every
+//! thread (the engine traits are `Send + Sync`). The C# thread-safety locks are
+//! replaced by Rust's `&mut` ownership rules.
 //!
 //! To customise an engine, pass an engines bundle
 //! ([`VertexGraphBuilderEngines`](vertex::VertexGraphBuilderEngines) /
 //! [`ArrowGraphBuilderEngines`](arrow::ArrowGraphBuilderEngines)) to the
 //! builder's `with_engines` constructor, setting only the fields you want to
 //! override.
+//!
+//! A builder is not stateless: it holds the state of one graph. Code that needs
+//! many builders takes a factory ([`contracts::IVertexGraphFactory`] /
+//! [`contracts::IArrowGraphFactory`]), and [`VertexGraphFactory`] /
+//! [`ArrowGraphFactory`] are the standard ones. They take the same engines
+//! bundle, and they give each builder an ID generator of its own.
+//! [`ScheduleSimulator::with_factory`] takes a vertex factory.
 
 mod ancestor;
 pub mod arrow;
@@ -49,8 +57,8 @@ mod engine_tests;
 
 pub use arrow::{
     ArrowCriticalPathEngine, ArrowGraphBuilder, ArrowGraphBuilderEngines, ArrowGraphCompiler,
-    ArrowGraphState, ArrowTarjanStronglyConnectedComponentsFinder, ArrowTransitiveReducer,
-    DummyEdgeOrchestrator,
+    ArrowGraphFactory, ArrowGraphState, ArrowTarjanStronglyConnectedComponentsFinder,
+    ArrowTransitiveReducer, DummyEdgeOrchestrator,
 };
 pub use generators::{DummyActivityGenerator, EventGenerator, RemovableEventGenerator};
 pub use id_gen::{NextIdGenerator, PreviousIdGenerator};
@@ -58,7 +66,8 @@ pub use scheduling::{PriorityListResourceScheduler, ResourceScheduleBuilder};
 pub use simulation::ScheduleSimulator;
 pub use vertex::{
     VertexCriticalPathEngine, VertexGraphBuilder, VertexGraphBuilderEngines, VertexGraphCompiler,
-    VertexGraphState, VertexTarjanStronglyConnectedComponentsFinder, VertexTransitiveReducer,
+    VertexGraphFactory, VertexGraphState, VertexTarjanStronglyConnectedComponentsFinder,
+    VertexTransitiveReducer,
 };
 
 pub use zametek_maths_graphs_primitives as primitives;

@@ -28,13 +28,12 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         /// <summary>
-        /// Creates a compiler wired with the default engines.
+        /// Creates a compiler wired with the default engines: the builder is one that a
+        /// <see cref="VertexGraphFactory{T, TResourceId, TWorkStreamId, TActivity}"/> makes.
         /// </summary>
         public VertexGraphCompiler()
+            : this(new VertexGraphFactory<T, TResourceId, TWorkStreamId, TDependentActivity>().CreateBuilder())
         {
-            T edgeId = default;
-            m_VertexGraphBuilder = new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity>(new PreviousIdGenerator<T>(edgeId));
-            m_Lock = new object();
         }
 
         // Builder-injecting constructor - accepts a builder configured with custom engines.

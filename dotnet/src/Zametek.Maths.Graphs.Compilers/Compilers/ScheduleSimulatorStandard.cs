@@ -5,10 +5,11 @@ namespace Zametek.Maths.Graphs
 {
     /// <summary>
     /// A Monte Carlo simulation of a schedule, with the standard engines of the library. The activities are
-    /// <see cref="IDependentActivity{T, TResourceId, TWorkStreamId}"/>, and the plan is scheduled as a
+    /// <see cref="IDependentActivity{T, TResourceId, TWorkStreamId}"/>, and the plan is scheduled in the way that a
     /// <see cref="VertexGraphCompiler{T, TResourceId, TWorkStreamId, TDependentActivity}"/> that is made with no builder
-    /// schedules it. Use <see cref="ScheduleSimulator{T, TResourceId, TWorkStreamId, TActivity}"/> to simulate a
-    /// plan with a builder that has other engines, or another type of activity. See that class for how a simulation works.
+    /// schedules it: the factory of this class is a <see cref="VertexGraphFactory{T, TResourceId, TWorkStreamId, TActivity}"/>
+    /// with the standard engines. Use <see cref="ScheduleSimulator{T, TResourceId, TWorkStreamId, TActivity}"/> to simulate a
+    /// plan with a factory that has other engines, or with another type of activity. See that class for how a simulation works.
     /// </summary>
     /// <typeparam name="T">The activity ID type.</typeparam>
     /// <typeparam name="TResourceId">The resource ID type.</typeparam>
@@ -33,22 +34,13 @@ namespace Zametek.Maths.Graphs
             IEnumerable<IResource<TResourceId, TWorkStreamId>> resources,
             IEnumerable<IWorkStream<TWorkStreamId>> workStreams,
             IReadOnlyDictionary<T, DurationEstimate> estimates)
-            : base(activities, resources, workStreams, estimates, NewStandardBuilder, NewStandardCompiler)
+            : base(
+                  activities,
+                  resources,
+                  workStreams,
+                  estimates,
+                  new VertexGraphFactory<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>())
         {
-        }
-
-        // What a compile makes when it is not given a builder.
-        private static VertexGraphBuilder<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>> NewStandardBuilder()
-        {
-            T edgeId = default;
-            return new VertexGraphBuilder<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>(
-                new PreviousIdGenerator<T>(edgeId));
-        }
-
-        // What a compile uses when it is not given another compiler: the standard one, around the builder.
-        private static VertexGraphCompiler<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>> NewStandardCompiler(VertexGraphBuilder<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>> builder)
-        {
-            return new VertexGraphCompiler<T, TResourceId, TWorkStreamId, IDependentActivity<T, TResourceId, TWorkStreamId>>(builder);
         }
     }
 }

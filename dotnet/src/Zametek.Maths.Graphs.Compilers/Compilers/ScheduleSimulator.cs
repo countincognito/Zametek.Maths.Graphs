@@ -33,13 +33,13 @@ namespace Zametek.Maths.Graphs
     /// its token is cancelled.
     /// </para>
     /// <para>
-    /// The simulation schedules a plan with the builder that its caller gives it (as a factory, because each
-    /// thread needs a builder of its own). The engines of the builder decide how the plan is scheduled: the
+    /// The simulation schedules a plan with the builders that a factory of its caller gives it (each thread
+    /// needs a builder of its own). The engines of a builder decide how the plan is scheduled: the
     /// critical-path engine, the resource scheduler and the others. Thus, a caller that compiles with engines
-    /// of its own gets a simulation that schedules in the same way. The first check of the plan is a compile, by a
-    /// compiler that a second factory of the caller makes. <see cref="ScheduleSimulator{T, TResourceId, TWorkStreamId}"/>
-    /// is this class with the standard engines. The Rust port takes the same two factories
-    /// (<c>ScheduleSimulator::with_factories</c>).
+    /// of its own gets a simulation that schedules in the same way. The first check of the plan is a compile,
+    /// by a compiler that the same factory gives. <see cref="ScheduleSimulator{T, TResourceId, TWorkStreamId}"/>
+    /// is this class with the standard factory. The Rust port takes a factory too
+    /// (<c>ScheduleSimulator::with_factory</c>).
     /// </para>
     /// <para>
     /// An instance is safe for use by many threads: it never changes after it is made, and each run
@@ -64,7 +64,7 @@ namespace Zametek.Maths.Graphs
         private readonly Dictionary<T, int> m_IndexById;
         private readonly List<TActivity> m_Activities;
         private readonly List<IResource<TResourceId, TWorkStreamId>> m_Resources;
-        private readonly Func<VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>> m_BuilderFactory;
+        private readonly IVertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity> m_Factory;
         private readonly DurationEstimate[]? m_Estimates;
 
         /// <summary>
@@ -79,31 +79,27 @@ namespace Zametek.Maths.Graphs
         /// The estimates of the activities that have them. An activity that has none keeps its
         /// duration in every iteration. The key must be the ID of an activity of the plan.
         /// </param>
-        /// <param name="builderFactory">
-        /// Makes the builder that schedules the plan: a new, empty builder each time it is called. The
-        /// simulation calls it once for the first check of the plan, and once for each thread that runs
-        /// iterations, and it calls it from any thread. A builder holds the engines that decide how a plan
-        /// is scheduled, and the engines of a builder must not be shared with another builder if they hold
-        /// state.
-        /// </param>
-        /// <param name="compilerFactory">
-        /// Makes the compiler for the first check of the plan. It is given the builder that
-        /// <paramref name="builderFactory"/> made for that check, which is empty, and it gives a compiler
-        /// for it: a <see cref="VertexGraphCompiler{T, TResourceId, TWorkStreamId, TDependentActivity}"/>
-        /// around that builder is the compiler of a plain compile. The simulation calls it once, when it
-        /// makes the simulator, and never for an iteration. The compile of the check gives
-        /// <see cref="CompilationErrors"/> and <see cref="PlannedFinishTime"/>. The factory must not give null.
+        /// <param name="factory">
+        /// Makes the builders that schedule the plan, and the compiler for the first check of it. The
+        /// simulation calls <see cref="IVertexGraphFactory{T, TResourceId, TWorkStreamId, TActivity}.CreateCompiler"/>
+        /// once, when it makes the simulator, and never for an iteration. The compile of the check gives
+        /// <see cref="CompilationErrors"/> and <see cref="PlannedFinishTime"/>. It calls
+        /// <see cref="IVertexGraphFactory{T, TResourceId, TWorkStreamId, TActivity}.CreateBuilder"/> once for
+        /// each thread that runs iterations, and it calls it from any thread. A builder holds the engines that
+        /// decide how a plan is scheduled, and so the factory decides it. If the factory gives the same engines
+        /// to all its builders, as <see cref="VertexGraphFactory{T, TResourceId, TWorkStreamId, TActivity}"/>
+        /// does, the engines must hold no state or be safe for use by many threads. The factory must not give
+        /// null, and each builder that it gives must be new and empty.
         /// </param>
         /// <exception cref="ArgumentNullException">An argument is null.</exception>
         /// <exception cref="ArgumentException">An estimate belongs to an activity that is not in the plan, two activities have the same ID, or an activity clones itself to an object that is not a <typeparamref name="TActivity"/>.</exception>
-        /// <exception cref="InvalidOperationException">A factory gave null.</exception>
+        /// <exception cref="InvalidOperationException">The factory gave a null compiler (or, in a run, a null builder).</exception>
         public ScheduleSimulator(
             IEnumerable<TActivity> activities,
             IEnumerable<IResource<TResourceId, TWorkStreamId>> resources,
             IEnumerable<IWorkStream<TWorkStreamId>> workStreams,
             IReadOnlyDictionary<T, DurationEstimate> estimates,
-            Func<VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>> builderFactory,
-            Func<VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>, VertexGraphCompiler<T, TResourceId, TWorkStreamId, TActivity>> compilerFactory)
+            IVertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity> factory)
         {
             if (activities is null)
             {
@@ -121,16 +117,12 @@ namespace Zametek.Maths.Graphs
             {
                 throw new ArgumentNullException(nameof(estimates));
             }
-            if (builderFactory is null)
+            if (factory is null)
             {
-                throw new ArgumentNullException(nameof(builderFactory));
-            }
-            if (compilerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(compilerFactory));
+                throw new ArgumentNullException(nameof(factory));
             }
 
-            m_BuilderFactory = builderFactory;
+            m_Factory = factory;
             m_Activities = activities.Select(CloneActivity).ToList();
             m_Resources = resources.Select(x => (IResource<TResourceId, TWorkStreamId>)x.CloneObject()).ToList();
             m_ActivityIds = m_Activities.Select(x => x.Id).ToArray();
@@ -154,7 +146,7 @@ namespace Zametek.Maths.Graphs
             // The plan is compiled once, as it stands, to find out whether it can be scheduled at
             // all. The iterations check nothing: they would find the same errors again and again.
             // The compile also gives the finish time that the plan itself has.
-            var compiler = NewCompiler(compilerFactory, NewBuilder());
+            var compiler = NewCompiler();
             foreach (TActivity activity in m_Activities)
             {
                 compiler.AddActivity(CloneActivity(activity));
@@ -183,16 +175,13 @@ namespace Zametek.Maths.Graphs
 
         // A new builder from the factory of the caller.
         private VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> NewBuilder() =>
-            m_BuilderFactory()
-            ?? throw new InvalidOperationException(@"The builder factory gave null. It must give a new, empty builder each time.");
+            m_Factory.CreateBuilder()
+            ?? throw new InvalidOperationException(@"The factory gave a null builder. CreateBuilder must give a new, empty builder each time.");
 
-        // The compiler of the first check, from the factory of the caller. Only the first check is a compile, and so the
-        // simulator does not keep this factory: it is used here and nowhere else.
-        private static VertexGraphCompiler<T, TResourceId, TWorkStreamId, TActivity> NewCompiler(
-            Func<VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>, VertexGraphCompiler<T, TResourceId, TWorkStreamId, TActivity>> compilerFactory,
-            VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> builder) =>
-            compilerFactory(builder)
-            ?? throw new InvalidOperationException(@"The compiler factory gave null. It must give a compiler.");
+        // The compiler of the first check, from the factory of the caller. Only the first check is a compile.
+        private VertexGraphCompiler<T, TResourceId, TWorkStreamId, TActivity> NewCompiler() =>
+            m_Factory.CreateCompiler()
+            ?? throw new InvalidOperationException(@"The factory gave a null compiler. CreateCompiler must give a compiler.");
 
         /// <summary>
         /// The activities, in the order in which the plan gave them: the order of the columns of a result.

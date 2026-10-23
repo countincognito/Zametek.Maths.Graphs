@@ -21,27 +21,29 @@ namespace Zametek.Maths.Graphs.Tests
     {
         #region Helpers
 
-        private sealed class FakeSchedulingGraph : IResourceSchedulingGraph<int, int, int>
+        // Cancels the token when the scheduler first asks for the given activity. That is deterministic: the scheduler
+        // asks for an activity when it becomes ready, so the cancellation lands in the middle of a run.
+        private sealed class CancellingSchedulingGraph
+            : FakeSchedulingGraph
         {
-            private readonly Func<int, IActivity<int, int, int>> m_Activity;
-            private readonly Func<int, List<int>> m_StrongDependencies;
-            private readonly Func<List<IActivity<int, int, int>>> m_CloneActivities;
+            private readonly CancellationTokenSource m_Source;
+            private readonly int m_ActivityId;
 
-            public FakeSchedulingGraph(
-                Func<int, IActivity<int, int, int>> activity,
-                Func<int, List<int>> strongDependencies,
-                Func<List<IActivity<int, int, int>>> cloneActivities)
+            public CancellingSchedulingGraph(CancellationTokenSource source, int activityId, params IActivity<int, int, int>[] activities)
+                : base(activities)
             {
-                m_Activity = activity;
-                m_StrongDependencies = strongDependencies;
-                m_CloneActivities = cloneActivities;
+                m_Source = source;
+                m_ActivityId = activityId;
             }
 
-            public IActivity<int, int, int> Activity(int id) => m_Activity(id);
-
-            public List<int> StrongActivityDependencyIds(int id) => m_StrongDependencies(id);
-
-            public List<IActivity<int, int, int>> CloneActivities() => m_CloneActivities();
+            public override IActivity<int, int, int> Activity(int id)
+            {
+                if (id == m_ActivityId)
+                {
+                    m_Source.Cancel();
+                }
+                return base.Activity(id);
+            }
         }
 
         private static Resource<int, int> CreateResource(int id, bool isExplicitTarget = false)
@@ -125,7 +127,7 @@ namespace Zametek.Maths.Graphs.Tests
             activity.TargetResources.Add(10);
             activity.TargetResources.Add(20);
             CorruptBuckets(activity.TargetResources);
-            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity);
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
                 RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
@@ -148,7 +150,7 @@ namespace Zametek.Maths.Graphs.Tests
                 TargetResourceOperator = LogicalOperator.AND,
             };
             activity.TargetResources.Add(99);
-            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity);
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
                 RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
@@ -166,7 +168,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5) { EarliestStartTime = 0 };
-            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity);
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
                 RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
@@ -183,7 +185,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5) { EarliestStartTime = 0 };
-            var graph = new FakeSchedulingGraph(id => activity, id => [42], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity).WithStrongDependencies(1, 42);
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
                 RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
@@ -201,7 +203,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5) { EarliestStartTime = GraphLimits.MaximumTimeValue + 1 };
-            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity);
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
                 RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
@@ -222,7 +224,7 @@ namespace Zametek.Maths.Graphs.Tests
             {
                 EarliestStartTime = 1,
             };
-            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity);
 
             ResourceSchedulingStallException ex = Should.Throw<ResourceSchedulingStallException>(() =>
                 RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
@@ -243,7 +245,7 @@ namespace Zametek.Maths.Graphs.Tests
             {
                 EarliestStartTime = GraphLimits.MaximumTimeValue - 5,
             };
-            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity);
 
             var schedules = RunWithWatchdog(() => scheduler.CalculateResourceSchedules(
                 [1],
@@ -261,7 +263,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var activity = new Activity<int, int, int>(1, 5) { EarliestStartTime = 0 };
-            var graph = new FakeSchedulingGraph(id => activity, id => [], () => [activity]);
+            var graph = new FakeSchedulingGraph(activity);
             using var cts = new CancellationTokenSource();
             cts.Cancel();
 
@@ -326,26 +328,11 @@ namespace Zametek.Maths.Graphs.Tests
             var scheduler = new PriorityListResourceScheduler<int, int, int>();
             var first = new Activity<int, int, int>(1, 5) { EarliestStartTime = 0 };
             var second = new Activity<int, int, int>(2, 3) { EarliestStartTime = 0 };
-            Dictionary<int, IActivity<int, int, int>> lookup = new()
-            {
-                [1] = first,
-                [2] = second,
-            };
             using var cts = new CancellationTokenSource();
             // Cancel from inside the scheduling loop, deterministically: the graph is
             // first asked for activity 2 when it becomes ready (after activity 1
             // completes), so cancellation lands mid-run rather than up front.
-            var graph = new FakeSchedulingGraph(
-                id =>
-                {
-                    if (id == 2)
-                    {
-                        cts.Cancel();
-                    }
-                    return lookup[id];
-                },
-                id => id == 2 ? [1] : [],
-                () => [first, second]);
+            var graph = new CancellingSchedulingGraph(cts, 2, first, second).WithStrongDependencies(2, 1);
 
             OperationCanceledException ex = Should.Throw<OperationCanceledException>(() =>
                 RunWithWatchdog(() => scheduler.CalculateResourceSchedules(

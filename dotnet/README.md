@@ -339,25 +339,24 @@ SimulationResult<int> result = simulator.Run(
 
 An activity that has no entry in `estimates` keeps its duration in every iteration.
 
-**Engines of your own.** `ScheduleSimulator<T, TResourceId, TWorkStreamId>` schedules the plan with the standard engines. If you compile with engines of your own, use `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` and give it two factories: one for the builder, and one for the compiler of the first check of the plan. The simulation then schedules the plan in the same way as your compile does.
+**Engines of your own.** `ScheduleSimulator<T, TResourceId, TWorkStreamId>` schedules the plan with the standard engines. If you compile with engines of your own, use `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` and give it a factory: an `IVertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity>`, which makes the builders and the compiler of the first check of the plan. The simulation then schedules the plan in the same way as your compile does. `VertexGraphFactory` is the standard factory. Give it an engines bundle that holds the engines that you want to change, and it uses the standard engines for the rest.
 
 ```csharp
 var simulator = new ScheduleSimulator<int, int, int, MyActivity>(
     activities, resources, workStreams, estimates,
-    () => new VertexGraphBuilder<int, int, int, MyActivity>(
+    new VertexGraphFactory<int, int, int, MyActivity>(
         new VertexGraphBuilderEngines<int, int, int, MyActivity>
         {
             ResourceSchedulingEngine = new MyScheduler(),
-        }),
-    builder => new VertexGraphCompiler<int, int, int, MyActivity>(builder));
+        }));
 ```
 
-- The builder factory gives a new, empty builder each time. The simulation calls it once for the first check of the plan, and once for each task that runs iterations. It can call it from any thread.
-- The compiler factory is given the builder of the first check, and it gives a compiler for it. Normally this is a `VertexGraphCompiler` around that builder, as in the example. The simulation calls the factory once, when it makes the simulator, and never for an iteration. The compile of the first check gives `CompilationErrors` and `PlannedFinishTime`.
-- The constructor throws an `ArgumentNullException` for a factory that is null, and an `InvalidOperationException` for a factory that gives null.
-- An engine that holds state must not be shared between builders.
+- `CreateCompiler()` gives a compiler with a builder of its own. The simulation calls it once, when it makes the simulator, for the first check of the plan, and never for an iteration. The compile of the first check gives `CompilationErrors` and `PlannedFinishTime`. If your compiler is a class of your own (it derives from `VertexGraphCompiler`), return it from this method.
+- `CreateBuilder()` gives a new, empty builder each time. The simulation calls it once for each task that runs iterations, and it can call it from any thread.
+- `VertexGraphFactory` gives the same engines to every builder that it makes, as `CloneObject` does for a clone. The engines must hold no state, or be safe for use by many threads. All the standard engines are. An engine that holds state needs a factory of your own, one that makes new engines in `CreateBuilder`: implement `IVertexGraphFactory`. A generator of IDs holds the count of one graph, and so the factory gives each builder a new `PreviousIdGenerator`, and it does not use the `EdgeIdGenerator` of the bundle.
+- The constructor throws an `ArgumentNullException` for a factory that is null, and an `InvalidOperationException` for a factory that gives a null compiler. A run fails with an `AggregateException` that holds an `InvalidOperationException` for a factory that gives a null builder, or a builder that already holds activities.
 - `CloneObject` of an activity must give an object of the type `TActivity`. The constructor throws an `ArgumentException` when it does not.
-- An iteration calls the same methods of the builder as a compile does: the critical-path calculation, the resource scheduler and the other engines. It does not call `VertexGraphCompiler.Compile`. Only the first check of the plan does that, with the compiler from the compiler factory. Thus, the engines decide how a simulation schedules a plan, and anything that a compiler adds to them is not a part of the iterations.
+- An iteration calls the same methods of the builder as a compile does: the critical-path calculation, the resource scheduler and the other engines. It does not call `VertexGraphCompiler.Compile`. Only the first check of the plan does that, with the compiler from the factory. Thus, the engines decide how a simulation schedules a plan, and anything that a compiler adds to them is not a part of the iterations.
 
 **What the result holds.** The result is raw, and it holds no statistics: you make the mean, the percentiles, the histogram and the criticality index from it. For each iteration it holds the finish time (`FinishTimes`), the activities that were critical (`IsCritical(iteration, activityIndex)`, one bit for each) and the critical paths (`CriticalPathIndexes(iteration)`, as indexes into `CriticalPaths`). An iteration that failed has the finish time `SimulationResult.FailedFinishTime`: the resource scheduler could not place every activity, or the schedule ran past `GraphLimits.MaximumTimeValue`. Both the critical activities and the paths can be left out (`RecordCriticalActivities`, `RecordCriticalPaths`) to save memory.
 
@@ -381,7 +380,7 @@ A draw is rounded to the nearest whole time unit, with halves up, because the sc
 
 **A plan with no resources.** With no resources, a compile schedules the plan onto synthetic resources, and that can make more activities critical when two activities meet at the same moment. By default a simulation of such a plan stops after the first critical-path calculation: the finish times are those of a compile, and the critical activities are those of the plan alone. Set `ScheduleOntoSyntheticResources` to do what the compile does.
 
-The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator::new` uses the standard engines, and `ScheduleSimulator::with_factories` takes the same two factories as the constructor above, as closures that make a `VertexGraphBuilder` (which can have engines of the caller, with `VertexGraphBuilder::with_engines`) and a `VertexGraphCompiler`.
+The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator::new` uses the standard engines, and `ScheduleSimulator::with_factory` takes a factory in the same way as the constructor above: a value that implements the trait `IVertexGraphFactory`, such as `VertexGraphFactory::with_engines(engines)`. The trait requires `Send + Sync`, which is the Rust form of "safe for use by many threads".
 
 ## Limits
 
@@ -530,16 +529,33 @@ var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int,
 var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>(builder);
 ```
 
+A builder is not an engine: it holds the state of one graph, and so it cannot be shared. Code that needs many builders, or a compiler that agrees with its builders, takes a **factory**: `IVertexGraphFactory<…>` / `IArrowGraphFactory<…>`, with the methods `CreateBuilder()` and `CreateCompiler()`. `VertexGraphFactory<…>` / `ArrowGraphFactory<…>` are the standard ones, and they take the same engines bundle as the builders do.
+
+```csharp
+IVertexGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory =
+    new VertexGraphFactory<int, int, int, IDependentActivity<int, int, int>>(
+        new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
+        {
+            CriticalPathEngine = new MyInstrumentedCpmEngine(),   // everything else defaults
+        });
+
+var builder = factory.CreateBuilder();      // a new, empty builder
+var compiler = factory.CreateCompiler();    // a compiler, with a builder of its own
+```
+
+A standard factory gives the same engines to all its builders, as `CloneObject()` does for a clone, and so the engines must hold no state (all the standard engines hold none). It gives each builder ID generators of its own, and it does not use the ones of the bundle. The default constructors of `VertexGraphCompiler` and `ArrowGraphCompiler` make their builder with these factories. [`ScheduleSimulator`](#simulating-a-schedule) takes a vertex factory.
+
 The critical-path engines and SCC finders read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts. The transitive reducers and the dummy-edge orchestrator restructure the graph, so they take the concrete `ArrowGraphState<…>` / `VertexGraphState<…>` directly: the state type is public, but its structural-mutation API is `internal`, so an external engine can read the state yet only the library's own engines can restructure it. Injected engines are preserved through `CloneObject()`.
 
 ## Breaking changes
 
 ### 3.4.0
 
-One breaking change, to the constructor of the simulator that takes the engines of the caller. Nothing else in the public API of 3.3.0 changes, and `ScheduleSimulator<T, TResourceId, TWorkStreamId>` (the standard engines) is the same.
+One breaking change in the .NET API: the simulator that takes the engines of the caller takes a factory object in place of a delegate. Nothing else in the public API of 3.3.0 changes, and `ScheduleSimulator<T, TResourceId, TWorkStreamId>` (the standard engines) is the same. The release also adds the factories themselves, and the Rust port gets them too, with one new bound on its engine traits.
 
-- **`ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` takes a compiler factory.** The constructor has a new last parameter, `compilerFactory`, a `Func<VertexGraphBuilder<…>, VertexGraphCompiler<…>>`. The first check of the plan is a compile by the compiler that it gives, and `CompilationErrors` and `PlannedFinishTime` come from that compile. The simulator calls the factory once, with the builder that the builder factory made for the check, and never for an iteration. The constructor of 3.3.0, with five parameters, is gone. To move to 3.4.0, add `builder => new VertexGraphCompiler<T, TResourceId, TWorkStreamId, TActivity>(builder)` as the last argument. This is what 3.3.0 did. See [Simulating a schedule](#simulating-a-schedule).
-- **The Rust `ScheduleSimulator` takes the same two factories.** `ScheduleSimulator::with_factories` is new, and `ScheduleSimulator::new` is the same as before. In both languages, a builder that already holds activities makes the run fail.
+- **`ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` takes an `IVertexGraphFactory<…>`.** In 3.3.0 the last parameter of the constructor was a `Func<VertexGraphBuilder<…>>`, a delegate that made the builders. It is now `factory`, an `IVertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity>` with two methods: `CreateBuilder()`, which the simulation calls for each task that runs iterations, and `CreateCompiler()`, which it calls once, for the first check of the plan. The first check is a compile by the compiler that the factory gives, and `CompilationErrors` and `PlannedFinishTime` come from that compile. The constructor of 3.3.0, with the delegate, is gone. To move to 3.4.0, give a `new VertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity>(engines)`, where the engines bundle holds the engines of your old builder, or implement the interface. See [Simulating a schedule](#simulating-a-schedule).
+- **New: `IVertexGraphFactory<…>`, `VertexGraphFactory<…>`, `IArrowGraphFactory<…>` and `ArrowGraphFactory<…>`.** A factory makes the builders and the compilers of one flavour of graph. The standard factories take the same engines bundle as the builders, give the same engines to all the builders that they make (engines hold no state), and give each builder ID generators of its own. The default constructors of `VertexGraphCompiler` and `ArrowGraphCompiler` now make their builder with a factory, and the convenience constructors of the builders take their standard engines from the engines bundle. They behave as before. See [Extensibility](#extensibility).
+- **The Rust port has the same factories, and its engine traits require `Send + Sync`.** `ScheduleSimulator::with_factory` takes an `IVertexGraphFactory`, and `ScheduleSimulator::new` is the same as before. A standard factory shares one engine between all its builders, and the builders run on many threads, and so the engine traits (`IEventGenerator`, `IVertexCriticalPathEngine`, `IResourceSchedulingEngine` and the others) now have `Send + Sync` as supertraits. An engine of your own that is not safe for many threads must be made so. In both languages, a builder that already holds activities makes the run fail.
 
 ### 3.3.0
 

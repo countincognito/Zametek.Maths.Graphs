@@ -22,8 +22,6 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        private static readonly IEventGenerator<T> s_DefaultEventGenerator = new RemovableEventGenerator<T>();
-
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
         private readonly IEventGenerator<T> m_EventGenerator;
 
@@ -41,17 +39,16 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
-        // Public constructor - stable API surface. Wires up default engine instances.
+        // Public constructor - stable API surface. The default engines are those of the engines bundle.
         /// <summary>
         /// Creates a builder with default engines, using the given edge (event) ID generator.
         /// </summary>
         public VertexGraphBuilder(IIdGenerator<T> edgeIdGenerator)
             : this(
-                  edgeIdGenerator,
-                  s_DefaultEventGenerator,
-                  new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGenerator = edgeIdGenerator,
+                  })
         {
         }
 
@@ -120,11 +117,10 @@ namespace Zametek.Maths.Graphs
             IIdGenerator<T> edgeIdGenerator)
             : this(
                   graph,
-                  edgeIdGenerator,
-                  s_DefaultEventGenerator,
-                  new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGenerator = edgeIdGenerator,
+                  })
         {
         }
 

@@ -16,22 +16,24 @@
 //! whole time units, with halves up, and it stays within the range from O to P.
 //! A draw of 0 stays 0: the activity is then as long as a milestone.
 //!
-//! The simulation schedules a plan with the builder that its caller gives it,
-//! and so with the engines of that builder: the critical-path engine, the
-//! resource scheduler and the others. The caller gives the builder as a
-//! factory, because each thread needs a builder of its own. A caller that
-//! compiles with engines of its own gets a simulation that schedules in the same
-//! way ([`ScheduleSimulator::with_factories`]). [`ScheduleSimulator::new`] is the
-//! same with the standard engines.
+//! The simulation schedules a plan with the builders that a factory of its
+//! caller gives it, and so with the engines of those builders: the
+//! critical-path engine, the resource scheduler and the others. Each thread
+//! needs a builder of its own, and the factory makes them. The first check of
+//! the plan is a compile, by a compiler that the same factory gives. A caller
+//! that compiles with engines of its own gets a simulation that schedules in the
+//! same way ([`ScheduleSimulator::with_factory`]). [`ScheduleSimulator::new`] is
+//! the same with the standard factory.
 
 use super::iteration_runner::{SimulationIterationRunner, FAILED};
 use super::random::SimulationRandom;
 use super::sampler;
 use super::tracer::CriticalPathTracer;
-use crate::id_gen::PreviousIdGenerator;
-use crate::vertex::{VertexGraphBuilder, VertexGraphCompiler};
+use crate::contracts::IVertexGraphFactory;
+use crate::vertex::VertexGraphFactory;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use zametek_maths_graphs_primitives::{
     CriticalPath, CriticalPathLink, CriticalPathStep, DependentActivity, DurationEstimate,
     GraphCompilationError, GraphError, Key, Resource, SimulationResult, SimulationSettings,
@@ -43,20 +45,12 @@ use zametek_maths_graphs_primitives::{
 /// seed.
 pub const CHUNK_SIZE: usize = 64;
 
-/// Makes a new, empty builder each time it is called, from any thread.
-type BuilderFactory<K, R, W> = Box<dyn Fn() -> VertexGraphBuilder<K, R, W> + Send + Sync>;
-
-// What a compile makes when it is not given a builder.
-fn standard_builder<K: Key, R: Key, W: Key>() -> VertexGraphBuilder<K, R, W> {
-    VertexGraphBuilder::new(PreviousIdGenerator::new(K::default()))
-}
-
 /// A simulation of a plan: see the module documentation.
 pub struct ScheduleSimulator<K: Key, R: Key, W: Key> {
     activity_ids: Vec<K>,
     activities: Vec<DependentActivity<K, R, W>>,
     resources: Vec<Resource<R, W>>,
-    builder_factory: BuilderFactory<K, R, W>,
+    factory: Arc<dyn IVertexGraphFactory<K, R, W>>,
     estimates: Option<Vec<DurationEstimate>>,
     compilation_errors: Vec<GraphCompilationError>,
     planned_finish_time: i32,
@@ -86,50 +80,46 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
     /// iteration. Fails when an estimate belongs to an activity that is not in
     /// the plan, or when two activities have the same ID.
     ///
-    /// The plan is scheduled with the standard engines. To schedule it with the
-    /// engines of a builder of your own, use [`Self::with_factories`].
+    /// The plan is scheduled with the standard engines
+    /// ([`VertexGraphFactory::new`]). To schedule it with the engines of a
+    /// factory of your own, use [`Self::with_factory`].
     pub fn new(
         activities: &[DependentActivity<K, R, W>],
         resources: &[Resource<R, W>],
         work_streams: &[WorkStream<W>],
         estimates: &HashMap<K, DurationEstimate>,
     ) -> Result<Self, GraphError> {
-        Self::with_factories(
+        Self::with_factory(
             activities,
             resources,
             work_streams,
             estimates,
-            standard_builder::<K, R, W>,
-            VertexGraphCompiler::with_builder,
+            VertexGraphFactory::new(),
         )
     }
 
-    /// Prepares a simulation of a plan, as [`Self::new`] does, with the builder
-    /// and the compiler of the caller.
+    /// Prepares a simulation of a plan, as [`Self::new`] does, with the factory
+    /// of the caller.
     ///
-    /// `builder_factory` makes the builder that schedules the plan: a new, empty
-    /// builder each time it is called. The simulation calls it once for the
-    /// first check of the plan, and once for each thread that runs iterations,
-    /// and it calls it from any thread. A builder holds the engines that decide
-    /// how a plan is scheduled, and the engines of a builder must not be shared
-    /// with another builder if they hold state. A builder that already holds
-    /// activities makes [`Self::run`] fail.
-    ///
-    /// `compiler_factory` makes the compiler for the first check of the plan. It
-    /// is given the builder that `builder_factory` made for that check, which is
-    /// empty, and it gives a compiler for it: [`VertexGraphCompiler::with_builder`]
-    /// is the compiler of a plain compile. The simulation calls it once, here,
-    /// and never for an iteration. The compile of the check gives
-    /// [`Self::compilation_errors`] and [`Self::planned_finish_time`].
+    /// The simulation calls [`IVertexGraphFactory::create_compiler`] once, here,
+    /// for the first check of the plan, and never for an iteration. The compile
+    /// of the check gives [`Self::compilation_errors`] and
+    /// [`Self::planned_finish_time`]. It calls
+    /// [`IVertexGraphFactory::create_builder`] once for each thread that runs
+    /// iterations, from that thread. A builder holds the engines that decide how
+    /// a plan is scheduled, and so the factory decides it. If the factory gives
+    /// the same engines to all its builders, as [`VertexGraphFactory`] does, the
+    /// engines must hold no state or be safe for use by many threads. Each
+    /// builder that the factory gives must be new and empty: a builder that
+    /// already holds activities makes [`Self::run`] fail.
     ///
     /// Fails in the same cases as [`Self::new`].
-    pub fn with_factories(
+    pub fn with_factory(
         activities: &[DependentActivity<K, R, W>],
         resources: &[Resource<R, W>],
         work_streams: &[WorkStream<W>],
         estimates: &HashMap<K, DurationEstimate>,
-        builder_factory: impl Fn() -> VertexGraphBuilder<K, R, W> + Send + Sync + 'static,
-        compiler_factory: impl FnOnce(VertexGraphBuilder<K, R, W>) -> VertexGraphCompiler<K, R, W>,
+        factory: impl IVertexGraphFactory<K, R, W> + 'static,
     ) -> Result<Self, GraphError> {
         let activity_ids: Vec<K> = activities.iter().map(|x| x.id()).collect();
         let mut index_by_id: HashMap<K, usize> = HashMap::with_capacity(activity_ids.len());
@@ -152,7 +142,7 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
         // scheduled at all. The iterations check nothing: they would find the
         // same errors again and again. The compile also gives the finish time
         // that the plan itself has.
-        let mut compiler = compiler_factory(builder_factory());
+        let mut compiler = factory.create_compiler();
         for activity in activities {
             compiler.add_activity(activity.clone());
         }
@@ -178,7 +168,7 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
             activity_ids,
             activities: activities.to_vec(),
             resources: resources.to_vec(),
-            builder_factory: Box::new(builder_factory),
+            factory: Arc::new(factory),
             estimates: built_estimates,
             compilation_errors,
             planned_finish_time,
@@ -363,7 +353,7 @@ impl<'a, K: Key, R: Key, W: Key> Worker<'a, K, R, W> {
         estimates: &'a [DurationEstimate],
     ) -> Result<Self, GraphError> {
         let runner = SimulationIterationRunner::new(
-            (simulator.builder_factory)(),
+            simulator.factory.create_builder(),
             &simulator.activities,
             &simulator.resources,
             settings.schedule_onto_synthetic_resources,

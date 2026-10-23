@@ -1,5 +1,6 @@
 use super::builder::VertexGraphBuilder;
-use crate::id_gen::PreviousIdGenerator;
+use super::engines::VertexGraphFactory;
+use crate::contracts::IVertexGraphFactory;
 use crate::messages;
 use indexmap::IndexSet;
 use zametek_maths_graphs_primitives::{
@@ -26,11 +27,10 @@ impl<K: Key, R: Key, W: Key> Default for VertexGraphCompiler<K, R, W> {
 }
 
 impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
-    /// Creates a compiler wired with the default engines.
+    /// Creates a compiler wired with the default engines: the builder is one
+    /// that a [`VertexGraphFactory`] makes.
     pub fn new() -> Self {
-        Self {
-            builder: VertexGraphBuilder::new(PreviousIdGenerator::new(K::default())),
-        }
+        Self::with_builder(VertexGraphFactory::new().create_builder())
     }
 
     /// Creates a compiler around the given builder.

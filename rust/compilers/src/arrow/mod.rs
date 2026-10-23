@@ -12,7 +12,7 @@ mod state;
 pub use builder::ArrowGraphBuilder;
 pub use compiler::ArrowGraphCompiler;
 pub use engines::{
-    ArrowCriticalPathEngine, ArrowGraphBuilderEngines,
+    ArrowCriticalPathEngine, ArrowGraphBuilderEngines, ArrowGraphFactory,
     ArrowTarjanStronglyConnectedComponentsFinder, ArrowTransitiveReducer,
 };
 pub use orchestrator::DummyEdgeOrchestrator;

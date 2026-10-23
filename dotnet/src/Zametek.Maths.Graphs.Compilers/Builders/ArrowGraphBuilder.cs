@@ -22,9 +22,6 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        private static readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> s_DefaultDummyActivityGenerator = new DummyActivityGenerator<T, TResourceId, TWorkStreamId, TActivity>();
-        private static readonly IEventGenerator<T> s_DefaultEventGenerator = new EventGenerator<T>();
-
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
         private readonly IIdGenerator<T> m_NodeIdGenerator;
         private readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> m_DummyActivityGenerator;
@@ -46,7 +43,7 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
-        // Public constructor - stable API surface. Wires up default engine instances.
+        // Public constructor - stable API surface. The default engines are those of the engines bundle.
         /// <summary>
         /// Creates a builder with default engines, using the given edge (activity) and node (event) ID generators.
         /// </summary>
@@ -54,13 +51,11 @@ namespace Zametek.Maths.Graphs
             IIdGenerator<T> edgeIdGenerator,
             IIdGenerator<T> nodeIdGenerator)
             : this(
-                  edgeIdGenerator,
-                  nodeIdGenerator,
-                  s_DefaultDummyActivityGenerator,
-                  s_DefaultEventGenerator,
-                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGenerator = edgeIdGenerator,
+                      NodeIdGenerator = nodeIdGenerator,
+                  })
         {
         }
 
@@ -141,13 +136,11 @@ namespace Zametek.Maths.Graphs
             IIdGenerator<T> nodeIdGenerator)
             : this(
                   graph,
-                  edgeIdGenerator,
-                  nodeIdGenerator,
-                  s_DefaultDummyActivityGenerator,
-                  s_DefaultEventGenerator,
-                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGenerator = edgeIdGenerator,
+                      NodeIdGenerator = nodeIdGenerator,
+                  })
         {
         }
 

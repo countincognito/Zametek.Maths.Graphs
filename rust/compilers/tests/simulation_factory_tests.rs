@@ -1,20 +1,19 @@
-//! Port of `ScheduleSimulatorBuilderTests.cs`. A simulation schedules a plan with
-//! the builder that its caller gives it, and so with the engines of that
-//! builder. These tests show that the simulator uses the builder (and the
-//! engines) of the builder factory, in the first check of the plan and in every
-//! iteration, that a builder with the standard engines gives the result of the
+//! Port of `ScheduleSimulatorFactoryTests.cs`. A simulation schedules a plan with
+//! the builders that a factory of its caller gives it, and so with the engines
+//! of those builders. These tests show that the simulator uses the builders (and
+//! the engines) of the factory, in the first check of the plan and in every
+//! iteration, that a factory with the standard engines gives the result of the
 //! simulator that `new` makes, that an engine that schedules in another way
 //! changes the result, and that a builder that is not empty is refused.
 //!
-//! The first check of the plan is a compile, and the compiler for it comes from a
-//! second factory of the caller, which is given the builder of the check. These
-//! tests also show that the simulator asks that factory once, that the check is
-//! a compile by the compiler that it gives, and that the iterations never ask
-//! for a compiler.
+//! The first check of the plan is a compile, and the compiler for it comes from
+//! the same factory. These tests also show that the simulator asks the factory
+//! for one compiler, that the check is a compile by the compiler that it gives,
+//! and that the iterations never ask for a compiler.
 //!
-//! The C# tests of the type of the activity and of a factory that is null or
-//! gives null have no counterpart. The Rust simulator has one type of activity,
-//! and a closure cannot be null.
+//! The C# tests of the type of the activity, and of a factory that is missing or
+//! that gives null, have no counterpart. The Rust simulator has one type of
+//! activity, and a factory, and what it gives, cannot be null.
 
 mod simulation_plans;
 
@@ -23,19 +22,21 @@ use simulation_plans::Plan;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use zametek_maths_graphs_compilers::contracts::{
-    IResourceSchedulingEngine, IResourceSchedulingGraph,
+    IResourceSchedulingEngine, IResourceSchedulingGraph, IVertexGraphFactory,
 };
 use zametek_maths_graphs_compilers::primitives::{
-    Activity, GraphError, Resource, ResourceSchedule, SimulationSettings, UnavailableResources,
+    Activity, DependentActivity, GraphError, Resource, ResourceSchedule, SimulationSettings,
+    UnavailableResources,
 };
 use zametek_maths_graphs_compilers::{
     PriorityListResourceScheduler, ScheduleSimulator, VertexGraphBuilder,
-    VertexGraphBuilderEngines, VertexGraphCompiler,
+    VertexGraphBuilderEngines, VertexGraphCompiler, VertexGraphFactory,
 };
 
 type Builder = VertexGraphBuilder<i32, i32, i32>;
 type Compiler = VertexGraphCompiler<i32, i32, i32>;
 type Simulator = ScheduleSimulator<i32, i32, i32>;
+type StandardFactory = VertexGraphFactory<i32, i32, i32>;
 
 // -- Helpers ------------------------------------------------------------------
 
@@ -151,30 +152,97 @@ fn reversing() -> Scheduler {
     }
 }
 
-fn builder_of(scheduler: Scheduler) -> Builder {
-    VertexGraphBuilder::with_engines(VertexGraphBuilderEngines {
+// The standard factory, with the given scheduler in place of the standard one.
+fn factory_of(scheduler: Scheduler) -> StandardFactory {
+    VertexGraphFactory::with_engines(VertexGraphBuilderEngines {
         resource_scheduling_engine: Arc::new(scheduler),
         ..Default::default()
     })
 }
 
-// A builder with the standard engines.
-fn standard_builder() -> Builder {
-    VertexGraphBuilder::with_engines(VertexGraphBuilderEngines::default())
+// Passes every call to the factory that it wraps, and counts the builders and
+// the compilers that it is asked for.
+struct CountingFactory {
+    inner: StandardFactory,
+    builders: Arc<AtomicUsize>,
+    compilers: Arc<AtomicUsize>,
+}
+
+impl CountingFactory {
+    // The factory, and the counters of the builders and of the compilers.
+    fn new(inner: StandardFactory) -> (Self, Arc<AtomicUsize>, Arc<AtomicUsize>) {
+        let builders = Arc::new(AtomicUsize::new(0));
+        let compilers = Arc::new(AtomicUsize::new(0));
+        (
+            Self {
+                inner,
+                builders: Arc::clone(&builders),
+                compilers: Arc::clone(&compilers),
+            },
+            builders,
+            compilers,
+        )
+    }
+}
+
+impl IVertexGraphFactory<i32, i32, i32> for CountingFactory {
+    fn create_builder(&self) -> Builder {
+        self.builders.fetch_add(1, Ordering::Relaxed);
+        self.inner.create_builder()
+    }
+
+    fn create_compiler(&self) -> Compiler {
+        self.compilers.fetch_add(1, Ordering::Relaxed);
+        self.inner.create_compiler()
+    }
+}
+
+// Makes the builders with one factory and the compilers with another, so that a
+// test can give the compiler engines that are not the ones of the builders.
+struct SplitFactory {
+    builders: StandardFactory,
+    compilers: StandardFactory,
+}
+
+impl IVertexGraphFactory<i32, i32, i32> for SplitFactory {
+    fn create_builder(&self) -> Builder {
+        self.builders.create_builder()
+    }
+
+    fn create_compiler(&self) -> Compiler {
+        self.compilers.create_compiler()
+    }
+}
+
+// A factory that does not do its job: its builders already hold an activity of
+// the plan.
+struct FilledBuilderFactory {
+    activity: DependentActivity<i32, i32, i32>,
+    inner: StandardFactory,
+}
+
+impl IVertexGraphFactory<i32, i32, i32> for FilledBuilderFactory {
+    fn create_builder(&self) -> Builder {
+        let mut builder = self.inner.create_builder();
+        builder.add_activity(self.activity.clone());
+        builder
+    }
+
+    fn create_compiler(&self) -> Compiler {
+        self.inner.create_compiler()
+    }
 }
 
 fn simulator_of(
     plan: &Plan,
-    builder_factory: impl Fn() -> Builder + Send + Sync + 'static,
-    compiler_factory: impl FnOnce(Builder) -> Compiler,
+    factory: impl IVertexGraphFactory<i32, i32, i32> + 'static,
 ) -> Simulator {
-    ScheduleSimulator::with_factories(
+    ScheduleSimulator::with_factory(
         &plan.activities(),
         &plan.resources(true),
         &[],
         &plan.estimates(),
-        builder_factory,
-        compiler_factory,
+        factory,
     )
     .unwrap()
 }
@@ -199,11 +267,11 @@ fn settings_of(iterations: usize, threads: usize) -> SimulationSettings {
     }
 }
 
-// The finish time of a compile of the plan by a compiler around a builder with
-// the given scheduler. This is what the check of a simulator gives when its
-// compiler has that scheduler.
+// The finish time of a compile of the plan by a compiler of a factory with the
+// given scheduler. This is what the check of a simulator gives when the
+// compiler of its factory has that scheduler.
 fn finish_of(plan: &Plan, scheduler: Scheduler) -> i32 {
-    let mut compiler = Compiler::with_builder(builder_of(scheduler));
+    let mut compiler = factory_of(scheduler).create_compiler();
     for activity in plan.activities() {
         compiler.add_activity(activity);
     }
@@ -218,45 +286,34 @@ fn count(counter: &AtomicUsize) -> usize {
     counter.load(Ordering::Relaxed)
 }
 
-// -- The engines of the builder factory ---------------------------------------
+// -- The builders of the factory ----------------------------------------------
 
 #[test]
-fn run_given_a_builder_with_the_standard_engines_then_gives_the_result_of_the_simulator_that_new_makes(
+fn run_given_a_factory_with_the_standard_engines_then_gives_the_result_of_the_simulator_that_new_makes(
 ) {
     let plan = simulation_plans::layered(40, 5, 4);
     let standard = standard_simulator_of(&plan);
-    let with_factories = simulator_of(&plan, standard_builder, Compiler::with_builder);
+    let with_factory = simulator_of(&plan, StandardFactory::new());
 
     let expected = standard.run(&settings_of(300, 4)).unwrap();
-    let actual = with_factories.run(&settings_of(300, 4)).unwrap();
+    let actual = with_factory.run(&settings_of(300, 4)).unwrap();
 
     assert_eq!(actual, expected);
     assert_eq!(
-        with_factories.planned_finish_time(),
+        with_factory.planned_finish_time(),
         standard.planned_finish_time()
     );
-    assert!(with_factories.compilation_errors().is_empty());
+    assert!(with_factory.compilation_errors().is_empty());
 }
 
 #[test]
-fn run_given_a_scheduler_that_counts_its_calls_then_the_simulator_uses_the_builder_of_the_factory_for_the_check_and_for_every_iteration(
+fn run_given_a_scheduler_that_counts_its_calls_then_the_simulator_uses_the_engines_of_the_factory_for_the_check_and_for_every_iteration(
 ) {
     let schedules = Arc::new(AtomicUsize::new(0));
-    let builders = Arc::new(AtomicUsize::new(0));
-    let simulator = simulator_of(
-        &simulation_plans::layered(40, 5, 4),
-        {
-            let (schedules, builders) = (Arc::clone(&schedules), Arc::clone(&builders));
-            move || {
-                builders.fetch_add(1, Ordering::Relaxed);
-                builder_of(counting(&schedules))
-            }
-        },
-        Compiler::with_builder,
-    );
+    let (factory, builders, _) = CountingFactory::new(factory_of(counting(&schedules)));
+    let simulator = simulator_of(&simulation_plans::layered(40, 5, 4), factory);
 
     // The first check of the plan is a compile, and a compile schedules the plan once.
-    assert_eq!(count(&builders), 1);
     assert!(count(&schedules) > 0);
     let check_schedules = count(&schedules);
 
@@ -264,30 +321,20 @@ fn run_given_a_scheduler_that_counts_its_calls_then_the_simulator_uses_the_build
     let result = simulator.run(&settings_of(100, 1)).unwrap();
 
     assert_eq!(result.failed_iteration_count(), 0);
-    assert_eq!(count(&builders), 2);
+    assert_eq!(count(&builders), 1);
     assert_eq!(count(&schedules) - check_schedules, 100);
 }
 
 #[test]
 fn run_given_many_threads_then_each_thread_has_a_builder_of_its_own() {
-    let builders = Arc::new(AtomicUsize::new(0));
-    let simulator = simulator_of(
-        &simulation_plans::layered(40, 5, 4),
-        {
-            let builders = Arc::clone(&builders);
-            move || {
-                builders.fetch_add(1, Ordering::Relaxed);
-                standard_builder()
-            }
-        },
-        Compiler::with_builder,
-    );
+    let (factory, builders, _) = CountingFactory::new(StandardFactory::new());
+    let simulator = simulator_of(&simulation_plans::layered(40, 5, 4), factory);
 
     simulator.run(&settings_of(640, 4)).unwrap();
 
-    // One for the check, and then one for each thread that the run starts. The
-    // iterations are 10 chunks of 64, and so the run starts the 4 threads.
-    assert_eq!(count(&builders), 1 + 4);
+    // One for each thread that the run starts. The iterations are 10 chunks of
+    // 64, and so the run starts the 4 threads.
+    assert_eq!(count(&builders), 4);
 }
 
 #[test]
@@ -299,113 +346,64 @@ fn run_given_a_scheduler_that_schedules_in_another_order_then_the_result_is_not_
         .run(&settings_of(120, 2))
         .unwrap();
 
-    let simulator = simulator_of(&plan, || builder_of(reversing()), Compiler::with_builder);
+    let simulator = simulator_of(&plan, factory_of(reversing()));
     assert!(simulator.compilation_errors().is_empty());
     let actual = simulator.run(&settings_of(120, 2)).unwrap();
 
     assert_ne!(actual.finish_times(), standard.finish_times());
 }
 
-// -- The compiler of the compiler factory -------------------------------------
+// -- The compiler of the factory ----------------------------------------------
 
 #[test]
-fn with_factories_given_a_compiler_factory_then_asks_for_one_compiler_for_the_builder_of_the_check()
-{
-    let schedules = Arc::new(AtomicUsize::new(0));
-    let builders = Arc::new(AtomicUsize::new(0));
-    let compilers = Arc::new(AtomicUsize::new(0));
-    let builders_made_when_asked = Arc::new(AtomicUsize::new(0));
+fn with_factory_given_a_factory_then_asks_for_one_compiler_and_for_no_builder() {
+    let (factory, builders, compilers) = CountingFactory::new(StandardFactory::new());
 
-    let simulator = simulator_of(
-        &simulation_plans::layered(40, 5, 4),
-        {
-            let (schedules, builders) = (Arc::clone(&schedules), Arc::clone(&builders));
-            move || {
-                builders.fetch_add(1, Ordering::Relaxed);
-                builder_of(counting(&schedules))
-            }
-        },
-        {
-            let (builders, compilers, asked) = (
-                Arc::clone(&builders),
-                Arc::clone(&compilers),
-                Arc::clone(&builders_made_when_asked),
-            );
-            move |builder| {
-                compilers.fetch_add(1, Ordering::Relaxed);
-                asked.store(builders.load(Ordering::Relaxed), Ordering::Relaxed);
-                Compiler::with_builder(builder)
-            }
-        },
-    );
+    let simulator = simulator_of(&simulation_plans::layered(40, 5, 4), factory);
 
-    // The builder of the check is the one that the builder factory made: it was
-    // the only one made when the compiler was asked for, and the compile went
-    // through it.
+    // The compiler comes with a builder of its own, and the iterations have not
+    // started.
     assert_eq!(count(&compilers), 1);
-    assert_eq!(count(&builders_made_when_asked), 1);
-    assert_eq!(count(&builders), 1);
-    assert!(count(&schedules) > 0);
+    assert_eq!(count(&builders), 0);
     assert!(simulator.compilation_errors().is_empty());
 }
 
 #[test]
-fn run_given_many_threads_then_the_compiler_factory_is_not_asked_again() {
-    let builders = Arc::new(AtomicUsize::new(0));
-    let compilers = Arc::new(AtomicUsize::new(0));
-    let simulator = simulator_of(
-        &simulation_plans::layered(40, 5, 4),
-        {
-            let builders = Arc::clone(&builders);
-            move || {
-                builders.fetch_add(1, Ordering::Relaxed);
-                standard_builder()
-            }
-        },
-        {
-            let compilers = Arc::clone(&compilers);
-            move |builder| {
-                compilers.fetch_add(1, Ordering::Relaxed);
-                Compiler::with_builder(builder)
-            }
-        },
-    );
+fn run_given_many_threads_then_the_factory_is_not_asked_for_another_compiler() {
+    let (factory, builders, compilers) = CountingFactory::new(StandardFactory::new());
+    let simulator = simulator_of(&simulation_plans::layered(40, 5, 4), factory);
 
     simulator.run(&settings_of(640, 4)).unwrap();
 
     // Only the check of the plan is a compile. An iteration schedules with the
     // builder of its thread.
     assert_eq!(count(&compilers), 1);
-    assert!(count(&builders) > 1);
+    assert!(count(&builders) > 0);
 }
 
 #[test]
-fn with_factories_given_a_compiler_over_another_builder_then_the_check_of_the_plan_is_a_compile_by_that_compiler(
+fn with_factory_given_a_compiler_with_other_engines_then_the_check_of_the_plan_is_a_compile_by_that_compiler(
 ) {
-    let of_the_builder_factory = Arc::new(AtomicUsize::new(0));
+    let of_the_builders = Arc::new(AtomicUsize::new(0));
     let of_the_compiler = Arc::new(AtomicUsize::new(0));
 
     let simulator = simulator_of(
         &simulation_plans::layered(40, 5, 4),
-        {
-            let schedules = Arc::clone(&of_the_builder_factory);
-            move || builder_of(counting(&schedules))
-        },
-        {
-            let schedules = Arc::clone(&of_the_compiler);
-            move |_| Compiler::with_builder(builder_of(counting(&schedules)))
+        SplitFactory {
+            builders: factory_of(counting(&of_the_builders)),
+            compilers: factory_of(counting(&of_the_compiler)),
         },
     );
 
-    // The compile went through the compiler. The builder that the builder
-    // factory made has scheduled nothing.
+    // The compile went through the compiler. The builders of the factory have
+    // scheduled nothing yet.
     assert!(simulator.compilation_errors().is_empty());
     assert!(count(&of_the_compiler) > 0);
-    assert_eq!(count(&of_the_builder_factory), 0);
+    assert_eq!(count(&of_the_builders), 0);
 }
 
 #[test]
-fn with_factories_given_a_compiler_of_another_scheduler_then_the_planned_finish_is_the_finish_of_that_compiler(
+fn with_factory_given_a_compiler_of_another_scheduler_then_the_planned_finish_is_the_finish_of_that_compiler(
 ) {
     // Few resources for many activities, so that the order in which they are
     // scheduled decides the finish.
@@ -414,11 +412,15 @@ fn with_factories_given_a_compiler_of_another_scheduler_then_the_planned_finish_
     let reversed = finish_of(&plan, reversing());
     assert_ne!(reversed, standard);
 
-    // The builder of the factory has the standard engines, and the compiler is
-    // around a builder that reverses.
-    let simulator = simulator_of(&plan, standard_builder, |_| {
-        Compiler::with_builder(builder_of(reversing()))
-    });
+    // The builders of the factory have the standard engines, and the compiler
+    // reverses.
+    let simulator = simulator_of(
+        &plan,
+        SplitFactory {
+            builders: StandardFactory::new(),
+            compilers: factory_of(reversing()),
+        },
+    );
 
     assert_eq!(simulator.planned_finish_time(), reversed);
 }
@@ -431,13 +433,10 @@ fn run_given_a_factory_that_gives_a_builder_that_is_not_empty_then_fails() {
     let first = plan.activities().remove(0);
     let simulator = simulator_of(
         &plan,
-        move || {
-            // A builder that already holds an activity of the plan.
-            let mut builder = standard_builder();
-            builder.add_activity(first.clone());
-            builder
+        FilledBuilderFactory {
+            activity: first,
+            inner: StandardFactory::new(),
         },
-        Compiler::with_builder,
     );
 
     // The check of the plan passes, and an iteration needs a new, empty builder.
