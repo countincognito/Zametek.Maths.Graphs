@@ -2,11 +2,11 @@ use super::engines::VertexGraphBuilderEngines;
 use super::state::VertexGraphState;
 use crate::constraint_checker;
 use crate::contracts::{
-    IEventGenerator, IIdGenerator, IResourceSchedulingEngine, IResourceSchedulingGraph,
-    IVertexCriticalPathEngine, IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
+    IEventGenerator, IIdGenerator, IIdGeneratorFactory, IResourceSchedulingEngine,
+    IResourceSchedulingGraph, IVertexCriticalPathEngine, IVertexStronglyConnectedComponentsFinder,
+    IVertexTransitiveReducer,
 };
 use crate::error_formatter;
-use crate::id_gen::PreviousIdGenerator;
 use crate::limit_checker;
 use crate::messages;
 use indexmap::{IndexMap, IndexSet};
@@ -27,6 +27,9 @@ use zametek_maths_graphs_primitives::{
 /// `RemovableEventGenerator`).
 pub struct VertexGraphBuilder<K: Key, R: Key, W: Key> {
     pub(crate) state: VertexGraphState<K, R, W>,
+    // The factory is kept for `clone_builder`: a clone asks it for a generator
+    // of its own.
+    edge_id_generator_factory: Arc<dyn IIdGeneratorFactory<K>>,
     edge_id_generator: Box<dyn IIdGenerator<K>>,
     event_generator: Arc<dyn IEventGenerator<K>>,
     scc_finder: Arc<dyn IVertexStronglyConnectedComponentsFinder<K, R, W>>,
@@ -41,10 +44,10 @@ pub struct VertexGraphBuilder<K: Key, R: Key, W: Key> {
 
 impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
     /// Creates a builder with default engines, using the given edge (event) ID
-    /// generator.
-    pub fn new(edge_id_generator: impl IIdGenerator<K> + 'static) -> Self {
+    /// generator factory.
+    pub fn new(edge_id_generator_factory: impl IIdGeneratorFactory<K> + 'static) -> Self {
         Self::with_engines(VertexGraphBuilderEngines {
-            edge_id_generator: Box::new(edge_id_generator),
+            edge_id_generator_factory: Arc::new(edge_id_generator_factory),
             ..Default::default()
         })
     }
@@ -52,9 +55,19 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
     /// Creates a builder from an engines bundle; every unset bundle field
     /// defaults to the standard implementation.
     pub fn with_engines(engines: VertexGraphBuilderEngines<K, R, W>) -> Self {
+        // A new graph holds no IDs.
+        Self::from_engines_raw(engines, &[])
+    }
+
+    // Builds the struct from a bundle, with a generator from the ID generator
+    // factory for a graph that holds the given edge IDs - the shared core of
+    // `with_engines` and `from_graph_with_engines`.
+    fn from_engines_raw(engines: VertexGraphBuilderEngines<K, R, W>, used_edge_ids: &[K]) -> Self {
+        let edge_id_generator = engines.edge_id_generator_factory.create(used_edge_ids);
         Self {
             state: VertexGraphState::new(),
-            edge_id_generator: engines.edge_id_generator,
+            edge_id_generator_factory: engines.edge_id_generator_factory,
+            edge_id_generator,
             event_generator: engines.event_generator,
             scc_finder: engines.scc_finder,
             critical_path_engine: engines.critical_path_engine,
@@ -64,26 +77,33 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         }
     }
 
-    /// Creates a builder by assimilating an existing graph, with default engines.
+    /// Creates a builder by assimilating an existing graph, with default
+    /// engines. The ID generator of the builder starts clear of the IDs of the
+    /// graph.
     pub fn from_graph(
         graph: crate::VertexGraph<K, R, W>,
-        edge_id_generator: impl IIdGenerator<K> + 'static,
+        edge_id_generator_factory: impl IIdGeneratorFactory<K> + 'static,
     ) -> Result<Self, GraphError> {
         Self::from_graph_with_engines(
             graph,
             VertexGraphBuilderEngines {
-                edge_id_generator: Box::new(edge_id_generator),
+                edge_id_generator_factory: Arc::new(edge_id_generator_factory),
                 ..Default::default()
             },
         )
     }
 
-    /// Creates a builder by assimilating an existing graph, from an engines bundle.
+    /// Creates a builder by assimilating an existing graph, from an engines
+    /// bundle. The ID generator of the builder starts clear of the IDs of the
+    /// graph.
     pub fn from_graph_with_engines(
         graph: crate::VertexGraph<K, R, W>,
         engines: VertexGraphBuilderEngines<K, R, W>,
     ) -> Result<Self, GraphError> {
-        let mut builder = Self::with_engines(engines);
+        // The edges (events) of the graph hold IDs that the generator must not
+        // give again.
+        let used_edge_ids: Vec<K> = graph.edges.iter().map(|e| e.id()).collect();
+        let mut builder = Self::from_engines_raw(engines, &used_edge_ids);
 
         for edge in graph.edges {
             builder.state.add_edge(edge);
@@ -1035,24 +1055,19 @@ impl<K: Key, R: Key, W: Key> VertexGraphBuilder<K, R, W> {
         self.state.clear();
     }
 
-    /// Clones the builder (via graph export, as in the C# `CloneObject`). Only
-    /// the edge ID generator is recreated, stepping downward from below the
-    /// minimum exported edge ID; the shuffle flag resets to false.
+    /// Clones the builder (via graph export, as in the C# `CloneObject`). The
+    /// clone asks the same ID generator factory for a generator of its own, for
+    /// the IDs of the exported graph, and so its generator is of the same kind
+    /// as the generator of the original; the shuffle flag resets to false.
     pub fn clone_builder(&mut self) -> Result<Self, GraphError> {
         let graph = self.to_graph()?;
-        let min_edge_id = graph
-            .edges
-            .iter()
-            .map(|e| e.id())
-            .min()
-            .unwrap_or_default()
-            .previous();
-        // Preserve the injected (stateless) engines on the clone; only the ID
-        // generator is recreated, since it carries a per-graph counter.
+        // Preserve the injected (stateless) engines on the clone, the ID
+        // generator factory included. The ID generator carries a per-graph
+        // counter, so the clone gets one of its own.
         Self::from_graph_with_engines(
             graph,
             VertexGraphBuilderEngines {
-                edge_id_generator: Box::new(PreviousIdGenerator::new(min_edge_id)),
+                edge_id_generator_factory: Arc::clone(&self.edge_id_generator_factory),
                 event_generator: Arc::clone(&self.event_generator),
                 scc_finder: Arc::clone(&self.scc_finder),
                 critical_path_engine: Arc::clone(&self.critical_path_engine),

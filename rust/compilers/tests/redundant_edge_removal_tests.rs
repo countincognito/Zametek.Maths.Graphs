@@ -24,7 +24,7 @@ use indexmap::IndexSet;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
-use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGenerator};
+use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGeneratorFactory};
 use zametek_maths_graphs_primitives::DependentActivity;
 
 type Act = DependentActivity<i32, i32, i32>;
@@ -65,8 +65,8 @@ where
 /// graph more distinct start-to-end paths than it has edges.
 fn build_branching_graph() -> ArrowGraphBuilder<i32, i32, i32> {
     let mut builder = ArrowGraphBuilder::<i32, i32, i32>::new(
-        NextIdGenerator::new(1_000_000),
-        NextIdGenerator::new(0),
+        NextIdGeneratorFactory::new(1_000_000),
+        NextIdGeneratorFactory::new(0),
     );
 
     let per_layer = BRANCHING_ACTIVITY_COUNT / BRANCHING_LAYER_COUNT;
@@ -99,8 +99,8 @@ fn arrow_branching_graph_when_calculating_critical_path_then_does_not_enumerate_
 #[test]
 fn arrow_very_deep_chain_when_calculating_critical_path_then_reaches_the_far_end() {
     let mut builder = ArrowGraphBuilder::<i32, i32, i32>::new(
-        NextIdGenerator::new(CHAIN_LENGTH),
-        NextIdGenerator::new(0),
+        NextIdGeneratorFactory::new(CHAIN_LENGTH),
+        NextIdGeneratorFactory::new(0),
     );
 
     builder.add_activity(Act::new(1, 1));

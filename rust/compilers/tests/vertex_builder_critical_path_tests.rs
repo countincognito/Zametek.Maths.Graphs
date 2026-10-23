@@ -5,14 +5,14 @@
 //! critical-path values invariant.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{NextIdGenerator, VertexGraphBuilder};
+use zametek_maths_graphs_compilers::{NextIdGeneratorFactory, VertexGraphBuilder};
 use zametek_maths_graphs_primitives::{DependentActivity, InterActivityAllocationType, Resource};
 
 type Builder = VertexGraphBuilder<i32, i32, i32>;
 type Act = DependentActivity<i32, i32, i32>;
 
 fn new_builder() -> Builder {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     builder.shuffle_processing_order = true;
     builder
 }

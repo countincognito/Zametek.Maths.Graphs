@@ -60,8 +60,8 @@ namespace Zametek.Maths.Graphs.Tests
             // The dummy-activity ID generator starts above the chain length so generated dummy
             // edge IDs never collide with the real activity IDs (1..c_ChainLength).
             var builder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(c_ChainLength),
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(c_ChainLength),
+                new NextIdGeneratorFactory<int>(0));
 
             builder.AddActivity(new Activity<int, int, int>(1, 1));
             for (int id = 2; id <= c_ChainLength; id++)
@@ -86,8 +86,8 @@ namespace Zametek.Maths.Graphs.Tests
         private static ArrowGraphBuilder<int, int, int, IActivity<int, int, int>> BuildBranchingGraph()
         {
             var builder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(1_000_000),
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(1_000_000),
+                new NextIdGeneratorFactory<int>(0));
 
             int perLayer = c_BranchingActivityCount / c_BranchingLayerCount;
             for (int id = 1; id <= c_BranchingActivityCount; id++)

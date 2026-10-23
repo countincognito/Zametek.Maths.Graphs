@@ -14,7 +14,7 @@
 #![allow(dead_code)]
 
 use crate::corpus_shapes;
-use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGenerator};
+use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGeneratorFactory};
 use zametek_maths_graphs_primitives::DependentActivity;
 
 pub type Builder = ArrowGraphBuilder<i32, i32, i32>;
@@ -35,8 +35,8 @@ pub fn generate() -> Vec<Case> {
 
 fn build(spec: corpus_shapes::GraphSpec) -> Case {
     let mut graph_builder = ArrowGraphBuilder::<i32, i32, i32>::new(
-        NextIdGenerator::new(FIRST_DUMMY_ACTIVITY_ID),
-        NextIdGenerator::new(FIRST_EVENT_ID),
+        NextIdGeneratorFactory::new(FIRST_DUMMY_ACTIVITY_ID),
+        NextIdGeneratorFactory::new(FIRST_EVENT_ID),
     );
 
     for activity_spec in &spec.activities {

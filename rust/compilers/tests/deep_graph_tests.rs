@@ -5,7 +5,9 @@
 //! lookup) is handled.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGenerator, VertexGraphBuilder};
+use zametek_maths_graphs_compilers::{
+    ArrowGraphBuilder, NextIdGeneratorFactory, VertexGraphBuilder,
+};
 use zametek_maths_graphs_primitives::DependentActivity;
 
 type Act = DependentActivity<i32, i32, i32>;
@@ -19,7 +21,7 @@ const ARROW_CHAIN_LENGTH: i32 = 10_000;
 
 #[test]
 fn vertex_very_deep_dependency_chain_then_find_strong_circular_dependencies_completes() {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 1));
     for id in 2..=CHAIN_LENGTH {
         builder.add_activity_with_dependencies(Act::new(id, 1), IndexSet::from([id - 1]));
@@ -29,7 +31,7 @@ fn vertex_very_deep_dependency_chain_then_find_strong_circular_dependencies_comp
 
 #[test]
 fn vertex_very_deep_chain_closed_into_cycle_then_cycle_is_found() {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     // Close the chain into one giant cycle: 1 depends on the final activity.
     builder.add_activity_with_dependencies(Act::new(1, 1), IndexSet::from([CHAIN_LENGTH]));
     for id in 2..=CHAIN_LENGTH {
@@ -44,7 +46,7 @@ fn vertex_very_deep_chain_closed_into_cycle_then_cycle_is_found() {
 
 #[test]
 fn vertex_very_deep_dummy_chain_then_strong_dependency_resolves_real_root() {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 1));
     for id in 2..=CHAIN_LENGTH {
         builder.add_activity_with_dependencies(Act::new(id, 0), IndexSet::from([id - 1]));
@@ -58,8 +60,8 @@ fn vertex_very_deep_dummy_chain_then_strong_dependency_resolves_real_root() {
 #[test]
 fn arrow_very_deep_dependency_chain_then_builds_and_resolves() {
     let mut builder = ArrowGraphBuilder::<i32, i32, i32>::new(
-        NextIdGenerator::new(CHAIN_LENGTH),
-        NextIdGenerator::new(0),
+        NextIdGeneratorFactory::new(CHAIN_LENGTH),
+        NextIdGeneratorFactory::new(0),
     );
     builder.add_activity(Act::new(1, 1));
     for id in 2..=CHAIN_LENGTH {
@@ -75,7 +77,7 @@ fn arrow_very_deep_dependency_chain_then_builds_and_resolves() {
 
 #[test]
 fn vertex_very_deep_chain_with_redundant_shortcut_then_reduction_removes_shortcut() {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 1));
     for id in 2..CHAIN_LENGTH {
         builder.add_activity_with_dependencies(Act::new(id, 1), IndexSet::from([id - 1]));
@@ -97,8 +99,8 @@ fn vertex_very_deep_chain_with_redundant_shortcut_then_reduction_removes_shortcu
 #[test]
 fn arrow_very_deep_chain_with_redundant_shortcut_then_reduction_removes_shortcut() {
     let mut builder = ArrowGraphBuilder::<i32, i32, i32>::new(
-        NextIdGenerator::new(ARROW_CHAIN_LENGTH),
-        NextIdGenerator::new(0),
+        NextIdGeneratorFactory::new(ARROW_CHAIN_LENGTH),
+        NextIdGeneratorFactory::new(0),
     );
     builder.add_activity(Act::new(1, 1));
     for id in 2..ARROW_CHAIN_LENGTH {

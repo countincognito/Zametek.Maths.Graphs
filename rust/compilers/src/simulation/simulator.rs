@@ -15,14 +15,25 @@
 //! and an activity with no spread takes no random number. A draw is rounded to
 //! whole time units, with halves up, and it stays within the range from O to P.
 //! A draw of 0 stays 0: the activity is then as long as a milestone.
+//!
+//! The simulation schedules a plan with the builders that a factory of its
+//! caller gives it, and so with the engines of those builders: the
+//! critical-path engine, the resource scheduler and the others. Each thread
+//! needs a builder of its own, and the factory makes them. The first check of
+//! the plan is a compile, by a compiler that the same factory gives. A caller
+//! that compiles with engines of its own gets a simulation that schedules in the
+//! same way ([`ScheduleSimulator::with_factory`]). [`ScheduleSimulator::new`] is
+//! the same with the standard factory.
 
 use super::iteration_runner::{SimulationIterationRunner, FAILED};
 use super::random::SimulationRandom;
 use super::sampler;
 use super::tracer::CriticalPathTracer;
-use crate::vertex::VertexGraphCompiler;
+use crate::contracts::IVertexGraphFactory;
+use crate::vertex::VertexGraphFactory;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use zametek_maths_graphs_primitives::{
     CriticalPath, CriticalPathLink, CriticalPathStep, DependentActivity, DurationEstimate,
     GraphCompilationError, GraphError, Key, Resource, SimulationResult, SimulationSettings,
@@ -39,6 +50,7 @@ pub struct ScheduleSimulator<K: Key, R: Key, W: Key> {
     activity_ids: Vec<K>,
     activities: Vec<DependentActivity<K, R, W>>,
     resources: Vec<Resource<R, W>>,
+    factory: Arc<dyn IVertexGraphFactory<K, R, W>>,
     estimates: Option<Vec<DurationEstimate>>,
     compilation_errors: Vec<GraphCompilationError>,
     planned_finish_time: i32,
@@ -67,11 +79,47 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
     /// An activity that has no entry in `estimates` keeps its duration in every
     /// iteration. Fails when an estimate belongs to an activity that is not in
     /// the plan, or when two activities have the same ID.
+    ///
+    /// The plan is scheduled with the standard engines
+    /// ([`VertexGraphFactory::new`]). To schedule it with the engines of a
+    /// factory of your own, use [`Self::with_factory`].
     pub fn new(
         activities: &[DependentActivity<K, R, W>],
         resources: &[Resource<R, W>],
         work_streams: &[WorkStream<W>],
         estimates: &HashMap<K, DurationEstimate>,
+    ) -> Result<Self, GraphError> {
+        Self::with_factory(
+            activities,
+            resources,
+            work_streams,
+            estimates,
+            VertexGraphFactory::new(),
+        )
+    }
+
+    /// Prepares a simulation of a plan, as [`Self::new`] does, with the factory
+    /// of the caller.
+    ///
+    /// The simulation calls [`IVertexGraphFactory::create_compiler`] once, here,
+    /// for the first check of the plan, and never for an iteration. The compile
+    /// of the check gives [`Self::compilation_errors`] and
+    /// [`Self::planned_finish_time`]. It calls
+    /// [`IVertexGraphFactory::create_builder`] once for each thread that runs
+    /// iterations, from that thread. A builder holds the engines that decide how
+    /// a plan is scheduled, and so the factory decides it. If the factory gives
+    /// the same engines to all its builders, as [`VertexGraphFactory`] does, the
+    /// engines must hold no state or be safe for use by many threads. Each
+    /// builder that the factory gives must be new and empty: a builder that
+    /// already holds activities makes [`Self::run`] fail.
+    ///
+    /// Fails in the same cases as [`Self::new`].
+    pub fn with_factory(
+        activities: &[DependentActivity<K, R, W>],
+        resources: &[Resource<R, W>],
+        work_streams: &[WorkStream<W>],
+        estimates: &HashMap<K, DurationEstimate>,
+        factory: impl IVertexGraphFactory<K, R, W> + 'static,
     ) -> Result<Self, GraphError> {
         let activity_ids: Vec<K> = activities.iter().map(|x| x.id()).collect();
         let mut index_by_id: HashMap<K, usize> = HashMap::with_capacity(activity_ids.len());
@@ -94,7 +142,7 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
         // scheduled at all. The iterations check nothing: they would find the
         // same errors again and again. The compile also gives the finish time
         // that the plan itself has.
-        let mut compiler: VertexGraphCompiler<K, R, W> = VertexGraphCompiler::new();
+        let mut compiler = factory.create_compiler();
         for activity in activities {
             compiler.add_activity(activity.clone());
         }
@@ -120,6 +168,7 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
             activity_ids,
             activities: activities.to_vec(),
             resources: resources.to_vec(),
+            factory: Arc::new(factory),
             estimates: built_estimates,
             compilation_errors,
             planned_finish_time,
@@ -168,7 +217,7 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
             let handles: Vec<_> = (0..threads)
                 .map(|_| {
                     scope.spawn(|| -> Result<Vec<(usize, ChunkResult)>, GraphError> {
-                        let mut worker = Worker::new(self, settings, estimates);
+                        let mut worker = Worker::new(self, settings, estimates)?;
                         let mut done = Vec::new();
                         loop {
                             let chunk = next_chunk.fetch_add(1, Ordering::Relaxed);
@@ -302,20 +351,21 @@ impl<'a, K: Key, R: Key, W: Key> Worker<'a, K, R, W> {
         simulator: &'a ScheduleSimulator<K, R, W>,
         settings: &'a SimulationSettings,
         estimates: &'a [DurationEstimate],
-    ) -> Self {
+    ) -> Result<Self, GraphError> {
         let runner = SimulationIterationRunner::new(
+            simulator.factory.create_builder(),
             &simulator.activities,
             &simulator.resources,
             settings.schedule_onto_synthetic_resources,
-        );
+        )?;
         let tracer = CriticalPathTracer::new(&simulator.activity_ids);
-        Self {
+        Ok(Self {
             settings,
             estimates,
             runner,
             tracer,
             durations: vec![0; simulator.activity_ids.len()],
-        }
+        })
     }
 
     fn run(&mut self, chunk: usize, count: usize) -> Result<ChunkResult, GraphError> {

@@ -178,6 +178,15 @@ namespace Zametek.Maths.Graphs.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The ID generator factory gave a null generator. Create must give a generator..
+        /// </summary>
+        internal static string Message_IdGeneratorFactoryGaveNullGenerator {
+            get {
+                return ResourceManager.GetString("Message_IdGeneratorFactoryGaveNullGenerator", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Keys for phase starting points does not match the keys for phase ending points for resource {0}.
         /// </summary>
         internal static string Message_PhaseStartKeysDoNotMatchPhaseEndKeys {

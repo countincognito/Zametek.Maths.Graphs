@@ -11,7 +11,7 @@ mod state;
 pub use builder::VertexGraphBuilder;
 pub use compiler::VertexGraphCompiler;
 pub use engines::{
-    VertexCriticalPathEngine, VertexGraphBuilderEngines,
+    VertexCriticalPathEngine, VertexGraphBuilderEngines, VertexGraphFactory,
     VertexTarjanStronglyConnectedComponentsFinder, VertexTransitiveReducer,
 };
 pub use incremental::IncrementalCriticalPath;

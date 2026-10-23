@@ -22,8 +22,8 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        private static readonly IEventGenerator<T> s_DefaultEventGenerator = new RemovableEventGenerator<T>();
-
+        // The factory is kept for CloneObject: a clone asks it for a generator of its own.
+        private readonly IIdGeneratorFactory<T> m_EdgeIdGeneratorFactory;
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
         private readonly IEventGenerator<T> m_EventGenerator;
 
@@ -41,17 +41,16 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
-        // Public constructor - stable API surface. Wires up default engine instances.
+        // Public constructor - stable API surface. The default engines are those of the engines bundle.
         /// <summary>
-        /// Creates a builder with default engines, using the given edge (event) ID generator.
+        /// Creates a builder with default engines, using the given edge (event) ID generator factory.
         /// </summary>
-        public VertexGraphBuilder(IIdGenerator<T> edgeIdGenerator)
+        public VertexGraphBuilder(IIdGeneratorFactory<T> edgeIdGeneratorFactory)
             : this(
-                  edgeIdGenerator,
-                  s_DefaultEventGenerator,
-                  new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGeneratorFactory = edgeIdGeneratorFactory,
+                  })
         {
         }
 
@@ -63,7 +62,7 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public VertexGraphBuilder(VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
             : this(
-                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGeneratorFactory,
                   engines.EventGenerator,
                   engines.SccFinder,
                   engines.CriticalPathEngine,
@@ -81,7 +80,7 @@ namespace Zametek.Maths.Graphs
             VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
             : this(
                   graph,
-                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGeneratorFactory,
                   engines.EventGenerator,
                   engines.SccFinder,
                   engines.CriticalPathEngine,
@@ -95,17 +94,20 @@ namespace Zametek.Maths.Graphs
         /// Creates a builder with custom engines and generators.
         /// </summary>
         public VertexGraphBuilder(
-            IIdGenerator<T> edgeIdGenerator,
+            IIdGeneratorFactory<T> edgeIdGeneratorFactory,
             IEventGenerator<T> eventGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId>? resourceSchedulingEngine = null)
         {
-            m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
+            m_EdgeIdGeneratorFactory = edgeIdGeneratorFactory ?? throw new ArgumentNullException(nameof(edgeIdGeneratorFactory));
             m_EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>();
+
+            // A new graph holds no IDs.
+            m_EdgeIdGenerator = CreateIdGenerator(m_EdgeIdGeneratorFactory, Enumerable.Empty<T>());
 
             m_State = new VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             ShuffleProcessingOrder = false;
@@ -113,28 +115,29 @@ namespace Zametek.Maths.Graphs
 
         // Graph-loading constructor (from existing Graph<T, IEvent<T>, TActivity>).
         /// <summary>
-        /// Creates a builder by assimilating an existing graph, with default engines.
+        /// Creates a builder by assimilating an existing graph, with default engines. The ID generator of the builder
+        /// starts clear of the IDs of the graph.
         /// </summary>
         public VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
-            IIdGenerator<T> edgeIdGenerator)
+            IIdGeneratorFactory<T> edgeIdGeneratorFactory)
             : this(
                   graph,
-                  edgeIdGenerator,
-                  s_DefaultEventGenerator,
-                  new VertexTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new VertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGeneratorFactory = edgeIdGeneratorFactory,
+                  })
         {
         }
 
         // Engine-injecting graph-loading constructor.
         /// <summary>
-        /// Creates a builder by assimilating an existing graph, with custom engines and generators.
+        /// Creates a builder by assimilating an existing graph, with custom engines and generators. The ID generator
+        /// of the builder starts clear of the IDs of the graph.
         /// </summary>
         public VertexGraphBuilder(
             Graph<T, IEvent<T>, TActivity> graph,
-            IIdGenerator<T> edgeIdGenerator,
+            IIdGeneratorFactory<T> edgeIdGeneratorFactory,
             IEventGenerator<T> eventGenerator,
             IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
@@ -145,11 +148,14 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(graph));
             }
 
-            m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
+            m_EdgeIdGeneratorFactory = edgeIdGeneratorFactory ?? throw new ArgumentNullException(nameof(edgeIdGeneratorFactory));
             m_EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
+
+            // The events of the graph hold IDs that the generator must not give again.
+            m_EdgeIdGenerator = CreateIdGenerator(m_EdgeIdGeneratorFactory, graph.Edges.Select(x => x.Id));
 
             m_State = new VertexGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             ShuffleProcessingOrder = false;
@@ -211,6 +217,9 @@ namespace Zametek.Maths.Graphs
             }
 
         }
+
+        private static IIdGenerator<T> CreateIdGenerator(IIdGeneratorFactory<T> factory, IEnumerable<T> usedIds) =>
+            factory.Create(usedIds) ?? throw new InvalidOperationException(Properties.Resources.Message_IdGeneratorFactoryGaveNullGenerator);
 
         #endregion
 
@@ -1697,15 +1706,14 @@ namespace Zametek.Maths.Graphs
         public virtual object CloneObject()
         {
             Graph<T, IEvent<T>, TActivity> vertexGraphCopy = ToGraph();
-            T minEdgeId = vertexGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
-            minEdgeId = minEdgeId.Previous();
-            // Preserve the injected (stateless) engines on the clone; only the id
-            // generator is recreated, since it carries a per-graph counter.
+            // Preserve the injected (stateless) engines on the clone, the ID generator factory
+            // included. The id generator carries a per-graph counter, so the clone asks the
+            // factory for one of its own, for the IDs that the graph copy holds.
             return new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 vertexGraphCopy,
                 new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
                 {
-                    EdgeIdGenerator = new PreviousIdGenerator<T>(minEdgeId),
+                    EdgeIdGeneratorFactory = m_EdgeIdGeneratorFactory,
                     EventGenerator = m_EventGenerator,
                     SccFinder = m_SccFinder,
                     CriticalPathEngine = m_CriticalPathEngine,

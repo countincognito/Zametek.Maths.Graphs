@@ -1,5 +1,6 @@
 use super::builder::ArrowGraphBuilder;
-use crate::id_gen::PreviousIdGenerator;
+use super::engines::ArrowGraphFactory;
+use crate::contracts::IArrowGraphFactory;
 use crate::messages;
 use indexmap::IndexSet;
 use zametek_maths_graphs_primitives::{DependentActivity, GraphError, Key};
@@ -20,14 +21,10 @@ impl<K: Key, R: Key, W: Key> Default for ArrowGraphCompiler<K, R, W> {
 }
 
 impl<K: Key, R: Key, W: Key> ArrowGraphCompiler<K, R, W> {
-    /// Creates a compiler wired with the default engines.
+    /// Creates a compiler wired with the default engines: the builder is one
+    /// that an [`ArrowGraphFactory`] makes.
     pub fn new() -> Self {
-        Self {
-            builder: ArrowGraphBuilder::new(
-                PreviousIdGenerator::new(K::default()),
-                PreviousIdGenerator::new(K::default()),
-            ),
-        }
+        Self::with_builder(ArrowGraphFactory::new().create_builder())
     }
 
     /// Creates a compiler around the given builder.

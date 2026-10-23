@@ -2,15 +2,17 @@
 //! to the builder - the counterparts of the C# default engine classes and
 //! `VertexGraphBuilderEngines`.
 
+use super::builder::VertexGraphBuilder;
+use super::compiler::VertexGraphCompiler;
 use super::incremental::IncrementalCriticalPath;
 use super::state::{VertexGraphState, VertexTraversal};
 use super::{cpm, reducer};
 use crate::contracts::{
-    IEventGenerator, IIdGenerator, IResourceSchedulingEngine, IVertexCriticalPathEngine,
-    IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
+    IEventGenerator, IIdGeneratorFactory, IResourceSchedulingEngine, IVertexCriticalPathEngine,
+    IVertexGraphFactory, IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
 };
 use crate::generators::RemovableEventGenerator;
-use crate::id_gen::PreviousIdGenerator;
+use crate::id_gen::PreviousIdGeneratorFactory;
 use crate::scheduling::PriorityListResourceScheduler;
 use crate::tarjan;
 use indexmap::{IndexMap, IndexSet};
@@ -111,11 +113,12 @@ impl<K: Key, R: Key, W: Key> IVertexTransitiveReducer<K, R, W> for VertexTransit
 /// of the C# `VertexGraphBuilderEngines`. Set only the fields you want to
 /// customise; the rest keep their defaults.
 ///
-/// Injected engines are shared (`Arc`) and preserved across a builder clone;
-/// the ID generator carries a per-graph counter, so it is held by value and
-/// recreated on clone.
+/// Injected engines are shared (`Arc`) and preserved across a builder clone. The
+/// ID generator factory is one of them: an ID generator carries a per-graph
+/// counter, so each builder (and each clone) asks the factory for a generator of
+/// its own.
 pub struct VertexGraphBuilderEngines<K: Key, R: Key, W: Key> {
-    pub edge_id_generator: Box<dyn IIdGenerator<K>>,
+    pub edge_id_generator_factory: Arc<dyn IIdGeneratorFactory<K>>,
     pub event_generator: Arc<dyn IEventGenerator<K>>,
     pub scc_finder: Arc<dyn IVertexStronglyConnectedComponentsFinder<K, R, W>>,
     pub critical_path_engine: Arc<dyn IVertexCriticalPathEngine<K, R, W>>,
@@ -126,12 +129,83 @@ pub struct VertexGraphBuilderEngines<K: Key, R: Key, W: Key> {
 impl<K: Key, R: Key, W: Key> Default for VertexGraphBuilderEngines<K, R, W> {
     fn default() -> Self {
         Self {
-            edge_id_generator: Box::new(PreviousIdGenerator::default()),
+            edge_id_generator_factory: Arc::new(PreviousIdGeneratorFactory::default()),
             event_generator: Arc::new(RemovableEventGenerator::new()),
             scc_finder: Arc::new(VertexTarjanStronglyConnectedComponentsFinder),
             critical_path_engine: Arc::new(VertexCriticalPathEngine),
             transitive_reducer: Arc::new(VertexTransitiveReducer),
             resource_scheduling_engine: Arc::new(PriorityListResourceScheduler),
         }
+    }
+}
+
+/// The standard factory of Activity-on-Vertex graphs - the counterpart of the C#
+/// `VertexGraphFactory`. Its builders have the engines of a
+/// [`VertexGraphBuilderEngines`] bundle (the standard engines, for
+/// [`VertexGraphFactory::new`]), and its compilers are a
+/// [`VertexGraphCompiler`] around such a builder.
+///
+/// The factory gives the same engines to every builder that it makes, as a
+/// builder clone does. The engines are [`Send`] + [`Sync`], and they must hold
+/// no state or be safe for use by many threads. All the standard engines are. An
+/// engine that holds state needs a factory of your own, one that makes new
+/// engines each time: implement [`IVertexGraphFactory`].
+///
+/// The ID generator factory of the bundle is one of these engines. A generator
+/// of IDs holds the count of one graph, and so builders cannot share one, but
+/// each builder asks the ID generator factory for a generator of its own. The
+/// factory keeps the engines of the bundle, and the bundle is moved into it, so
+/// nothing can change them afterwards.
+#[derive(Clone)]
+pub struct VertexGraphFactory<K: Key, R: Key, W: Key> {
+    edge_id_generator_factory: Arc<dyn IIdGeneratorFactory<K>>,
+    event_generator: Arc<dyn IEventGenerator<K>>,
+    scc_finder: Arc<dyn IVertexStronglyConnectedComponentsFinder<K, R, W>>,
+    critical_path_engine: Arc<dyn IVertexCriticalPathEngine<K, R, W>>,
+    transitive_reducer: Arc<dyn IVertexTransitiveReducer<K, R, W>>,
+    resource_scheduling_engine: Arc<dyn IResourceSchedulingEngine<K, R, W>>,
+}
+
+impl<K: Key, R: Key, W: Key> Default for VertexGraphFactory<K, R, W> {
+    fn default() -> Self {
+        Self::with_engines(VertexGraphBuilderEngines::default())
+    }
+}
+
+impl<K: Key, R: Key, W: Key> VertexGraphFactory<K, R, W> {
+    /// Creates a factory with the standard engines.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Creates a factory whose builders have the engines of the bundle. Each
+    /// builder asks the `edge_id_generator_factory` of the bundle for an ID
+    /// generator of its own.
+    pub fn with_engines(engines: VertexGraphBuilderEngines<K, R, W>) -> Self {
+        Self {
+            edge_id_generator_factory: engines.edge_id_generator_factory,
+            event_generator: engines.event_generator,
+            scc_finder: engines.scc_finder,
+            critical_path_engine: engines.critical_path_engine,
+            transitive_reducer: engines.transitive_reducer,
+            resource_scheduling_engine: engines.resource_scheduling_engine,
+        }
+    }
+}
+
+impl<K: Key, R: Key, W: Key> IVertexGraphFactory<K, R, W> for VertexGraphFactory<K, R, W> {
+    fn create_builder(&self) -> VertexGraphBuilder<K, R, W> {
+        VertexGraphBuilder::with_engines(VertexGraphBuilderEngines {
+            edge_id_generator_factory: Arc::clone(&self.edge_id_generator_factory),
+            event_generator: Arc::clone(&self.event_generator),
+            scc_finder: Arc::clone(&self.scc_finder),
+            critical_path_engine: Arc::clone(&self.critical_path_engine),
+            transitive_reducer: Arc::clone(&self.transitive_reducer),
+            resource_scheduling_engine: Arc::clone(&self.resource_scheduling_engine),
+        })
+    }
+
+    fn create_compiler(&self) -> VertexGraphCompiler<K, R, W> {
+        VertexGraphCompiler::with_builder(self.create_builder())
     }
 }

@@ -19,17 +19,20 @@ namespace Zametek.Maths.Graphs
         where TActivity : class, IActivity<T, TResourceId, TWorkStreamId>
     {
         /// <summary>
-        /// Generates the IDs for the edges (activities) of the graph, including
-        /// dummy activities.
+        /// Makes the generator of the IDs for the edges (activities) of the graph, including
+        /// dummy activities. Each builder asks it for a generator of its own (stateless; a
+        /// clone of the builder uses the same factory).
         /// </summary>
-        public IIdGenerator<T> EdgeIdGenerator { get; set; } =
-            new PreviousIdGenerator<T>();
+        public IIdGeneratorFactory<T> EdgeIdGeneratorFactory { get; set; } =
+            new StandardIdGeneratorFactory<T>();
 
         /// <summary>
-        /// Generates the IDs for the nodes (events) of the graph.
+        /// Makes the generator of the IDs for the nodes (events) of the graph. Each builder
+        /// asks it for a generator of its own (stateless; a clone of the builder uses the
+        /// same factory).
         /// </summary>
-        public IIdGenerator<T> NodeIdGenerator { get; set; } =
-            new PreviousIdGenerator<T>();
+        public IIdGeneratorFactory<T> NodeIdGeneratorFactory { get; set; } =
+            new StandardIdGeneratorFactory<T>();
 
         /// <summary>
         /// Creates the dummy (zero-duration) activities that preserve dependencies.

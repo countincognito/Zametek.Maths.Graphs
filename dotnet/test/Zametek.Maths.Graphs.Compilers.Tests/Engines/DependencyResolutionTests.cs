@@ -13,7 +13,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphBuilder_GivenSharedAncestorAcrossTwoSinks_ThenTransitiveReductionRemovesRedundantEdgesFromBoth()
         {
-            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(0));
+            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(0));
 
             // A -> B, and two sinks (D1, D2) each depending on BOTH A (directly, redundantly)
             // and B. A is a shared ancestor of both sinks; the direct A->D1 and A->D2 edges are
@@ -33,7 +33,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphBuilder_GivenRealRootBehindDummyDiamond_ThenStrongActivityDependencyIdsResolvesRealRoot()
         {
-            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(0));
+            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(0));
 
             // A (real) sits behind two zero-duration (dummy) links B and C, which D depends on.
             builder.AddActivity(new Activity<int, int, int>(1, 1)).ShouldBeTrue();        // A real
@@ -54,8 +54,8 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowGraphBuilder_GivenRealRootBehindDummyDiamond_ThenStrongActivityDependencyIdsResolvesRealRoot()
         {
             var builder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(100),
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(100),
+                new NextIdGeneratorFactory<int>(0));
 
             builder.AddActivity(new Activity<int, int, int>(1, 1)).ShouldBeTrue();        // A real
             builder.AddActivity(new Activity<int, int, int>(2, 0), [1]).ShouldBeTrue();    // B dummy dep A

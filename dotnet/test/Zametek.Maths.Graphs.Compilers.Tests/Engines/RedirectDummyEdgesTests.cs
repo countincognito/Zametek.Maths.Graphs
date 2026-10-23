@@ -34,8 +34,8 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowGraphBuilder_GivenUnreducedChain_WhenCalculatingCriticalPath_ThenDoesNotCopyEdgeSetsToTestThem()
         {
             var builder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(c_ChainLength),
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(c_ChainLength),
+                new NextIdGeneratorFactory<int>(0));
 
             builder.AddActivity(new Activity<int, int, int>(1, 1));
             for (int id = 2; id <= c_ChainLength; id++)

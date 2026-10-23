@@ -339,22 +339,24 @@ SimulationResult<int> result = simulator.Run(
 
 An activity that has no entry in `estimates` keeps its duration in every iteration.
 
-**Engines of your own.** `ScheduleSimulator<T, TResourceId, TWorkStreamId>` schedules the plan with the standard engines. If you compile with engines of your own, use `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` and give it a factory for the builder. The simulation then schedules the plan in the same way as your compile does.
+**Engines of your own.** `ScheduleSimulator<T, TResourceId, TWorkStreamId>` schedules the plan with the standard engines. If you compile with engines of your own, use `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` and give it a factory: an `IVertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity>`, which makes the builders and the compiler of the first check of the plan. The simulation then schedules the plan in the same way as your compile does. `VertexGraphFactory` is the standard factory. Give it an engines bundle that holds the engines that you want to change, and it uses the standard engines for the rest.
 
 ```csharp
 var simulator = new ScheduleSimulator<int, int, int, MyActivity>(
     activities, resources, workStreams, estimates,
-    () => new VertexGraphBuilder<int, int, int, MyActivity>(
+    new VertexGraphFactory<int, int, int, MyActivity>(
         new VertexGraphBuilderEngines<int, int, int, MyActivity>
         {
             ResourceSchedulingEngine = new MyScheduler(),
         }));
 ```
 
-- The factory gives a new, empty builder each time. The simulation calls it once for the first check of the plan, and once for each task that runs iterations. It can call it from any thread.
-- An engine that holds state must not be shared between builders.
+- `CreateCompiler()` gives a compiler with a builder of its own. The simulation calls it once, when it makes the simulator, for the first check of the plan, and never for an iteration. The compile of the first check gives `CompilationErrors` and `PlannedFinishTime`. If your compiler is a class of your own (it derives from `VertexGraphCompiler`), return it from this method.
+- `CreateBuilder()` gives a new, empty builder each time. The simulation calls it once for each task that runs iterations, and it can call it from any thread.
+- `VertexGraphFactory` gives the same engines to every builder that it makes, as `CloneObject` does for a clone. The engines must hold no state, or be safe for use by many threads. All the standard engines are. An engine that holds state needs a factory of your own, one that makes new engines in `CreateBuilder`: implement `IVertexGraphFactory`. The ID generator factory of the bundle (`EdgeIdGeneratorFactory`) is one of these engines. A generator of IDs holds the count of one graph, and so each builder asks that factory for a generator of its own.
+- The constructor throws an `ArgumentNullException` for a factory that is null, and an `InvalidOperationException` for a factory that gives a null compiler. A run fails with an `AggregateException` that holds an `InvalidOperationException` for a factory that gives a null builder, or a builder that already holds activities.
 - `CloneObject` of an activity must give an object of the type `TActivity`. The constructor throws an `ArgumentException` when it does not.
-- An iteration calls the same methods of the builder as a compile does: the critical-path calculation, the resource scheduler and the other engines. It does not call `VertexGraphCompiler.Compile`. Thus, the engines decide how a simulation schedules a plan, and anything that a compiler adds to them is not a part of it.
+- An iteration calls the same methods of the builder as a compile does: the critical-path calculation, the resource scheduler and the other engines. It does not call `VertexGraphCompiler.Compile`. Only the first check of the plan does that, with the compiler from the factory. Thus, the engines decide how a simulation schedules a plan, and anything that a compiler adds to them is not a part of the iterations.
 
 **What the result holds.** The result is raw, and it holds no statistics: you make the mean, the percentiles, the histogram and the criticality index from it. For each iteration it holds the finish time (`FinishTimes`), the activities that were critical (`IsCritical(iteration, activityIndex)`, one bit for each) and the critical paths (`CriticalPathIndexes(iteration)`, as indexes into `CriticalPaths`). An iteration that failed has the finish time `SimulationResult.FailedFinishTime`: the resource scheduler could not place every activity, or the schedule ran past `GraphLimits.MaximumTimeValue`. Both the critical activities and the paths can be left out (`RecordCriticalActivities`, `RecordCriticalPaths`) to save memory.
 
@@ -378,7 +380,7 @@ A draw is rounded to the nearest whole time unit, with halves up, because the sc
 
 **A plan with no resources.** With no resources, a compile schedules the plan onto synthetic resources, and that can make more activities critical when two activities meet at the same moment. By default a simulation of such a plan stops after the first critical-path calculation: the finish times are those of a compile, and the critical activities are those of the plan alone. Set `ScheduleOntoSyntheticResources` to do what the compile does.
 
-The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator` uses the standard engines only. It does not take a builder, although the Rust `VertexGraphBuilder` does take engines (`VertexGraphBuilder::with_engines`).
+The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator::new` uses the standard engines, and `ScheduleSimulator::with_factory` takes a factory in the same way as the constructor above: a value that implements the trait `IVertexGraphFactory`, such as `VertexGraphFactory::with_engines(engines)`. The trait requires `Send + Sync`, which is the Rust form of "safe for use by many threads".
 
 ## Limits
 
@@ -508,7 +510,7 @@ These packages are the scheduling engine behind [Zametek.ProjectPlan](https://gi
 
 Every engine the builders rely on sits behind a public interface and can be supplied through the builders' (and compilers') engine-injecting constructors:
 
-- `IIdGenerator<T>` - ID generation (`NextIdGenerator`, `PreviousIdGenerator`).
+- `IIdGeneratorFactory<T>` - makes the ID generator (`IIdGenerator<T>`: `NextIdGenerator`, `PreviousIdGenerator`) of each builder. `StandardIdGeneratorFactory` is the default, and `PreviousIdGeneratorFactory` and `NextIdGeneratorFactory` make the two generators. A generator holds the count of one graph, and so a builder asks the factory for a generator of its own when it is made (see below). The factory itself holds no state.
 - `IEventGenerator<T>` - event creation (`EventGenerator`, `RemovableEventGenerator`).
 - `IActivityGenerator<…>` - dummy activity creation (`DummyActivityGenerator`).
 - `IArrowCriticalPathEngine<…>` / `IVertexCriticalPathEngine<…>` - critical path calculation.
@@ -527,9 +529,57 @@ var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int,
 var compiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>(builder);
 ```
 
+A builder is not an engine: it holds the state of one graph, and so it cannot be shared. Code that needs many builders, or a compiler that agrees with its builders, takes a **factory**: `IVertexGraphFactory<…>` / `IArrowGraphFactory<…>`, with the methods `CreateBuilder()` and `CreateCompiler()`. `VertexGraphFactory<…>` / `ArrowGraphFactory<…>` are the standard ones, and they take the same engines bundle as the builders do.
+
+```csharp
+IVertexGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory =
+    new VertexGraphFactory<int, int, int, IDependentActivity<int, int, int>>(
+        new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
+        {
+            CriticalPathEngine = new MyInstrumentedCpmEngine(),   // everything else defaults
+        });
+
+var builder = factory.CreateBuilder();      // a new, empty builder
+var compiler = factory.CreateCompiler();    // a compiler, with a builder of its own
+```
+
+A standard factory gives the same engines to all its builders, as `CloneObject()` does for a clone, and so the engines must hold no state (all the standard engines hold none). The ID generator factories of the bundle are among them: each builder that the factory makes asks them for ID generators of its own. The default constructors of `VertexGraphCompiler` and `ArrowGraphCompiler` make their builder with these factories. [`ScheduleSimulator`](#simulating-a-schedule) takes a vertex factory.
+
+**IDs of your own.** A builder makes IDs for the elements that you do not name: the events of a vertex graph, and the dummy activities and the events (nodes) of an arrow graph. An `IIdGenerator<T>` gives them, and a builder takes an `IIdGeneratorFactory<T>` that makes the generator, in place of the generator. The factory is asked in three cases: for a new builder, which holds no IDs, for a builder that loads a graph, and for the clone of a builder (`CloneObject()`). The last two give the IDs that the graph holds, and the generator must not give any of them. Thus, you do not work out where a generator starts, and a clone has a generator of the same kind as its original.
+
+```csharp
+// IDs in steps of 10, over the highest ID that the graph holds.
+class StepIdGenerator : IIdGenerator<int>
+{
+    private int m_Value;
+    public StepIdGenerator(int start) => m_Value = start;
+    public int Generate() => m_Value += 10;
+}
+
+class StepIdGeneratorFactory : IIdGeneratorFactory<int>
+{
+    public IIdGenerator<int> Create(IEnumerable<int> usedIds) => new StepIdGenerator(usedIds.DefaultIfEmpty(0).Max());
+}
+
+var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(new StepIdGeneratorFactory());
+```
+
+The standard factories do this for the two kinds of ID that the library knows. `StandardIdGeneratorFactory<T>` is the default of the bundles: for `int` it makes descending IDs (`PreviousIdGeneratorFactory`: negative, and so clear of the positive IDs of the activities, and it starts under the lowest ID that the graph holds), and for `Guid`, which has no previous value, it makes new GUIDs (`NextIdGeneratorFactory`). `PreviousIdGeneratorFactory<T>(initial)` and `NextIdGeneratorFactory<T>(initial)` start from `initial`, or from the lowest or highest ID of the graph if that is further on.
+
 The critical-path engines and SCC finders read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts. The transitive reducers and the dummy-edge orchestrator restructure the graph, so they take the concrete `ArrowGraphState<…>` / `VertexGraphState<…>` directly: the state type is public, but its structural-mutation API is `internal`, so an external engine can read the state yet only the library's own engines can restructure it. Injected engines are preserved through `CloneObject()`.
 
 ## Breaking changes
+
+### 4.0.0
+
+Breaking changes in two places, in the .NET API and in the Rust API: a builder takes an ID generator factory in place of an ID generator, and the simulator that takes the engines of the caller takes a factory object in place of a delegate. Code that does neither is not affected. The compilers with their parameterless constructors are the same, and so is `ScheduleSimulator<T, TResourceId, TWorkStreamId>` (the standard engines). The release also adds the factories themselves.
+
+- **A builder takes an `IIdGeneratorFactory<T>` in place of an `IIdGenerator<T>`.** In 3.x a builder took its ID generators (one for a vertex builder, two for an arrow builder) as constructor parameters, or as the `EdgeIdGenerator` and `NodeIdGenerator` properties of an engines bundle. A generator holds the count of one graph, and so a builder could not make another one. `CloneObject()` made a `PreviousIdGenerator` that started under the lowest ID of the graph, and so a clone lost the generator that you gave. A graph with `Guid` IDs, which have no previous value, could not be cloned at all, and the methods that clone inside (`CalculateCriticalPathPriorityList` and `CalculateResourceSchedulesByPriorityList`) failed with it. Now the builder asks the factory for a generator of its own when it is made, and its clone asks the same factory again. The constructors of `VertexGraphBuilder` and `ArrowGraphBuilder` that took generators take factories in the same places, and the bundle properties are now `EdgeIdGeneratorFactory` and `NodeIdGeneratorFactory`. To move to 4.0.0, change `new NextIdGenerator<int>(n)` to `new NextIdGeneratorFactory<int>(n)`, `new PreviousIdGenerator<int>(n)` to `new PreviousIdGeneratorFactory<int>(n)`, and `EdgeIdGenerator = …` to `EdgeIdGeneratorFactory = …`. A generator class of your own stays as it is: add a factory that makes it. See [Extensibility](#extensibility).
+- **What else changes with it.** A builder that loads a graph starts its generators clear of the IDs of the graph (in 3.x the generator that the caller gave started where the caller said). The clone of a builder has a generator of the same kind as its original, and its first ID follows the lowest or the highest ID of the graph without a gap (in 3.x it skipped one number). `Guid` IDs work for the builders, the compilers and the simulator on the standard engines, because the default ID generator factory, `StandardIdGeneratorFactory<T>`, makes new GUIDs for them. For `int`, the IDs that a new builder makes are the same as before.
+- **`ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` takes an `IVertexGraphFactory<…>`.** In 3.3.0 the last parameter of the constructor was a `Func<VertexGraphBuilder<…>>`, a delegate that made the builders. It is now `factory`, an `IVertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity>` with two methods: `CreateBuilder()`, which the simulation calls for each task that runs iterations, and `CreateCompiler()`, which it calls once, for the first check of the plan. The first check is a compile by the compiler that the factory gives, and `CompilationErrors` and `PlannedFinishTime` come from that compile. The constructor of 3.3.0, with the delegate, is gone. To move to 4.0.0, give a `new VertexGraphFactory<T, TResourceId, TWorkStreamId, TActivity>(engines)`, where the engines bundle holds the engines of your old builder, or implement the interface. See [Simulating a schedule](#simulating-a-schedule).
+- **New: `IVertexGraphFactory<…>`, `VertexGraphFactory<…>`, `IArrowGraphFactory<…>` and `ArrowGraphFactory<…>`.** A factory makes the builders and the compilers of one flavour of graph. The standard factories take the same engines bundle as the builders, give the same engines to all the builders that they make (engines hold no state), and each builder that they make asks the ID generator factories of the bundle for ID generators of its own. The default constructors of `VertexGraphCompiler` and `ArrowGraphCompiler` now make their builder with a factory, and the convenience constructors of the builders take their standard engines from the engines bundle. They behave as before. See [Extensibility](#extensibility).
+- **New: `IIdGeneratorFactory<T>`, `StandardIdGeneratorFactory<T>`, `PreviousIdGeneratorFactory<T>` and `NextIdGeneratorFactory<T>`.** See above and [Extensibility](#extensibility).
+- **The Rust port has the same factories, and its engine traits and its `Key` require `Send + Sync`.** The Rust builders take an `IIdGeneratorFactory` (`PreviousIdGeneratorFactory` or `NextIdGeneratorFactory`) in place of an `IIdGenerator`: `VertexGraphBuilder::new` and `from_graph`, and the arrow builder in the same way, take factories, and the bundles have the fields `edge_id_generator_factory` and `node_id_generator_factory` (an `Arc<dyn IIdGeneratorFactory<K>>`). `ScheduleSimulator::with_factory` takes an `IVertexGraphFactory`, and `ScheduleSimulator::new` is the same as before. A standard factory shares one engine between all its builders, and the builders run on many threads, and so the engine traits (`IEventGenerator`, `IVertexCriticalPathEngine`, `IResourceSchedulingEngine`, `IIdGeneratorFactory` and the others) now have `Send + Sync` as supertraits. `Key` has them too, because the standard ID generator factories hold a key. An engine of your own that is not safe for many threads must be made so. In both languages, a builder that already holds activities makes the run fail.
 
 ### 3.3.0
 

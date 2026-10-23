@@ -311,7 +311,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
                 new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
                 {
-                    EdgeIdGenerator = new NextIdGenerator<int>(1_000_000),
+                    EdgeIdGeneratorFactory = new NextIdGeneratorFactory<int>(1_000_000),
                     ResourceSchedulingEngine = scheduling,
                     CriticalPathEngine = criticalPath,
                 });

@@ -14,7 +14,7 @@ namespace Zametek.Maths.Graphs.Tests
         private static VertexGraphBuilder<int, int, int, IActivity<int, int, int>> BuildRedundantTriangle()
         {
             // 1 -> 2 -> 3 plus the redundant direct dependency 1 -> 3.
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>());
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>());
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 5));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 5), [1]);
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 5), [1, 2]);

@@ -105,7 +105,7 @@ There is no unbounded-retention leak surface in the library:
 
 - no static mutable collections, no `event` handlers, no `IDisposable`/finalizers, no unmanaged resources, no persistent caches;
 - per-graph state lives in `VertexGraphState`'s five dictionaries and is fully emptied by `Reset()` / `Clear()`;
-- the one shared static - `s_DefaultEventGenerator` (`VertexGraphBuilder.cs:24`) - is a single stateless instance.
+- the one shared static - `s_DefaultEventGenerator` (`VertexGraphBuilder.cs:24`) - was a single stateless instance. It has since been removed: the builders take their default engines from the engines bundle, and a standard factory shares its (stateless) engines among its builders.
 
 So the real "memory" issue is **transient allocation churn / GC pressure**, not leaks. Every item below is throughput, allocation, or robustness - there is no leak to fix.
 

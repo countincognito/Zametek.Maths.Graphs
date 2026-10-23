@@ -20,7 +20,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphBuilder_GivenVeryDeepChainWithRedundantShortcut_ThenTransitiveReductionRemovesShortcut()
         {
-            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(0));
+            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(0));
 
             builder.AddActivity(new Activity<int, int, int>(1, 1));
             for (int id = 2; id < c_ChainLength; id++)
@@ -41,8 +41,8 @@ namespace Zametek.Maths.Graphs.Tests
             // The dummy-activity ID generator starts above the chain length so generated dummy
             // edge IDs never collide with the real activity IDs (1..c_ArrowChainLength).
             var builder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(c_ArrowChainLength),
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(c_ArrowChainLength),
+                new NextIdGeneratorFactory<int>(0));
 
             builder.AddActivity(new Activity<int, int, int>(1, 1));
             for (int id = 2; id < c_ArrowChainLength; id++)

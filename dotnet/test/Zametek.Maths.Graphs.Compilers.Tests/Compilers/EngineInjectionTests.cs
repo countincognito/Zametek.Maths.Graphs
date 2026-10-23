@@ -97,7 +97,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new VertexCriticalPathEngine<int, int, int, IDependentActivity<int, int, int>>());
 
             var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
-                new PreviousIdGenerator<int>(),
+                new PreviousIdGeneratorFactory<int>(),
                 new RemovableEventGenerator<int>(),
                 new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>>(),
                 spy,
@@ -122,7 +122,7 @@ namespace Zametek.Maths.Graphs.Tests
             var counting = new CountingEventGenerator<int>(new RemovableEventGenerator<int>());
 
             var builder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
-                new PreviousIdGenerator<int>(),
+                new PreviousIdGeneratorFactory<int>(),
                 counting,
                 new VertexTarjanStronglyConnectedComponentsFinder<int, int, int, IDependentActivity<int, int, int>>(),
                 new VertexCriticalPathEngine<int, int, int, IDependentActivity<int, int, int>>(),

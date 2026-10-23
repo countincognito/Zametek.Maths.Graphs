@@ -318,4 +318,7 @@
   <data name="Message_CannotRemoveRedundantEdges" xml:space="preserve">
     <value>Cannot remove redundant edges</value>
   </data>
+  <data name="Message_IdGeneratorFactoryGaveNullGenerator" xml:space="preserve">
+    <value>The ID generator factory gave a null generator. Create must give a generator.</value>
+  </data>
 </root>

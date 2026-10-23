@@ -54,7 +54,7 @@ namespace Zametek.Maths.Graphs.Tests
         private static VertexGraphBuilder<int, int, int, IActivity<int, int, int>> BuildAndCalculate(
             List<(int Id, int Duration, int[] Deps)> specs, bool shuffle)
         {
-            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(0))
+            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(0))
             {
                 ShuffleProcessingOrder = shuffle
             };

@@ -4,7 +4,7 @@
 
 use indexmap::IndexSet;
 use zametek_maths_graphs_compilers::{
-    NextIdGenerator, PreviousIdGenerator, VertexGraphBuilder, VertexGraphCompiler,
+    NextIdGeneratorFactory, PreviousIdGeneratorFactory, VertexGraphBuilder, VertexGraphCompiler,
 };
 use zametek_maths_graphs_primitives::{DependentActivity, InterActivityAllocationType, Resource};
 
@@ -45,7 +45,7 @@ impl Lcg {
 }
 
 fn build_and_calculate(specs: &[(i32, i32, Vec<i32>)], shuffle: bool) -> Builder {
-    let mut builder = Builder::new(NextIdGenerator::new(0));
+    let mut builder = Builder::new(NextIdGeneratorFactory::new(0));
     builder.shuffle_processing_order = shuffle;
     for (id, duration, deps) in specs {
         builder.add_activity_with_dependencies(
@@ -186,7 +186,7 @@ fn vertex_graph_compiler_given_all_zero_duration_chain_then_compiles_without_err
 
 #[test]
 fn vertex_graph_builder_given_clone_then_graph_equal() {
-    let mut builder = Builder::new(PreviousIdGenerator::new(0));
+    let mut builder = Builder::new(PreviousIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 3));
     builder.add_activity_with_dependencies(Act::new(2, 5), IndexSet::from([1]));
     builder.add_activity_with_dependencies(Act::new(3, 2), IndexSet::from([1, 2]));
@@ -200,7 +200,7 @@ fn vertex_graph_builder_given_clone_then_graph_equal() {
 
 #[test]
 fn vertex_graph_builder_given_ancestor_lookup_then_full_transitive_closure() {
-    let mut builder = Builder::new(PreviousIdGenerator::new(0));
+    let mut builder = Builder::new(PreviousIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 3));
     builder.add_activity_with_dependencies(Act::new(2, 5), IndexSet::from([1]));
     builder.add_activity_with_dependencies(Act::new(3, 2), IndexSet::from([2]));
@@ -215,7 +215,7 @@ fn vertex_graph_builder_given_ancestor_lookup_then_full_transitive_closure() {
 
 #[test]
 fn vertex_graph_builder_given_unsatisfied_dependencies_then_no_ancestor_lookup() {
-    let mut builder = Builder::new(PreviousIdGenerator::new(0));
+    let mut builder = Builder::new(PreviousIdGeneratorFactory::new(0));
     builder.add_activity_with_dependencies(Act::new(2, 5), IndexSet::from([1]));
 
     assert!(!builder.all_dependencies_satisfied());
@@ -225,7 +225,7 @@ fn vertex_graph_builder_given_unsatisfied_dependencies_then_no_ancestor_lookup()
 
 #[test]
 fn vertex_graph_builder_given_transitive_reduction_then_redundant_edge_removed() {
-    let mut builder = Builder::new(PreviousIdGenerator::new(0));
+    let mut builder = Builder::new(PreviousIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 3));
     builder.add_activity_with_dependencies(Act::new(2, 5), IndexSet::from([1]));
     builder.add_activity_with_dependencies(Act::new(3, 2), IndexSet::from([1, 2]));

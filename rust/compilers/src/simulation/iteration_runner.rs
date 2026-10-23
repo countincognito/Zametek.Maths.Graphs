@@ -11,8 +11,12 @@
 //! 2. the priority-list scheduling onto the resources,
 //! 3. the resource dependencies that the schedule implies,
 //! 4. the second critical-path calculation, which includes them.
+//!
+//! The builder is the caller's. It holds the engines that decide how a plan is
+//! scheduled (the critical-path engine, the resource scheduler and the others),
+//! and so a plan is simulated with the engines that its caller compiles it
+//! with. The builder must be new and empty.
 
-use crate::id_gen::PreviousIdGenerator;
 use crate::messages;
 use crate::vertex::VertexGraphBuilder;
 use indexmap::IndexSet;
@@ -33,13 +37,20 @@ pub(crate) struct SimulationIterationRunner<K: Key, R: Key, W: Key> {
 
 impl<K: Key, R: Key, W: Key> SimulationIterationRunner<K, R, W> {
     /// The runner changes the durations and the times of the activities that it
-    /// is given, and so the caller gives it copies.
+    /// is given, and so the caller gives it copies. Fails when the builder
+    /// already holds activities.
     pub(crate) fn new(
+        mut builder: VertexGraphBuilder<K, R, W>,
         activities: &[DependentActivity<K, R, W>],
         resources: &[Resource<R, W>],
         schedule_onto_synthetic_resources: bool,
-    ) -> Self {
-        let mut builder = VertexGraphBuilder::new(PreviousIdGenerator::new(K::default()));
+    ) -> Result<Self, GraphError> {
+        if builder.activities().next().is_some() {
+            return Err(GraphError::new(
+                "The builder already holds activities. A simulation needs a new, empty builder from its factory each time.",
+            ));
+        }
+
         let mut activity_ids = Vec::with_capacity(activities.len());
         for activity in activities {
             activity_ids.push(activity.id());
@@ -56,7 +67,7 @@ impl<K: Key, R: Key, W: Key> SimulationIterationRunner<K, R, W> {
         // and a list of resources that are all inactive as no resources to use.
         // It is the list before the filter that decides.
         let infinite = resources.is_empty();
-        Self {
+        Ok(Self {
             builder,
             activity_ids,
             active_resources: resources
@@ -66,7 +77,7 @@ impl<K: Key, R: Key, W: Key> SimulationIterationRunner<K, R, W> {
                 .collect(),
             stop_after_the_first_pass: infinite && !schedule_onto_synthetic_resources,
             replace_with_synthetic_resources: infinite,
-        }
+        })
     }
 
     /// The builder, for reading the times and the critical flags of the

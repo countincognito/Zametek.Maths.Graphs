@@ -40,8 +40,8 @@ namespace Zametek.Maths.Graphs.Tests
             // set); this exercises the linear path. The dummy-activity ID generator starts above
             // the chain length so dummy edge IDs never collide with the real activity IDs.
             var builder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(c_ChainLength),
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(c_ChainLength),
+                new NextIdGeneratorFactory<int>(0));
 
             builder.AddActivity(new Activity<int, int, int>(1, 1));
             for (int id = 2; id <= c_ChainLength; id++)

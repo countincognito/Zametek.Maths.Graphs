@@ -20,7 +20,7 @@ use std::sync::Arc;
 use zametek_maths_graphs_compilers::contracts::IVertexCriticalPathEngine;
 use zametek_maths_graphs_compilers::vertex::{IncrementalCriticalPath, VertexGraphState};
 use zametek_maths_graphs_compilers::{
-    NextIdGenerator, VertexCriticalPathEngine, VertexGraphBuilder, VertexGraphBuilderEngines,
+    NextIdGeneratorFactory, VertexCriticalPathEngine, VertexGraphBuilder, VertexGraphBuilderEngines,
 };
 use zametek_maths_graphs_primitives::{DependentActivity, GraphError, InvalidConstraint};
 
@@ -72,7 +72,7 @@ impl IVertexCriticalPathEngine<i32, i32, i32> for FullRecalculationOnlyEngine {
 
 fn build(spec: &corpus_shapes::GraphSpec, full_only: bool) -> VertexGraphBuilder<i32, i32, i32> {
     let mut engines = VertexGraphBuilderEngines::<i32, i32, i32> {
-        edge_id_generator: Box::new(NextIdGenerator::new(1_000_000)),
+        edge_id_generator_factory: Arc::new(NextIdGeneratorFactory::new(1_000_000)),
         ..Default::default()
     };
 

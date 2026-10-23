@@ -22,9 +22,9 @@ namespace Zametek.Maths.Graphs
     {
         #region Fields
 
-        private static readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> s_DefaultDummyActivityGenerator = new DummyActivityGenerator<T, TResourceId, TWorkStreamId, TActivity>();
-        private static readonly IEventGenerator<T> s_DefaultEventGenerator = new EventGenerator<T>();
-
+        // The factories are kept for CloneObject: a clone asks them for generators of its own.
+        private readonly IIdGeneratorFactory<T> m_EdgeIdGeneratorFactory;
+        private readonly IIdGeneratorFactory<T> m_NodeIdGeneratorFactory;
         private readonly IIdGenerator<T> m_EdgeIdGenerator;
         private readonly IIdGenerator<T> m_NodeIdGenerator;
         private readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> m_DummyActivityGenerator;
@@ -46,21 +46,19 @@ namespace Zametek.Maths.Graphs
 
         #region Ctors
 
-        // Public constructor - stable API surface. Wires up default engine instances.
+        // Public constructor - stable API surface. The default engines are those of the engines bundle.
         /// <summary>
-        /// Creates a builder with default engines, using the given edge (activity) and node (event) ID generators.
+        /// Creates a builder with default engines, using the given edge (activity) and node (event) ID generator factories.
         /// </summary>
         public ArrowGraphBuilder(
-            IIdGenerator<T> edgeIdGenerator,
-            IIdGenerator<T> nodeIdGenerator)
+            IIdGeneratorFactory<T> edgeIdGeneratorFactory,
+            IIdGeneratorFactory<T> nodeIdGeneratorFactory)
             : this(
-                  edgeIdGenerator,
-                  nodeIdGenerator,
-                  s_DefaultDummyActivityGenerator,
-                  s_DefaultEventGenerator,
-                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGeneratorFactory = edgeIdGeneratorFactory,
+                      NodeIdGeneratorFactory = nodeIdGeneratorFactory,
+                  })
         {
         }
 
@@ -72,8 +70,8 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public ArrowGraphBuilder(ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
             : this(
-                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
-                  engines.NodeIdGenerator,
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGeneratorFactory,
+                  engines.NodeIdGeneratorFactory,
                   engines.DummyActivityGenerator,
                   engines.EventGenerator,
                   engines.SccFinder,
@@ -93,8 +91,8 @@ namespace Zametek.Maths.Graphs
             ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity> engines)
             : this(
                   graph,
-                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGenerator,
-                  engines.NodeIdGenerator,
+                  (engines ?? throw new ArgumentNullException(nameof(engines))).EdgeIdGeneratorFactory,
+                  engines.NodeIdGeneratorFactory,
                   engines.DummyActivityGenerator,
                   engines.EventGenerator,
                   engines.SccFinder,
@@ -110,21 +108,25 @@ namespace Zametek.Maths.Graphs
         /// Creates a builder with custom engines and generators.
         /// </summary>
         public ArrowGraphBuilder(
-            IIdGenerator<T> edgeIdGenerator,
-            IIdGenerator<T> nodeIdGenerator,
+            IIdGeneratorFactory<T> edgeIdGeneratorFactory,
+            IIdGeneratorFactory<T> nodeIdGeneratorFactory,
             IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
             IEventGenerator<T> eventGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
             IArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> criticalPathEngine,
             IResourceSchedulingEngine<T, TResourceId, TWorkStreamId> resourceSchedulingEngine)
         {
-            m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
-            m_NodeIdGenerator = nodeIdGenerator ?? throw new ArgumentNullException(nameof(nodeIdGenerator));
+            m_EdgeIdGeneratorFactory = edgeIdGeneratorFactory ?? throw new ArgumentNullException(nameof(edgeIdGeneratorFactory));
+            m_NodeIdGeneratorFactory = nodeIdGeneratorFactory ?? throw new ArgumentNullException(nameof(nodeIdGeneratorFactory));
             m_DummyActivityGenerator = dummyActivityGenerator ?? throw new ArgumentNullException(nameof(dummyActivityGenerator));
             m_EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
+
+            // A new graph holds no IDs.
+            m_EdgeIdGenerator = CreateIdGenerator(m_EdgeIdGeneratorFactory, Enumerable.Empty<T>());
+            m_NodeIdGenerator = CreateIdGenerator(m_NodeIdGeneratorFactory, Enumerable.Empty<T>());
 
             m_State = new ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             ShuffleProcessingOrder = false;
@@ -133,32 +135,32 @@ namespace Zametek.Maths.Graphs
 
         // Public graph-loading constructor (from existing Graph<T, TActivity, IEvent<T>>).
         /// <summary>
-        /// Creates a builder by assimilating an existing graph, with default engines.
+        /// Creates a builder by assimilating an existing graph, with default engines. The ID generators of the builder
+        /// start clear of the IDs of the graph.
         /// </summary>
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
-            IIdGenerator<T> edgeIdGenerator,
-            IIdGenerator<T> nodeIdGenerator)
+            IIdGeneratorFactory<T> edgeIdGeneratorFactory,
+            IIdGeneratorFactory<T> nodeIdGeneratorFactory)
             : this(
                   graph,
-                  edgeIdGenerator,
-                  nodeIdGenerator,
-                  s_DefaultDummyActivityGenerator,
-                  s_DefaultEventGenerator,
-                  new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity>(),
-                  new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>())
+                  new ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
+                  {
+                      EdgeIdGeneratorFactory = edgeIdGeneratorFactory,
+                      NodeIdGeneratorFactory = nodeIdGeneratorFactory,
+                  })
         {
         }
 
         // Engine-injecting graph-loading constructor.
         /// <summary>
-        /// Creates a builder by assimilating an existing graph, with custom engines and generators.
+        /// Creates a builder by assimilating an existing graph, with custom engines and generators. The ID generators
+        /// of the builder start clear of the IDs of the graph.
         /// </summary>
         public ArrowGraphBuilder(
             Graph<T, TActivity, IEvent<T>> graph,
-            IIdGenerator<T> edgeIdGenerator,
-            IIdGenerator<T> nodeIdGenerator,
+            IIdGeneratorFactory<T> edgeIdGeneratorFactory,
+            IIdGeneratorFactory<T> nodeIdGeneratorFactory,
             IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> dummyActivityGenerator,
             IEventGenerator<T> eventGenerator,
             IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> sccFinder,
@@ -170,13 +172,17 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(graph));
             }
 
-            m_EdgeIdGenerator = edgeIdGenerator ?? throw new ArgumentNullException(nameof(edgeIdGenerator));
-            m_NodeIdGenerator = nodeIdGenerator ?? throw new ArgumentNullException(nameof(nodeIdGenerator));
+            m_EdgeIdGeneratorFactory = edgeIdGeneratorFactory ?? throw new ArgumentNullException(nameof(edgeIdGeneratorFactory));
+            m_NodeIdGeneratorFactory = nodeIdGeneratorFactory ?? throw new ArgumentNullException(nameof(nodeIdGeneratorFactory));
             m_DummyActivityGenerator = dummyActivityGenerator ?? throw new ArgumentNullException(nameof(dummyActivityGenerator));
             m_EventGenerator = eventGenerator ?? throw new ArgumentNullException(nameof(eventGenerator));
             m_SccFinder = sccFinder ?? throw new ArgumentNullException(nameof(sccFinder));
             m_CriticalPathEngine = criticalPathEngine ?? throw new ArgumentNullException(nameof(criticalPathEngine));
             m_ResourceSchedulingEngine = resourceSchedulingEngine ?? throw new ArgumentNullException(nameof(resourceSchedulingEngine));
+
+            // The edges and the nodes of the graph hold IDs that the generators must not give again.
+            m_EdgeIdGenerator = CreateIdGenerator(m_EdgeIdGeneratorFactory, graph.Edges.Select(x => x.Id));
+            m_NodeIdGenerator = CreateIdGenerator(m_NodeIdGeneratorFactory, graph.Nodes.Select(x => x.Id));
 
             m_State = new ArrowGraphState<T, TResourceId, TWorkStreamId, TActivity>();
             ShuffleProcessingOrder = false;
@@ -241,6 +247,9 @@ namespace Zametek.Maths.Graphs
             }
 
         }
+
+        private static IIdGenerator<T> CreateIdGenerator(IIdGeneratorFactory<T> factory, IEnumerable<T> usedIds) =>
+            factory.Create(usedIds) ?? throw new InvalidOperationException(Properties.Resources.Message_IdGeneratorFactoryGaveNullGenerator);
 
         #endregion
 
@@ -979,18 +988,15 @@ namespace Zametek.Maths.Graphs
         public virtual object CloneObject()
         {
             Graph<T, TActivity, IEvent<T>> arrowGraphCopy = ToGraph();
-            T minNodeId = arrowGraphCopy.Nodes.Select(x => x.Id).DefaultIfEmpty().Min();
-            minNodeId = minNodeId.Previous();
-            T minEdgeId = arrowGraphCopy.Edges.Select(x => x.Id).DefaultIfEmpty().Min();
-            minEdgeId = minEdgeId.Previous();
-            // Preserve the injected (stateless) engines on the clone; only the id
-            // generators are recreated, since they carry per-graph counters.
+            // Preserve the injected (stateless) engines on the clone, the ID generator factories
+            // included. The id generators carry per-graph counters, so the clone asks the
+            // factories for ones of its own, for the IDs that the graph copy holds.
             return new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 arrowGraphCopy,
                 new ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
                 {
-                    EdgeIdGenerator = new PreviousIdGenerator<T>(minEdgeId),
-                    NodeIdGenerator = new PreviousIdGenerator<T>(minNodeId),
+                    EdgeIdGeneratorFactory = m_EdgeIdGeneratorFactory,
+                    NodeIdGeneratorFactory = m_NodeIdGeneratorFactory,
                     DummyActivityGenerator = m_DummyActivityGenerator,
                     EventGenerator = m_EventGenerator,
                     SccFinder = m_SccFinder,

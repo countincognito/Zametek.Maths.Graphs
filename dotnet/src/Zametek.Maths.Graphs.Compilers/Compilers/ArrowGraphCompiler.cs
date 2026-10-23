@@ -26,22 +26,12 @@ namespace Zametek.Maths.Graphs
         #region Ctors
 
         /// <summary>
-        /// Creates a compiler wired with the default engines.
+        /// Creates a compiler wired with the default engines: the builder is one that an
+        /// <see cref="ArrowGraphFactory{T, TResourceId, TWorkStreamId, TActivity}"/> makes.
         /// </summary>
         public ArrowGraphCompiler()
+            : this(new ArrowGraphFactory<T, TResourceId, TWorkStreamId, TDependentActivity>().CreateBuilder())
         {
-            T edgeId = default;
-            T nodeId = default;
-            // Use DependentActivity as dummy so that the cast to TDependentActivity succeeds.
-            m_ArrowGraphBuilder = new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TDependentActivity>(
-                new PreviousIdGenerator<T>(edgeId),
-                new PreviousIdGenerator<T>(nodeId),
-                new DummyActivityGenerator<T, TResourceId, TWorkStreamId, TDependentActivity>(),
-                new EventGenerator<T>(),
-                new ArrowTarjanStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TDependentActivity>(),
-                new ArrowCriticalPathEngine<T, TResourceId, TWorkStreamId, TDependentActivity>(),
-                new PriorityListResourceScheduler<T, TResourceId, TWorkStreamId>());
-            m_Lock = new object();
         }
 
         // Builder-injecting constructor - accepts a builder configured with custom engines.
