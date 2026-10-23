@@ -17,7 +17,8 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="xunit.v3" Version="3.2.2" />
+		<!-- Not xunit.v3: since 4.0, it uses Microsoft.Testing.Platform v2. The .NET 10 SDK does not run that in the VSTest mode of 'dotnet test', which CI uses. To use xunit.v3, first move to the MTP mode (global.json). -->
+		<PackageReference Include="xunit.v3.mtp-off" Version="4.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
