@@ -6,14 +6,14 @@
 //! assignment these structural tests assert on.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{NextIdGenerator, VertexGraphBuilder};
+use zametek_maths_graphs_compilers::{NextIdGeneratorFactory, VertexGraphBuilder};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, Event, Node, NodeType};
 
 type Builder = VertexGraphBuilder<i32, i32, i32>;
 type Act = DependentActivity<i32, i32, i32>;
 
 fn new_builder() -> Builder {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     builder.shuffle_processing_order = true;
     builder
 }
@@ -400,8 +400,9 @@ fn ctor_with_graph_then_graph_successfully_assimilated() {
     let mut builder = build_standard_network();
     let first_graph = builder.to_graph().unwrap();
 
-    let mut builder2 = VertexGraphBuilder::from_graph(first_graph.clone(), NextIdGenerator::new(0))
-        .expect("assimilation should succeed");
+    let mut builder2 =
+        VertexGraphBuilder::from_graph(first_graph.clone(), NextIdGeneratorFactory::new(0))
+            .expect("assimilation should succeed");
     let second_graph = builder2.to_graph().unwrap();
 
     assert_eq!(second_graph, first_graph);
@@ -414,7 +415,7 @@ fn ctor_with_graph_with_missing_edge_then_error() {
 
     graph.edges.remove(0);
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
@@ -427,7 +428,7 @@ fn ctor_with_graph_with_too_many_edges_then_error() {
     // without depending on how duplicate IDs are folded.
     graph.edges.push(Edge::new(Event::new(100)));
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
@@ -443,7 +444,7 @@ fn ctor_with_graph_with_missing_node_then_error() {
         .id();
     graph.nodes.retain(|n| n.id() != normal_id);
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
@@ -455,7 +456,7 @@ fn ctor_with_graph_with_too_many_nodes_then_error() {
     // but never among the edge endpoints, so assimilation rejects it.
     graph.nodes.push(Node::new(Act::new(100, 0)));
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
@@ -469,7 +470,7 @@ fn ctor_with_graph_with_no_start_node_then_error() {
         }
     }
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
@@ -483,7 +484,7 @@ fn ctor_with_graph_with_no_end_node_then_error() {
         }
     }
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
@@ -493,7 +494,7 @@ fn ctor_with_graph_with_only_isolated_nodes_then_no_exception() {
     builder.add_activity(Act::new(2, 0));
     let graph = builder.to_graph().unwrap();
 
-    let builder2 = VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).unwrap();
+    let builder2 = VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).unwrap();
 
     assert!(builder2.edge_ids().is_empty());
     assert_eq!(builder2.node_ids().len(), 2);
@@ -523,7 +524,7 @@ fn ctor_with_graph_with_unconnected_start_node_then_error() {
     }
     graph.nodes.push(new_node);
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
@@ -545,12 +546,12 @@ fn ctor_with_graph_with_unconnected_end_node_then_error() {
     }
     graph.nodes.push(new_node);
 
-    assert!(VertexGraphBuilder::from_graph(graph, NextIdGenerator::new(0)).is_err());
+    assert!(VertexGraphBuilder::from_graph(graph, NextIdGeneratorFactory::new(0)).is_err());
 }
 
 #[test]
 fn all_dummy_activities_find_circular_dependencies_then_finds_circular_dependency() {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 0));
     builder.add_activity_with_dependencies(Act::new(2, 0), IndexSet::from([7]));
     builder.add_activity(Act::new(3, 0));
@@ -566,7 +567,7 @@ fn all_dummy_activities_find_circular_dependencies_then_finds_circular_dependenc
 
 #[test]
 fn find_circular_dependencies_then_finds_circular_dependency() {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     builder.add_activity(Act::new(1, 10));
     builder.add_activity_with_dependencies(Act::new(2, 10), IndexSet::from([7]));
     builder.add_activity(Act::new(3, 10));

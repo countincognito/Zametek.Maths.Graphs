@@ -39,8 +39,8 @@ namespace Zametek.Maths.Graphs.Tests
         private static Case Build(CorpusShapes.GraphSpec spec)
         {
             var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(c_FirstDummyActivityId),
-                new NextIdGenerator<int>(c_FirstEventId));
+                new NextIdGeneratorFactory<int>(c_FirstDummyActivityId),
+                new NextIdGeneratorFactory<int>(c_FirstEventId));
 
             foreach (CorpusShapes.ActivitySpec activitySpec in spec.Activities)
             {

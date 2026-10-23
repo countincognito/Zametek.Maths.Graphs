@@ -35,7 +35,7 @@ namespace Zametek.Maths.Graphs.Tests
         private static Case Build(CorpusShapes.GraphSpec spec)
         {
             var graphBuilder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(0));
 
             foreach (CorpusShapes.ActivitySpec activitySpec in spec.Activities)
             {

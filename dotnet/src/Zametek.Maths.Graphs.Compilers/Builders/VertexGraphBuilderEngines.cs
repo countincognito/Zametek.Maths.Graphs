@@ -19,10 +19,11 @@ namespace Zametek.Maths.Graphs
         where TActivity : IActivity<T, TResourceId, TWorkStreamId>
     {
         /// <summary>
-        /// Generates the IDs for the edges (events) of the graph.
+        /// Makes the generator of the IDs for the edges (events) of the graph. Each builder asks it for a generator
+        /// of its own (stateless; a clone of the builder uses the same factory).
         /// </summary>
-        public IIdGenerator<T> EdgeIdGenerator { get; set; } =
-            new PreviousIdGenerator<T>();
+        public IIdGeneratorFactory<T> EdgeIdGeneratorFactory { get; set; } =
+            new StandardIdGeneratorFactory<T>();
 
         /// <summary>
         /// Creates the events placed on the graph's edges.

@@ -1,8 +1,8 @@
 //! Port of `VertexGraphFactoryTests.cs`. The standard factory of
 //! Activity-on-Vertex graphs makes new, independent builders and compilers.
 //! They have the engines of the bundle that the factory was made from (the
-//! standard engines, for `new`), the factory does not use the ID generator of
-//! the bundle, and many threads can use the factory.
+//! standard engines, for `new`), each builder asks the ID generator factory of
+//! the bundle for a generator of its own, and many threads can use the factory.
 //!
 //! The C# tests of a null bundle, of a bundle with a null engine, and of a
 //! bundle that is changed after the factory is made have no counterpart: a
@@ -12,12 +12,14 @@ mod counting_engines;
 
 use counting_engines::counted_vertex_engines;
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::contracts::{IIdGenerator, IVertexGraphFactory};
+use std::sync::Arc;
+use zametek_maths_graphs_compilers::contracts::IVertexGraphFactory;
 use zametek_maths_graphs_compilers::primitives::{
     DependentActivity, InterActivityAllocationType, Resource,
 };
 use zametek_maths_graphs_compilers::{
-    VertexGraphBuilder, VertexGraphBuilderEngines, VertexGraphCompiler, VertexGraphFactory,
+    NextIdGeneratorFactory, VertexGraphBuilder, VertexGraphBuilderEngines, VertexGraphCompiler,
+    VertexGraphFactory,
 };
 
 type Act = DependentActivity<i32, i32, i32>;
@@ -25,15 +27,6 @@ type Builder = VertexGraphBuilder<i32, i32, i32>;
 type Compiler = VertexGraphCompiler<i32, i32, i32>;
 
 // -- Helpers ------------------------------------------------------------------
-
-// An ID generator that must not be used.
-struct UnusedIdGenerator;
-
-impl IIdGenerator<i32> for UnusedIdGenerator {
-    fn generate(&mut self) -> i32 {
-        panic!("The factory used the ID generator of the bundle.");
-    }
-}
 
 fn one_resource() -> Vec<Resource<i32, i32>> {
     vec![Resource::new(
@@ -129,18 +122,49 @@ fn with_engines_given_a_bundle_then_all_the_builders_share_its_engines() {
 }
 
 #[test]
-fn with_engines_given_a_bundle_with_an_id_generator_then_that_generator_is_not_used() {
+fn with_engines_given_a_bundle_with_an_id_generator_factory_then_the_builders_have_generators_from_it(
+) {
     let factory = VertexGraphFactory::with_engines(VertexGraphBuilderEngines {
-        edge_id_generator: Box::new(UnusedIdGenerator),
+        edge_id_generator_factory: Arc::new(NextIdGeneratorFactory::new(1_000_000)),
         ..Default::default()
     });
 
     let mut builder = factory.create_builder();
     add_plan_to_builder(&mut builder);
 
-    // The builder has a PreviousIdGenerator: it steps down from 0.
+    // The generator of the builder steps up from 1,000,000, and not down from 0
+    // as the standard one does.
     assert!(!builder.event_ids().is_empty());
-    assert!(builder.event_ids().iter().all(|x| *x < 0));
+    assert!(builder.event_ids().iter().all(|x| *x > 1_000_000));
+}
+
+#[test]
+fn with_engines_given_a_bundle_then_each_builder_asks_the_id_generator_factory_for_one_generator() {
+    let (bundle, counters) = counted_vertex_engines();
+    let factory = VertexGraphFactory::with_engines(bundle);
+
+    factory.create_builder();
+    assert_eq!(counters.calls_to("edge_id_generator_factory"), 1);
+    factory.create_builder();
+    assert_eq!(counters.calls_to("edge_id_generator_factory"), 2);
+    factory.create_compiler();
+    assert_eq!(counters.calls_to("edge_id_generator_factory"), 3);
+}
+
+#[test]
+fn clone_builder_then_the_clone_asks_the_same_id_generator_factory() {
+    let (bundle, counters) = counted_vertex_engines();
+    let factory = VertexGraphFactory::with_engines(bundle);
+    let mut builder = factory.create_builder();
+    add_plan_to_builder(&mut builder);
+    let before_clone = counters.calls_to("edge_id_generator_factory");
+
+    builder.clone_builder().unwrap();
+
+    assert_eq!(
+        counters.calls_to("edge_id_generator_factory"),
+        before_clone + 1
+    );
 }
 
 // -- The builders and the compilers -------------------------------------------
@@ -205,7 +229,7 @@ fn new_compiler_then_its_builder_is_made_as_the_standard_factory_makes_one() {
     drive_compiler(&mut by_default);
 
     // The same plan gives the same events and the same finish. The events have
-    // IDs from a PreviousIdGenerator, which steps down from 0.
+    // IDs from the standard ID generator factory, which steps down from 0.
     let mut made_events = made.builder().event_ids();
     let mut default_events = by_default.builder().event_ids();
     made_events.sort_unstable();

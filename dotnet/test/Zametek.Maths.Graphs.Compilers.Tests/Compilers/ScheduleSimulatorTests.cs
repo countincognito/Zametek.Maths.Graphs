@@ -91,7 +91,7 @@ namespace Zametek.Maths.Graphs.Tests
         private static void ShouldAgreeWithTheCompile(SpikePlan plan, bool useResources, bool scheduleOntoSyntheticResources, int iterations, DurationDistribution distribution)
         {
             var runner = new SimulationIterationRunner<int, int, int, IDependentActivity<int, int, int>>(
-                new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(new PreviousIdGenerator<int>()),
+                new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(new PreviousIdGeneratorFactory<int>()),
                 plan.Activities.Select(x => (IDependentActivity<int, int, int>)plan.NewActivity(x, x.Duration)).ToList(),
                 plan.NewResources(useResources),
                 scheduleOntoSyntheticResources);

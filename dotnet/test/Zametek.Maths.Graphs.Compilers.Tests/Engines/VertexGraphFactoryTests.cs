@@ -10,7 +10,8 @@ namespace Zametek.Maths.Graphs.Tests
 {
     // The standard factory of Activity-on-Vertex graphs: that it makes new, independent builders and compilers, that
     // they have the engines of the bundle that the factory was made from (the standard engines, when there is no
-    // bundle), that it does not use the ID generator of the bundle, and that many threads can use it.
+    // bundle), that each builder asks the ID generator factory of the bundle for a generator of its own, and that
+    // many threads can use it.
     public class VertexGraphFactoryTests
     {
         #region Helpers
@@ -25,6 +26,7 @@ namespace Zametek.Maths.Graphs.Tests
                 var standard = new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>();
                 Bundle = new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
                 {
+                    EdgeIdGeneratorFactory = Count(nameof(Bundle.EdgeIdGeneratorFactory), standard.EdgeIdGeneratorFactory),
                     EventGenerator = Count(nameof(Bundle.EventGenerator), standard.EventGenerator),
                     SccFinder = Count(nameof(Bundle.SccFinder), standard.SccFinder),
                     CriticalPathEngine = Count(nameof(Bundle.CriticalPathEngine), standard.CriticalPathEngine),
@@ -48,13 +50,6 @@ namespace Zametek.Maths.Graphs.Tests
                 m_Counters.Add(name, counter);
                 return proxy;
             }
-        }
-
-        // An ID generator that must not be used.
-        private sealed class UnusedIdGenerator
-            : IIdGenerator<int>
-        {
-            public int Generate() => throw new InvalidOperationException(@"The factory used the ID generator of the bundle.");
         }
 
         private static VertexGraphFactory<int, int, int, IDependentActivity<int, int, int>> FactoryOf(
@@ -115,6 +110,7 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Theory]
+        [InlineData("EdgeIdGeneratorFactory", "edge ID generator factory")]
         [InlineData("EventGenerator", "event generator")]
         [InlineData("SccFinder", "strongly connected")]
         [InlineData("CriticalPathEngine", "critical-path")]
@@ -125,6 +121,9 @@ namespace Zametek.Maths.Graphs.Tests
             var engines = new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>();
             switch (engine)
             {
+                case nameof(engines.EdgeIdGeneratorFactory):
+                    engines.EdgeIdGeneratorFactory = null;
+                    break;
                 case nameof(engines.EventGenerator):
                     engines.EventGenerator = null;
                     break;
@@ -202,20 +201,48 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexGraphFactory_GivenABundleWithAnIdGenerator_ThenThatGeneratorIsNotUsed()
+        public void VertexGraphFactory_GivenABundleWithAnIdGeneratorFactory_ThenTheBuildersHaveGeneratorsFromIt()
         {
             var engines = new VertexGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
             {
-                EdgeIdGenerator = new UnusedIdGenerator(),
+                EdgeIdGeneratorFactory = new NextIdGeneratorFactory<int>(1_000_000),
             };
             VertexGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory = FactoryOf(engines);
 
             VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>> builder = factory.CreateBuilder();
             AddPlan(builder);
 
-            // The builder has a PreviousIdGenerator: it steps down from 0.
+            // The generator of the builder steps up from 1,000,000, and not down from 0 as the standard one does.
             builder.EventIds.ShouldNotBeEmpty();
-            builder.EventIds.ShouldAllBe(x => x < 0);
+            builder.EventIds.ShouldAllBe(x => x > 1_000_000);
+        }
+
+        [Fact]
+        public void VertexGraphFactory_GivenABundleWithAnIdGeneratorFactory_ThenEachBuilderAsksItForOneGenerator()
+        {
+            var counted = new CountedEngines();
+            VertexGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory = FactoryOf(counted.Bundle);
+
+            factory.CreateBuilder();
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(1);
+            factory.CreateBuilder();
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(2);
+            factory.CreateCompiler();
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(3);
+        }
+
+        [Fact]
+        public void VertexGraphFactory_GivenABuilder_ThenItsCloneAsksTheSameIdGeneratorFactory()
+        {
+            var counted = new CountedEngines();
+            VertexGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory = FactoryOf(counted.Bundle);
+            VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>> builder = factory.CreateBuilder();
+            AddPlan(builder);
+            int beforeClone = counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory));
+
+            builder.CloneObject();
+
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(beforeClone + 1);
         }
 
         #endregion
@@ -284,8 +311,8 @@ namespace Zametek.Maths.Graphs.Tests
             Drive(made);
             Drive(byDefault);
 
-            // The same plan gives the same events and the same finish. The events have IDs from a
-            // PreviousIdGenerator, which steps down from 0.
+            // The same plan gives the same events and the same finish. The events have IDs from the standard
+            // ID generator factory, which steps down from 0.
             int[] madeEvents = [.. made.ToGraph().Edges.Select(x => x.Id).Order()];
             int[] defaultEvents = [.. byDefault.ToGraph().Edges.Select(x => x.Id).Order()];
             defaultEvents.ShouldBe(madeEvents);

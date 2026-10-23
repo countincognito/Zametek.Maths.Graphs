@@ -18,8 +18,8 @@ use zametek_maths_graphs_compilers::arrow::{ArrowGraphBuilderEngines, ArrowGraph
 use zametek_maths_graphs_compilers::contracts::{
     IActivityGenerator, IArrowCriticalPathEngine, IArrowStronglyConnectedComponentsFinder,
     IArrowTransitiveReducer, IDummyEdgeOrchestrator, IEventGenerator, IIdGenerator,
-    IResourceSchedulingEngine, IResourceSchedulingGraph, IVertexCriticalPathEngine,
-    IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
+    IIdGeneratorFactory, IResourceSchedulingEngine, IResourceSchedulingGraph,
+    IVertexCriticalPathEngine, IVertexStronglyConnectedComponentsFinder, IVertexTransitiveReducer,
 };
 use zametek_maths_graphs_compilers::primitives::{
     Activity, CircularDependency, DependentActivity, Event, GraphError, InvalidConstraint,
@@ -75,6 +75,15 @@ type ArrowState = ArrowGraphState<i32, i32, i32>;
 type Lookup = Option<IndexMap<i32, IndexSet<i32>>>;
 
 // -- The wrappers -------------------------------------------------------------
+
+counting!(CountingIdGeneratorFactory, dyn IIdGeneratorFactory<i32>);
+
+impl IIdGeneratorFactory<i32> for CountingIdGeneratorFactory {
+    fn create(&self, used_ids: &[i32]) -> Box<dyn IIdGenerator<i32>> {
+        self.calls.record();
+        self.inner.create(used_ids)
+    }
+}
 
 counting!(CountingEventGenerator, dyn IEventGenerator<i32>);
 
@@ -475,6 +484,8 @@ impl Counters {
 /// calls, and the counters.
 pub fn counted_vertex_engines() -> (VertexGraphBuilderEngines<i32, i32, i32>, Counters) {
     let standard = VertexGraphBuilderEngines::<i32, i32, i32>::default();
+    let (edge_id_generator_factory, edge_id_generator_factory_calls) =
+        CountingIdGeneratorFactory::wrap(standard.edge_id_generator_factory);
     let (event_generator, event_generator_calls) =
         CountingEventGenerator::wrap(standard.event_generator);
     let (scc_finder, scc_finder_calls) = CountingVertexSccFinder::wrap(standard.scc_finder);
@@ -485,7 +496,7 @@ pub fn counted_vertex_engines() -> (VertexGraphBuilderEngines<i32, i32, i32>, Co
     let (scheduler, scheduler_calls) = CountingScheduler::wrap(standard.resource_scheduling_engine);
     (
         VertexGraphBuilderEngines {
-            edge_id_generator: standard.edge_id_generator,
+            edge_id_generator_factory: Arc::new(edge_id_generator_factory),
             event_generator: Arc::new(event_generator),
             scc_finder: Arc::new(scc_finder),
             critical_path_engine: Arc::new(critical_path_engine),
@@ -493,6 +504,7 @@ pub fn counted_vertex_engines() -> (VertexGraphBuilderEngines<i32, i32, i32>, Co
             resource_scheduling_engine: Arc::new(scheduler),
         },
         Counters(vec![
+            ("edge_id_generator_factory", edge_id_generator_factory_calls),
             ("event_generator", event_generator_calls),
             ("scc_finder", scc_finder_calls),
             ("critical_path_engine", critical_path_engine_calls),
@@ -506,6 +518,10 @@ pub fn counted_vertex_engines() -> (VertexGraphBuilderEngines<i32, i32, i32>, Co
 /// calls, and the counters.
 pub fn counted_arrow_engines() -> (ArrowGraphBuilderEngines<i32, i32, i32>, Counters) {
     let standard = ArrowGraphBuilderEngines::<i32, i32, i32>::default();
+    let (edge_id_generator_factory, edge_id_generator_factory_calls) =
+        CountingIdGeneratorFactory::wrap(standard.edge_id_generator_factory);
+    let (node_id_generator_factory, node_id_generator_factory_calls) =
+        CountingIdGeneratorFactory::wrap(standard.node_id_generator_factory);
     let (dummy_activity_generator, dummy_activity_generator_calls) =
         CountingActivityGenerator::wrap(standard.dummy_activity_generator);
     let (event_generator, event_generator_calls) =
@@ -520,8 +536,8 @@ pub fn counted_arrow_engines() -> (ArrowGraphBuilderEngines<i32, i32, i32>, Coun
     let (scheduler, scheduler_calls) = CountingScheduler::wrap(standard.resource_scheduling_engine);
     (
         ArrowGraphBuilderEngines {
-            edge_id_generator: standard.edge_id_generator,
-            node_id_generator: standard.node_id_generator,
+            edge_id_generator_factory: Arc::new(edge_id_generator_factory),
+            node_id_generator_factory: Arc::new(node_id_generator_factory),
             dummy_activity_generator: Arc::new(dummy_activity_generator),
             event_generator: Arc::new(event_generator),
             scc_finder: Arc::new(scc_finder),
@@ -531,6 +547,8 @@ pub fn counted_arrow_engines() -> (ArrowGraphBuilderEngines<i32, i32, i32>, Coun
             resource_scheduling_engine: Arc::new(scheduler),
         },
         Counters(vec![
+            ("edge_id_generator_factory", edge_id_generator_factory_calls),
+            ("node_id_generator_factory", node_id_generator_factory_calls),
             ("dummy_activity_generator", dummy_activity_generator_calls),
             ("event_generator", event_generator_calls),
             ("scc_finder", scc_finder_calls),

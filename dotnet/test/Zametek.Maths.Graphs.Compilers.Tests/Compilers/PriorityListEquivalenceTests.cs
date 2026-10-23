@@ -184,7 +184,7 @@ namespace Zametek.Maths.Graphs.Tests
         private static (long milliseconds, long allocatedMb) MeasureOne(int size, int layers)
         {
             var graphBuilder = new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(
-                new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(0));
             int perLayer = Math.Max(1, size / layers);
             for (int id = 1; id <= size; id++)
             {

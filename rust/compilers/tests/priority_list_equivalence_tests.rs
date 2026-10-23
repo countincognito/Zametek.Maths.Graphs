@@ -229,11 +229,11 @@ fn measure_priority_list_scaling() {
 
 fn measure_one(size: i32, layers: i32) -> std::time::Duration {
     use indexmap::IndexSet;
-    use zametek_maths_graphs_compilers::{NextIdGenerator, VertexGraphBuilder};
+    use zametek_maths_graphs_compilers::{NextIdGeneratorFactory, VertexGraphBuilder};
     use zametek_maths_graphs_primitives::DependentActivity;
 
     let mut graph_builder: VertexGraphBuilder<i32, i32, i32> =
-        VertexGraphBuilder::new(NextIdGenerator::new(0));
+        VertexGraphBuilder::new(NextIdGeneratorFactory::new(0));
     let per_layer = (size / layers).max(1);
     for id in 1..=size {
         let layer = (id - 1) / per_layer;

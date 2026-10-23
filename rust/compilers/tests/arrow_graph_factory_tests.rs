@@ -1,8 +1,8 @@
 //! Port of `ArrowGraphFactoryTests.cs`. The standard factory of
 //! Activity-on-Arrow graphs makes new, independent builders and compilers.
 //! They have the engines of the bundle that the factory was made from (the
-//! standard engines, for `new`), the factory does not use the ID generators of
-//! the bundle, and many threads can use the factory.
+//! standard engines, for `new`), each builder asks the ID generator factories of
+//! the bundle for generators of its own, and many threads can use the factory.
 //!
 //! The C# tests of a null bundle, of a bundle with a null engine, and of a
 //! bundle that is changed after the factory is made have no counterpart: a
@@ -12,12 +12,14 @@ mod counting_engines;
 
 use counting_engines::counted_arrow_engines;
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::contracts::{IArrowGraphFactory, IIdGenerator};
+use std::sync::Arc;
+use zametek_maths_graphs_compilers::contracts::IArrowGraphFactory;
 use zametek_maths_graphs_compilers::primitives::{
     DependentActivity, InterActivityAllocationType, Resource,
 };
 use zametek_maths_graphs_compilers::{
     ArrowGraphBuilder, ArrowGraphBuilderEngines, ArrowGraphCompiler, ArrowGraphFactory,
+    NextIdGeneratorFactory,
 };
 
 type Act = DependentActivity<i32, i32, i32>;
@@ -25,15 +27,6 @@ type Builder = ArrowGraphBuilder<i32, i32, i32>;
 type Compiler = ArrowGraphCompiler<i32, i32, i32>;
 
 // -- Helpers ------------------------------------------------------------------
-
-// An ID generator that must not be used.
-struct UnusedIdGenerator;
-
-impl IIdGenerator<i32> for UnusedIdGenerator {
-    fn generate(&mut self) -> i32 {
-        panic!("The factory used an ID generator of the bundle.");
-    }
-}
 
 fn one_resource() -> Vec<Resource<i32, i32>> {
     vec![Resource::new(
@@ -132,19 +125,67 @@ fn with_engines_given_a_bundle_then_all_the_builders_share_its_engines() {
 }
 
 #[test]
-fn with_engines_given_a_bundle_with_id_generators_then_those_generators_are_not_used() {
+fn with_engines_given_a_bundle_with_id_generator_factories_then_the_builders_have_generators_from_them(
+) {
     let factory = ArrowGraphFactory::with_engines(ArrowGraphBuilderEngines {
-        edge_id_generator: Box::new(UnusedIdGenerator),
-        node_id_generator: Box::new(UnusedIdGenerator),
+        edge_id_generator_factory: Arc::new(NextIdGeneratorFactory::new(1_000_000)),
+        node_id_generator_factory: Arc::new(NextIdGeneratorFactory::new(2_000_000)),
         ..Default::default()
     });
 
     let mut builder = factory.create_builder();
     add_plan_to_builder(&mut builder);
 
-    // The builder has PreviousIdGenerator objects: they step down from 0.
+    // The generators of the builder step up from 1,000,000 and from 2,000,000,
+    // and not down from 0 as the standard ones do. The activities (1 to 4) are
+    // the only edges with IDs below 1,000,000.
     assert!(!builder.node_ids().is_empty());
-    assert!(builder.node_ids().iter().all(|x| *x < 0));
+    assert!(builder.node_ids().iter().all(|x| *x > 2_000_000));
+    let dummies: Vec<i32> = builder
+        .edge_ids()
+        .into_iter()
+        .filter(|x| ![1, 2, 3, 4].contains(x))
+        .collect();
+    assert!(!dummies.is_empty());
+    assert!(dummies.iter().all(|x| *x > 1_000_000));
+}
+
+#[test]
+fn with_engines_given_a_bundle_then_each_builder_asks_the_id_generator_factories_for_one_generator_each(
+) {
+    let (bundle, counters) = counted_arrow_engines();
+    let factory = ArrowGraphFactory::with_engines(bundle);
+
+    factory.create_builder();
+    assert_eq!(counters.calls_to("edge_id_generator_factory"), 1);
+    assert_eq!(counters.calls_to("node_id_generator_factory"), 1);
+    factory.create_builder();
+    assert_eq!(counters.calls_to("edge_id_generator_factory"), 2);
+    assert_eq!(counters.calls_to("node_id_generator_factory"), 2);
+    factory.create_compiler();
+    assert_eq!(counters.calls_to("edge_id_generator_factory"), 3);
+    assert_eq!(counters.calls_to("node_id_generator_factory"), 3);
+}
+
+#[test]
+fn clone_builder_then_the_clone_asks_the_same_id_generator_factories() {
+    let (bundle, counters) = counted_arrow_engines();
+    let factory = ArrowGraphFactory::with_engines(bundle);
+    let mut builder = factory.create_builder();
+    add_plan_to_builder(&mut builder);
+    let edge_calls_before_clone = counters.calls_to("edge_id_generator_factory");
+    let node_calls_before_clone = counters.calls_to("node_id_generator_factory");
+
+    builder.clone_builder().unwrap();
+
+    assert_eq!(
+        counters.calls_to("edge_id_generator_factory"),
+        edge_calls_before_clone + 1
+    );
+    assert_eq!(
+        counters.calls_to("node_id_generator_factory"),
+        node_calls_before_clone + 1
+    );
 }
 
 // -- The builders and the compilers -------------------------------------------
@@ -213,7 +254,7 @@ fn new_compiler_then_its_builder_is_made_as_the_standard_factory_makes_one() {
     drive_compiler(&mut by_default);
 
     // The same plan gives the same edges and nodes, and the same finish. The
-    // nodes have IDs from a PreviousIdGenerator, which steps down from 0.
+    // nodes have IDs from the standard ID generator factory, which steps down from 0.
     let (mut made_edges, mut default_edges) =
         (made.builder().edge_ids(), by_default.builder().edge_ids());
     let (mut made_nodes, mut default_nodes) =

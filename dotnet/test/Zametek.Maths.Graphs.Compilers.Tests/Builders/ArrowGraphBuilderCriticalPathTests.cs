@@ -22,7 +22,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -116,7 +116,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -210,7 +210,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -304,7 +304,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -398,7 +398,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -492,7 +492,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -587,7 +587,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -682,7 +682,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -778,7 +778,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -873,7 +873,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -968,7 +968,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1073,7 +1073,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1168,7 +1168,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1278,7 +1278,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId8 = activityId7 + 1;
             int activityId9 = activityId8 + 1;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1303,7 +1303,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1327,7 +1327,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1398,7 +1398,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1479,7 +1479,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1568,7 +1568,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1659,7 +1659,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1750,7 +1750,7 @@ namespace Zametek.Maths.Graphs.Tests
         {
             int eventId = 0;
             int dummyActivityId = 100;
-            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(dummyActivityId), new NextIdGenerator<int>(eventId))
+            var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(dummyActivityId), new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };

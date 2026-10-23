@@ -5,9 +5,8 @@ use crate::constraint_checker;
 use crate::contracts::{
     IActivityGenerator, IArrowCriticalPathEngine, IArrowStronglyConnectedComponentsFinder,
     IArrowTransitiveReducer, IDummyEdgeOrchestrator, IEventGenerator, IIdGenerator,
-    IResourceSchedulingEngine, IResourceSchedulingGraph,
+    IIdGeneratorFactory, IResourceSchedulingEngine, IResourceSchedulingGraph,
 };
-use crate::id_gen::PreviousIdGenerator;
 use crate::messages;
 use indexmap::{IndexMap, IndexSet};
 use std::sync::Arc;
@@ -29,6 +28,10 @@ use zametek_maths_graphs_primitives::{
 /// they are omitted here.
 pub struct ArrowGraphBuilder<K: Key, R: Key, W: Key> {
     pub(crate) state: ArrowGraphState<K, R, W>,
+    // The factories are kept for `clone_builder`: a clone asks them for
+    // generators of its own.
+    edge_id_generator_factory: Arc<dyn IIdGeneratorFactory<K>>,
+    node_id_generator_factory: Arc<dyn IIdGeneratorFactory<K>>,
     edge_id_generator: Box<dyn IIdGenerator<K>>,
     node_id_generator: Box<dyn IIdGenerator<K>>,
     dummy_activity_generator: Arc<dyn IActivityGenerator<K, R, W>>,
@@ -47,12 +50,21 @@ pub struct ArrowGraphBuilder<K: Key, R: Key, W: Key> {
 impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
     // Builds the struct from a bundle, without initialising the Start/End nodes
     // or assimilating a graph - the shared core of `with_engines` and
-    // `from_graph_with_engines`.
-    fn from_engines_raw(engines: ArrowGraphBuilderEngines<K, R, W>) -> Self {
+    // `from_graph_with_engines`. The generators come from the ID generator
+    // factories, for a graph that holds the given edge IDs and node IDs.
+    fn from_engines_raw(
+        engines: ArrowGraphBuilderEngines<K, R, W>,
+        used_edge_ids: &[K],
+        used_node_ids: &[K],
+    ) -> Self {
+        let edge_id_generator = engines.edge_id_generator_factory.create(used_edge_ids);
+        let node_id_generator = engines.node_id_generator_factory.create(used_node_ids);
         Self {
             state: ArrowGraphState::new(),
-            edge_id_generator: engines.edge_id_generator,
-            node_id_generator: engines.node_id_generator,
+            edge_id_generator_factory: engines.edge_id_generator_factory,
+            node_id_generator_factory: engines.node_id_generator_factory,
+            edge_id_generator,
+            node_id_generator,
             dummy_activity_generator: engines.dummy_activity_generator,
             event_generator: engines.event_generator,
             scc_finder: engines.scc_finder,
@@ -65,14 +77,14 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
     }
 
     /// Creates a builder with default engines, using the given edge (activity)
-    /// and node (event) ID generators.
+    /// and node (event) ID generator factories.
     pub fn new(
-        edge_id_generator: impl IIdGenerator<K> + 'static,
-        node_id_generator: impl IIdGenerator<K> + 'static,
+        edge_id_generator_factory: impl IIdGeneratorFactory<K> + 'static,
+        node_id_generator_factory: impl IIdGeneratorFactory<K> + 'static,
     ) -> Self {
         Self::with_engines(ArrowGraphBuilderEngines {
-            edge_id_generator: Box::new(edge_id_generator),
-            node_id_generator: Box::new(node_id_generator),
+            edge_id_generator_factory: Arc::new(edge_id_generator_factory),
+            node_id_generator_factory: Arc::new(node_id_generator_factory),
             ..Default::default()
         })
     }
@@ -81,33 +93,42 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
     /// defaults to the standard implementation. The Start and End nodes are
     /// created immediately.
     pub fn with_engines(engines: ArrowGraphBuilderEngines<K, R, W>) -> Self {
-        let mut builder = Self::from_engines_raw(engines);
+        // A new graph holds no IDs.
+        let mut builder = Self::from_engines_raw(engines, &[], &[]);
         builder.initialize();
         builder
     }
 
-    /// Creates a builder by assimilating an existing graph, with default engines.
+    /// Creates a builder by assimilating an existing graph, with default
+    /// engines. The ID generators of the builder start clear of the IDs of the
+    /// graph.
     pub fn from_graph(
         graph: crate::ArrowGraph<K, R, W>,
-        edge_id_generator: impl IIdGenerator<K> + 'static,
-        node_id_generator: impl IIdGenerator<K> + 'static,
+        edge_id_generator_factory: impl IIdGeneratorFactory<K> + 'static,
+        node_id_generator_factory: impl IIdGeneratorFactory<K> + 'static,
     ) -> Result<Self, GraphError> {
         Self::from_graph_with_engines(
             graph,
             ArrowGraphBuilderEngines {
-                edge_id_generator: Box::new(edge_id_generator),
-                node_id_generator: Box::new(node_id_generator),
+                edge_id_generator_factory: Arc::new(edge_id_generator_factory),
+                node_id_generator_factory: Arc::new(node_id_generator_factory),
                 ..Default::default()
             },
         )
     }
 
-    /// Creates a builder by assimilating an existing graph, from an engines bundle.
+    /// Creates a builder by assimilating an existing graph, from an engines
+    /// bundle. The ID generators of the builder start clear of the IDs of the
+    /// graph.
     pub fn from_graph_with_engines(
         graph: crate::ArrowGraph<K, R, W>,
         engines: ArrowGraphBuilderEngines<K, R, W>,
     ) -> Result<Self, GraphError> {
-        let mut builder = Self::from_engines_raw(engines);
+        // The edges and the nodes of the graph hold IDs that the generators
+        // must not give again.
+        let used_edge_ids: Vec<K> = graph.edges.iter().map(|e| e.id()).collect();
+        let used_node_ids: Vec<K> = graph.nodes.iter().map(|n| n.id()).collect();
+        let mut builder = Self::from_engines_raw(engines, &used_edge_ids, &used_node_ids);
 
         for edge in graph.edges {
             builder.state.add_edge(edge);
@@ -834,32 +855,20 @@ impl<K: Key, R: Key, W: Key> ArrowGraphBuilder<K, R, W> {
         self.initialize();
     }
 
-    /// Clones the builder (via graph export, as in the C# `CloneObject`). Only
-    /// the ID generators are recreated, stepping downward from below the
-    /// minimum exported IDs; the shuffle flag resets to false.
+    /// Clones the builder (via graph export, as in the C# `CloneObject`). The
+    /// clone asks the same ID generator factories for generators of its own, for
+    /// the IDs of the exported graph, and so its generators are of the same
+    /// kind as the generators of the original; the shuffle flag resets to false.
     pub fn clone_builder(&mut self) -> Result<Self, GraphError> {
         let graph = self.to_graph()?;
-        let min_node_id = graph
-            .nodes
-            .iter()
-            .map(|n| n.id())
-            .min()
-            .unwrap_or_default()
-            .previous();
-        let min_edge_id = graph
-            .edges
-            .iter()
-            .map(|e| e.id())
-            .min()
-            .unwrap_or_default()
-            .previous();
-        // Preserve the injected (stateless) engines on the clone; only the ID
-        // generators are recreated, since they carry per-graph counters.
+        // Preserve the injected (stateless) engines on the clone, the ID
+        // generator factories included. The ID generators carry per-graph
+        // counters, so the clone gets ones of its own.
         Self::from_graph_with_engines(
             graph,
             ArrowGraphBuilderEngines {
-                edge_id_generator: Box::new(PreviousIdGenerator::new(min_edge_id)),
-                node_id_generator: Box::new(PreviousIdGenerator::new(min_node_id)),
+                edge_id_generator_factory: Arc::clone(&self.edge_id_generator_factory),
+                node_id_generator_factory: Arc::clone(&self.node_id_generator_factory),
                 dummy_activity_generator: Arc::clone(&self.dummy_activity_generator),
                 event_generator: Arc::clone(&self.event_generator),
                 scc_finder: Arc::clone(&self.scc_finder),

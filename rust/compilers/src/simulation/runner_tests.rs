@@ -7,7 +7,7 @@
 
 use super::iteration_runner::SimulationIterationRunner;
 use super::random::SimulationRandom;
-use crate::id_gen::PreviousIdGenerator;
+use crate::id_gen::PreviousIdGeneratorFactory;
 use crate::vertex::{VertexGraphBuilder, VertexGraphCompiler};
 use zametek_maths_graphs_primitives::{DependentActivity, InterActivityAllocationType, Resource};
 
@@ -49,7 +49,7 @@ fn assert_agrees_with_the_compile(resource_count: i32, onto_synthetic: bool) {
     let activities = plan();
     let resources = resources(resource_count);
     let mut runner = SimulationIterationRunner::new(
-        VertexGraphBuilder::new(PreviousIdGenerator::new(0)),
+        VertexGraphBuilder::new(PreviousIdGeneratorFactory::new(0)),
         &activities,
         &resources,
         onto_synthetic,
@@ -109,7 +109,7 @@ fn run_given_no_resources_and_the_shortcut_then_gives_the_finish_of_a_compile() 
 #[test]
 fn new_given_a_builder_that_already_holds_activities_then_fails() {
     let activities = plan();
-    let mut builder = VertexGraphBuilder::new(PreviousIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::new(PreviousIdGeneratorFactory::new(0));
     builder.add_activity(activities[0].clone());
 
     let error = SimulationIterationRunner::new(builder, &activities, &resources(3), false)

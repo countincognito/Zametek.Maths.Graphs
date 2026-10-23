@@ -12,7 +12,11 @@ use std::hash::Hash;
 /// `'static` mirrors the C# `struct` constraint (ID types are self-contained
 /// value types with no borrowed data) and lets the compilers store the
 /// injectable engines as trait objects (`Arc<dyn …<K>>`).
-pub trait Key: Copy + Ord + Eq + Hash + Debug + Display + Default + 'static {
+///
+/// `Send` + `Sync` say that an ID is a plain value, which threads can share. The
+/// standard ID generator factories hold one, and a factory is shared by the
+/// threads of a simulation.
+pub trait Key: Copy + Ord + Eq + Hash + Debug + Display + Default + Send + Sync + 'static {
     /// The next key in sequence (used by ascending ID generators).
     fn next(self) -> Self;
     /// The previous key in sequence (used by descending ID generators).

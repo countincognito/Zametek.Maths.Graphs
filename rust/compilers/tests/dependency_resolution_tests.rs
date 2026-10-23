@@ -3,7 +3,9 @@
 //! exercised through the public builder API.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGenerator, VertexGraphBuilder};
+use zametek_maths_graphs_compilers::{
+    ArrowGraphBuilder, NextIdGeneratorFactory, VertexGraphBuilder,
+};
 use zametek_maths_graphs_primitives::DependentActivity;
 
 type Act = DependentActivity<i32, i32, i32>;
@@ -11,7 +13,7 @@ type Act = DependentActivity<i32, i32, i32>;
 #[test]
 fn vertex_shared_ancestor_across_two_sinks_then_reduction_removes_redundant_edges_from_both() {
     // A -> B, and two sinks each depending on BOTH A (redundantly) and B.
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     assert!(builder.add_activity(Act::new(1, 1))); // A
     builder.add_activity_with_dependencies(Act::new(2, 1), IndexSet::from([1])); // B dep A
     builder.add_activity_with_dependencies(Act::new(3, 1), IndexSet::from([1, 2])); // D1 dep A, B
@@ -27,7 +29,7 @@ fn vertex_shared_ancestor_across_two_sinks_then_reduction_removes_redundant_edge
 #[test]
 fn vertex_real_root_behind_dummy_diamond_then_strong_dependency_resolves_real_root() {
     // A (real) behind two zero-duration links B and C, which D depends on.
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(0));
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::new(0));
     assert!(builder.add_activity(Act::new(1, 1)));
     builder.add_activity_with_dependencies(Act::new(2, 0), IndexSet::from([1]));
     builder.add_activity_with_dependencies(Act::new(3, 0), IndexSet::from([1]));
@@ -41,8 +43,10 @@ fn vertex_real_root_behind_dummy_diamond_then_strong_dependency_resolves_real_ro
 
 #[test]
 fn arrow_real_root_behind_dummy_diamond_then_strong_dependency_resolves_real_root() {
-    let mut builder =
-        ArrowGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(100), NextIdGenerator::new(0));
+    let mut builder = ArrowGraphBuilder::<i32, i32, i32>::new(
+        NextIdGeneratorFactory::new(100),
+        NextIdGeneratorFactory::new(0),
+    );
     assert!(builder.add_activity(Act::new(1, 1)));
     builder.add_activity_with_dependencies(Act::new(2, 0), IndexSet::from([1]));
     builder.add_activity_with_dependencies(Act::new(3, 0), IndexSet::from([1]));

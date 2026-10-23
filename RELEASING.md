@@ -15,13 +15,13 @@ A release is a tag on `master`. The tag starts a workflow that builds, tests and
    ```bash
    git switch master
    git pull
-   git tag v3.4.0
-   git push origin v3.4.0
+   git tag v4.0.0
+   git push origin v4.0.0
    ```
 
 4. **Wait for the Release workflow** (Actions tab). It stops with an error when:
    - the tag is not `v` plus the version in `Directory.Build.props`, or the Rust workspace has a different version;
-   - the commit of a release tag is not on `master` (a tag with a suffix, such as `v3.4.0-rc.1`, can come from any branch);
+   - the commit of a release tag is not on `master` (a tag with a suffix, such as `v4.0.0-rc.1`, can come from any branch);
    - a test fails;
    - the API of a package differs from the newest earlier release of the same major version on nuget.org (see below).
 
@@ -29,8 +29,8 @@ A release is a tag on `master`. The tag starts a workflow that builds, tests and
 6. **Upload the packages**, `Primitives` first, because `Compilers` depends on it. `dotnet nuget push` uploads the `.snupkg` with the `.nupkg` that is in the same folder:
 
    ```bash
-   dotnet nuget push Zametek.Maths.Graphs.Primitives.3.4.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
-   dotnet nuget push Zametek.Maths.Graphs.Compilers.3.4.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
+   dotnet nuget push Zametek.Maths.Graphs.Primitives.4.0.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
+   dotnet nuget push Zametek.Maths.Graphs.Compilers.4.0.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
    ```
 
 ## Dry run
@@ -48,11 +48,11 @@ To break the API on purpose, do one of two things:
 
   ```bash
   dotnet pack src/Zametek.Maths.Graphs.Compilers --configuration Release --output /tmp/packages \
-    -p:EnablePackageValidation=true -p:PackageValidationBaselineVersion=3.3.0 \
+    -p:EnablePackageValidation=true -p:PackageValidationBaselineVersion=4.0.0 \
     -p:ApiCompatGenerateSuppressionFile=true
   ```
 
-  Describe the break in the "Breaking changes" section of `dotnet/README.md`. After the release the entry does nothing, because the next release compares with a package that already has the change. Delete it then. The file holds the break of 3.4.0 (the constructor of `ScheduleSimulator<T, TResourceId, TWorkStreamId, TActivity>` with five parameters).
+  Describe the break in the "Breaking changes" section of `dotnet/README.md`. After the release the entry does nothing, because the next release compares with a package that already has the change. Delete it then. The repository has no such file at the moment, because 4.0.0 is a new major version and nothing earlier is compared with it.
 
 ## Pins
 

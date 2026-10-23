@@ -265,8 +265,8 @@ namespace Zametek.Maths.Graphs.Tests
             var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
                 new ArrowGraphBuilderEngines<int, int, int, IActivity<int, int, int>>
                 {
-                    EdgeIdGenerator = new NextIdGenerator<int>(1_000_000),
-                    NodeIdGenerator = new NextIdGenerator<int>(0),
+                    EdgeIdGeneratorFactory = new NextIdGeneratorFactory<int>(1_000_000),
+                    NodeIdGeneratorFactory = new NextIdGeneratorFactory<int>(0),
                     CriticalPathEngine = timingEngine,
                 });
             int perLayer = Math.Max(1, size / layers);

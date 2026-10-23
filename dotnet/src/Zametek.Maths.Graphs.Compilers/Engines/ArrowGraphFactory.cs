@@ -18,11 +18,9 @@ namespace Zametek.Maths.Graphs
     /// implement <see cref="IArrowGraphFactory{T, TResourceId, TWorkStreamId, TActivity}"/>.
     /// </para>
     /// <para>
-    /// A generator of IDs is different: it holds the count of one graph, and so builders cannot share one. The
-    /// factory gives each builder two new <see cref="PreviousIdGenerator{T}"/> objects, and it does not use the
-    /// <see cref="ArrowGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.EdgeIdGenerator"/> and the
-    /// <see cref="ArrowGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.NodeIdGenerator"/> of the
-    /// bundle.
+    /// The two ID generator factories of the bundle are among these engines. A generator of IDs holds the count of
+    /// one graph, and so builders cannot share one, but each builder asks the ID generator factories for
+    /// generators of its own.
     /// </para>
     /// <para>
     /// The factory keeps the engines of the bundle, and not the bundle. A change to the bundle after the
@@ -40,6 +38,8 @@ namespace Zametek.Maths.Graphs
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
+        private readonly IIdGeneratorFactory<T> m_EdgeIdGeneratorFactory;
+        private readonly IIdGeneratorFactory<T> m_NodeIdGeneratorFactory;
         private readonly IActivityGenerator<T, TResourceId, TWorkStreamId, TActivity> m_DummyActivityGenerator;
         private readonly IEventGenerator<T> m_EventGenerator;
         private readonly IArrowStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_SccFinder;
@@ -57,10 +57,10 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <summary>
-        /// Creates a factory whose builders have the engines of the bundle. The
-        /// <see cref="ArrowGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.EdgeIdGenerator"/> and the
-        /// <see cref="ArrowGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.NodeIdGenerator"/> of the
-        /// bundle are not used: each builder has ID generators of its own.
+        /// Creates a factory whose builders have the engines of the bundle. Each builder asks the
+        /// <see cref="ArrowGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.EdgeIdGeneratorFactory"/> and the
+        /// <see cref="ArrowGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.NodeIdGeneratorFactory"/> of
+        /// the bundle for ID generators of its own.
         /// </summary>
         /// <param name="engines">The engines of the builders.</param>
         /// <exception cref="ArgumentNullException">The bundle is null, or one of its engines is.</exception>
@@ -71,6 +71,10 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(engines));
             }
 
+            m_EdgeIdGeneratorFactory = engines.EdgeIdGeneratorFactory
+                ?? throw new ArgumentNullException(nameof(engines), @"The engines have no edge ID generator factory.");
+            m_NodeIdGeneratorFactory = engines.NodeIdGeneratorFactory
+                ?? throw new ArgumentNullException(nameof(engines), @"The engines have no node ID generator factory.");
             m_DummyActivityGenerator = engines.DummyActivityGenerator
                 ?? throw new ArgumentNullException(nameof(engines), @"The engines have no generator of dummy activities.");
             m_EventGenerator = engines.EventGenerator
@@ -92,8 +96,8 @@ namespace Zametek.Maths.Graphs
             new ArrowGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 new ArrowGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
                 {
-                    EdgeIdGenerator = new PreviousIdGenerator<T>(),
-                    NodeIdGenerator = new PreviousIdGenerator<T>(),
+                    EdgeIdGeneratorFactory = m_EdgeIdGeneratorFactory,
+                    NodeIdGeneratorFactory = m_NodeIdGeneratorFactory,
                     DummyActivityGenerator = m_DummyActivityGenerator,
                     EventGenerator = m_EventGenerator,
                     SccFinder = m_SccFinder,

@@ -3,14 +3,14 @@
 //! transitive reduction still removes redundant edges on the clone.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{NextIdGenerator, VertexGraphBuilder};
+use zametek_maths_graphs_compilers::{NextIdGeneratorFactory, VertexGraphBuilder};
 use zametek_maths_graphs_primitives::DependentActivity;
 
 type Act = DependentActivity<i32, i32, i32>;
 
 /// 1 -> 2 -> 3 plus the redundant direct dependency 1 -> 3.
 fn build_redundant_triangle() -> VertexGraphBuilder<i32, i32, i32> {
-    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::default());
+    let mut builder = VertexGraphBuilder::<i32, i32, i32>::new(NextIdGeneratorFactory::default());
     builder.add_activity(Act::new(1, 5));
     builder.add_activity_with_dependencies(Act::new(2, 5), IndexSet::from([1]));
     builder.add_activity_with_dependencies(Act::new(3, 5), IndexSet::from([1, 2]));

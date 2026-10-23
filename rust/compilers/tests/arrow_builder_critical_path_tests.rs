@@ -5,15 +5,17 @@
 //! generator at 100 and its event generator at 0, matching the C# fixtures.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGenerator};
+use zametek_maths_graphs_compilers::{ArrowGraphBuilder, NextIdGeneratorFactory};
 use zametek_maths_graphs_primitives::{DependentActivity, InterActivityAllocationType, Resource};
 
 type Builder = ArrowGraphBuilder<i32, i32, i32>;
 type Act = DependentActivity<i32, i32, i32>;
 
 fn new_builder() -> Builder {
-    let mut builder =
-        ArrowGraphBuilder::<i32, i32, i32>::new(NextIdGenerator::new(100), NextIdGenerator::new(0));
+    let mut builder = ArrowGraphBuilder::<i32, i32, i32>::new(
+        NextIdGeneratorFactory::new(100),
+        NextIdGeneratorFactory::new(0),
+    );
     builder.shuffle_processing_order = true;
     builder
 }

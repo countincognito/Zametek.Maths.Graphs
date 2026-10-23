@@ -18,6 +18,12 @@
 //! many builders (the schedule simulator needs one for each thread) takes a
 //! factory, [`IVertexGraphFactory`] or [`IArrowGraphFactory`], that makes a new
 //! builder or a new compiler each time.
+//!
+//! An ID generator is the other thing that holds the count of one graph. A
+//! builder does not take a generator: it takes an [`IIdGeneratorFactory`], which
+//! holds no state, like the engines, and it asks the factory for a generator of
+//! its own when it is made. A builder that loads a graph, and the clone of a
+//! builder, ask for a generator for the IDs that the graph already holds.
 
 use crate::arrow::{ArrowGraphBuilder, ArrowGraphCompiler, ArrowGraphState};
 use crate::vertex::{
@@ -30,10 +36,30 @@ use zametek_maths_graphs_primitives::{
 };
 
 /// Sequential ID generation - the counterpart of the C# `IIdGenerator<T>`.
-/// The one stateful seam (it carries a per-graph counter), so it is held by
-/// value (`Box`) and recreated, not shared, when a builder clones.
+/// It carries a per-graph counter, so a builder holds its own, by value
+/// (`Box`), and an [`IIdGeneratorFactory`] makes it.
 pub trait IIdGenerator<K: Key> {
     fn generate(&mut self) -> K;
+}
+
+/// Makes the [`IIdGenerator`] of a builder - the counterpart of the C#
+/// `IIdGeneratorFactory<T>`. A generator holds the count of one graph, so
+/// builders cannot share one. The factory holds no state: it is an engine like
+/// the others ([`Send`] + [`Sync`]), shared by the builders of an engines
+/// bundle, by their clones and by the builders of a standard graph factory.
+/// Each builder asks it for a generator of its own, when the builder is made.
+///
+/// A new builder asks for a generator for an empty graph. A builder that loads a
+/// graph, and the clone of a builder, ask for a generator for the IDs that the
+/// graph already holds. Thus, nobody has to work out where a generator must
+/// start, and the generator of a clone is of the same kind as the generator of
+/// its original. [`PreviousIdGeneratorFactory`](crate::PreviousIdGeneratorFactory)
+/// is the factory that builders have by default.
+pub trait IIdGeneratorFactory<K: Key>: Send + Sync {
+    /// Makes a new generator for a graph that holds the given IDs (no IDs, for a
+    /// new graph). The generator must not give one of those IDs, and it shares
+    /// no state with a generator that the factory made before.
+    fn create(&self, used_ids: &[K]) -> Box<dyn IIdGenerator<K>>;
 }
 
 /// Creates the events placed on a graph's edges (vertex) or nodes (arrow) -

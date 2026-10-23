@@ -30,7 +30,8 @@
 //! many builders takes a factory ([`contracts::IVertexGraphFactory`] /
 //! [`contracts::IArrowGraphFactory`]), and [`VertexGraphFactory`] /
 //! [`ArrowGraphFactory`] are the standard ones. They take the same engines
-//! bundle, and they give each builder an ID generator of its own.
+//! bundle, and each builder that they make asks the ID generator factory of the
+//! bundle ([`contracts::IIdGeneratorFactory`]) for an ID generator of its own.
 //! [`ScheduleSimulator::with_factory`] takes a vertex factory.
 
 mod ancestor;
@@ -61,7 +62,9 @@ pub use arrow::{
     ArrowTransitiveReducer, DummyEdgeOrchestrator,
 };
 pub use generators::{DummyActivityGenerator, EventGenerator, RemovableEventGenerator};
-pub use id_gen::{NextIdGenerator, PreviousIdGenerator};
+pub use id_gen::{
+    NextIdGenerator, NextIdGeneratorFactory, PreviousIdGenerator, PreviousIdGeneratorFactory,
+};
 pub use scheduling::{PriorityListResourceScheduler, ResourceScheduleBuilder};
 pub use simulation::ScheduleSimulator;
 pub use vertex::{

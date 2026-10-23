@@ -14,7 +14,7 @@
 #![allow(dead_code)]
 
 use crate::corpus_shapes;
-use zametek_maths_graphs_compilers::{NextIdGenerator, VertexGraphBuilder};
+use zametek_maths_graphs_compilers::{NextIdGeneratorFactory, VertexGraphBuilder};
 use zametek_maths_graphs_primitives::DependentActivity;
 
 pub type Builder = VertexGraphBuilder<i32, i32, i32>;
@@ -29,7 +29,7 @@ pub fn generate() -> Vec<Case> {
 }
 
 fn build(spec: corpus_shapes::GraphSpec) -> Case {
-    let mut graph_builder = VertexGraphBuilder::new(NextIdGenerator::new(0));
+    let mut graph_builder = VertexGraphBuilder::new(NextIdGeneratorFactory::new(0));
 
     for activity_spec in &spec.activities {
         let mut activity = DependentActivity::new(activity_spec.id, activity_spec.duration);

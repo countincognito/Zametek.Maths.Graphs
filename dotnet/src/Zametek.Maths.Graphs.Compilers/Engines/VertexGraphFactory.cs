@@ -18,10 +18,9 @@ namespace Zametek.Maths.Graphs
     /// implement <see cref="IVertexGraphFactory{T, TResourceId, TWorkStreamId, TActivity}"/>.
     /// </para>
     /// <para>
-    /// A generator of IDs is different: it holds the count of one graph, and so builders cannot share one. The
-    /// factory gives each builder a new <see cref="PreviousIdGenerator{T}"/>, and it does not use the
-    /// <see cref="VertexGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.EdgeIdGenerator"/> of the
-    /// bundle.
+    /// The ID generator factory of the bundle is one of these engines. A generator of IDs holds the count of one
+    /// graph, and so builders cannot share one, but each builder asks the ID generator factory for a generator
+    /// of its own.
     /// </para>
     /// <para>
     /// The factory keeps the engines of the bundle, and not the bundle. A change to the bundle after the
@@ -39,6 +38,7 @@ namespace Zametek.Maths.Graphs
         where TResourceId : struct, IComparable<TResourceId>, IEquatable<TResourceId>
         where TWorkStreamId : struct, IComparable<TWorkStreamId>, IEquatable<TWorkStreamId>
     {
+        private readonly IIdGeneratorFactory<T> m_EdgeIdGeneratorFactory;
         private readonly IEventGenerator<T> m_EventGenerator;
         private readonly IVertexStronglyConnectedComponentsFinder<T, TResourceId, TWorkStreamId, TActivity> m_SccFinder;
         private readonly IVertexCriticalPathEngine<T, TResourceId, TWorkStreamId, TActivity> m_CriticalPathEngine;
@@ -54,9 +54,9 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <summary>
-        /// Creates a factory whose builders have the engines of the bundle. The
-        /// <see cref="VertexGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.EdgeIdGenerator"/> of the
-        /// bundle is not used: each builder has an ID generator of its own.
+        /// Creates a factory whose builders have the engines of the bundle. Each builder asks the
+        /// <see cref="VertexGraphBuilderEngines{T, TResourceId, TWorkStreamId, TActivity}.EdgeIdGeneratorFactory"/> of
+        /// the bundle for an ID generator of its own.
         /// </summary>
         /// <param name="engines">The engines of the builders.</param>
         /// <exception cref="ArgumentNullException">The bundle is null, or one of its engines is.</exception>
@@ -67,6 +67,8 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentNullException(nameof(engines));
             }
 
+            m_EdgeIdGeneratorFactory = engines.EdgeIdGeneratorFactory
+                ?? throw new ArgumentNullException(nameof(engines), @"The engines have no edge ID generator factory.");
             m_EventGenerator = engines.EventGenerator
                 ?? throw new ArgumentNullException(nameof(engines), @"The engines have no event generator.");
             m_SccFinder = engines.SccFinder
@@ -84,7 +86,7 @@ namespace Zametek.Maths.Graphs
             new VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity>(
                 new VertexGraphBuilderEngines<T, TResourceId, TWorkStreamId, TActivity>
                 {
-                    EdgeIdGenerator = new PreviousIdGenerator<T>(),
+                    EdgeIdGeneratorFactory = m_EdgeIdGeneratorFactory,
                     EventGenerator = m_EventGenerator,
                     SccFinder = m_SccFinder,
                     CriticalPathEngine = m_CriticalPathEngine,

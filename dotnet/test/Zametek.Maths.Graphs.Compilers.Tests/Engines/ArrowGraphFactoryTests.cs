@@ -10,7 +10,8 @@ namespace Zametek.Maths.Graphs.Tests
 {
     // The standard factory of Activity-on-Arrow graphs: that it makes new, independent builders and compilers, that
     // they have the engines of the bundle that the factory was made from (the standard engines, when there is no
-    // bundle), that it does not use the ID generators of the bundle, and that many threads can use it.
+    // bundle), that each builder asks the ID generator factories of the bundle for generators of its own, and that
+    // many threads can use it.
     public class ArrowGraphFactoryTests
     {
         #region Helpers
@@ -25,6 +26,8 @@ namespace Zametek.Maths.Graphs.Tests
                 var standard = new ArrowGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>();
                 Bundle = new ArrowGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
                 {
+                    EdgeIdGeneratorFactory = Count(nameof(Bundle.EdgeIdGeneratorFactory), standard.EdgeIdGeneratorFactory),
+                    NodeIdGeneratorFactory = Count(nameof(Bundle.NodeIdGeneratorFactory), standard.NodeIdGeneratorFactory),
                     DummyActivityGenerator = Count(nameof(Bundle.DummyActivityGenerator), standard.DummyActivityGenerator),
                     EventGenerator = Count(nameof(Bundle.EventGenerator), standard.EventGenerator),
                     SccFinder = Count(nameof(Bundle.SccFinder), standard.SccFinder),
@@ -50,13 +53,6 @@ namespace Zametek.Maths.Graphs.Tests
                 m_Counters.Add(name, counter);
                 return proxy;
             }
-        }
-
-        // An ID generator that must not be used.
-        private sealed class UnusedIdGenerator
-            : IIdGenerator<int>
-        {
-            public int Generate() => throw new InvalidOperationException(@"The factory used an ID generator of the bundle.");
         }
 
         private static ArrowGraphFactory<int, int, int, IDependentActivity<int, int, int>> FactoryOf(
@@ -117,6 +113,8 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Theory]
+        [InlineData("EdgeIdGeneratorFactory", "edge ID generator factory")]
+        [InlineData("NodeIdGeneratorFactory", "node ID generator factory")]
         [InlineData("DummyActivityGenerator", "dummy activities")]
         [InlineData("EventGenerator", "event generator")]
         [InlineData("SccFinder", "strongly connected")]
@@ -129,6 +127,12 @@ namespace Zametek.Maths.Graphs.Tests
             var engines = new ArrowGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>();
             switch (engine)
             {
+                case nameof(engines.EdgeIdGeneratorFactory):
+                    engines.EdgeIdGeneratorFactory = null;
+                    break;
+                case nameof(engines.NodeIdGeneratorFactory):
+                    engines.NodeIdGeneratorFactory = null;
+                    break;
                 case nameof(engines.DummyActivityGenerator):
                     engines.DummyActivityGenerator = null;
                     break;
@@ -213,21 +217,58 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void ArrowGraphFactory_GivenABundleWithIdGenerators_ThenThoseGeneratorsAreNotUsed()
+        public void ArrowGraphFactory_GivenABundleWithIdGeneratorFactories_ThenTheBuildersHaveGeneratorsFromThem()
         {
             var engines = new ArrowGraphBuilderEngines<int, int, int, IDependentActivity<int, int, int>>
             {
-                EdgeIdGenerator = new UnusedIdGenerator(),
-                NodeIdGenerator = new UnusedIdGenerator(),
+                EdgeIdGeneratorFactory = new NextIdGeneratorFactory<int>(1_000_000),
+                NodeIdGeneratorFactory = new NextIdGeneratorFactory<int>(2_000_000),
             };
             ArrowGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory = FactoryOf(engines);
 
             ArrowGraphBuilder<int, int, int, IDependentActivity<int, int, int>> builder = factory.CreateBuilder();
             AddPlan(builder);
 
-            // The builder has PreviousIdGenerator objects: they step down from 0.
+            // The generators of the builder step up from 1,000,000 and from 2,000,000, and not down from 0 as the
+            // standard ones do. The activities (1 to 4) are the only edges with IDs below 1,000,000.
             builder.NodeIds.ShouldNotBeEmpty();
-            builder.NodeIds.ShouldAllBe(x => x < 0);
+            builder.NodeIds.ShouldAllBe(x => x > 2_000_000);
+            List<int> dummies = builder.EdgeIds.Except([1, 2, 3, 4]).ToList();
+            dummies.ShouldNotBeEmpty();
+            dummies.ShouldAllBe(x => x > 1_000_000);
+        }
+
+        [Fact]
+        public void ArrowGraphFactory_GivenABundleWithIdGeneratorFactories_ThenEachBuilderAsksThemForOneGeneratorEach()
+        {
+            var counted = new CountedEngines();
+            ArrowGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory = FactoryOf(counted.Bundle);
+
+            factory.CreateBuilder();
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(1);
+            counted.CallsTo(nameof(counted.Bundle.NodeIdGeneratorFactory)).ShouldBe(1);
+            factory.CreateBuilder();
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(2);
+            counted.CallsTo(nameof(counted.Bundle.NodeIdGeneratorFactory)).ShouldBe(2);
+            factory.CreateCompiler();
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(3);
+            counted.CallsTo(nameof(counted.Bundle.NodeIdGeneratorFactory)).ShouldBe(3);
+        }
+
+        [Fact]
+        public void ArrowGraphFactory_GivenABuilder_ThenItsCloneAsksTheSameIdGeneratorFactories()
+        {
+            var counted = new CountedEngines();
+            ArrowGraphFactory<int, int, int, IDependentActivity<int, int, int>> factory = FactoryOf(counted.Bundle);
+            ArrowGraphBuilder<int, int, int, IDependentActivity<int, int, int>> builder = factory.CreateBuilder();
+            AddPlan(builder);
+            int edgeCallsBeforeClone = counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory));
+            int nodeCallsBeforeClone = counted.CallsTo(nameof(counted.Bundle.NodeIdGeneratorFactory));
+
+            builder.CloneObject();
+
+            counted.CallsTo(nameof(counted.Bundle.EdgeIdGeneratorFactory)).ShouldBe(edgeCallsBeforeClone + 1);
+            counted.CallsTo(nameof(counted.Bundle.NodeIdGeneratorFactory)).ShouldBe(nodeCallsBeforeClone + 1);
         }
 
         #endregion
@@ -297,8 +338,8 @@ namespace Zametek.Maths.Graphs.Tests
             Drive(made);
             Drive(byDefault);
 
-            // The same plan gives the same edges and nodes, and the same finish. The nodes have IDs from a
-            // PreviousIdGenerator, which steps down from 0.
+            // The same plan gives the same edges and nodes, and the same finish. The nodes have IDs from the standard
+            // ID generator factory, which steps down from 0.
             Graph<int, IDependentActivity<int, int, int>, IEvent<int>> madeGraph = made.ToGraph();
             Graph<int, IDependentActivity<int, int, int>, IEvent<int>> defaultGraph = byDefault.ToGraph();
             int[] defaultNodes = [.. defaultGraph.Nodes.Select(x => x.Id).Order()];

@@ -12,7 +12,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilder_GivenContructor_ThenNoException()
         {
             int eventId = 0;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId));
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId));
 
             graphBuilder.EdgeIds.Any().ShouldBeFalse();
             graphBuilder.NodeIds.Any().ShouldBeFalse();
@@ -22,9 +22,9 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
-        public void VertexGraphBuilder_GivenCtorCalledWithNullEdgeIdGenerator_ThenShouldThrowArgumentNullException()
+        public void VertexGraphBuilder_GivenCtorCalledWithNullEdgeIdGeneratorFactory_ThenShouldThrowArgumentNullException()
         {
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>((IIdGenerator<int>)null);
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>((IIdGeneratorFactory<int>)null);
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -34,7 +34,7 @@ namespace Zametek.Maths.Graphs.Tests
             int eventId = 0;
             int activityId = 0;
             int activityId1 = activityId + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -65,7 +65,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId = 0;
             int activityId1 = activityId + 1;
             int activityId2 = activityId1 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -128,7 +128,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId = 0;
             int activityId1 = activityId + 1;
             int activityId2 = activityId1 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -192,7 +192,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = activityId + 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -293,7 +293,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = activityId + 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -394,7 +394,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId1 = activityId + 1;
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -534,7 +534,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId2 = activityId1 + 1;
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -592,7 +592,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -781,7 +781,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilder_GivenCtorCalledWithNullGraph_ThenShouldThrowArgumentNullException()
         {
             int eventId = 0;
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(null, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(null, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentNullException>();
         }
 
@@ -794,7 +794,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -821,7 +821,7 @@ namespace Zametek.Maths.Graphs.Tests
 
             var firstGraph = graphBuilder.ToGraph();
 
-            var graphBuilder2 = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(firstGraph, new NextIdGenerator<int>(eventId));
+            var graphBuilder2 = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(firstGraph, new NextIdGeneratorFactory<int>(eventId));
             var secondGraph = graphBuilder2.ToGraph();
             secondGraph.ShouldBe(firstGraph);
         }
@@ -835,7 +835,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -863,7 +863,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graph = graphBuilder.ToGraph();
             graph.Edges.RemoveAt(0);
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -876,7 +876,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -904,7 +904,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graph = graphBuilder.ToGraph();
             graph.Edges.Add(new Edge<int, IEvent<int>>(new Event<int>(eventId = eventId.Next())));
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -917,7 +917,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -946,7 +946,7 @@ namespace Zametek.Maths.Graphs.Tests
             Node<int, IActivity<int, int, int>> node = graph.Nodes.First(x => x.NodeType == NodeType.Normal);
             graph.Nodes.Remove(node);
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -960,7 +960,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -988,7 +988,7 @@ namespace Zametek.Maths.Graphs.Tests
             var graph = graphBuilder.ToGraph();
             graph.Nodes.Add(new Node<int, IActivity<int, int, int>>(new Activity<int, int, int>(dummyActivityId = dummyActivityId.Next(), 0)));
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -1001,7 +1001,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1032,7 +1032,7 @@ namespace Zametek.Maths.Graphs.Tests
                 node.SetNodeType(NodeType.Normal);
             }
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -1045,7 +1045,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId3 = activityId2 + 1;
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1076,7 +1076,7 @@ namespace Zametek.Maths.Graphs.Tests
                 node.SetNodeType(NodeType.Normal);
             }
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -1086,7 +1086,7 @@ namespace Zametek.Maths.Graphs.Tests
             int eventId = 0;
             int activityId1 = 1;
             int activityId2 = activityId1 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1100,7 +1100,7 @@ namespace Zametek.Maths.Graphs.Tests
             result2.ShouldBeTrue();
 
             var graph = graphBuilder.ToGraph();
-            var graphBuilder2 = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            var graphBuilder2 = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
 
             graphBuilder2.EdgeIds.Any().ShouldBeFalse();
             graphBuilder2.NodeIds.Count().ShouldBe(2);
@@ -1121,7 +1121,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1158,7 +1158,7 @@ namespace Zametek.Maths.Graphs.Tests
             }
             graph.Nodes.Add(newNode);
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -1172,7 +1172,7 @@ namespace Zametek.Maths.Graphs.Tests
             int activityId4 = activityId3 + 1;
             int activityId5 = activityId4 + 1;
             int dummyActivityId = activityId5 + 1;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId))
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId))
             {
                 ShuffleProcessingOrder = true
             };
@@ -1209,7 +1209,7 @@ namespace Zametek.Maths.Graphs.Tests
             }
             graph.Nodes.Add(newNode);
 
-            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGenerator<int>(eventId));
+            Action act = () => new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(graph, new NextIdGeneratorFactory<int>(eventId));
             act.ShouldThrow<ArgumentException>();
         }
 
@@ -1217,7 +1217,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilder_GivenAllDummyActivitiesFindCircularDependencies_ThenFindsCircularDependency()
         {
             int eventId = 0;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId));
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId));
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 0));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 0), [7]);
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 0));
@@ -1238,7 +1238,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void VertexGraphBuilder_GivenFindCircularDependencies_ThenFindsCircularDependency()
         {
             int eventId = 0;
-            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(eventId));
+            var graphBuilder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(eventId));
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 10));
             graphBuilder.AddActivity(new Activity<int, int, int>(2, 10), [7]);
             graphBuilder.AddActivity(new Activity<int, int, int>(3, 10));

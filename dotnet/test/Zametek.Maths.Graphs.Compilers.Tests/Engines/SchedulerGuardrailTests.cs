@@ -292,7 +292,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowGraphBuilder_GivenCorruptedTargetResourceSet_ThenStallsWithInconsistencyDiagnosisInsteadOfHanging()
         {
             var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(1000), new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(1000), new NextIdGeneratorFactory<int>(0));
             var activity = new Activity<int, int, int>(1, 5)
             {
                 TargetResourceOperator = LogicalOperator.AND,
@@ -313,7 +313,7 @@ namespace Zametek.Maths.Graphs.Tests
         public void ArrowGraphBuilder_GivenCancelledToken_ThenThrowsOperationCanceledException()
         {
             var graphBuilder = new ArrowGraphBuilder<int, int, int, IActivity<int, int, int>>(
-                new NextIdGenerator<int>(1000), new NextIdGenerator<int>(0));
+                new NextIdGeneratorFactory<int>(1000), new NextIdGeneratorFactory<int>(0));
             graphBuilder.AddActivity(new Activity<int, int, int>(1, 5)).ShouldBeTrue();
             using var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -348,7 +348,7 @@ namespace Zametek.Maths.Graphs.Tests
         [Fact]
         public void VertexGraphBuilder_GivenCancelledToken_ThenThrowsOperationCanceledException()
         {
-            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGenerator<int>(0));
+            var builder = new VertexGraphBuilder<int, int, int, IActivity<int, int, int>>(new NextIdGeneratorFactory<int>(0));
             builder.AddActivity(new Activity<int, int, int>(1, 5)).ShouldBeTrue();
             using var cts = new CancellationTokenSource();
             cts.Cancel();

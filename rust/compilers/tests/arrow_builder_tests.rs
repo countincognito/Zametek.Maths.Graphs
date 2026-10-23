@@ -5,7 +5,9 @@
 //! non-nullable arguments) and are omitted.
 
 use indexmap::IndexSet;
-use zametek_maths_graphs_compilers::{ArrowGraphBuilder, ArrowGraphCompiler, NextIdGenerator};
+use zametek_maths_graphs_compilers::{
+    ArrowGraphBuilder, ArrowGraphCompiler, NextIdGeneratorFactory,
+};
 use zametek_maths_graphs_primitives::{DependentActivity, Edge, Event, Node, NodeType};
 
 type Builder = ArrowGraphBuilder<i32, i32, i32>;
@@ -13,8 +15,8 @@ type Act = DependentActivity<i32, i32, i32>;
 
 fn new_builder(dummy_activity_id: i32, event_id: i32) -> Builder {
     Builder::new(
-        NextIdGenerator::new(dummy_activity_id),
-        NextIdGenerator::new(event_id),
+        NextIdGeneratorFactory::new(dummy_activity_id),
+        NextIdGeneratorFactory::new(event_id),
     )
 }
 
@@ -1687,7 +1689,11 @@ fn build_standard_network() -> Builder {
 fn assimilate(
     graph: zametek_maths_graphs_compilers::ArrowGraph<i32, i32, i32>,
 ) -> Result<Builder, zametek_maths_graphs_primitives::GraphError> {
-    ArrowGraphBuilder::from_graph(graph, NextIdGenerator::new(6), NextIdGenerator::new(0))
+    ArrowGraphBuilder::from_graph(
+        graph,
+        NextIdGeneratorFactory::new(6),
+        NextIdGeneratorFactory::new(0),
+    )
 }
 
 #[test]
