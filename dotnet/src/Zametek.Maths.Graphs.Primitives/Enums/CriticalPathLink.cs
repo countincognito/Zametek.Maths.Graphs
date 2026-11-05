@@ -11,13 +11,15 @@ namespace Zametek.Maths.Graphs
         None = 0,
 
         /// <summary>
-        /// The activity depends on the one before it, as the plan says.
+        /// The activity depends on the one before it, as the plan says: directly, or through
+        /// milestones, which are not on the path.
         /// </summary>
         Dependency = 1,
 
         /// <summary>
-        /// The activity does not depend on the one before it. It starts when it does because the
-        /// two share a resource, and the resource finishes the one before it starts the other.
+        /// The activity does not depend on the one before it, directly or through milestones. It
+        /// starts when it does because the two share a resource, and the resource finishes the one
+        /// before it starts the other.
         /// </summary>
         Resource = 2,
     }

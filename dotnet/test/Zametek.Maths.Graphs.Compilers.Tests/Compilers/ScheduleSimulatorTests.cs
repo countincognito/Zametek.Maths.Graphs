@@ -554,6 +554,86 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void Run_Given_AResourceLinkBesideADependency_Then_TheStepIsADependency()
+        {
+            // 2 depends on 1, and one resource does them in turn. The plan already ties 2 to 1, and
+            // so the resource adds no link of its own.
+            SpikePlan plan = SmallPlan(Record(1, 5), Record(2, 5, 1));
+            plan.Resources.Add(new SpikePlan.ResourceRecord { Id = 1 });
+            var simulator = new ScheduleSimulator<int, int, int>(ActivitiesOf(plan), plan.NewResources(true), plan.NewWorkStreams(), new Dictionary<int, DurationEstimate>());
+
+            SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 2 });
+
+            result.CriticalPaths.Count.ShouldBe(1);
+            result.CriticalPaths[0].Steps.Select(x => x.ActivityId).ShouldBe(new[] { 1, 2 });
+            result.CriticalPaths[0].Steps.Select(x => x.Link).ShouldBe(new[] { CriticalPathLink.None, CriticalPathLink.Dependency });
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        public void Run_Given_AResourceLinkBesideAChainOfThePlanThroughMilestones_Then_TheyAreOnePathWithADependency(int milestones)
+        {
+            // 1, then the milestones in a row, then 10, and one resource does 1 and 10 in turn. The
+            // plan ties 10 to 1 through the milestones, which are not on a path. The link of the
+            // resource is the same tie, and so the two chains are one path, as they are when 10
+            // depends on 1 itself.
+            var records = new List<SpikePlan.ActivityRecord> { Record(1, 5) };
+            for (int i = 0; i < milestones; i++)
+            {
+                records.Add(Record(2 + i, 0, 1 + i));
+            }
+            records.Add(Record(10, 5, 1 + milestones));
+            SpikePlan plan = SmallPlan(records.ToArray());
+            plan.Resources.Add(new SpikePlan.ResourceRecord { Id = 1 });
+            var simulator = new ScheduleSimulator<int, int, int>(ActivitiesOf(plan), plan.NewResources(true), plan.NewWorkStreams(), new Dictionary<int, DurationEstimate>());
+
+            SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 2 });
+
+            simulator.PlannedFinishTime.ShouldBe(10);
+            Describe(result, 0).ShouldBe(@"1>10");
+            result.CriticalPaths.Count.ShouldBe(1);
+        }
+
+        [Fact]
+        public void Run_Given_AResourceLinkBesideAChainOfThePlanFromAnotherActivity_Then_BothArePaths()
+        {
+            // Resource 1 does 1 and 3 in turn, and only those. Resource 2 does 4 at the same time as
+            // 1. 3 depends on 4 through a milestone, and not on 1. Thus, the link of the resource from
+            // 1 is a tie of its own, and it stays a path.
+            SpikePlan plan = SmallPlan(Record(1, 5), Record(4, 5), Record(2, 0, 4), Record(3, 5, 2));
+            plan.Activities.Single(x => x.Id == 1).TargetResources.Add(1);
+            plan.Activities.Single(x => x.Id == 3).TargetResources.Add(1);
+            plan.Resources.Add(new SpikePlan.ResourceRecord { Id = 1, IsExplicitTarget = true });
+            plan.Resources.Add(new SpikePlan.ResourceRecord { Id = 2 });
+            var simulator = new ScheduleSimulator<int, int, int>(ActivitiesOf(plan), plan.NewResources(true), plan.NewWorkStreams(), new Dictionary<int, DurationEstimate>());
+
+            SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 2 });
+
+            simulator.PlannedFinishTime.ShouldBe(10);
+            Describe(result, 0).ShouldBe(@"1>~3 | 4>3");
+        }
+
+        [Fact]
+        public void Run_Given_TheSamplePlanWithItsResources_Then_NoTwoPathsOfAnIterationHaveTheSameActivities()
+        {
+            // The sample plan has milestones between activities that one resource also does in turn.
+            // A tie of the plan and a tie of the resource between the same two activities are one
+            // link, and so they make one path.
+            ScheduleSimulator<int, int, int> simulator = SimulatorOf(SpikePlan.LoadSample(), useResources: true);
+
+            SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 200, Seed = 4 });
+
+            for (int i = 0; i < result.IterationCount; i++)
+            {
+                string[] paths = result.CriticalPathIndexes(i).ToArray()
+                    .Select(x => string.Join(@">", result.CriticalPaths[x].Steps.Select(s => s.ActivityId)))
+                    .ToArray();
+                paths.Distinct().Count().ShouldBe(paths.Length, Describe(result, i));
+            }
+        }
+
+        [Fact]
         public void Run_Given_TheSamplePlanWithItsResources_Then_APathHasAResourceLinkWhenTheResourceDecidesTheOrder()
         {
             ScheduleSimulator<int, int, int> simulator = SimulatorOf(SpikePlan.LoadSample(), useResources: true);

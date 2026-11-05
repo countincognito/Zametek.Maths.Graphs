@@ -36,6 +36,9 @@ pub(crate) struct CriticalPathTracer<K: Key> {
     frame_predecessors: Vec<Vec<usize>>,
     frame_next: Vec<usize>,
     frame_resource: Vec<bool>,
+    // The activities that the search for a chain of the plan through milestones
+    // has reached.
+    search: Vec<usize>,
 }
 
 impl<K: Key> CriticalPathTracer<K> {
@@ -55,6 +58,7 @@ impl<K: Key> CriticalPathTracer<K> {
             frame_predecessors: Vec::new(),
             frame_next: Vec::new(),
             frame_resource: Vec::new(),
+            search: Vec::new(),
         }
     }
 
@@ -99,7 +103,7 @@ impl<K: Key> CriticalPathTracer<K> {
             }
 
             let mut depth: isize = 0;
-            self.push(builder, 0, sink);
+            self.push(builder, durations, 0, sink);
             while depth >= 0 {
                 let d = depth as usize;
                 if self.frame_predecessors[d].is_empty() {
@@ -123,7 +127,7 @@ impl<K: Key> CriticalPathTracer<K> {
                     self.frame_next[d] += 1;
                     self.frame_resource[d] = (next & 1) != 0;
                     depth += 1;
-                    self.push(builder, d + 1, next >> 1);
+                    self.push(builder, durations, d + 1, next >> 1);
                 }
             }
         }
@@ -133,10 +137,11 @@ impl<K: Key> CriticalPathTracer<K> {
     fn push<R: Key, W: Key>(
         &mut self,
         builder: &VertexGraphBuilder<K, R, W>,
+        durations: &[i32],
         depth: usize,
         node: usize,
     ) {
-        let predecessors = self.tight_predecessors(builder, node);
+        let predecessors = self.tight_predecessors(builder, durations, node);
         if depth == self.frame_node.len() {
             self.frame_node.push(node);
             self.frame_predecessors.push(predecessors);
@@ -155,8 +160,9 @@ impl<K: Key> CriticalPathTracer<K> {
     // resource, and as `predecessor number << 1` for a link of the plan. They
     // are sorted by the number of the predecessor.
     fn tight_predecessors<R: Key, W: Key>(
-        &self,
+        &mut self,
         builder: &VertexGraphBuilder<K, R, W>,
+        durations: &[i32],
         node: usize,
     ) -> Vec<usize> {
         let activity = builder
@@ -173,13 +179,84 @@ impl<K: Key> CriticalPathTracer<K> {
             }
         }
         for id in &activity.resource_dependencies {
-            if !activity.dependencies.contains(id) && !activity.planning_dependencies.contains(id) {
+            if !activity.dependencies.contains(id)
+                && !activity.planning_dependencies.contains(id)
+                && !self.is_tied_by_the_plan_through_milestones(builder, durations, node, *id)
+            {
                 self.consider(node, *id, true, &mut found);
             }
         }
 
         found.sort_unstable();
         found
+    }
+
+    // Whether the plan also ties the activity to the predecessor through
+    // milestones: a tight chain of links of the plan from the predecessor to the
+    // activity, with only activities that take no time in this iteration between
+    // them. A path does not show those activities. Thus, a link of the resource
+    // beside such a chain is the same tie, and not a link that exists only
+    // because of a resource. The walk finds the tie through the chain, as a link
+    // of the plan, as it does when the plan names the predecessor itself.
+    fn is_tied_by_the_plan_through_milestones<R: Key, W: Key>(
+        &mut self,
+        builder: &VertexGraphBuilder<K, R, W>,
+        durations: &[i32],
+        node: usize,
+        predecessor_id: K,
+    ) -> bool {
+        let Some(&predecessor) = self.index_by_id.get(&predecessor_id) else {
+            return false;
+        };
+        if self.finish[predecessor] != self.start[node] {
+            return false;
+        }
+
+        self.search.clear();
+        self.search.push(node);
+        let mut next = 0;
+        while next < self.search.len() {
+            let current = self.search[next];
+            next += 1;
+            let activity = builder
+                .activity(self.activity_ids[current])
+                .expect("activity must exist");
+            for id in activity
+                .dependencies
+                .iter()
+                .chain(activity.planning_dependencies.iter())
+            {
+                if self.reaches_through_milestones(*id, current, predecessor, durations) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    // One step of the search: whether the link of the plan from the activity with
+    // the ID to the current activity is tight and reaches the predecessor. An
+    // activity that takes no time is a place to search from next.
+    fn reaches_through_milestones(
+        &mut self,
+        id: K,
+        current: usize,
+        predecessor: usize,
+        durations: &[i32],
+    ) -> bool {
+        let Some(&index) = self.index_by_id.get(&id) else {
+            return false;
+        };
+        if !self.critical[index] || self.finish[index] != self.start[current] {
+            return false;
+        }
+        if index == predecessor {
+            return true;
+        }
+        if durations[index] == 0 && !self.search.contains(&index) {
+            self.search.push(index);
+        }
+        false
     }
 
     fn consider(&self, node: usize, predecessor_id: K, resource: bool, found: &mut Vec<usize>) {

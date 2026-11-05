@@ -9,7 +9,8 @@ mod simulation_plans;
 use simulation_plans::Plan;
 use std::collections::HashMap;
 use zametek_maths_graphs_compilers::primitives::{
-    CriticalPathLink, DurationEstimate, InterActivityAllocationType, Resource, SimulationSettings,
+    CriticalPathLink, DurationEstimate, InterActivityAllocationType, Resource, SimulationResult,
+    SimulationSettings,
 };
 use zametek_maths_graphs_compilers::ScheduleSimulator;
 
@@ -28,6 +29,46 @@ fn fixed_simulator(
     resources: &[Resource<i32, i32>],
 ) -> ScheduleSimulator<i32, i32, i32> {
     ScheduleSimulator::new(&plan.activities(), resources, &[], &HashMap::new()).unwrap()
+}
+
+fn resource(id: i32, is_explicit_target: bool) -> Resource<i32, i32> {
+    Resource::new(
+        id,
+        Some(String::new()),
+        is_explicit_target,
+        false,
+        InterActivityAllocationType::None,
+        1.0,
+        1.0,
+        0,
+        Vec::<i32>::new(),
+    )
+}
+
+/// The paths of an iteration, as `Describe` in the .NET tests gives them: the IDs
+/// of each path joined by `>`, with `~` before an activity that follows by a
+/// resource link, and the paths joined by ` | `.
+fn describe(result: &SimulationResult<i32>, iteration: usize) -> String {
+    result
+        .critical_path_indexes(iteration)
+        .unwrap()
+        .iter()
+        .map(|x| {
+            result.critical_paths()[*x]
+                .steps
+                .iter()
+                .map(|s| {
+                    if s.link == CriticalPathLink::Resource {
+                        format!("~{}", s.activity_id)
+                    } else {
+                        s.activity_id.to_string()
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(">")
+        })
+        .collect::<Vec<_>>()
+        .join(" | ")
 }
 
 #[test]
@@ -238,6 +279,90 @@ fn run_given_two_activities_that_share_one_resource_then_the_second_follows_by_a
         links,
         vec![CriticalPathLink::None, CriticalPathLink::Resource]
     );
+}
+
+#[test]
+fn run_given_a_resource_link_beside_a_dependency_then_the_step_is_a_dependency() {
+    // 2 depends on 1, and one resource does them in turn. The plan already ties 2
+    // to 1, and so the resource adds no link of its own.
+    let plan = Plan::fixed(&[(1, 5, &[]), (2, 5, &[1])]);
+    let result = fixed_simulator(&plan, &[resource(1, false)])
+        .run(&SimulationSettings {
+            iterations: 2,
+            ..SimulationSettings::default()
+        })
+        .unwrap();
+
+    assert_eq!(result.critical_paths().len(), 1);
+    assert_eq!(describe(&result, 0), "1>2");
+}
+
+#[test]
+fn run_given_a_resource_link_beside_a_chain_of_the_plan_through_milestones_then_they_are_one_path_with_a_dependency(
+) {
+    // 1, then the milestones in a row, then 10, and one resource does 1 and 10 in
+    // turn. The plan ties 10 to 1 through the milestones, which are not on a
+    // path. The link of the resource is the same tie, and so the two chains are
+    // one path, as they are when 10 depends on 1 itself.
+    for milestones in 1..=2 {
+        let mut activities: Vec<(i32, i32, Vec<i32>)> = vec![(1, 5, vec![])];
+        for i in 0..milestones {
+            activities.push((2 + i, 0, vec![1 + i]));
+        }
+        activities.push((10, 5, vec![1 + milestones]));
+        let borrowed: Vec<(i32, i32, &[i32])> = activities
+            .iter()
+            .map(|(id, d, deps)| (*id, *d, deps.as_slice()))
+            .collect();
+        let simulator = fixed_simulator(&Plan::fixed(&borrowed), &[resource(1, false)]);
+
+        let result = simulator
+            .run(&SimulationSettings {
+                iterations: 2,
+                ..SimulationSettings::default()
+            })
+            .unwrap();
+
+        assert_eq!(
+            simulator.planned_finish_time(),
+            10,
+            "{milestones} milestones"
+        );
+        assert_eq!(describe(&result, 0), "1>10", "{milestones} milestones");
+        assert_eq!(result.critical_paths().len(), 1, "{milestones} milestones");
+    }
+}
+
+#[test]
+fn run_given_a_resource_link_beside_a_chain_of_the_plan_from_another_activity_then_both_are_paths()
+{
+    // Resource 1 does 1 and 3 in turn, and only those. Resource 2 does 4 at the
+    // same time as 1. 3 depends on 4 through a milestone, and not on 1. Thus, the
+    // link of the resource from 1 is a tie of its own, and it stays a path.
+    let plan = Plan::fixed(&[(1, 5, &[]), (4, 5, &[]), (2, 0, &[4]), (3, 5, &[2])]);
+    let mut activities = plan.activities();
+    for activity in &mut activities {
+        if activity.id() == 1 || activity.id() == 3 {
+            activity.target_resources.insert(1);
+        }
+    }
+    let simulator = ScheduleSimulator::new(
+        &activities,
+        &[resource(1, true), resource(2, false)],
+        &[],
+        &HashMap::new(),
+    )
+    .unwrap();
+
+    let result = simulator
+        .run(&SimulationSettings {
+            iterations: 2,
+            ..SimulationSettings::default()
+        })
+        .unwrap();
+
+    assert_eq!(simulator.planned_finish_time(), 10);
+    assert_eq!(describe(&result, 0), "1>~3 | 4>3");
 }
 
 #[test]

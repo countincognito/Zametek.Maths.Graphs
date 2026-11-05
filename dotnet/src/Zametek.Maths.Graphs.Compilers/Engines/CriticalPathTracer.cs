@@ -36,6 +36,10 @@ namespace Zametek.Maths.Graphs
         private readonly bool[] m_Critical;
         private readonly int[] m_Start;
         private readonly int[] m_Finish;
+        private int[] m_Durations = Array.Empty<int>();
+
+        // The activities that the search for a chain of the plan through milestones has reached.
+        private readonly List<int> m_Search = new List<int>();
 
         // The state of the walk: one frame for each activity of the chain that is being built,
         // from the end of the chain (frame 0) to its latest start.
@@ -73,6 +77,7 @@ namespace Zametek.Maths.Graphs
         // reached its limit.
         internal bool Trace(int finishTime, int[] durations, int maximumPaths, List<int[]> paths)
         {
+            m_Durations = durations;
             for (int i = 0; i < m_Activities.Count; i++)
             {
                 IDependentActivity<T, TResourceId, TWorkStreamId> activity = m_Activities[i];
@@ -164,7 +169,9 @@ namespace Zametek.Maths.Graphs
             }
             foreach (T id in activity.ResourceDependencies)
             {
-                if (!activity.Dependencies.Contains(id) && !activity.PlanningDependencies.Contains(id))
+                if (!activity.Dependencies.Contains(id)
+                    && !activity.PlanningDependencies.Contains(id)
+                    && !IsTiedByThePlanThroughMilestones(node, id))
                 {
                     Consider(node, id, true, found);
                 }
@@ -172,6 +179,66 @@ namespace Zametek.Maths.Graphs
 
             found.Sort();
             return found.ToArray();
+        }
+
+        // Whether the plan also ties the activity to the predecessor through milestones: a tight
+        // chain of links of the plan from the predecessor to the activity, with only activities
+        // that take no time in this iteration between them. A path does not show those activities.
+        // Thus, a link of the resource beside such a chain is the same tie, and not a link that
+        // exists only because of a resource. The walk finds the tie through the chain, as a link of
+        // the plan, as it does when the plan names the predecessor itself.
+        private bool IsTiedByThePlanThroughMilestones(int node, T predecessorId)
+        {
+            if (!m_IndexById.TryGetValue(predecessorId, out int predecessor)
+                || m_Finish[predecessor] != m_Start[node])
+            {
+                return false;
+            }
+
+            m_Search.Clear();
+            m_Search.Add(node);
+            for (int next = 0; next < m_Search.Count; next++)
+            {
+                int current = m_Search[next];
+                IDependentActivity<T, TResourceId, TWorkStreamId> activity = m_Activities[current];
+                foreach (T id in activity.Dependencies)
+                {
+                    if (ReachesThroughMilestones(id, current, predecessor))
+                    {
+                        return true;
+                    }
+                }
+                foreach (T id in activity.PlanningDependencies)
+                {
+                    if (ReachesThroughMilestones(id, current, predecessor))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // One step of the search: whether the link of the plan from the activity with the ID to the
+        // current activity is tight and reaches the predecessor. An activity that takes no time is a
+        // place to search from next.
+        private bool ReachesThroughMilestones(T id, int current, int predecessor)
+        {
+            if (!m_IndexById.TryGetValue(id, out int index)
+                || !m_Critical[index]
+                || m_Finish[index] != m_Start[current])
+            {
+                return false;
+            }
+            if (index == predecessor)
+            {
+                return true;
+            }
+            if (m_Durations[index] == 0 && !m_Search.Contains(index))
+            {
+                m_Search.Add(index);
+            }
+            return false;
         }
 
         private void Consider(int node, T predecessorId, bool resource, List<int> found)
