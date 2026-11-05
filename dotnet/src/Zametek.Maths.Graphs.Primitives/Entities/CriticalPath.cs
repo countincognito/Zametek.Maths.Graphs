@@ -13,7 +13,9 @@ namespace Zametek.Maths.Graphs
     /// milestone) is passed through and does not appear, and so two chains that differ only by a
     /// milestone are one path. When the chain passes through a milestone between two activities,
     /// the link of the second is <see cref="CriticalPathLink.Resource"/> if any hop of the chain
-    /// between them is a resource link.
+    /// between them is a resource link. A resource link between two activities that the plan also
+    /// ties, directly or through milestones, is the same tie. The link is
+    /// <see cref="CriticalPathLink.Dependency"/>, and the two chains are one path.
     /// </remarks>
     /// <typeparam name="T">The activity ID type.</typeparam>
     public sealed class CriticalPath<T>

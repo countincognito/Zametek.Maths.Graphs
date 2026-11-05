@@ -9,11 +9,12 @@ use crate::key::Key;
 pub enum CriticalPathLink {
     /// The first step of a path, which does not follow another step.
     None = 0,
-    /// The activity depends on the one before it, as the plan says.
+    /// The activity depends on the one before it, as the plan says: directly, or
+    /// through milestones, which are not on the path.
     Dependency = 1,
-    /// The activity does not depend on the one before it. It starts when it
-    /// does because the two share a resource, and the resource finishes the one
-    /// before it starts the other.
+    /// The activity does not depend on the one before it, directly or through
+    /// milestones. It starts when it does because the two share a resource, and
+    /// the resource finishes the one before it starts the other.
     Resource = 2,
 }
 
@@ -29,7 +30,12 @@ pub struct CriticalPathStep<K: Key> {
 
 /// A critical path of a schedule: a chain of critical activities, each of which
 /// starts at the moment that the one before it finishes, from the start of the
-/// plan to its finish. The chain holds only the activities that take time.
+/// plan to its finish. The chain holds only the activities that take time: a
+/// milestone is passed through and does not appear, and so two chains that
+/// differ only by a milestone are one path. A resource link between two
+/// activities that the plan also ties, directly or through milestones, is the
+/// same tie. The link is [`CriticalPathLink::Dependency`], and the two chains are
+/// one path.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CriticalPath<K: Key> {
     /// The steps, in the order of the schedule.
