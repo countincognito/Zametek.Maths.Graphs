@@ -570,6 +570,12 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ## Breaking changes
 
+### 4.0.1
+
+A fix to the critical paths of a simulation, in .NET and in Rust. No type of 4.0.0 changes, and a simulation gives the same finish times and the same critical activities as before.
+
+- **A resource link beside a chain of the plan through milestones is a link of the plan.** Sometimes one resource does two activities in turn, and the plan also ties them through one or more milestones. Then 4.0.0 gave two critical paths with the same activities: one with a `CriticalPathLink.Resource` step, and one with a `CriticalPathLink.Dependency` step. A caller that shares the weight of an iteration among its tied paths split it between the two. Each such step doubled the paths, and so the paths could fill `MaximumCriticalPathsPerIteration`: in the sample plan of the application, one chain of activities was 16 paths. The library already made a resource link beside a direct dependency a link of the plan. It now does the same through milestones. The step is a `Dependency`, and the two chains are one path.
+
 ### 4.0.0
 
 Breaking changes in two places, in the .NET API and in the Rust API: a builder takes an ID generator factory in place of an ID generator, and the simulator that takes the engines of the caller takes a factory object in place of a delegate. Code that does neither is not affected. The compilers with their parameterless constructors are the same, and so is `ScheduleSimulator<T, TResourceId, TWorkStreamId>` (the standard engines). The release also adds the factories themselves.
