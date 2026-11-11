@@ -9822,5 +9822,88 @@ namespace Zametek.Maths.Graphs.Tests
             graphBuilder.Activity(activityId3).ResourceDependencies.ShouldBe([activityId2], ignoreOrder: true);
             graphBuilder.Activity(activityId3).Successors.Count.ShouldBe(0);
         }
+
+        // A milestone in a phase that finishes after the last activity of the phase that takes time. The milestone is on
+        // no resource, and so the first scheduling pass sized its allocations by the resources alone, and it threw when it
+        // marked the phase of the indirect resource. The phase runs to the milestone, as the second pass already made it.
+        [Fact]
+        public void VertexGraphCompiler_GivenMilestoneInPhaseAfterLastActivityOfPhase_ThenPhaseRunsToMilestone()
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            int resourceId1 = 1;
+            int resourceId2 = resourceId1 + 1;
+            int phaseId = 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            var activity1 = new DependentActivity<int, int, int>(activityId1, 5);
+            activity1.TargetWorkStreams.Add(phaseId);
+            graphCompiler.AddActivity(activity1);
+            var activity2 = new DependentActivity<int, int, int>(activityId2, 0, [activityId1]) { MinimumEarliestStartTime = 10 };
+            activity2.TargetWorkStreams.Add(phaseId);
+            graphCompiler.AddActivity(activity2);
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(
+                [
+                    new Resource<int, int>(resourceId1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(resourceId2, string.Empty, true, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, [phaseId]),
+                ],
+                [new WorkStream<int>(phaseId, string.Empty, true)],
+                TestContext.Current.CancellationToken);
+
+            compilation.CompilationErrors.ShouldBeEmpty();
+            IDependentActivity<int, int, int> milestone = compilation.DependentActivities.Single(x => x.Id == activityId2);
+            milestone.EarliestStartTime.ShouldBe(10);
+
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(2);
+
+            resourceSchedules[0].Resource!.Id.ShouldBe(resourceId1);
+            resourceSchedules[0].ScheduledActivities.Select(x => (x.Id, x.StartTime, x.FinishTime)).ShouldBe([(activityId1, 0, 5)]);
+            resourceSchedules[0].FinishTime.ShouldBe(10);
+            resourceSchedules[0].ResourceAllocation.ShouldBe([true, true, true, true, true, false, false, false, false, false]);
+
+            resourceSchedules[1].Resource!.Id.ShouldBe(resourceId2);
+            resourceSchedules[1].ScheduledActivities.ShouldBeEmpty();
+            resourceSchedules[1].FinishTime.ShouldBe(10);
+            resourceSchedules[1].ResourceAllocation.ShouldBe(Enumerable.Repeat(true, 10));
+        }
+
+        // A maximum LFT that a milestone cannot meet. The compile pulls the milestone back to its maximum LFT, and so the
+        // predecessor runs past the latest LFT of the plan. The second pass sized its allocations by that LFT, and it threw.
+        // The compile must report the broken constraints, as it does for an activity that takes time.
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void VertexGraphCompiler_GivenMilestoneWithMaximumLatestFinishTimeItCannotMeet_ThenC0010(bool withResource)
+        {
+            int activityId1 = 1;
+            int activityId2 = activityId1 + 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 10));
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId2, 0, [activityId1]) { MaximumLatestFinishTime = 5 });
+            List<IResource<int, int>> resources = withResource
+                ? [new Resource<int, int>(1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, [])]
+                : [];
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(resources, TestContext.Current.CancellationToken);
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.C0010);
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_InvalidConstraints);
+            message.AppendLine($@"1 -> {Properties.Resources.Message_LatestStartTimeLessThanZero}");
+            message.AppendLine($@"1 -> {Properties.Resources.Message_LatestStartTimeLessThanEarliestStartTime}");
+            message.AppendLine($@"1 -> {Properties.Resources.Message_LatestFinishTimeLessThanEarliestFinishTime}");
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
+
+            // The allocations cover the whole schedule: activity 1 runs to day 10.
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+            resourceSchedules[0].ScheduledActivities.Select(x => (x.Id, x.StartTime, x.FinishTime)).ShouldBe([(activityId1, 0, 10)]);
+            resourceSchedules[0].FinishTime.ShouldBe(10);
+            resourceSchedules[0].ResourceAllocation.Count().ShouldBe(10);
+        }
     }
 }

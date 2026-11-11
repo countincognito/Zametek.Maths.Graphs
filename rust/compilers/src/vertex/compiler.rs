@@ -56,6 +56,22 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         self.builder.finish_time()
     }
 
+    // The end of the schedule that the allocation streams run to. It is the latest
+    // LFT, which includes a minimum free slack at the end of the plan. But a
+    // maximum LFT that the plan cannot meet pulls its activity back. Then the
+    // latest LFT can come before the finish of a predecessor, and the compile
+    // reports C0010. The streams must still cover each activity, and so they also
+    // run to the latest EFT.
+    fn schedule_finish_time(&self) -> i32 {
+        let latest_earliest_finish_time = self
+            .builder
+            .activities()
+            .map(|x| x.earliest_finish_time().unwrap_or(0))
+            .max()
+            .unwrap_or(0);
+        self.builder.finish_time().max(latest_earliest_finish_time)
+    }
+
     /// The cyclomatic complexity of the network (a measure of its parallelism).
     pub fn cyclomatic_complexity(&self) -> i32 {
         let edge_count = self.builder.edge_ids().len() as i32;
@@ -287,15 +303,13 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         // schedule far past the horizon. The allocation streams built below hold one
         // flag per time unit per resource, so an unbounded finish time here would
         // mean an unbounded allocation - hence this check before they are built.
-        if self.builder.finish_time() > graph_limits::MAXIMUM_TIME_VALUE {
+        let schedule_finish_time = self.schedule_finish_time();
+        if schedule_finish_time > graph_limits::MAXIMUM_TIME_VALUE {
             compilation_errors.push(GraphCompilationError::new(
                 GraphCompilationErrorCode::C0020,
                 messages::format_message(
                     messages::MSG_COMPUTED_SCHEDULE_EXCEEDS_MAXIMUM_TIME_VALUE,
-                    &[
-                        &self.builder.finish_time(),
-                        &graph_limits::MAXIMUM_TIME_VALUE,
-                    ],
+                    &[&schedule_finish_time, &graph_limits::MAXIMUM_TIME_VALUE],
                 ),
             ));
             return Ok(GraphCompilation::new(
@@ -333,7 +347,7 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
             .map(|x| x.activity.clone())
             .collect();
         let start_time = self.builder.start_time();
-        let finish_time = self.builder.finish_time();
+        let finish_time = self.schedule_finish_time();
 
         let engine = self.builder.resource_scheduling_engine();
         let new_schedules = engine.rebuild_aligned_resource_schedules(

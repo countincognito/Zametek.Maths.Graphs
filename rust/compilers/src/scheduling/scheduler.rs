@@ -185,11 +185,23 @@ where
         .min()
         .unwrap_or(0);
 
+    // The allocation streams run from time 0 to this finish time, and an indirect
+    // resource marks its phases in them from the first to the last activity of
+    // each phase. An activity of zero duration is on no resource, but it can be in
+    // a phase and finish after each activity that takes time. So the finish time
+    // covers each activity, and not only the activities on the resources.
     let finish_time = resource_schedule_builders
         .iter()
         .map(|x| x.last_activity_finish_time())
         .max()
-        .unwrap_or(0);
+        .unwrap_or(0)
+        .max(
+            final_plain
+                .iter()
+                .map(|x| x.earliest_finish_time().unwrap_or(0))
+                .max()
+                .unwrap_or(0),
+        );
 
     let mut output = Vec::new();
     for builder in &resource_schedule_builders {

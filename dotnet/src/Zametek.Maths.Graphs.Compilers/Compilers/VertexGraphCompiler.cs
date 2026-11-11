@@ -301,14 +301,15 @@ namespace Zametek.Maths.Graphs
                 // schedule far past the horizon. The allocation streams built below hold one
                 // flag per time unit per resource, so an unbounded finish time here would
                 // mean an unbounded allocation - hence this check before they are built.
-                if (m_VertexGraphBuilder.FinishTime > GraphLimits.MaximumTimeValue)
+                int scheduleFinishTime = ScheduleFinishTime();
+                if (scheduleFinishTime > GraphLimits.MaximumTimeValue)
                 {
                     compilationErrors.Add(new GraphCompilationError(
                         GraphCompilationErrorCode.C0020,
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Properties.Resources.Message_ComputedScheduleExceedsMaximumTimeValue,
-                            m_VertexGraphBuilder.FinishTime,
+                            scheduleFinishTime,
                             GraphLimits.MaximumTimeValue)));
                     return new GraphCompilation<T, TResourceId, TWorkStreamId, TDependentActivity>(
                         m_VertexGraphBuilder.Activities.Select(x => (TDependentActivity)x.CloneObject()),
@@ -338,7 +339,7 @@ namespace Zametek.Maths.Graphs
                     .Select(x => (IActivity<T, TResourceId, TWorkStreamId>)x.CloneObject())
                     .ToList();
                 int startTime = m_VertexGraphBuilder.StartTime;
-                int finishTime = m_VertexGraphBuilder.FinishTime;
+                int finishTime = ScheduleFinishTime();
 
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> newSchedules =
                     m_VertexGraphBuilder.ResourceSchedulingEngine.RebuildAlignedResourceSchedules(
@@ -368,5 +369,21 @@ namespace Zametek.Maths.Graphs
 
         #endregion
 
+        #region Private Methods
+
+        // The end of the schedule that the allocation streams run to. It is the latest LFT, which includes a minimum free
+        // slack at the end of the plan. But a maximum LFT that the plan cannot meet pulls its activity back. Then the latest
+        // LFT can come before the finish of a predecessor, and the compile reports C0010. The streams must still cover each
+        // activity, and so they also run to the latest EFT.
+        private int ScheduleFinishTime()
+        {
+            int latestEarliestFinishTime = m_VertexGraphBuilder.Activities
+                .Select(x => x.EarliestFinishTime.GetValueOrDefault())
+                .DefaultIfEmpty()
+                .Max();
+            return Math.Max(m_VertexGraphBuilder.FinishTime, latestEarliestFinishTime);
+        }
+
+        #endregion
     }
 }
