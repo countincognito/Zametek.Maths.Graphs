@@ -275,6 +275,8 @@ namespace Zametek.Maths.Graphs
             int wordsPerIteration = (m_ActivityIds.Length + 63) / 64;
 
             var finishTimes = new int[iterations];
+            var failureReasons = new SimulationIterationFailure[iterations];
+            var maximumLatestFinishTimeMisses = new int[m_ActivityIds.Length];
             ulong[]? bits = settings.RecordCriticalActivities ? new ulong[iterations * wordsPerIteration] : null;
             int[]? offsets = settings.RecordCriticalPaths ? new int[iterations + 1] : null;
             bool[]? complete = settings.RecordCriticalPaths ? new bool[iterations] : null;
@@ -286,6 +288,11 @@ namespace Zametek.Maths.Graphs
             foreach (ChunkResult chunk in chunks)
             {
                 Array.Copy(chunk.FinishTimes, 0, finishTimes, iteration, chunk.Count);
+                Array.Copy(chunk.FailureReasons, 0, failureReasons, iteration, chunk.Count);
+                for (int a = 0; a < maximumLatestFinishTimeMisses.Length; a++)
+                {
+                    maximumLatestFinishTimeMisses[a] += chunk.MaximumLatestFinishTimeMisses[a];
+                }
                 if (bits != null && chunk.CriticalBits != null)
                 {
                     Array.Copy(chunk.CriticalBits, 0, bits, iteration * wordsPerIteration, chunk.CriticalBits.Length);
@@ -331,7 +338,9 @@ namespace Zametek.Maths.Graphs
                 paths,
                 offsets,
                 offsets is null ? null : pathIndexes.ToArray(),
-                complete);
+                complete,
+                failureReasons,
+                maximumLatestFinishTimeMisses);
         }
 
         private CriticalPath<T> Decode(int[] encoded) =>
@@ -345,15 +354,22 @@ namespace Zametek.Maths.Graphs
         // order in which they first appear in the chunk.
         private sealed class ChunkResult
         {
-            internal ChunkResult(int count)
+            internal ChunkResult(int count, int activityCount)
             {
                 Count = count;
                 FinishTimes = new int[count];
+                FailureReasons = new SimulationIterationFailure[count];
+                MaximumLatestFinishTimeMisses = new int[activityCount];
             }
 
             internal int Count { get; }
 
             internal int[] FinishTimes { get; }
+
+            internal SimulationIterationFailure[] FailureReasons { get; }
+
+            // For each activity, the number of iterations of the chunk in which it missed its maximum LFT.
+            internal int[] MaximumLatestFinishTimeMisses { get; }
 
             internal ulong[]? CriticalBits { get; set; }
 
@@ -393,7 +409,7 @@ namespace Zametek.Maths.Graphs
                 var random = new SimulationRandom(SimulationRandom.ChunkSeed(m_Settings.Seed, chunk));
                 int wordsPerIteration = (m_Durations.Length + 63) / 64;
 
-                var result = new ChunkResult(count);
+                var result = new ChunkResult(count, m_Durations.Length);
                 if (m_Settings.RecordCriticalActivities)
                 {
                     result.CriticalBits = new ulong[count * wordsPerIteration];
@@ -416,6 +432,11 @@ namespace Zametek.Maths.Graphs
                     DrawDurations(random);
                     int finish = m_Runner.Run(m_Durations, cancellationToken);
                     result.FinishTimes[k] = finish;
+                    result.FailureReasons[k] = m_Runner.Failure;
+                    foreach (int activityIndex in m_Runner.MissedMaximumLatestFinishTimes)
+                    {
+                        result.MaximumLatestFinishTimeMisses[activityIndex]++;
+                    }
 
                     if (result.PathOffsets != null)
                     {

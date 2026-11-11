@@ -18,6 +18,27 @@ pub enum CriticalPathLink {
     Resource = 2,
 }
 
+/// Why an iteration of a simulation failed - the counterpart of the C#
+/// `SimulationIterationFailure`. A failed iteration has no finish time, no
+/// critical activities and no critical paths, and so the statistics of a
+/// simulation leave it out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum SimulationIterationFailure {
+    /// The iteration did not fail.
+    #[default]
+    None = 0,
+    /// The resource scheduler could not place every activity.
+    ResourceSchedulingStall = 1,
+    /// The schedule ran past [`graph_limits::MAXIMUM_TIME_VALUE`].
+    MaximumTimeValueExceeded = 2,
+    /// An activity could not finish by its maximum latest finish time with the
+    /// durations of the iteration. The schedule is then not valid. A compile
+    /// with the same durations reports C0010, or P0030 when the duration of an
+    /// activity is longer than the window from its minimum earliest start time
+    /// to its maximum latest finish time.
+    InvalidConstraints = 3,
+}
+
 /// One activity on a critical path, and how it follows the activity before it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CriticalPathStep<K: Key> {
@@ -145,16 +166,22 @@ pub struct SimulationResult<K: Key> {
     path_offsets: Option<Vec<usize>>,
     path_indexes: Vec<usize>,
     paths_complete: Vec<bool>,
+    failure_reasons: Option<Vec<SimulationIterationFailure>>,
+    maximum_latest_finish_time_misses: Option<Vec<usize>>,
 }
 
 impl<K: Key> SimulationResult<K> {
     /// The finish time that an iteration has when it failed: when the resource
-    /// scheduler could not place every activity, or when the schedule ran past
-    /// [`graph_limits::MAXIMUM_TIME_VALUE`].
+    /// scheduler could not place every activity, when the schedule ran past
+    /// [`graph_limits::MAXIMUM_TIME_VALUE`], or when an activity could not
+    /// finish by its maximum latest finish time.
+    /// [`Self::failure_reason`] tells why it failed.
     pub const FAILED_FINISH_TIME: i32 = -1;
 
-    /// Creates a result. The parts are those of the C# constructor: see the
-    /// remarks there for the layout of the bits and of the paths.
+    /// Creates a result that does not say why its failed iterations failed.
+    /// The parts are those of the C# constructor: see the remarks there for the
+    /// layout of the bits and of the paths. [`Self::with_failure_reasons`] adds
+    /// the reasons.
     pub fn new(
         activity_ids: Vec<K>,
         finish_times: Vec<i32>,
@@ -187,7 +214,46 @@ impl<K: Key> SimulationResult<K> {
             path_offsets,
             path_indexes,
             paths_complete,
+            failure_reasons: None,
+            maximum_latest_finish_time_misses: None,
         })
+    }
+
+    /// The result with the reasons of its failures: why each iteration failed
+    /// ([`SimulationIterationFailure::None`] for an iteration with a finish
+    /// time), and for each activity the number of iterations in which it could
+    /// not finish by its maximum latest finish time. Fails when the parts do
+    /// not match the iterations and the activities, or when a reason does not
+    /// match the finish time of its iteration.
+    pub fn with_failure_reasons(
+        mut self,
+        failure_reasons: Vec<SimulationIterationFailure>,
+        maximum_latest_finish_time_misses: Vec<usize>,
+    ) -> Result<Self, GraphError> {
+        if failure_reasons.len() != self.finish_times.len() {
+            return Err(GraphError::new(
+                "The reasons of the failures do not match the iterations.",
+            ));
+        }
+        for (iteration, (reason, finish_time)) in
+            failure_reasons.iter().zip(&self.finish_times).enumerate()
+        {
+            if (*reason == SimulationIterationFailure::None)
+                != (*finish_time != Self::FAILED_FINISH_TIME)
+            {
+                return Err(GraphError::new(format!(
+                    "Iteration {iteration} has a finish time of {finish_time} and the reason {reason:?}. Only a failed iteration has a reason."
+                )));
+            }
+        }
+        if maximum_latest_finish_time_misses.len() != self.activity_ids.len() {
+            return Err(GraphError::new(
+                "The misses of the maximum latest finish times do not match the activities.",
+            ));
+        }
+        self.failure_reasons = Some(failure_reasons);
+        self.maximum_latest_finish_time_misses = Some(maximum_latest_finish_time_misses);
+        Ok(self)
     }
 
     /// The activities, in the order in which the plan gave them.
@@ -259,5 +325,30 @@ impl<K: Key> SimulationResult<K> {
     pub fn is_critical_path_list_complete(&self, iteration: usize) -> Option<bool> {
         self.path_offsets.as_ref()?;
         self.paths_complete.get(iteration).copied()
+    }
+
+    /// Whether the result says why each failed iteration failed.
+    pub fn has_failure_reasons(&self) -> bool {
+        self.failure_reasons.is_some()
+    }
+
+    /// Why an iteration failed, or [`SimulationIterationFailure::None`] for an
+    /// iteration that has a finish time. `None` when the reasons were not
+    /// recorded, or when the iteration does not exist.
+    pub fn failure_reason(&self, iteration: usize) -> Option<SimulationIterationFailure> {
+        self.failure_reasons.as_ref()?.get(iteration).copied()
+    }
+
+    /// The number of iterations in which an activity could not finish by its
+    /// maximum latest finish time. Each of these iterations failed with
+    /// [`SimulationIterationFailure::InvalidConstraints`]. An iteration can miss
+    /// more than one maximum. The number is 0 for an activity that has no
+    /// maximum. `None` when the reasons were not recorded, or when the activity
+    /// does not exist.
+    pub fn maximum_latest_finish_time_miss_count(&self, activity_index: usize) -> Option<usize> {
+        self.maximum_latest_finish_time_misses
+            .as_ref()?
+            .get(activity_index)
+            .copied()
     }
 }

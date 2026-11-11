@@ -85,6 +85,66 @@ namespace Zametek.Maths.Graphs.Tests
         }
 
         [Fact]
+        public void SimulationResult_GivenTheReasonsOfTheFailures_ThenGivesThemBack()
+        {
+            var result = new SimulationResult<int>(
+                new[] { 1, 2 },
+                new[] { 5, -1, -1, 6 },
+                null,
+                new List<CriticalPath<int>>(),
+                null,
+                null,
+                null,
+                new[] { SimulationIterationFailure.None, SimulationIterationFailure.InvalidConstraints, SimulationIterationFailure.ResourceSchedulingStall, SimulationIterationFailure.None },
+                new[] { 0, 1 });
+
+            result.FailedIterationCount.ShouldBe(2);
+            result.HasFailureReasons.ShouldBeTrue();
+            result.FailureReason(0).ShouldBe(SimulationIterationFailure.None);
+            result.FailureReason(1).ShouldBe(SimulationIterationFailure.InvalidConstraints);
+            result.FailureReason(2).ShouldBe(SimulationIterationFailure.ResourceSchedulingStall);
+            result.MaximumLatestFinishTimeMissCount(0).ShouldBe(0);
+            result.MaximumLatestFinishTimeMissCount(1).ShouldBe(1);
+            Should.Throw<ArgumentOutOfRangeException>(() => result.FailureReason(4));
+            Should.Throw<ArgumentOutOfRangeException>(() => result.MaximumLatestFinishTimeMissCount(2));
+        }
+
+        [Fact]
+        public void SimulationResult_GivenNoReasonsOfTheFailures_ThenTheyAreNotThere()
+        {
+            var result = new SimulationResult<int>(new[] { 1, 2 }, new[] { 5, -1 }, null, new List<CriticalPath<int>>(), null, null, null);
+
+            result.HasFailureReasons.ShouldBeFalse();
+            Should.Throw<InvalidOperationException>(() => result.FailureReason(0));
+            Should.Throw<InvalidOperationException>(() => result.MaximumLatestFinishTimeMissCount(0));
+        }
+
+        [Fact]
+        public void SimulationResult_GivenReasonsOfTheFailuresThatDoNotMatch_ThenThrows()
+        {
+            var empty = new List<CriticalPath<int>>();
+
+            // Reasons without misses, and misses without reasons.
+            Should.Throw<ArgumentException>(() => new SimulationResult<int>(
+                new[] { 1, 2 }, new[] { 5, 6 }, null, empty, null, null, null, new SimulationIterationFailure[2], null));
+            Should.Throw<ArgumentException>(() => new SimulationResult<int>(
+                new[] { 1, 2 }, new[] { 5, 6 }, null, empty, null, null, null, null, new int[2]));
+
+            // A reason for each iteration, and a count for each activity.
+            Should.Throw<ArgumentException>(() => new SimulationResult<int>(
+                new[] { 1, 2 }, new[] { 5, 6 }, null, empty, null, null, null, new SimulationIterationFailure[3], new int[2]));
+            Should.Throw<ArgumentException>(() => new SimulationResult<int>(
+                new[] { 1, 2 }, new[] { 5, 6 }, null, empty, null, null, null, new SimulationIterationFailure[2], new int[3]));
+
+            // A failed iteration has a reason, and an iteration with a finish time has none.
+            Should.Throw<ArgumentException>(() => new SimulationResult<int>(
+                new[] { 1, 2 }, new[] { 5, -1 }, null, empty, null, null, null, new SimulationIterationFailure[2], new int[2]));
+            Should.Throw<ArgumentException>(() => new SimulationResult<int>(
+                new[] { 1, 2 }, new[] { 5, 6 }, null, empty, null, null, null,
+                new[] { SimulationIterationFailure.None, SimulationIterationFailure.InvalidConstraints }, new int[2]));
+        }
+
+        [Fact]
         public void CriticalPath_GivenTheSameSteps_ThenIsEqualAndHasTheSameHash()
         {
             CriticalPath<int> a = Path((1, CriticalPathLink.None), (2, CriticalPathLink.Resource));

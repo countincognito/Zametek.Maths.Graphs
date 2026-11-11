@@ -49,6 +49,7 @@ pub use packed_bool_list::{Iter as PackedBoolListIter, PackedBoolList};
 pub use resource::Resource;
 pub use schedule::{ResourceSchedule, ScheduledActivity};
 pub use simulation::{
-    CriticalPath, CriticalPathLink, CriticalPathStep, SimulationResult, SimulationSettings,
+    CriticalPath, CriticalPathLink, CriticalPathStep, SimulationIterationFailure, SimulationResult,
+    SimulationSettings,
 };
 pub use work_stream::WorkStream;
