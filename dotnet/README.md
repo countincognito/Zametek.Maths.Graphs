@@ -570,6 +570,14 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ## Breaking changes
 
+### 4.1.0
+
+Two fixes and an addition, in .NET and in Rust. The release only adds to the API of 4.0.1. A plan that compiled without errors gives the same schedule as before. A simulation of a plan without a maximum LFT gives the same iterations as before.
+
+- **The allocation streams cover the whole schedule.** In the first pass of the scheduler, the streams ran to the last finish on the resources. In the second pass, they ran to the latest LFT. A milestone in a phase after the last activity of the phase that takes time made the first pass throw `ArgumentOutOfRangeException`. A maximum LFT that a milestone cannot meet made the second pass throw `InvalidOperationException`. The streams now also run to the latest EFT. The first plan compiles, and the phase of the indirect resource runs to the milestone. The second plan gives `C0010`, as a maximum LFT that an activity with a duration cannot meet already did.
+- **A simulation iteration that cannot meet a maximum LFT fails.** Such an iteration gave the maximum as its finish time, and so the statistics were too early. A minimum EST and a maximum LFT can hold an activity to a window. A draw longer than the window made the whole simulation throw. Such an iteration now fails, as a compile with its durations gives an error (`C0010` or `P0030`). The failed iterations are the late ones, and so the statistics of the other iterations are too early. Report the number of failed iterations with the statistics.
+- **New: why an iteration failed.** `SimulationIterationFailure` tells why: `ResourceSchedulingStall`, `MaximumTimeValueExceeded` or `InvalidConstraints` (`None` for an iteration that did not fail). `SimulationResult` has `HasFailureReasons`, `FailureReason(iteration)` and `MaximumLatestFinishTimeMissCount(activityIndex)`, and a constructor that takes them. A simulation always records them, and the constructor of 4.0.1 stays. The Rust port has the same enum, and `SimulationResult::with_failure_reasons`, `has_failure_reasons`, `failure_reason` and `maximum_latest_finish_time_miss_count`.
+
 ### 4.0.1
 
 A fix to the critical paths of a simulation, in .NET and in Rust. No type of 4.0.0 changes, and a simulation gives the same finish times and the same critical activities as before.
