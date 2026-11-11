@@ -647,6 +647,170 @@ namespace Zametek.Maths.Graphs.Tests
 
         #endregion
 
+        #region Failed iterations
+
+        // Activity 1 takes from 8 to 20 time units (8, 10, 20). The shape says where the maximum LFT is: on a milestone
+        // after activity 1 (12), on activity 1 itself (12), or on activity 1 with a minimum EST of 2 (14). Without the
+        // maximum, the finish time of an iteration is the time that the maximum checks. The plan has no resources.
+        private static (List<IDependentActivity<int, int, int>> Activities, Dictionary<int, DurationEstimate> Estimates, int Limit, int ConstrainedIndex) PlanWithAMaximumLatestFinishTime(
+            string shape,
+            bool withMaximum)
+        {
+            var estimates = new Dictionary<int, DurationEstimate> { [1] = new DurationEstimate(8, 10, 20) };
+            switch (shape)
+            {
+                case @"milestone":
+                    return (
+                        [
+                            new DependentActivity<int, int, int>(1, 10),
+                            new DependentActivity<int, int, int>(2, 0, [1]) { MaximumLatestFinishTime = withMaximum ? 12 : null },
+                        ],
+                        estimates,
+                        12,
+                        1);
+                case @"activity":
+                    return (
+                        [new DependentActivity<int, int, int>(1, 10) { MaximumLatestFinishTime = withMaximum ? 12 : null }],
+                        estimates,
+                        12,
+                        0);
+                case @"window":
+                    return (
+                        [new DependentActivity<int, int, int>(1, 10) { MinimumEarliestStartTime = 2, MaximumLatestFinishTime = withMaximum ? 14 : null }],
+                        estimates,
+                        14,
+                        0);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(shape));
+            }
+        }
+
+        private static SimulationResult<int> RunPlanWithAMaximumLatestFinishTime(string shape, bool withMaximum)
+        {
+            (List<IDependentActivity<int, int, int>> activities, Dictionary<int, DurationEstimate> estimates, _, _) =
+                PlanWithAMaximumLatestFinishTime(shape, withMaximum);
+            var simulator = new ScheduleSimulator<int, int, int>(activities, [], [], estimates);
+            simulator.CompilationErrors.ShouldBeEmpty();
+            return Run(simulator, new SimulationSettings { Iterations = 500, Seed = 1 });
+        }
+
+        // An iteration whose durations cannot meet a maximum LFT once reported the maximum as its finish time, and so the
+        // statistics came out too early. It fails now, as a compile with the same durations does (C0010), and the result
+        // says why and which maximum it missed.
+        [Theory]
+        [InlineData(@"milestone", 124)]
+        [InlineData(@"activity", 124)]
+        [InlineData(@"window", 124)]
+        public void Run_Given_AMaximumLatestFinishTimeThatSomeIterationsMiss_Then_TheyFailWithInvalidConstraints(string shape, int expectedMisses)
+        {
+            (_, _, int limit, int constrainedIndex) = PlanWithAMaximumLatestFinishTime(shape, withMaximum: true);
+            SimulationResult<int> control = RunPlanWithAMaximumLatestFinishTime(shape, withMaximum: false);
+            SimulationResult<int> result = RunPlanWithAMaximumLatestFinishTime(shape, withMaximum: true);
+
+            control.FailedIterationCount.ShouldBe(0);
+            control.HasFailureReasons.ShouldBeTrue();
+            result.HasFailureReasons.ShouldBeTrue();
+
+            int misses = 0;
+            for (int i = 0; i < result.IterationCount; i++)
+            {
+                control.FailureReason(i).ShouldBe(SimulationIterationFailure.None, $@"iteration {i}");
+                if (control.FinishTimes[i] > limit)
+                {
+                    misses++;
+                    result.FinishTimes[i].ShouldBe(SimulationResult<int>.FailedFinishTime, $@"iteration {i}");
+                    result.FailureReason(i).ShouldBe(SimulationIterationFailure.InvalidConstraints, $@"iteration {i}");
+                    result.CriticalPathIndexes(i).Length.ShouldBe(0, $@"iteration {i}");
+                }
+                else
+                {
+                    result.FinishTimes[i].ShouldBe(control.FinishTimes[i], $@"iteration {i}");
+                    result.FailureReason(i).ShouldBe(SimulationIterationFailure.None, $@"iteration {i}");
+                }
+            }
+
+            // The same seed gives the same draws in the Rust port, which checks the same number.
+            misses.ShouldBe(expectedMisses);
+            result.FailedIterationCount.ShouldBe(misses);
+            for (int a = 0; a < result.ActivityIds.Count; a++)
+            {
+                control.MaximumLatestFinishTimeMissCount(a).ShouldBe(0);
+                result.MaximumLatestFinishTimeMissCount(a).ShouldBe(a == constrainedIndex ? misses : 0);
+            }
+        }
+
+        // Two activities in sequence that can each take almost the whole horizon. When their sum runs past it, the
+        // resource scheduler cannot place the second one, and a plan with no resources runs past the horizon.
+        [Theory]
+        [InlineData(true, SimulationIterationFailure.ResourceSchedulingStall)]
+        [InlineData(false, SimulationIterationFailure.MaximumTimeValueExceeded)]
+        public void Run_Given_DurationsThatRunPastTheHorizon_Then_TheIterationsFailWithTheReason(bool withResource, SimulationIterationFailure expected)
+        {
+            int longest = GraphLimits.MaximumTimeValue - 1;
+            var simulator = new ScheduleSimulator<int, int, int>(
+                [
+                    new DependentActivity<int, int, int>(1, 1),
+                    new DependentActivity<int, int, int>(2, 1, [1]),
+                ],
+                withResource
+                    ? [new Resource<int, int>(1, string.Empty, false, false, InterActivityAllocationType.None, 1.0, 1.0, 0, [])]
+                    : [],
+                [],
+                new Dictionary<int, DurationEstimate>
+                {
+                    [1] = new DurationEstimate(1, 1, longest),
+                    [2] = new DurationEstimate(1, 1, longest),
+                });
+            simulator.CompilationErrors.ShouldBeEmpty();
+
+            SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 200, Seed = 1, Distribution = DurationDistribution.Uniform });
+
+            result.FailedIterationCount.ShouldBeGreaterThan(0);
+            result.FailedIterationCount.ShouldBeLessThan(result.IterationCount);
+            for (int i = 0; i < result.IterationCount; i++)
+            {
+                if (result.FinishTimes[i] == SimulationResult<int>.FailedFinishTime)
+                {
+                    result.FailureReason(i).ShouldBe(expected, $@"iteration {i}");
+                }
+                else
+                {
+                    result.FinishTimes[i].ShouldBeLessThanOrEqualTo(GraphLimits.MaximumTimeValue, $@"iteration {i}");
+                    result.FailureReason(i).ShouldBe(SimulationIterationFailure.None, $@"iteration {i}");
+                }
+            }
+            result.MaximumLatestFinishTimeMissCount(0).ShouldBe(0);
+            result.MaximumLatestFinishTimeMissCount(1).ShouldBe(0);
+        }
+
+        // The first scheduling pass of an iteration once threw for a milestone in a phase after the last activity of the
+        // phase. The phase now runs to the milestone, and each iteration finishes with it.
+        [Fact]
+        public void Run_Given_AMilestoneInAPhaseAfterItsLastActivity_Then_EveryIterationFinishesWithTheMilestone()
+        {
+            var activity1 = new DependentActivity<int, int, int>(1, 5);
+            activity1.TargetWorkStreams.Add(1);
+            var activity2 = new DependentActivity<int, int, int>(2, 0, [1]) { MinimumEarliestStartTime = 10 };
+            activity2.TargetWorkStreams.Add(1);
+            var simulator = new ScheduleSimulator<int, int, int>(
+                [activity1, activity2],
+                [
+                    new Resource<int, int>(1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, []),
+                    new Resource<int, int>(2, string.Empty, true, false, InterActivityAllocationType.Indirect, 1.0, 1.0, 0, [1]),
+                ],
+                [new WorkStream<int>(1, string.Empty, true)],
+                new Dictionary<int, DurationEstimate> { [1] = new DurationEstimate(3, 5, 9) });
+            simulator.CompilationErrors.ShouldBeEmpty();
+            simulator.PlannedFinishTime.ShouldBe(10);
+
+            SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 100, Seed = 1 });
+
+            result.FailedIterationCount.ShouldBe(0);
+            result.FinishTimes.ShouldAllBe(x => x == 10);
+        }
+
+        #endregion
+
         #region The settings
 
         [Theory]

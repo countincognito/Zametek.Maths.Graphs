@@ -1,4 +1,4 @@
-//! Ports of `VertexGraphCompilerTests.cs` (all 79 C# tests, plus two
+//! Ports of `VertexGraphCompilerTests.cs` (all 81 C# tests, plus two
 //! Rust-specific additions). The expected values - resource schedules,
 //! allocation streams, critical-path variables, and compilation-error text -
 //! are copied verbatim from the C# test suite, so a green run demonstrates
@@ -8,7 +8,7 @@ use indexmap::IndexSet;
 use zametek_maths_graphs_compilers::VertexGraphCompiler;
 use zametek_maths_graphs_primitives::{
     DependentActivity, GraphCompilationErrorCode, InterActivityAllocationType, LogicalOperator,
-    NodeType, Resource, ScheduledActivity,
+    NodeType, Resource, ScheduledActivity, WorkStream,
 };
 
 type Compiler = VertexGraphCompiler<i32, i32, i32>;
@@ -16979,4 +16979,123 @@ fn given_basic_vanilla_test_then_as_expected() {
         .collect();
     actual6.sort();
     assert_eq!(actual6, vec![1]);
+}
+
+fn resource_with(
+    id: i32,
+    is_explicit_target: bool,
+    allocation_type: InterActivityAllocationType,
+    phases: &[i32],
+) -> Res {
+    Resource::new(
+        id,
+        Some(String::new()),
+        is_explicit_target,
+        false,
+        allocation_type,
+        1.0,
+        1.0,
+        0,
+        phases.iter().copied(),
+    )
+}
+
+// A milestone in a phase that finishes after the last activity of the phase that
+// takes time. The milestone is on no resource, and so the first scheduling pass
+// sized its allocations by the resources alone, and it failed when it marked the
+// phase of the indirect resource. The phase runs to the milestone, as the second
+// pass already made it.
+#[test]
+fn given_milestone_in_phase_after_last_activity_of_phase_then_phase_runs_to_milestone() {
+    let mut compiler = Compiler::new();
+    let mut a1 = Act::new(1, 5);
+    a1.target_work_streams.insert(1);
+    compiler.add_activity(a1);
+    let mut a2 = Act::with_dependencies(2, 0, [1]);
+    a2.minimum_earliest_start_time = Some(10);
+    a2.target_work_streams.insert(1);
+    compiler.add_activity(a2);
+
+    let compilation = compiler
+        .compile_with_resources_and_work_streams(
+            &[
+                resource_with(1, false, InterActivityAllocationType::Direct, &[]),
+                resource_with(2, true, InterActivityAllocationType::Indirect, &[1]),
+            ],
+            &[WorkStream::new(1, String::new(), true)],
+        )
+        .unwrap();
+
+    assert!(compilation.compilation_errors.is_empty());
+    assert_eq!(
+        compiler.builder().activity(2).unwrap().earliest_start_time,
+        Some(10)
+    );
+
+    let schedules = &compilation.resource_schedules;
+    assert_eq!(schedules.len(), 2);
+
+    assert_eq!(schedules[0].resource.as_ref().unwrap().id, 1);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
+    assert_scheduled(&schedules[0].scheduled_activities[0], 1, 0, 5);
+    assert_eq!(schedules[0].finish_time, 10);
+    assert_eq!(
+        schedules[0].resource_allocation,
+        vec![true, true, true, true, true, false, false, false, false, false]
+    );
+
+    assert_eq!(schedules[1].resource.as_ref().unwrap().id, 2);
+    assert!(schedules[1].scheduled_activities.is_empty());
+    assert_eq!(schedules[1].finish_time, 10);
+    assert_eq!(schedules[1].resource_allocation, vec![true; 10]);
+}
+
+// A maximum LFT that a milestone cannot meet. The compile pulls the milestone back
+// to its maximum LFT, and so the predecessor runs past the latest LFT of the plan.
+// The second pass sized its allocations by that LFT, and it failed. The compile
+// must report the broken constraints, as it does for an activity that takes time.
+#[test]
+fn given_milestone_with_maximum_latest_finish_time_it_cannot_meet_then_c0010() {
+    for with_resource in [false, true] {
+        let mut compiler = Compiler::new();
+        compiler.add_activity(Act::new(1, 10));
+        let mut a2 = Act::with_dependencies(2, 0, [1]);
+        a2.maximum_latest_finish_time = Some(5);
+        compiler.add_activity(a2);
+        let resources: Vec<Res> = if with_resource {
+            vec![resource_with(
+                1,
+                false,
+                InterActivityAllocationType::Direct,
+                &[],
+            )]
+        } else {
+            Vec::new()
+        };
+
+        let compilation = compiler.compile_with_resources(&resources).unwrap();
+
+        assert_eq!(
+            compilation.compilation_errors.len(),
+            1,
+            "with_resource {with_resource}"
+        );
+        assert_eq!(
+            compilation.compilation_errors[0].error_code,
+            GraphCompilationErrorCode::C0010
+        );
+        let expected = "Invalid activity constraints:\n\
+            1 -> LatestStartTime cannot be less than zero\n\
+            1 -> LatestStartTime cannot be less than EarliestStartTime\n\
+            1 -> LatestFinishTime cannot be less than EarliestFinishTime\n";
+        assert_eq!(compilation.compilation_errors[0].error_message, expected);
+
+        // The allocations cover the whole schedule: activity 1 runs to day 10.
+        let schedules = &compilation.resource_schedules;
+        assert_eq!(schedules.len(), 1);
+        assert_eq!(schedules[0].scheduled_activities.len(), 1);
+        assert_scheduled(&schedules[0].scheduled_activities[0], 1, 0, 10);
+        assert_eq!(schedules[0].finish_time, 10);
+        assert_eq!(schedules[0].resource_allocation.len(), 10);
+    }
 }

@@ -1,7 +1,9 @@
 //! Ports of `DurationEstimateTests.cs` and of the parts of `SimulationResultTests.cs`
 //! that have a counterpart here.
 
-use zametek_maths_graphs_primitives::{DurationDistribution, DurationEstimate, SimulationResult};
+use zametek_maths_graphs_primitives::{
+    DurationDistribution, DurationEstimate, SimulationIterationFailure, SimulationResult,
+};
 
 #[test]
 fn new_given_values_that_break_the_rule_then_fails() {
@@ -115,4 +117,84 @@ fn result_given_the_bits_of_activities_then_reads_them_back() {
     assert_eq!(result.is_critical(2, 5), Some(false));
     assert_eq!(result.is_critical(3, 0), None);
     assert_eq!(result.critical_path_indexes(0), None);
+}
+
+fn result_with_finish_times(finish_times: Vec<i32>) -> SimulationResult<i32> {
+    SimulationResult::new(
+        vec![1, 2],
+        finish_times,
+        None,
+        Vec::new(),
+        None,
+        Vec::new(),
+        Vec::new(),
+    )
+    .unwrap()
+}
+
+#[test]
+fn result_given_the_reasons_of_the_failures_then_gives_them_back() {
+    let result = result_with_finish_times(vec![5, -1, -1, 6])
+        .with_failure_reasons(
+            vec![
+                SimulationIterationFailure::None,
+                SimulationIterationFailure::InvalidConstraints,
+                SimulationIterationFailure::ResourceSchedulingStall,
+                SimulationIterationFailure::None,
+            ],
+            vec![0, 1],
+        )
+        .unwrap();
+
+    assert_eq!(result.failed_iteration_count(), 2);
+    assert!(result.has_failure_reasons());
+    assert_eq!(
+        result.failure_reason(0),
+        Some(SimulationIterationFailure::None)
+    );
+    assert_eq!(
+        result.failure_reason(1),
+        Some(SimulationIterationFailure::InvalidConstraints)
+    );
+    assert_eq!(
+        result.failure_reason(2),
+        Some(SimulationIterationFailure::ResourceSchedulingStall)
+    );
+    assert_eq!(result.failure_reason(4), None);
+    assert_eq!(result.maximum_latest_finish_time_miss_count(0), Some(0));
+    assert_eq!(result.maximum_latest_finish_time_miss_count(1), Some(1));
+    assert_eq!(result.maximum_latest_finish_time_miss_count(2), None);
+}
+
+#[test]
+fn result_given_no_reasons_of_the_failures_then_they_are_not_there() {
+    let result = result_with_finish_times(vec![5, -1]);
+
+    assert!(!result.has_failure_reasons());
+    assert_eq!(result.failure_reason(0), None);
+    assert_eq!(result.maximum_latest_finish_time_miss_count(0), None);
+}
+
+#[test]
+fn result_given_reasons_of_the_failures_that_do_not_match_then_fails() {
+    let none = SimulationIterationFailure::None;
+
+    // A reason for each iteration, and a count for each activity.
+    assert!(result_with_finish_times(vec![5, 6])
+        .with_failure_reasons(vec![none; 3], vec![0, 0])
+        .is_err());
+    assert!(result_with_finish_times(vec![5, 6])
+        .with_failure_reasons(vec![none; 2], vec![0, 0, 0])
+        .is_err());
+
+    // A failed iteration has a reason, and an iteration with a finish time has none.
+    assert!(result_with_finish_times(vec![5, -1])
+        .with_failure_reasons(vec![none; 2], vec![0, 0])
+        .is_err());
+    assert!(result_with_finish_times(vec![5, 6])
+        .with_failure_reasons(
+            vec![none, SimulationIterationFailure::InvalidConstraints],
+            vec![0, 0]
+        )
+        .is_err());
 }

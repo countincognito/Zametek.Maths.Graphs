@@ -89,9 +89,17 @@ namespace Zametek.Maths.Graphs
                 .Select(x => x.FirstActivityStartTime)
                 .DefaultIfEmpty().Min();
 
-            int finishTime = resourceScheduleBuilders
-                .Select(x => x.LastActivityFinishTime)
-                .DefaultIfEmpty().Max();
+            // The allocation streams run from time 0 to this finish time, and an indirect resource marks its phases in them
+            // from the first to the last activity of each phase. An activity of zero duration is on no resource, but it can
+            // be in a phase and finish after each activity that takes time. So the finish time covers each activity, and not
+            // only the activities on the resources.
+            int finishTime = Math.Max(
+                resourceScheduleBuilders
+                    .Select(x => x.LastActivityFinishTime)
+                    .DefaultIfEmpty().Max(),
+                finalActivities
+                    .Select(x => x.EarliestFinishTime.GetValueOrDefault())
+                    .DefaultIfEmpty().Max());
 
             return resourceScheduleBuilders
                 .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))

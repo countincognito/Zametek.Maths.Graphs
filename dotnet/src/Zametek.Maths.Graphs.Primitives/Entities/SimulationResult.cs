@@ -20,9 +20,10 @@ namespace Zametek.Maths.Graphs
     {
         /// <summary>
         /// The finish time that an iteration has when it failed: when the resource scheduler could
-        /// not place every activity, or when the schedule ran past
-        /// <see cref="GraphLimits.MaximumTimeValue"/>. A failed iteration has no critical
-        /// activities and no critical paths.
+        /// not place every activity, when the schedule ran past
+        /// <see cref="GraphLimits.MaximumTimeValue"/>, or when an activity could not finish by its
+        /// maximum latest finish time. A failed iteration has no critical activities and no critical
+        /// paths. <see cref="FailureReason(int)"/> tells why it failed.
         /// </summary>
         public const int FailedFinishTime = -1;
 
@@ -31,9 +32,11 @@ namespace Zametek.Maths.Graphs
         private readonly int[]? m_PathOffsets;
         private readonly int[]? m_PathIndexes;
         private readonly bool[]? m_PathsComplete;
+        private readonly SimulationIterationFailure[]? m_FailureReasons;
+        private readonly int[]? m_MaximumLatestFinishTimeMisses;
 
         /// <summary>
-        /// Creates a result.
+        /// Creates a result that does not say why its failed iterations failed.
         /// </summary>
         /// <param name="activityIds">The activities, in the order of their columns.</param>
         /// <param name="finishTimes">The finish time of each iteration, or <see cref="FailedFinishTime"/>.</param>
@@ -54,6 +57,42 @@ namespace Zametek.Maths.Graphs
             int[]? pathOffsets,
             int[]? pathIndexes,
             bool[]? pathsComplete)
+            : this(activityIds, finishTimes, criticalActivityBits, criticalPaths, pathOffsets, pathIndexes, pathsComplete, null, null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a result.
+        /// </summary>
+        /// <param name="activityIds">The activities, in the order of their columns.</param>
+        /// <param name="finishTimes">The finish time of each iteration, or <see cref="FailedFinishTime"/>.</param>
+        /// <param name="criticalActivityBits">
+        /// One bit for each activity and iteration, or null when they were not recorded. The bits of
+        /// an iteration start at a word boundary and take (activities + 63) / 64 words: bit n of word
+        /// w is the activity w * 64 + n.
+        /// </param>
+        /// <param name="criticalPaths">The distinct critical paths, in the order in which they first appear.</param>
+        /// <param name="pathOffsets">For each iteration and one more, where its paths start in <paramref name="pathIndexes"/>, or null when they were not recorded.</param>
+        /// <param name="pathIndexes">The paths of each iteration, as indexes into <paramref name="criticalPaths"/>.</param>
+        /// <param name="pathsComplete">For each iteration, whether the list of its paths is complete.</param>
+        /// <param name="failureReasons">
+        /// Why each iteration failed, or null when it was not recorded. An iteration with a finish time
+        /// has <see cref="SimulationIterationFailure.None"/>, and a failed iteration has another value.
+        /// </param>
+        /// <param name="maximumLatestFinishTimeMisses">
+        /// For each activity, the number of iterations in which it could not finish by its maximum
+        /// latest finish time. It goes with <paramref name="failureReasons"/>: both are null or neither.
+        /// </param>
+        public SimulationResult(
+            IReadOnlyList<T> activityIds,
+            int[] finishTimes,
+            ulong[]? criticalActivityBits,
+            IReadOnlyList<CriticalPath<T>> criticalPaths,
+            int[]? pathOffsets,
+            int[]? pathIndexes,
+            bool[]? pathsComplete,
+            SimulationIterationFailure[]? failureReasons,
+            int[]? maximumLatestFinishTimeMisses)
         {
             ActivityIds = activityIds ?? throw new ArgumentNullException(nameof(activityIds));
             FinishTimes = finishTimes ?? throw new ArgumentNullException(nameof(finishTimes));
@@ -90,6 +129,31 @@ namespace Zametek.Maths.Graphs
                 }
             }
             FailedIterationCount = failed;
+
+            if ((failureReasons is null) != (maximumLatestFinishTimeMisses is null))
+            {
+                throw new ArgumentException(@"The reasons of the failures and the misses of the maximum latest finish times go together: give both or neither.", nameof(failureReasons));
+            }
+            if (failureReasons != null && maximumLatestFinishTimeMisses != null)
+            {
+                if (failureReasons.Length != finishTimes.Length)
+                {
+                    throw new ArgumentException(@"The reasons of the failures do not match the iterations.", nameof(failureReasons));
+                }
+                for (int i = 0; i < finishTimes.Length; i++)
+                {
+                    if ((failureReasons[i] == SimulationIterationFailure.None) != (finishTimes[i] != FailedFinishTime))
+                    {
+                        throw new ArgumentException($@"Iteration {i} has a finish time of {finishTimes[i]} and the reason {failureReasons[i]}. Only a failed iteration has a reason.", nameof(failureReasons));
+                    }
+                }
+                if (maximumLatestFinishTimeMisses.Length != activityIds.Count)
+                {
+                    throw new ArgumentException(@"The misses of the maximum latest finish times do not match the activities.", nameof(maximumLatestFinishTimeMisses));
+                }
+            }
+            m_FailureReasons = failureReasons;
+            m_MaximumLatestFinishTimeMisses = maximumLatestFinishTimeMisses;
         }
 
         /// <summary>
@@ -187,6 +251,49 @@ namespace Zametek.Maths.Graphs
                 throw new ArgumentOutOfRangeException(nameof(iteration));
             }
             return m_PathsComplete[iteration];
+        }
+
+        /// <summary>
+        /// Whether the result says why each failed iteration failed.
+        /// </summary>
+        public bool HasFailureReasons => m_FailureReasons != null;
+
+        /// <summary>
+        /// Why an iteration failed, or <see cref="SimulationIterationFailure.None"/> for an iteration
+        /// that has a finish time.
+        /// </summary>
+        /// <param name="iteration">The iteration, from 0.</param>
+        public SimulationIterationFailure FailureReason(int iteration)
+        {
+            if (m_FailureReasons is null)
+            {
+                throw new InvalidOperationException(@"The reasons of the failures were not recorded.");
+            }
+            if (iteration < 0 || iteration >= IterationCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(iteration));
+            }
+            return m_FailureReasons[iteration];
+        }
+
+        /// <summary>
+        /// The number of iterations in which an activity could not finish by its maximum latest
+        /// finish time. Each of these iterations failed with
+        /// <see cref="SimulationIterationFailure.InvalidConstraints"/>. An iteration can miss more than
+        /// one maximum. The number is 0 for an activity that has no maximum.
+        /// </summary>
+        /// <param name="activityIndex">The place of the activity in <see cref="ActivityIds"/>.</param>
+        public int MaximumLatestFinishTimeMissCount(int activityIndex)
+        {
+            if (m_MaximumLatestFinishTimeMisses is null)
+            {
+                throw new InvalidOperationException(@"The reasons of the failures were not recorded.");
+            }
+            if (activityIndex < 0 || activityIndex >= ActivityIds.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(activityIndex));
+            }
+            return m_MaximumLatestFinishTimeMisses[activityIndex];
         }
     }
 }

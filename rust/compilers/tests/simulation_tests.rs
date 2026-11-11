@@ -9,8 +9,9 @@ mod simulation_plans;
 use simulation_plans::Plan;
 use std::collections::HashMap;
 use zametek_maths_graphs_compilers::primitives::{
-    CriticalPathLink, DurationEstimate, InterActivityAllocationType, Resource, SimulationResult,
-    SimulationSettings,
+    graph_limits, CriticalPathLink, DependentActivity, DurationDistribution, DurationEstimate,
+    InterActivityAllocationType, Resource, SimulationIterationFailure, SimulationResult,
+    SimulationSettings, WorkStream,
 };
 use zametek_maths_graphs_compilers::ScheduleSimulator;
 
@@ -443,4 +444,244 @@ fn validate_given_settings_out_of_range_then_fails() {
     }
     .validate()
     .is_err());
+}
+
+type Act = DependentActivity<i32, i32, i32>;
+
+// Activity 1 takes from 8 to 20 time units (8, 10, 20). The shape says where the
+// maximum LFT is: on a milestone after activity 1 (12), on activity 1 itself
+// (12), or on activity 1 with a minimum EST of 2 (14). Without the maximum, the
+// finish time of an iteration is the time that the maximum checks. The plan has
+// no resources. Gives the result, the limit and the place of the activity with
+// the maximum.
+fn run_plan_with_a_maximum_latest_finish_time(
+    shape: &str,
+    with_maximum: bool,
+) -> (SimulationResult<i32>, i32, usize) {
+    let maximum = |value: i32| with_maximum.then_some(value);
+    let (activities, limit, constrained_index) = match shape {
+        "milestone" => {
+            let mut milestone = Act::with_dependencies(2, 0, [1]);
+            milestone.maximum_latest_finish_time = maximum(12);
+            (vec![Act::new(1, 10), milestone], 12, 1)
+        }
+        "activity" => {
+            let mut activity = Act::new(1, 10);
+            activity.maximum_latest_finish_time = maximum(12);
+            (vec![activity], 12, 0)
+        }
+        "window" => {
+            let mut activity = Act::new(1, 10);
+            activity.minimum_earliest_start_time = Some(2);
+            activity.maximum_latest_finish_time = maximum(14);
+            (vec![activity], 14, 0)
+        }
+        _ => panic!("unknown shape {shape}"),
+    };
+    let estimates = HashMap::from([(1, DurationEstimate::new(8, 10, 20).unwrap())]);
+    let simulator =
+        ScheduleSimulator::<i32, i32, i32>::new(&activities, &[], &[], &estimates).unwrap();
+    assert!(simulator.compilation_errors().is_empty());
+    let result = simulator
+        .run(&SimulationSettings {
+            iterations: 500,
+            seed: 1,
+            ..SimulationSettings::default()
+        })
+        .unwrap();
+    (result, limit, constrained_index)
+}
+
+// Port of `Run_Given_AMaximumLatestFinishTimeThatSomeIterationsMiss_Then_TheyFailWithInvalidConstraints`.
+// An iteration whose durations cannot meet a maximum LFT once reported the
+// maximum as its finish time. It fails now, as a compile with the same durations
+// does, and the result says why and which maximum it missed.
+#[test]
+fn run_given_a_maximum_latest_finish_time_that_some_iterations_miss_then_they_fail_with_invalid_constraints(
+) {
+    for shape in ["milestone", "activity", "window"] {
+        let (control, _, _) = run_plan_with_a_maximum_latest_finish_time(shape, false);
+        let (result, limit, constrained_index) =
+            run_plan_with_a_maximum_latest_finish_time(shape, true);
+
+        assert_eq!(control.failed_iteration_count(), 0, "{shape}");
+        assert!(control.has_failure_reasons(), "{shape}");
+        assert!(result.has_failure_reasons(), "{shape}");
+
+        let mut misses = 0;
+        for i in 0..result.iteration_count() {
+            assert_eq!(
+                control.failure_reason(i),
+                Some(SimulationIterationFailure::None),
+                "{shape}, iteration {i}"
+            );
+            if control.finish_times()[i] > limit {
+                misses += 1;
+                assert_eq!(
+                    result.finish_times()[i],
+                    SimulationResult::<i32>::FAILED_FINISH_TIME,
+                    "{shape}, iteration {i}"
+                );
+                assert_eq!(
+                    result.failure_reason(i),
+                    Some(SimulationIterationFailure::InvalidConstraints),
+                    "{shape}, iteration {i}"
+                );
+                assert!(
+                    result.critical_path_indexes(i).unwrap().is_empty(),
+                    "{shape}, iteration {i}"
+                );
+            } else {
+                assert_eq!(
+                    result.finish_times()[i],
+                    control.finish_times()[i],
+                    "{shape}, iteration {i}"
+                );
+                assert_eq!(
+                    result.failure_reason(i),
+                    Some(SimulationIterationFailure::None),
+                    "{shape}, iteration {i}"
+                );
+            }
+        }
+
+        // The same seed gives the same draws in the .NET library, which checks
+        // the same number.
+        assert_eq!(misses, 124, "{shape}");
+        assert_eq!(result.failed_iteration_count(), misses, "{shape}");
+        for a in 0..result.activity_ids().len() {
+            assert_eq!(
+                control.maximum_latest_finish_time_miss_count(a),
+                Some(0),
+                "{shape}"
+            );
+            assert_eq!(
+                result.maximum_latest_finish_time_miss_count(a),
+                Some(if a == constrained_index { misses } else { 0 }),
+                "{shape}"
+            );
+        }
+    }
+}
+
+// Port of `Run_Given_DurationsThatRunPastTheHorizon_Then_TheIterationsFailWithTheReason`.
+// Two activities in sequence that can each take almost the whole horizon. When
+// their sum runs past it, the resource scheduler cannot place the second one,
+// and a plan with no resources runs past the horizon.
+#[test]
+fn run_given_durations_that_run_past_the_horizon_then_the_iterations_fail_with_the_reason() {
+    let longest = graph_limits::MAXIMUM_TIME_VALUE - 1;
+    for (with_resource, expected) in [
+        (true, SimulationIterationFailure::ResourceSchedulingStall),
+        (false, SimulationIterationFailure::MaximumTimeValueExceeded),
+    ] {
+        let resources = if with_resource {
+            vec![resource(1, false)]
+        } else {
+            Vec::new()
+        };
+        let estimates = HashMap::from([
+            (1, DurationEstimate::new(1, 1, longest).unwrap()),
+            (2, DurationEstimate::new(1, 1, longest).unwrap()),
+        ]);
+        let simulator = ScheduleSimulator::<i32, i32, i32>::new(
+            &[Act::new(1, 1), Act::with_dependencies(2, 1, [1])],
+            &resources,
+            &[],
+            &estimates,
+        )
+        .unwrap();
+        assert!(simulator.compilation_errors().is_empty());
+
+        let result = simulator
+            .run(&SimulationSettings {
+                iterations: 200,
+                seed: 1,
+                distribution: DurationDistribution::Uniform,
+                ..SimulationSettings::default()
+            })
+            .unwrap();
+
+        assert!(result.failed_iteration_count() > 0, "{expected:?}");
+        assert!(
+            result.failed_iteration_count() < result.iteration_count(),
+            "{expected:?}"
+        );
+        for i in 0..result.iteration_count() {
+            if result.finish_times()[i] == SimulationResult::<i32>::FAILED_FINISH_TIME {
+                assert_eq!(result.failure_reason(i), Some(expected), "iteration {i}");
+            } else {
+                assert!(
+                    result.finish_times()[i] <= graph_limits::MAXIMUM_TIME_VALUE,
+                    "iteration {i}"
+                );
+                assert_eq!(
+                    result.failure_reason(i),
+                    Some(SimulationIterationFailure::None),
+                    "iteration {i}"
+                );
+            }
+        }
+        assert_eq!(result.maximum_latest_finish_time_miss_count(0), Some(0));
+        assert_eq!(result.maximum_latest_finish_time_miss_count(1), Some(0));
+    }
+}
+
+// Port of `Run_Given_AMilestoneInAPhaseAfterItsLastActivity_Then_EveryIterationFinishesWithTheMilestone`.
+// The first scheduling pass of an iteration once failed for a milestone in a
+// phase after the last activity of the phase. The phase now runs to the
+// milestone, and each iteration finishes with it.
+#[test]
+fn run_given_a_milestone_in_a_phase_after_its_last_activity_then_every_iteration_finishes_with_the_milestone(
+) {
+    let mut activity1 = Act::new(1, 5);
+    activity1.target_work_streams.insert(1);
+    let mut activity2 = Act::with_dependencies(2, 0, [1]);
+    activity2.minimum_earliest_start_time = Some(10);
+    activity2.target_work_streams.insert(1);
+    let resources = [
+        Resource::new(
+            1,
+            Some(String::new()),
+            false,
+            false,
+            InterActivityAllocationType::Direct,
+            1.0,
+            1.0,
+            0,
+            Vec::<i32>::new(),
+        ),
+        Resource::new(
+            2,
+            Some(String::new()),
+            true,
+            false,
+            InterActivityAllocationType::Indirect,
+            1.0,
+            1.0,
+            0,
+            vec![1],
+        ),
+    ];
+    let estimates = HashMap::from([(1, DurationEstimate::new(3, 5, 9).unwrap())]);
+    let simulator = ScheduleSimulator::<i32, i32, i32>::new(
+        &[activity1, activity2],
+        &resources,
+        &[WorkStream::new(1, String::new(), true)],
+        &estimates,
+    )
+    .unwrap();
+    assert!(simulator.compilation_errors().is_empty());
+    assert_eq!(simulator.planned_finish_time(), 10);
+
+    let result = simulator
+        .run(&SimulationSettings {
+            iterations: 100,
+            seed: 1,
+            ..SimulationSettings::default()
+        })
+        .unwrap();
+
+    assert_eq!(result.failed_iteration_count(), 0);
+    assert!(result.finish_times().iter().all(|x| *x == 10));
 }

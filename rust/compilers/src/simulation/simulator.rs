@@ -36,8 +36,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use zametek_maths_graphs_primitives::{
     CriticalPath, CriticalPathLink, CriticalPathStep, DependentActivity, DurationEstimate,
-    GraphCompilationError, GraphError, Key, Resource, SimulationResult, SimulationSettings,
-    WorkStream,
+    GraphCompilationError, GraphError, Key, Resource, SimulationIterationFailure, SimulationResult,
+    SimulationSettings, WorkStream,
 };
 
 /// The number of iterations that share a generator of random numbers. It is
@@ -61,6 +61,10 @@ pub struct ScheduleSimulator<K: Key, R: Key, W: Key> {
 struct ChunkResult {
     count: usize,
     finish_times: Vec<i32>,
+    failure_reasons: Vec<SimulationIterationFailure>,
+    // For each activity, the number of iterations of the chunk in which it
+    // missed its maximum LFT.
+    maximum_latest_finish_time_misses: Vec<usize>,
     critical_bits: Option<Vec<u64>>,
     paths: Vec<Vec<u32>>,
     path_offsets: Vec<usize>,
@@ -262,6 +266,8 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
         let words_per_iteration = self.activity_ids.len().div_ceil(64);
 
         let mut finish_times: Vec<i32> = Vec::with_capacity(iterations);
+        let mut failure_reasons: Vec<SimulationIterationFailure> = Vec::with_capacity(iterations);
+        let mut maximum_latest_finish_time_misses: Vec<usize> = vec![0; self.activity_ids.len()];
         let mut bits: Option<Vec<u64>> = settings
             .record_critical_activities
             .then(|| Vec::with_capacity(iterations * words_per_iteration));
@@ -273,6 +279,13 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
 
         for chunk in &chunks {
             finish_times.extend_from_slice(&chunk.finish_times);
+            failure_reasons.extend_from_slice(&chunk.failure_reasons);
+            for (total, misses) in maximum_latest_finish_time_misses
+                .iter_mut()
+                .zip(&chunk.maximum_latest_finish_time_misses)
+            {
+                *total += misses;
+            }
             if let (Some(all_bits), Some(chunk_bits)) =
                 (bits.as_mut(), chunk.critical_bits.as_ref())
             {
@@ -316,7 +329,8 @@ impl<K: Key + Send + Sync, R: Key + Send + Sync, W: Key + Send + Sync> ScheduleS
             settings.record_critical_paths.then_some(offsets),
             path_indexes,
             complete,
-        )
+        )?
+        .with_failure_reasons(failure_reasons, maximum_latest_finish_time_misses)
     }
 
     fn decode(&self, encoded: &[u32]) -> CriticalPath<K> {
@@ -376,6 +390,8 @@ impl<'a, K: Key, R: Key, W: Key> Worker<'a, K, R, W> {
         let mut result = ChunkResult {
             count,
             finish_times: vec![0; count],
+            failure_reasons: vec![SimulationIterationFailure::None; count],
+            maximum_latest_finish_time_misses: vec![0; self.durations.len()],
             critical_bits: self
                 .settings
                 .record_critical_activities
@@ -392,6 +408,10 @@ impl<'a, K: Key, R: Key, W: Key> Worker<'a, K, R, W> {
             self.draw_durations(&mut random);
             let finish = self.runner.run(&self.durations)?;
             result.finish_times[k] = finish;
+            result.failure_reasons[k] = self.runner.failure();
+            for &activity_index in self.runner.missed_maximum_latest_finish_times() {
+                result.maximum_latest_finish_time_misses[activity_index] += 1;
+            }
             result.path_offsets[k] = result.path_indexes.len();
             if finish == FAILED {
                 continue;
