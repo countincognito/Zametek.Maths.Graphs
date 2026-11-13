@@ -14,6 +14,9 @@
 //! Consumers can use these to validate user input before compiling, so that
 //! out-of-range values are rejected at the point of entry rather than at
 //! compile time.
+//!
+//! Only the vertex compiler enforces these; the arrow compiler reports no
+//! compilation errors and accepts a graph of any size.
 
 /// The largest accepted value for any time-valued input or computed schedule
 /// time (durations, `minimum_earliest_start_time`,

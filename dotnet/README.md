@@ -138,6 +138,7 @@ The domain types (in **Zametek.Maths.Graphs.Primitives**) are:
    | `Compile(ct)` | yes | yes |
    | `Compile(resources, ct)` / `Compile(resources, workStreams, ct)` | yes | **no** |
    | Resource scheduling and work streams | yes | **no** |
+   | Limit validation and compilation errors | yes | **no** |
    | Critical-path times | yes | yes |
    | `ToGraph()` | yes | yes |
 
@@ -393,9 +394,13 @@ Compilation applies sanity limits to its inputs, exposed as public constants on 
 | `GraphLimits.MaximumActivityCount` | `2_000` | activities in the graph |
 | `GraphLimits.MaximumResourceCount` | `1_000` | resources supplied to `Compile` (after inactive ones are filtered out) |
 | `GraphLimits.MaximumWorkStreamCount` | `100` | work streams supplied to `Compile` |
-| `GraphLimits.MaximumSimulationIterations` | `1_000_000` | iterations in one simulation (`SimulationSettings.Iterations`) |
+| `GraphLimits.MaximumSimulationIterations` | `1_000_000` | iterations in one simulation (`SimulationSettings.Iterations`), enforced by the setter rather than by a compilation error |
 
 These are sanity bounds, not algorithmic ceilings: they exist so that absurd or corrupted input fails with a clear error instead of consuming unbounded time and memory. Declared values and counts are checked before compilation and reported as `P0080`. The *computed* schedule length is checked separately, after scheduling, and reported as `C0020` - per-value limits cannot bound it on their own, because individually legal durations still sum.
+
+Two of the limits are enforced earlier still, by the types that carry the value rather than by the compiler: the `SimulationSettings.Iterations` setter and the `DurationEstimate` constructor both throw `ArgumentOutOfRangeException` on an out-of-range value, so those fail at the point of assignment and never reach a `P0080`.
+
+Both checks belong to `VertexGraphCompiler`. `ArrowGraphCompiler.Compile` returns `void` and so has nothing to report an error through: it validates none of these limits and will accept a graph of any size. That costs nothing in the intended workflow, where the arrow compiler only renders activities the vertex compiler has already compiled - but an arrow-only compile is unbounded, so validate against these constants yourself if you drive one directly. See [Choosing a compiler](#choosing-a-compiler-analyse-with-vertex-render-with-arrow).
 
 The time limit is what keeps memory predictable. Each resource schedule retains five per-time-unit allocation streams, so what a compilation holds grows as (horizon x resources), independently of activity count. Those streams are stored packed one bit per flag rather than one byte, which keeps the worst case permitted by these limits - a 100,000-unit horizon across 1,000 resources - at about 60 MB rather than 476 MB.
 

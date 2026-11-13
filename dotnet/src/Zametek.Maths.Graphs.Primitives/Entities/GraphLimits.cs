@@ -15,6 +15,11 @@ namespace Zametek.Maths.Graphs
     /// validate user input before compiling, so that out-of-range values are rejected at
     /// the point of entry rather than at compile time.
     /// </summary>
+    /// <remarks>
+    /// Only <c>VertexGraphCompiler</c> enforces these. <c>ArrowGraphCompiler.Compile</c>
+    /// returns void and reports no compilation errors, so it accepts a graph of any size -
+    /// validate against these constants yourself if you drive one directly.
+    /// </remarks>
     public static class GraphLimits
     {
         /// <summary>

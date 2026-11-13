@@ -3,6 +3,9 @@ use zametek_maths_graphs_primitives::{graph_limits, Activity, Key, Resource, Wor
 
 /// Domain-limit validation - the counterpart of the C# `LimitChecker`.
 ///
+/// For the vertex pipeline only, as in C#: the vertex builder is the sole caller,
+/// and the arrow compiler reports no compilation errors at all.
+///
 /// Deliberately kept separate from [`crate::constraint_checker`]: those checks
 /// describe constraints that contradict each other and also gate the
 /// critical-path passes, whereas these describe values that are simply out of
