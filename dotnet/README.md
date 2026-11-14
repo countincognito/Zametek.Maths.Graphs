@@ -575,6 +575,12 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ## Breaking changes
 
+### 4.1.1
+
+A fix, in .NET and in Rust. The release does not change the API of 4.1.0. A compile that did not throw before gives the same result as before, and a simulation gives the same iterations.
+
+- **An activity that must finish by time 0 no longer crashes the compile.** A maximum LFT that an activity cannot meet pulls the activity back, also to before time 0. When no activity finished after time 0, the schedule finished at time 0, and its allocation streams had no slots. The compile then threw `ArgumentOutOfRangeException`, and the Rust port panicked. Now the streams of such a schedule are empty, and the compile reports `C0010`, as it did when the schedule finished after time 0. The first check of a simulator is a compile, and so the simulator of such a plan now reports `C0010` and does not throw.
+
 ### 4.1.0
 
 Two fixes and an addition, in .NET and in Rust. The release only adds to the API of 4.0.1. A plan that compiled without errors gives the same schedule as before. A simulation of a plan without a maximum LFT gives the same iterations as before.
