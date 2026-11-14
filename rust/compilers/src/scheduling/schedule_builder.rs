@@ -234,6 +234,17 @@ fn extract_allocations<K: Key, R: Key, W: Key>(
             "Requested finish time ({finish_time}) cannot be less than the actual finish time ({resource_finish_time})"
         )));
     }
+
+    // A maximum LFT that an activity cannot meet pulls the activity back, also to
+    // before time 0. When no activity finishes after time 0, the schedule finishes
+    // at time 0, and the streams have no slots. Each activity then finishes at
+    // time 0 or before it (see the check above), and so there is nothing to mark.
+    // The functions below move a negative index to 0, and they would index the
+    // first slot of an empty slice. The compile reports the activity (C0010).
+    if finish_time <= 0 {
+        return Ok(Allocations::default());
+    }
+
     let inter_activity_allocation_type = resource
         .map(|r| r.inter_activity_allocation_type)
         .unwrap_or(InterActivityAllocationType::None);

@@ -15,13 +15,13 @@ A release is a tag on `master`. The tag starts a workflow that builds, tests and
    ```bash
    git switch master
    git pull
-   git tag v4.1.0
-   git push origin v4.1.0
+   git tag v4.1.1
+   git push origin v4.1.1
    ```
 
 4. **Wait for the Release workflow** (Actions tab). It stops with an error when:
    - the tag is not `v` plus the version in `Directory.Build.props`, or the Rust workspace has a different version;
-   - the commit of a release tag is not on `master` (a tag with a suffix, such as `v4.1.0-rc.1`, can come from any branch);
+   - the commit of a release tag is not on `master` (a tag with a suffix, such as `v4.1.1-rc.1`, can come from any branch);
    - a test fails;
    - the API of a package differs from the newest earlier release of the same major version on nuget.org (see below).
 
@@ -29,8 +29,8 @@ A release is a tag on `master`. The tag starts a workflow that builds, tests and
 6. **Upload the packages**, `Primitives` first, because `Compilers` depends on it. `dotnet nuget push` uploads the `.snupkg` with the `.nupkg` that is in the same folder:
 
    ```bash
-   dotnet nuget push Zametek.Maths.Graphs.Primitives.4.1.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
-   dotnet nuget push Zametek.Maths.Graphs.Compilers.4.1.0.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
+   dotnet nuget push Zametek.Maths.Graphs.Primitives.4.1.1.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
+   dotnet nuget push Zametek.Maths.Graphs.Compilers.4.1.1.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json
    ```
 
 ## Dry run
@@ -48,17 +48,20 @@ To break the API on purpose, do one of two things:
 
   ```bash
   dotnet pack src/Zametek.Maths.Graphs.Compilers --configuration Release --output /tmp/packages \
-    -p:EnablePackageValidation=true -p:PackageValidationBaselineVersion=4.0.1 \
+    -p:EnablePackageValidation=true -p:PackageValidationBaselineVersion=4.1.0 \
     -p:ApiCompatGenerateSuppressionFile=true
   ```
 
-  Describe the break in the "Breaking changes" section of `dotnet/README.md`. After the release the entry does nothing, because the next release compares with a package that already has the change. Delete it then. The repository has no such file at the moment, because 4.1.0 does not break the API of 4.0.1, the release that it is compared with.
+  Describe the break in the "Breaking changes" section of `dotnet/README.md`. After the release the entry does nothing, because the next release compares with a package that already has the change. Delete it then. The repository has no such file at the moment, because 4.1.1 does not break the API of 4.1.0, the release that it is compared with.
 
 ## Pins
 
-Nothing in the workflows moves by itself:
+Nothing in the workflows moves by itself, except the version of the .NET 10 SDK:
 
 - The actions are pinned to commit SHAs, and Dependabot proposes the updates (weekly, as pull requests against `develop`). It does the same for the NuGet and Cargo dependencies.
-- The .NET SDK is pinned in `ci.yml` and `release.yml`. Bump the two together.
+
+- The .NET SDK stays on .NET 10, but its version can move. `ci.yml` and `release.yml` install a .NET 10 SDK with `setup-dotnet`, and `dotnet/global.json` keeps `dotnet` on .NET 10. `dotnet` takes the newest .NET 10 SDK of the runner, and a new image can bring a later one. Without `global.json`, `dotnet` takes the newest SDK of the image, and the image of 2026-11-11 has 11.0.100. Bump the version in the two workflows together.
+
 - The Rust compiler is pinned in `rust/rust-toolchain.toml`. After a bump, run `rustup toolchain install` in `rust/` once.
+
 - The runners are `ubuntu-24.04`, not `ubuntu-latest`.

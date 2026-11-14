@@ -4,7 +4,10 @@ using System.Globalization;
 
 namespace Zametek.Maths.Graphs
 {
-    // Shared domain-limit validation used by both ArrowGraphBuilder and VertexGraphBuilder.
+    // Domain-limit validation for the vertex pipeline. VertexGraphBuilder is the only
+    // caller: ArrowGraphCompiler.Compile returns void, so the arrow pipeline has no
+    // error channel to report a P0080 through, and the documented workflow feeds it
+    // activities the vertex compiler has already validated.
     // Deliberately kept separate from ConstraintChecker: those checks describe constraints
     // that contradict each other and also gate the critical-path passes, whereas these
     // describe values that are simply out of range. Keeping them apart means an

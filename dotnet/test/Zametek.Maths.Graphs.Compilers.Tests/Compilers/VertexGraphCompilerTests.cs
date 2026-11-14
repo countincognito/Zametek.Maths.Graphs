@@ -9905,5 +9905,43 @@ namespace Zametek.Maths.Graphs.Tests
             resourceSchedules[0].FinishTime.ShouldBe(10);
             resourceSchedules[0].ResourceAllocation.Count().ShouldBe(10);
         }
+
+        // An activity that must finish by time 0, and no activity that finishes after it. The compile pulls the activity
+        // back to the times from -5 to 0. Thus, the schedule finishes at time 0, and the allocation streams have no slots.
+        // The allocation still wrote the first slot, and it threw. The compile must report the broken constraints, as it
+        // does for a maximum of 3, with phantom resources and with one resource of each type.
+        [Theory]
+        [InlineData(false, InterActivityAllocationType.None)]
+        [InlineData(true, InterActivityAllocationType.None)]
+        [InlineData(true, InterActivityAllocationType.Direct)]
+        [InlineData(true, InterActivityAllocationType.Indirect)]
+        public void VertexGraphCompiler_GivenOnlyActivityWithMaximumLatestFinishTimeOfZero_ThenC0010(bool withResource, InterActivityAllocationType allocationType)
+        {
+            int activityId1 = 1;
+            var graphCompiler = new VertexGraphCompiler<int, int, int, IDependentActivity<int, int, int>>();
+            graphCompiler.AddActivity(new DependentActivity<int, int, int>(activityId1, 5) { MaximumLatestFinishTime = 0 });
+            List<IResource<int, int>> resources = withResource
+                ? [new Resource<int, int>(1, string.Empty, false, false, allocationType, 1.0, 1.0, 0, [])]
+                : [];
+
+            IGraphCompilation<int, int, int, IDependentActivity<int, int, int>> compilation = graphCompiler.Compile(resources, TestContext.Current.CancellationToken);
+
+            var compilationErrors = compilation.CompilationErrors.ToList();
+            compilationErrors.Count.ShouldBe(1);
+            compilationErrors[0].ErrorCode.ShouldBe(GraphCompilationErrorCode.C0010);
+
+            var message = new StringBuilder();
+            message.AppendLine(Properties.Resources.Message_InvalidConstraints);
+            message.AppendLine($@"1 -> {Properties.Resources.Message_EarliestStartTimeLessThanZero}");
+            message.AppendLine($@"1 -> {Properties.Resources.Message_LatestStartTimeLessThanZero}");
+            compilationErrors[0].ErrorMessage.ShouldBe(message.ToString());
+
+            // The schedule finishes at time 0, and so the allocation streams have no slots.
+            var resourceSchedules = compilation.ResourceSchedules.ToList();
+            resourceSchedules.Count.ShouldBe(1);
+            resourceSchedules[0].ScheduledActivities.Select(x => (x.Id, x.StartTime, x.FinishTime)).ShouldBe([(activityId1, -5, 0)]);
+            resourceSchedules[0].FinishTime.ShouldBe(0);
+            resourceSchedules[0].ResourceAllocation.ShouldBeEmpty();
+        }
     }
 }

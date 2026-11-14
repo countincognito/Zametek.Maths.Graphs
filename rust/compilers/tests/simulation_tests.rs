@@ -10,8 +10,8 @@ use simulation_plans::Plan;
 use std::collections::HashMap;
 use zametek_maths_graphs_compilers::primitives::{
     graph_limits, CriticalPathLink, DependentActivity, DurationDistribution, DurationEstimate,
-    InterActivityAllocationType, Resource, SimulationIterationFailure, SimulationResult,
-    SimulationSettings, WorkStream,
+    GraphCompilationErrorCode, InterActivityAllocationType, Resource, SimulationIterationFailure,
+    SimulationResult, SimulationSettings, WorkStream,
 };
 use zametek_maths_graphs_compilers::ScheduleSimulator;
 
@@ -684,4 +684,96 @@ fn run_given_a_milestone_in_a_phase_after_its_last_activity_then_every_iteration
 
     assert_eq!(result.failed_iteration_count(), 0);
     assert!(result.finish_times().iter().all(|x| *x == 10));
+}
+
+// Port of `Ctor_Given_AnActivityThatMustFinishByTimeZero_Then_ThePlanReportsC0010AndTheRunThrows`.
+// The first check of a simulation is a compile. An activity that must finish by
+// time 0, with no activity that finishes after it, made that compile panic, and
+// so the simulator could not be made. The check now reports the error of the
+// compile, and a run fails, as for any plan with errors.
+#[test]
+fn new_given_an_activity_that_must_finish_by_time_zero_then_the_plan_reports_c0010_and_the_run_fails(
+) {
+    let mut activity = Act::new(1, 5);
+    activity.maximum_latest_finish_time = Some(0);
+    let estimates = HashMap::from([(1, DurationEstimate::new(3, 5, 9).unwrap())]);
+    let simulator =
+        ScheduleSimulator::<i32, i32, i32>::new(&[activity], &[], &[], &estimates).unwrap();
+
+    let codes: Vec<GraphCompilationErrorCode> = simulator
+        .compilation_errors()
+        .iter()
+        .map(|x| x.error_code)
+        .collect();
+    assert_eq!(codes, vec![GraphCompilationErrorCode::C0010]);
+    assert!(simulator.run(&SimulationSettings::default()).is_err());
+}
+
+// Port of `Run_Given_AMilestoneThatMustFinishByTimeZeroAndCanTakeTime_Then_TheIterationsThatTakeTimeFail`.
+// A milestone that must finish by time 0, but that can take time. The plan has
+// no error. But an iteration that draws a duration pulls the activity back
+// before time 0, and no activity finishes after it. Each such iteration must
+// fail with InvalidConstraints, in each way to schedule it, and each other
+// iteration finishes at time 0.
+#[test]
+fn run_given_a_milestone_that_must_finish_by_time_zero_and_can_take_time_then_the_iterations_that_take_time_fail(
+) {
+    for (with_resource, schedule_onto_synthetic_resources) in
+        [(false, false), (false, true), (true, false)]
+    {
+        let case =
+            format!("with_resource {with_resource}, synthetic {schedule_onto_synthetic_resources}");
+        let mut activity = Act::new(1, 0);
+        activity.maximum_latest_finish_time = Some(0);
+        let resources = if with_resource {
+            vec![Resource::new(
+                1,
+                Some(String::new()),
+                false,
+                false,
+                InterActivityAllocationType::Direct,
+                1.0,
+                1.0,
+                0,
+                Vec::<i32>::new(),
+            )]
+        } else {
+            Vec::new()
+        };
+        let estimates = HashMap::from([(1, DurationEstimate::new(0, 0, 3).unwrap())]);
+        let simulator =
+            ScheduleSimulator::<i32, i32, i32>::new(&[activity], &resources, &[], &estimates)
+                .unwrap();
+        assert!(simulator.compilation_errors().is_empty(), "{case}");
+
+        let result = simulator
+            .run(&SimulationSettings {
+                iterations: 200,
+                seed: 1,
+                schedule_onto_synthetic_resources,
+                ..SimulationSettings::default()
+            })
+            .unwrap();
+
+        // Each way to schedule the iterations fails the same 73 of them: the ones
+        // that draw a duration. The .NET test checks the same number, because
+        // the same seed gives the same draws.
+        assert_eq!(result.failed_iteration_count(), 73, "{case}");
+        for i in 0..result.iteration_count() {
+            if result.finish_times()[i] == SimulationResult::<i32>::FAILED_FINISH_TIME {
+                assert_eq!(
+                    result.failure_reason(i),
+                    Some(SimulationIterationFailure::InvalidConstraints),
+                    "{case}, iteration {i}"
+                );
+            } else {
+                assert_eq!(result.finish_times()[i], 0, "{case}, iteration {i}");
+            }
+        }
+        assert_eq!(
+            result.maximum_latest_finish_time_miss_count(0),
+            Some(result.failed_iteration_count()),
+            "{case}"
+        );
+    }
 }
