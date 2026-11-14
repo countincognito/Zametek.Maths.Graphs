@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
 		<PackageReference Include="Shouldly" Version="4.3.0" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
 			<PrivateAssets>all</PrivateAssets>
@@ -18,7 +18,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<!-- Not xunit.v3: since 4.0, it uses Microsoft.Testing.Platform v2. The .NET 10 SDK does not run that in the VSTest mode of 'dotnet test', which CI uses. To use xunit.v3, first move to the MTP mode (global.json). -->
-		<PackageReference Include="xunit.v3.mtp-off" Version="4.0.2" />
+		<PackageReference Include="xunit.v3.mtp-off" Version="4.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
