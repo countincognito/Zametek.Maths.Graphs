@@ -809,6 +809,59 @@ namespace Zametek.Maths.Graphs.Tests
             result.FinishTimes.ShouldAllBe(x => x == 10);
         }
 
+        // The first check of a simulation is a compile. An activity that must finish by time 0, with no activity that
+        // finishes after it, made that compile throw, and so the simulator could not be made. The check now reports the
+        // error of the compile, and a run throws, as for any plan with errors.
+        [Fact]
+        public void Ctor_Given_AnActivityThatMustFinishByTimeZero_Then_ThePlanReportsC0010AndTheRunThrows()
+        {
+            var simulator = new ScheduleSimulator<int, int, int>(
+                [new DependentActivity<int, int, int>(1, 5) { MaximumLatestFinishTime = 0 }],
+                [],
+                [],
+                new Dictionary<int, DurationEstimate> { [1] = new DurationEstimate(3, 5, 9) });
+
+            simulator.CompilationErrors.Select(x => x.ErrorCode).ShouldBe([GraphCompilationErrorCode.C0010]);
+            Should.Throw<InvalidOperationException>(() => Run(simulator, new SimulationSettings()));
+        }
+
+        // A milestone that must finish by time 0, but that can take time. The plan has no error. But an iteration that draws
+        // a duration pulls the activity back before time 0, and no activity finishes after it. Each such iteration must fail
+        // with InvalidConstraints, in each way to schedule it, and each other iteration finishes at time 0.
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public void Run_Given_AMilestoneThatMustFinishByTimeZeroAndCanTakeTime_Then_TheIterationsThatTakeTimeFail(bool withResource, bool scheduleOntoSyntheticResources)
+        {
+            var simulator = new ScheduleSimulator<int, int, int>(
+                [new DependentActivity<int, int, int>(1, 0) { MaximumLatestFinishTime = 0 }],
+                withResource
+                    ? [new Resource<int, int>(1, string.Empty, false, false, InterActivityAllocationType.Direct, 1.0, 1.0, 0, [])]
+                    : [],
+                [],
+                new Dictionary<int, DurationEstimate> { [1] = new DurationEstimate(0, 0, 3) });
+            simulator.CompilationErrors.ShouldBeEmpty();
+
+            SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 200, Seed = 1, ScheduleOntoSyntheticResources = scheduleOntoSyntheticResources });
+
+            // Each way to schedule the iterations fails the same 73 of them: the ones that draw a duration. The same seed
+            // gives the same draws in the Rust port, which checks the same number.
+            result.FailedIterationCount.ShouldBe(73);
+            for (int i = 0; i < result.IterationCount; i++)
+            {
+                if (result.FinishTimes[i] == SimulationResult<int>.FailedFinishTime)
+                {
+                    result.FailureReason(i).ShouldBe(SimulationIterationFailure.InvalidConstraints, $@"iteration {i}");
+                }
+                else
+                {
+                    result.FinishTimes[i].ShouldBe(0, $@"iteration {i}");
+                }
+            }
+            result.MaximumLatestFinishTimeMissCount(0).ShouldBe(result.FailedIterationCount);
+        }
+
         #endregion
 
         #region The settings

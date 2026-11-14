@@ -6,9 +6,9 @@ Work identified during investigation, with what was observed, why it matters, an
 
 This document is the investigation record for the items that were actually worked: the measurements before and after, the corpora and baselines that guard them, the counter-examples that settled design arguments, and the reasoning behind what was changed - including the reasoning behind approaches that were tried and abandoned. Where an entry here has a wider status, `PERFORMANCE.md` holds it; where an item there needs its evidence, it points back to a section here. Neither document is complete on its own, and the two use overlapping phase numbers for different sequences - "Phase 3" here is the incremental recalculation, "Phase 3" there is the topological CPM.
 
-**Three items are open.** Two came from ProjectPlan's zpp skill on 2026-11-14, and they are the first two sections below. One is a crash of the compile, and the other is a suggestion for the statistics of a simulation.
+**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items.
 
-The third item is a performance gap in Rust, and not a defect. The incremental critical-path walk of Rust reaches its nodes by ID, with a hash for each one. The C# session holds them by reference. Thus, Rust is now about twice as slow as C# on deep graphs. The section "Rust: the incremental walk reaches its nodes by ID" records it. Everything else that this investigation found is done, in both languages:
+The other open item is a performance gap in Rust, and not a defect. The incremental critical-path walk of Rust reaches its nodes by ID, with a hash for each one. The C# session holds them by reference. Thus, Rust is now about twice as slow as C# on deep graphs. The section "Rust: the incremental walk reaches its nodes by ID" records it. Everything else that this investigation found is done, in both languages:
 
 - **Priority-list Phases 0 to 3** - the calculation was cubic on a layered graph and is now roughly 80x faster at 8,000 activities than where it started, with allocation down from 91 GB to 721 MB. Phase 3 was the item held back as conditional; it is now implemented, and with it the case for keeping `GraphLimits.MaximumActivityCount` at 2,000 is a domain decision rather than a performance one. Raising it is deliberately left to whoever owns that call.
 
@@ -19,22 +19,6 @@ The third item is a performance gap in Rust, and not a defect. The incremental c
 - **The arrow topological CPM**, in both languages, though the measurement showed it buys nothing - the section at the end records why, and what it turned up instead.
 
 Each is recorded in full below, with its measurements. One thing noted along the way was deliberately *not* acted on and says so where it is recorded: raising the activity limit, which is a domain decision rather than a performance one.
-
-## A maximum LFT that pulls the whole schedule back to time 0 crashes the compile - OUTSTANDING
-
-**Found on 2026-11-14 by ProjectPlan's zpp skill, with 4.1.0.** A plan with one activity of 5 time units and a `MaximumLatestFinishTime` of 0 makes `VertexGraphCompiler.Compile` throw `ArgumentOutOfRangeException`. The stack is `RebuildAlignedResourceSchedules`, `ToResourceSchedule`, `ExtractAllocations` and `AllocationForNoneType`. With a maximum of 3, the same plan compiles and reports `C0010`. With a predecessor that takes time, it also reports `C0010`.
-
-The forward pass pulls the activity back to the times from -5 to 0, to meet its maximum. The latest LFT and the latest EFT are then both 0. Thus, `ScheduleFinishTime()` is 0, and `ExtractAllocations` builds a distribution with no slots. `AllocationForNoneType` moves a negative start or finish index to 0, and then it writes `distribution[0]`. `AllocationForScheduledActivitiesTypes` (Direct and Indirect resources) does the same, and so does `AllocationForNoCostOrBillingOrEffortActivities` for an activity with no cost, billing or effort. Only `AllocationForUnscheduledActivityTypes` returns early when the list is empty.
-
-The Rust port has the same code in `rust/compilers/src/scheduling/schedule_builder.rs`. There, `allocation_for_none_type` and `allocation_for_scheduled_activities_types` index slot 0 of an empty slice, which panics. The fix of 4.1.0 (`a8d2783`) runs the streams to the latest EFT, but here the latest EFT is 0 too. A negative maximum cannot cause this: the compile reports it as `P0080`, and it stops before the scheduler runs.
-
-### What a fix needs
-
-- No write to a distribution that has no slots. Then the compile reports `C0010`, as it does for a maximum of 3.
-
-- Tests in C# and in Rust: the plan above with no resources, and with one resource of each `InterActivityAllocationType`. Also the first check of a `ScheduleSimulator`, which is a compile: today its constructor throws.
-
-- A patch release (4.1.1), because the API does not change. ProjectPlan then updates its package.
 
 ## Keep the late iterations in the statistics of a simulation - SUGGESTED, NOT DECIDED
 
@@ -83,6 +67,24 @@ The measurement to reproduce it, after a release build:
 ```
 cargo test --release --test priority_list_equivalence_tests -- --ignored --nocapture measure_priority_list_scaling
 ```
+
+## A maximum LFT that pulled the whole schedule back to time 0 crashed the compile - DONE
+
+**Found on 2026-11-14 by ProjectPlan's zpp skill, with 4.1.0.** A plan with one activity of 5 time units and a `MaximumLatestFinishTime` of 0 made `VertexGraphCompiler.Compile` throw `ArgumentOutOfRangeException`. The stack was `RebuildAlignedResourceSchedules`, `ToResourceSchedule`, `ExtractAllocations` and `AllocationForNoneType`. With a maximum of 3, the same plan compiled and reported `C0010`. With a predecessor that takes time, it also reported `C0010`.
+
+The forward pass pulls the activity back to the times from -5 to 0, to meet its maximum. The latest LFT and the latest EFT are then both 0. Thus, `ScheduleFinishTime()` is 0, and `ExtractAllocations` built a distribution with no slots. `AllocationForNoneType` moves a negative start or finish index to 0, and then it wrote `distribution[0]`. `AllocationForScheduledActivitiesTypes` (Direct and Indirect resources) did the same, and so did `AllocationForNoCostOrBillingOrEffortActivities` for an activity with no cost, billing or effort. Only `AllocationForUnscheduledActivityTypes` returned early when the list was empty.
+
+The Rust port had the same code in `rust/compilers/src/scheduling/schedule_builder.rs`. There, `allocation_for_none_type` and `allocation_for_scheduled_activities_types` indexed slot 0 of an empty slice, which panicked. The fix of 4.1.0 (`a8d2783`) runs the streams to the latest EFT, but here the latest EFT is 0 too. A negative maximum cannot cause this: the compile reports it as `P0080`, and it stops before the scheduler runs.
+
+### What was fixed
+
+- `ExtractAllocations` returns empty streams when the finish time is 0 or less, and so does `extract_allocations` in Rust. The check above it makes sure that each activity on the schedule then finishes at time 0 or before it. Thus, there is nothing to mark. The compile reports `C0010`, with `EarliestStartTime` and `LatestStartTime` below zero. A schedule that finishes after time 0 has the same streams as before.
+
+- Tests first, in C# and in Rust. `VertexGraphCompilerTests` compiles the plan above with phantom resources and with one resource of each `InterActivityAllocationType`. Before the change, each case threw in `AllocationForNoneType` or in `AllocationForScheduledActivitiesTypes`, and Rust panicked. In `ScheduleSimulatorTests`, the constructor of a simulator threw for the plan. The simulator now reports `C0010`, and a run throws.
+
+- The iterations of a simulation did not crash. A new test passed before the change too. In it, a milestone with a maximum LFT of 0 can draw a duration. Each iteration that draws one fails with `InvalidConstraints`. In each way to schedule the iterations, 73 of 200 fail, in C# and in Rust.
+
+- The fix goes out in a patch release (4.1.1), because the API does not change. ProjectPlan then updates its package.
 
 ## Priority-list calculation (was cubic; Phases 0 to 3 done)
 

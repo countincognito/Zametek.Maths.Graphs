@@ -130,6 +130,17 @@ namespace Zametek.Maths.Graphs
             {
                 throw new InvalidOperationException($@"Requested finish time ({finishTime}) cannot be less than the actual finish time ({resourceFinishTime})");
             }
+
+            // A maximum LFT that an activity cannot meet pulls the activity back, also to before time 0. When no activity
+            // finishes after time 0, the schedule finishes at time 0, and the streams have no slots. Each activity then
+            // finishes at time 0 or before it (see the check above), and so there is nothing to mark. The methods below
+            // move a negative index to 0, and they would write the first slot of an empty list. The compile reports the
+            // activity (C0010).
+            if (finishTime <= 0)
+            {
+                return (new List<bool>(), new List<bool>(), new List<bool>(), new List<bool>(), new List<bool>());
+            }
+
             var interActivityAllocationType = InterActivityAllocationType.None;
             if (resource != null)
             {

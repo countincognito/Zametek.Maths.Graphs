@@ -1,4 +1,4 @@
-//! Ports of `VertexGraphCompilerTests.cs` (all 81 C# tests, plus two
+//! Ports of `VertexGraphCompilerTests.cs` (all 82 C# tests, plus two
 //! Rust-specific additions). The expected values - resource schedules,
 //! allocation streams, critical-path variables, and compilation-error text -
 //! are copied verbatim from the C# test suite, so a green run demonstrates
@@ -17097,5 +17097,55 @@ fn given_milestone_with_maximum_latest_finish_time_it_cannot_meet_then_c0010() {
         assert_scheduled(&schedules[0].scheduled_activities[0], 1, 0, 10);
         assert_eq!(schedules[0].finish_time, 10);
         assert_eq!(schedules[0].resource_allocation.len(), 10);
+    }
+}
+
+// An activity that must finish by time 0, and no activity that finishes after
+// it. The compile pulls the activity back to the times from -5 to 0. Thus, the
+// schedule finishes at time 0, and the allocation streams have no slots. The
+// allocation still wrote the first slot, and it panicked. The compile must
+// report the broken constraints, as it does for a maximum of 3, with phantom
+// resources and with one resource of each type.
+#[test]
+fn given_only_activity_with_maximum_latest_finish_time_of_zero_then_c0010() {
+    for allocation_type in [
+        None,
+        Some(InterActivityAllocationType::None),
+        Some(InterActivityAllocationType::Direct),
+        Some(InterActivityAllocationType::Indirect),
+    ] {
+        let mut compiler = Compiler::new();
+        let mut a1 = Act::new(1, 5);
+        a1.maximum_latest_finish_time = Some(0);
+        compiler.add_activity(a1);
+        let resources: Vec<Res> = match allocation_type {
+            Some(allocation_type) => vec![resource_with(1, false, allocation_type, &[])],
+            None => Vec::new(),
+        };
+
+        let compilation = compiler.compile_with_resources(&resources).unwrap();
+
+        assert_eq!(
+            compilation.compilation_errors.len(),
+            1,
+            "{allocation_type:?}"
+        );
+        assert_eq!(
+            compilation.compilation_errors[0].error_code,
+            GraphCompilationErrorCode::C0010
+        );
+        let expected = "Invalid activity constraints:\n\
+            1 -> EarliestStartTime cannot be less than zero\n\
+            1 -> LatestStartTime cannot be less than zero\n";
+        assert_eq!(compilation.compilation_errors[0].error_message, expected);
+
+        // The schedule finishes at time 0, and so the allocation streams have no
+        // slots.
+        let schedules = &compilation.resource_schedules;
+        assert_eq!(schedules.len(), 1, "{allocation_type:?}");
+        assert_eq!(schedules[0].scheduled_activities.len(), 1);
+        assert_scheduled(&schedules[0].scheduled_activities[0], 1, -5, 0);
+        assert_eq!(schedules[0].finish_time, 0);
+        assert!(schedules[0].resource_allocation.is_empty());
     }
 }
