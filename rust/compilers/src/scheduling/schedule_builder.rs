@@ -112,6 +112,12 @@ impl<K: Key, R: Key, W: Key> ResourceScheduleBuilder<K, R, W> {
         self.last_activity_finish_time()
     }
 
+    // The last scheduled activity, or `None` when empty. The scheduler reads it
+    // to find the activity that started on this resource at the current tick.
+    pub(crate) fn last_scheduled_activity(&self) -> Option<&ScheduledActivity<K>> {
+        self.scheduled_activities.last()
+    }
+
     /// Appends an already-scheduled activity, validating that it starts no
     /// earlier than the resource is available.
     pub fn append_scheduled_activity(
@@ -165,6 +171,13 @@ impl<K: Key, R: Key, W: Key> ResourceScheduleBuilder<K, R, W> {
             start_time + activity.duration,
         );
         self.scheduled_activities.push(scheduled_activity);
+    }
+
+    // Takes the last scheduled activity off this resource. The scheduler does
+    // this when an activity that started at the current tick moves to another
+    // resource, to let an activity start that can use only this one.
+    pub(crate) fn remove_last_activity(&mut self) {
+        self.scheduled_activities.pop();
     }
 
     /// Removes all scheduled activities.

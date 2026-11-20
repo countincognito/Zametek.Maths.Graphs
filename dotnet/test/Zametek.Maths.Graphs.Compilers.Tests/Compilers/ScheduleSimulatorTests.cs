@@ -88,19 +88,17 @@ namespace Zametek.Maths.Graphs.Tests
 
         // The compile is the oracle. One runner takes the iterations in turn, as it does in a
         // simulation, so that any state that an iteration leaves behind shows in the next one.
-        private static void ShouldAgreeWithTheCompile(SpikePlan plan, bool useResources, bool scheduleOntoSyntheticResources, int iterations, DurationDistribution distribution)
+        private static void ShouldAgreeWithTheCompile(SpikePlan plan, bool useResources, int iterations, DurationDistribution distribution)
         {
             var runner = new SimulationIterationRunner<int, int, int, IDependentActivity<int, int, int>>(
                 new VertexGraphBuilder<int, int, int, IDependentActivity<int, int, int>>(new PreviousIdGeneratorFactory<int>()),
                 plan.Activities.Select(x => (IDependentActivity<int, int, int>)plan.NewActivity(x, x.Duration)).ToList(),
-                plan.NewResources(useResources),
-                scheduleOntoSyntheticResources);
+                plan.NewResources(useResources));
             var tracer = new CriticalPathTracer<int, int, int>(
                 runner.Activities,
                 plan.Activities.Select((x, i) => (x.Id, i)).ToDictionary(x => x.Id, x => x.i));
             var random = new SimulationRandom(2024UL);
             var durations = new int[plan.Activities.Count];
-            bool shortcut = !useResources && !scheduleOntoSyntheticResources;
 
             for (int iteration = 0; iteration < iterations; iteration++)
             {
@@ -119,19 +117,8 @@ namespace Zametek.Maths.Graphs.Tests
                 finish.ShouldBe(expectedFinish, $@"iteration {iteration}");
                 for (int i = 0; i < durations.Length; i++)
                 {
-                    if (shortcut)
-                    {
-                        // With no resources the compile may mark more activities critical (see
-                        // the notes of the setting), and never fewer.
-                        if (runner.Activities[i].IsCritical)
-                        {
-                            expectedCritical[i].ShouldBeTrue($@"iteration {iteration}, activity {plan.Activities[i].Id}");
-                        }
-                    }
-                    else
-                    {
-                        runner.Activities[i].IsCritical.ShouldBe(expectedCritical[i], $@"iteration {iteration}, activity {plan.Activities[i].Id}");
-                    }
+                    // With no resources too: a compile gives the critical activities of the plan alone, as an iteration does.
+                    runner.Activities[i].IsCritical.ShouldBe(expectedCritical[i], $@"iteration {iteration}, activity {plan.Activities[i].Id}");
                 }
 
                 // And the paths that the tracer finds are chains of the schedule that it has been given.
@@ -152,31 +139,28 @@ namespace Zametek.Maths.Graphs.Tests
         [InlineData(DurationDistribution.Uniform)]
         public void Iteration_Given_ThePlanOfTheApplicationWithItsResources_Then_GivesTheFinishAndTheCriticalActivitiesOfACompile(DurationDistribution distribution)
         {
-            ShouldAgreeWithTheCompile(SpikePlan.LoadSample(), useResources: true, scheduleOntoSyntheticResources: false, iterations: 150, distribution);
+            ShouldAgreeWithTheCompile(SpikePlan.LoadSample(), useResources: true, iterations: 150, distribution);
         }
 
         [Fact]
         public void Iteration_Given_ThePlanOfTheApplicationWithNoResources_Then_GivesTheFinishAndTheCriticalActivitiesOfACompile()
         {
-            ShouldAgreeWithTheCompile(SpikePlan.LoadSample(), useResources: false, scheduleOntoSyntheticResources: true, iterations: 100, DurationDistribution.BetaPert);
+            ShouldAgreeWithTheCompile(SpikePlan.LoadSample(), useResources: false, iterations: 100, DurationDistribution.BetaPert);
         }
 
         [Fact]
         public void Iteration_Given_ALayeredPlanWithResources_Then_GivesTheFinishAndTheCriticalActivitiesOfACompile()
         {
-            ShouldAgreeWithTheCompile(SpikePlan.Layered(100, 10, 10), useResources: true, scheduleOntoSyntheticResources: false, iterations: 60, DurationDistribution.BetaPert);
+            ShouldAgreeWithTheCompile(SpikePlan.Layered(100, 10, 10), useResources: true, iterations: 60, DurationDistribution.BetaPert);
         }
 
+        // Up to 4.1.1 there were two tests here. A compile with no resources linked the activities on its synthetic
+        // resources, and so it could mark more activities critical than an iteration did, unless the iteration was set
+        // to do the same. Now neither links them, and an iteration gives the critical activities of a compile.
         [Fact]
-        public void Iteration_Given_TheReferenceSampleWithNoResourcesAndTheShortcut_Then_GivesTheFinishOfACompileAndCriticalActivitiesThatItHas()
+        public void Iteration_Given_TheReferenceSampleWithNoResources_Then_GivesTheFinishAndTheCriticalActivitiesOfACompile()
         {
-            ShouldAgreeWithTheCompile(SpikePlan.ReferenceSample(), useResources: false, scheduleOntoSyntheticResources: false, iterations: 200, DurationDistribution.BetaPert);
-        }
-
-        [Fact]
-        public void Iteration_Given_TheReferenceSampleWithNoResourcesAndTheCompileWay_Then_GivesTheCriticalActivitiesOfACompile()
-        {
-            ShouldAgreeWithTheCompile(SpikePlan.ReferenceSample(), useResources: false, scheduleOntoSyntheticResources: true, iterations: 200, DurationDistribution.BetaPert);
+            ShouldAgreeWithTheCompile(SpikePlan.ReferenceSample(), useResources: false, iterations: 200, DurationDistribution.BetaPert);
         }
 
         [Fact]
@@ -191,7 +175,7 @@ namespace Zametek.Maths.Graphs.Tests
                 new SpikePlan.ActivityRecord { Id = 3, Name = "3", Duration = 5, Optimistic = 5, Pessimistic = 5 });
             plan.Resources.Add(new SpikePlan.ResourceRecord { Id = 1 });
 
-            ShouldAgreeWithTheCompile(plan, useResources: true, scheduleOntoSyntheticResources: false, iterations: 300, DurationDistribution.Uniform);
+            ShouldAgreeWithTheCompile(plan, useResources: true, iterations: 300, DurationDistribution.Uniform);
         }
 
         #endregion

@@ -200,11 +200,21 @@ pub trait IResourceSchedulingEngine<K: Key, R: Key, W: Key>: Send + Sync {
         filtered_resources: &[Resource<R, W>],
     ) -> Vec<UnavailableResources<K, R>>;
 
+    /// Replaces infinite-resource schedules with synthetic resource IDs. Up to
+    /// 4.1.1 the compile called this, so that it could chain the activities of
+    /// each schedule with resource dependencies. The compile no longer calls
+    /// it: with infinite resources the schedule adds no dependency to the plan.
+    /// It stays for callers of their own.
     fn replace_with_synthetic_resources(
         &self,
         resource_schedules: Vec<ResourceSchedule<K, R, W>>,
     ) -> Vec<ResourceSchedule<K, R, W>>;
 
+    /// Rebuilds resource schedules aligned to the CPM-computed earliest start
+    /// times of the final activities. With `infinite_resources` the schedules
+    /// are lanes with no resource, and no dependency keeps two activities off
+    /// one lane at the same time: the engine must give lanes that have no two
+    /// activities at once.
     #[allow(clippy::too_many_arguments)]
     fn rebuild_aligned_resource_schedules(
         &self,

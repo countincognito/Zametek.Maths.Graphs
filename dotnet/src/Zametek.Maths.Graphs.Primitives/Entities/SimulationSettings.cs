@@ -126,13 +126,11 @@ namespace Zametek.Maths.Graphs
         }
 
         /// <summary>
-        /// With no resources, the compile schedules the plan onto synthetic resources, and
-        /// two activities that meet at the same moment can then be linked by one of them, which can
-        /// make more activities critical. When this is false (the default), a simulation of a plan
-        /// with no resources stops after the critical-path calculation. The finish times are the
-        /// same, and the critical activities are those of the plan alone, without the synthetic
-        /// links. When this is true, the simulation does what the compile does. It has no effect
-        /// on a plan with resources.
+        /// This setting has no effect any more, and it stays only so that the API does not change.
+        /// With no resources, an iteration is the critical-path calculation alone, as a compile is:
+        /// the finish times and the critical activities are those of the plan. Up to 4.1.1, a
+        /// compile with no resources scheduled the plan onto synthetic resources, which could make
+        /// more activities critical, and this setting made a simulation do the same.
         /// </summary>
         public bool ScheduleOntoSyntheticResources { get; set; }
     }

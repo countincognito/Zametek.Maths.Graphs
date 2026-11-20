@@ -22,6 +22,9 @@ namespace Zametek.Maths.Graphs
     //   3. the resource dependencies that the schedule implies,
     //   4. the second critical-path calculation, which includes them.
     //
+    // With no resources, the first calculation is the whole iteration, as it is the whole result of a
+    // compile: no activity waits for a resource, and so the schedule adds no dependency to the plan.
+    //
     // Then it checks each maximum LFT, because a maximum that the durations cannot meet pulls its
     // activity back, and the finish time with it. Such an iteration fails, as a compile reports an
     // error for it.
@@ -50,7 +53,6 @@ namespace Zametek.Maths.Graphs
         private readonly List<TActivity> m_ActivityList;
         private readonly List<IResource<TResourceId, TWorkStreamId>> m_ActiveResources;
         private readonly bool m_StopAfterTheFirstPass;
-        private readonly bool m_ReplaceWithSyntheticResources;
         private readonly int[] m_ConstrainedActivities;
         private readonly List<int> m_MissedMaximumLatestFinishTimes = new List<int>();
         private SimulationIterationFailure m_Failure;
@@ -60,8 +62,7 @@ namespace Zametek.Maths.Graphs
         internal SimulationIterationRunner(
             VertexGraphBuilder<T, TResourceId, TWorkStreamId, TActivity> builder,
             IReadOnlyList<TActivity> activities,
-            IEnumerable<IResource<TResourceId, TWorkStreamId>> resources,
-            bool scheduleOntoSyntheticResources)
+            IEnumerable<IResource<TResourceId, TWorkStreamId>> resources)
         {
             m_Builder = builder ?? throw new ArgumentNullException(nameof(builder));
             if (m_Builder.Activities.Any())
@@ -83,9 +84,7 @@ namespace Zametek.Maths.Graphs
             // filter that decides.
             List<IResource<TResourceId, TWorkStreamId>> allResources = resources.ToList();
             m_ActiveResources = allResources.Where(x => !x.IsInactive).ToList();
-            bool infinite = allResources.Count == 0;
-            m_StopAfterTheFirstPass = infinite && !scheduleOntoSyntheticResources;
-            m_ReplaceWithSyntheticResources = infinite;
+            m_StopAfterTheFirstPass = allResources.Count == 0;
 
             // Only a maximum LFT can pull an activity back, and so only these activities can make an
             // iteration invalid (see Run).
@@ -151,13 +150,6 @@ namespace Zametek.Maths.Graphs
                 {
                     m_Failure = SimulationIterationFailure.ResourceSchedulingStall;
                     return Failed;
-                }
-
-                // Without resources the first calculation could not hold resource dependencies,
-                // and so the compile makes synthetic resources for them to work.
-                if (m_ReplaceWithSyntheticResources)
-                {
-                    schedules = m_Builder.ResourceSchedulingEngine.ReplaceWithSyntheticResources(schedules);
                 }
 
                 m_Builder.AssignResourceDependencies(schedules);

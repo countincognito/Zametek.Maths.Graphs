@@ -398,8 +398,7 @@ namespace Zametek.Maths.Graphs
                 m_Runner = new SimulationIterationRunner<T, TResourceId, TWorkStreamId, TActivity>(
                     simulator.NewBuilder(),
                     simulator.m_Activities.Select(CloneActivity).ToList(),
-                    simulator.m_Resources.Select(x => (IResource<TResourceId, TWorkStreamId>)x.CloneObject()).ToList(),
-                    settings.ScheduleOntoSyntheticResources);
+                    simulator.m_Resources.Select(x => (IResource<TResourceId, TWorkStreamId>)x.CloneObject()).ToList());
                 m_Tracer = new CriticalPathTracer<T, TResourceId, TWorkStreamId>(m_Runner.Activities, simulator.m_IndexById);
                 m_Durations = new int[simulator.m_ActivityIds.Length];
             }

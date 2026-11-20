@@ -2,7 +2,9 @@ use super::schedule_builder::ResourceScheduleBuilder;
 use crate::contracts::{IResourceSchedulingEngine, IResourceSchedulingGraph};
 use crate::messages;
 use indexmap::{IndexMap, IndexSet};
+use std::collections::VecDeque;
 use std::fmt::Write as _;
+use std::rc::Rc;
 use zametek_maths_graphs_primitives::{
     graph_limits, Activity, DependentActivity, GraphError, InterActivityAllocationType, Key,
     LogicalOperator, Resource, ResourceSchedule, UnavailableResources,
@@ -330,6 +332,387 @@ fn assign_ready_activities_to_resources<K, R, W>(
             keep_looking = true;
         }
     }
+
+    // With infinite resources each ready activity gets a builder, and so none
+    // waits for one.
+    if !infinite_resources {
+        give_way_to_waiting_activities(ready, builders, &*graph, started, time_counter);
+    }
+}
+
+// Each ready activity has now taken the first free builder in the allocation
+// order that it can use. A ready activity can still wait while a builder is free:
+// an activity that started at this tick took the builder that it needs, and that
+// activity can also use the free one. Then the activity that started moves to the
+// free builder, and the activity that waits starts on the builder that it leaves.
+// Neither starts later than it did, and a resource does not stay idle for an
+// activity that could not use it.
+//
+// A move can need a chain of moves: A leaves R1 for R2, and B leaves R2 for the
+// free R3. The search is breadth first, and so it makes the fewest moves, and it
+// tries the builders in the allocation order. Only an activity that can use any
+// one of several builders moves. An activity that needs all of its targets stays,
+// but it can be the one that waits: then each activity on one of its builders
+// must move to a builder that it does not need.
+//
+// Nothing happens when no builder is free, or when no activity waits that could
+// start now. Thus, the schedule is the one of the first-free rule alone, except
+// at a tick where that rule leaves a builder idle that a chain of moves can put
+// to use.
+fn give_way_to_waiting_activities<K: Key, R: Key, W: Key>(
+    ready: &mut [Option<K>],
+    builders: &mut [ResourceScheduleBuilder<K, R, W>],
+    graph: &dyn IResourceSchedulingGraph<K, R, W>,
+    started: &mut IndexSet<K>,
+    time_counter: i32,
+) {
+    let any_free = builders
+        .iter()
+        .any(|x| x.earliest_available_start_time_for_next_activity() <= time_counter);
+    if !any_free {
+        return;
+    }
+
+    // The activities that wait and whose time gates are open. An activity of zero
+    // duration takes no time on a builder, and the first-free rule alone decides
+    // where it goes.
+    let mut waiting: Vec<usize> = Vec::new();
+    for (i, slot) in ready.iter().enumerate() {
+        let Some(activity_id) = *slot else {
+            continue;
+        };
+        let activity = graph.activity(activity_id);
+        if !activity.is_dummy() && can_start_at(activity, time_counter) {
+            waiting.push(i);
+        }
+    }
+    if waiting.is_empty() {
+        return;
+    }
+
+    let mut seats = TickSeats::new(builders, graph, time_counter);
+    let mut newly_seated: Vec<(usize, Vec<usize>)> = Vec::new();
+
+    for ready_index in waiting {
+        let Some(activity_id) = ready[ready_index] else {
+            continue;
+        };
+        let activity = graph.activity(activity_id);
+
+        let taken = if can_use_any_one_of_its_builders(activity) {
+            seats.try_seat_on_one(activity_id)
+        } else {
+            seats.try_seat_on_all(activity_id, activity)
+        };
+
+        if let Some(taken) = taken {
+            newly_seated.push((ready_index, taken));
+        }
+    }
+
+    if newly_seated.is_empty() {
+        return;
+    }
+
+    // First take each activity that moves off its builder. It is the last one
+    // there, because it started at this tick and it takes time. Then put each on
+    // its new builder, and start the activities that waited.
+    let movers = seats.movers();
+    for mover in &movers {
+        builders[seats.original_seat_of(*mover)].remove_last_activity();
+    }
+    for mover in &movers {
+        builders[seats.seat_of(*mover)].append_activity(graph.activity(*mover), time_counter);
+    }
+    for (ready_index, taken) in newly_seated {
+        let Some(activity_id) = ready[ready_index] else {
+            continue;
+        };
+        let activity = graph.activity(activity_id);
+
+        // A later move can have moved an activity that waited to another builder.
+        let final_seats = if can_use_any_one_of_its_builders(activity) {
+            vec![seats.seat_of(activity_id)]
+        } else {
+            taken
+        };
+        for seat in final_seats {
+            builders[seat].append_activity(activity, time_counter);
+        }
+        started.insert(activity_id);
+        ready[ready_index] = None;
+    }
+}
+
+// Whether the time gates of the activity are open at this tick: its earliest
+// start time is reached, a maximum latest finish time does not hold it back to a
+// later start, and it finishes within the supported time horizon.
+fn can_start_at<K: Key, R: Key, W: Key>(activity: &Activity<K, R, W>, time_counter: i32) -> bool {
+    if activity.earliest_start_time.unwrap_or(0) > time_counter {
+        return false;
+    }
+    if let Some(max_lft) = activity.maximum_latest_finish_time {
+        if i64::from(max_lft) > i64::from(time_counter) + i64::from(activity.duration) {
+            return false;
+        }
+    }
+    // Starting here would push the finish time past the supported time
+    // horizon; the activity can never start, which the stall detector reports.
+    if i64::from(time_counter) + i64::from(activity.duration)
+        > i64::from(graph_limits::MAXIMUM_TIME_VALUE)
+    {
+        return false;
+    }
+    true
+}
+
+// An activity with no targets can use any one builder that is not an explicit
+// target, and an activity with the OR operator can use any one of its targets. An
+// activity with AND or ACTIVE_AND needs all of its targets at once.
+fn can_use_any_one_of_its_builders<K: Key, R: Key, W: Key>(activity: &Activity<K, R, W>) -> bool {
+    activity.target_resources.is_empty() || activity.target_resource_operator == LogicalOperator::Or
+}
+
+// The builders of one tick, for `give_way_to_waiting_activities`: which are free,
+// and which hold an activity that started at this tick and can move. The moves
+// are made here first, and on the builders themselves only when the search is
+// over.
+//
+// The C# class keeps the list of the builders. Here that would hold a borrow of
+// the builders until the search is over, and the moves must change them while the
+// seats are still read. So `new` copies the two values of each builder that the
+// search needs: the ID of its resource, and whether it is an explicit target. No
+// move changes them.
+struct TickSeats<'a, K: Key, R: Key, W: Key> {
+    builders: Vec<(Option<R>, bool)>,
+    graph: &'a dyn IResourceSchedulingGraph<K, R, W>,
+    is_free: Vec<bool>,
+    holder_of: Vec<Option<K>>,
+    seat_of: IndexMap<K, usize>,
+    original_seat_of: IndexMap<K, usize>,
+    usable_builders: IndexMap<K, Rc<[usize]>>,
+
+    // The builders that a search must not use. A search that fails leaves its
+    // marks: the builders that it reached lead to no free builder, also for the
+    // next activity that waits. A search that succeeds clears them, because its
+    // moves change what can be reached.
+    closed: Vec<bool>,
+    previous: Vec<Option<usize>>,
+    queue: VecDeque<usize>,
+}
+
+impl<'a, K: Key, R: Key, W: Key> TickSeats<'a, K, R, W> {
+    fn new(
+        builders: &[ResourceScheduleBuilder<K, R, W>],
+        graph: &'a dyn IResourceSchedulingGraph<K, R, W>,
+        time_counter: i32,
+    ) -> Self {
+        let mut seats = Self {
+            builders: builders
+                .iter()
+                .map(|x| (x.resource_id(), x.is_explicit_target()))
+                .collect(),
+            graph,
+            is_free: vec![false; builders.len()],
+            holder_of: vec![None; builders.len()],
+            seat_of: IndexMap::new(),
+            original_seat_of: IndexMap::new(),
+            usable_builders: IndexMap::new(),
+            closed: vec![false; builders.len()],
+            previous: vec![None; builders.len()],
+            queue: VecDeque::new(),
+        };
+
+        for (index, builder) in builders.iter().enumerate() {
+            seats.is_free[index] =
+                builder.earliest_available_start_time_for_next_activity() <= time_counter;
+            if seats.is_free[index] {
+                continue;
+            }
+            // A builder that is not free holds an activity that takes time. It
+            // started at this tick when its start time is this tick, and then it
+            // can move when it can use any one of several builders.
+            if let Some(last) = builder.last_scheduled_activity() {
+                if last.start_time == time_counter
+                    && can_use_any_one_of_its_builders(graph.activity(last.id))
+                {
+                    seats.holder_of[index] = Some(last.id);
+                    seats.seat_of.insert(last.id, index);
+                    seats.original_seat_of.insert(last.id, index);
+                }
+            }
+        }
+        seats
+    }
+
+    fn seat_of(&self, activity_id: K) -> usize {
+        self.seat_of[&activity_id]
+    }
+
+    fn original_seat_of(&self, activity_id: K) -> usize {
+        self.original_seat_of[&activity_id]
+    }
+
+    // The activities that started at this tick and are now on another builder.
+    fn movers(&self) -> Vec<K> {
+        let mut movers = Vec::new();
+        for (activity_id, original) in &self.original_seat_of {
+            if self.seat_of[activity_id] != *original {
+                movers.push(*activity_id);
+            }
+        }
+        movers
+    }
+
+    // Seats an activity that can use any one of its builders. Returns its
+    // builder, or `None`.
+    fn try_seat_on_one(&mut self, activity_id: K) -> Option<Vec<usize>> {
+        let seat = self.free_one_for(activity_id)?;
+        self.occupy(seat, activity_id);
+        self.closed.fill(false);
+        Some(vec![seat])
+    }
+
+    // Seats an activity that needs all of its builders: each activity on one of
+    // them moves to a builder that is not one of them. Returns the builders, or
+    // `None` when one of them cannot be made free. Then nothing has moved.
+    fn try_seat_on_all(
+        &mut self,
+        activity_id: K,
+        activity: &Activity<K, R, W>,
+    ) -> Option<Vec<usize>> {
+        let needed = self.usable_builders(activity_id);
+
+        // With AND, each target must be a resource of the plan. With ACTIVE_AND,
+        // the targets that are resources of the plan are enough, and there must
+        // be one.
+        if needed.is_empty()
+            || (activity.target_resource_operator == LogicalOperator::And
+                && needed.len() != activity.target_resources.len())
+        {
+            return None;
+        }
+
+        let is_free_before = self.is_free.clone();
+        let holder_of_before = self.holder_of.clone();
+        let seat_of_before = self.seat_of.clone();
+        let closed_before = self.closed.clone();
+
+        let mut all_free = true;
+        for &index in needed.iter() {
+            if self.is_free[index] {
+                continue;
+            }
+            let Some(holder) = self.holder_of[index] else {
+                all_free = false;
+                break;
+            };
+            // The holder must not move to a builder that the activity needs.
+            self.closed.fill(false);
+            for &reserved in needed.iter() {
+                self.closed[reserved] = true;
+            }
+            let Some(seat) = self.free_one_for(holder) else {
+                all_free = false;
+                break;
+            };
+            self.occupy(seat, holder);
+            self.holder_of[index] = None;
+            self.is_free[index] = true;
+        }
+
+        if !all_free {
+            self.is_free = is_free_before;
+            self.holder_of = holder_of_before;
+            self.seat_of = seat_of_before;
+            self.closed = closed_before;
+            return None;
+        }
+
+        // An activity that needs all of its builders does not move, and so it is
+        // no holder.
+        for &index in needed.iter() {
+            self.is_free[index] = false;
+            self.holder_of[index] = None;
+        }
+        self.closed.fill(false);
+        Some(needed.to_vec())
+    }
+
+    fn occupy(&mut self, index: usize, activity_id: K) {
+        self.is_free[index] = false;
+        self.holder_of[index] = Some(activity_id);
+        self.seat_of.insert(activity_id, index);
+    }
+
+    // The builders that the activity can use, in the allocation order: its
+    // targets, or each builder that is not an explicit target when it has no
+    // targets.
+    fn usable_builders(&mut self, activity_id: K) -> Rc<[usize]> {
+        if let Some(usable) = self.usable_builders.get(&activity_id) {
+            return Rc::clone(usable);
+        }
+        let activity = self.graph.activity(activity_id);
+        let targeted = !activity.target_resources.is_empty();
+        let mut usable: Vec<usize> = Vec::new();
+        for (index, (resource_id, is_explicit_target)) in self.builders.iter().enumerate() {
+            let can_use = if targeted {
+                resource_id.is_some_and(|x| activity.target_resources.contains(&x))
+            } else {
+                !*is_explicit_target
+            };
+            if can_use {
+                usable.push(index);
+            }
+        }
+        let usable: Rc<[usize]> = usable.into();
+        self.usable_builders.insert(activity_id, Rc::clone(&usable));
+        usable
+    }
+
+    // Makes one builder free that the activity can use, and returns it, or
+    // `None`. The search goes from the builders of the activity, through the
+    // builders that the holders of those can use, to a builder that is free. Then
+    // each holder on the way moves one step along it, and the first builder of
+    // the way is free.
+    fn free_one_for(&mut self, activity_id: K) -> Option<usize> {
+        self.queue.clear();
+        for &index in self.usable_builders(activity_id).iter() {
+            if !self.closed[index] {
+                self.closed[index] = true;
+                self.previous[index] = None;
+                self.queue.push_back(index);
+            }
+        }
+
+        while let Some(index) = self.queue.pop_front() {
+            if self.is_free[index] {
+                let mut current = index;
+                while let Some(previous) = self.previous[current] {
+                    // A builder leads to the next one only through its holder.
+                    let holder = self.holder_of[previous]
+                        .expect("a builder on the way to a free builder has a holder");
+                    self.occupy(current, holder);
+                    current = previous;
+                }
+                self.holder_of[current] = None;
+                self.is_free[current] = true;
+                return Some(current);
+            }
+
+            let Some(holder) = self.holder_of[index] else {
+                continue;
+            };
+            for &next in self.usable_builders(holder).iter() {
+                if !self.closed[next] {
+                    self.closed[next] = true;
+                    self.previous[next] = Some(index);
+                    self.queue.push_back(next);
+                }
+            }
+        }
+        None
+    }
 }
 
 fn try_schedule_unrestricted<K: Key, R: Key, W: Key>(
@@ -348,19 +731,7 @@ fn try_schedule_unrestricted<K: Key, R: Key, W: Key>(
         if builder.is_explicit_target() {
             continue;
         }
-        if activity.earliest_start_time.unwrap_or(0) > time_counter {
-            continue;
-        }
-        if let Some(max_lft) = activity.maximum_latest_finish_time {
-            if i64::from(max_lft) > i64::from(time_counter) + i64::from(activity.duration) {
-                continue;
-            }
-        }
-        // Starting here would push the finish time past the supported time
-        // horizon; the activity can never start, which the stall detector reports.
-        if i64::from(time_counter) + i64::from(activity.duration)
-            > i64::from(graph_limits::MAXIMUM_TIME_VALUE)
-        {
+        if !can_start_at(activity, time_counter) {
             continue;
         }
         builder.append_activity(activity, time_counter);
@@ -394,19 +765,7 @@ fn try_schedule_targeted<K: Key, R: Key, W: Key>(
                 continue;
             }
         }
-        if activity.earliest_start_time.unwrap_or(0) > time_counter {
-            continue;
-        }
-        if let Some(max_lft) = activity.maximum_latest_finish_time {
-            if i64::from(max_lft) > i64::from(time_counter) + i64::from(activity.duration) {
-                continue;
-            }
-        }
-        // Starting here would push the finish time past the supported time
-        // horizon; the activity can never start, which the stall detector reports.
-        if i64::from(time_counter) + i64::from(activity.duration)
-            > i64::from(graph_limits::MAXIMUM_TIME_VALUE)
-        {
+        if !can_start_at(activity, time_counter) {
             continue;
         }
 
@@ -781,8 +1140,9 @@ where
     output
 }
 
-/// Replaces infinite-resource schedules with synthetic resource IDs so that
-/// resource-dependency chaining works in the second compile pass.
+/// Replaces infinite-resource schedules with synthetic resource IDs. Up to
+/// 4.1.1 the compile called this, to chain the activities of each schedule with
+/// resource dependencies. It no longer does, and this stays for other callers.
 pub(crate) fn replace_with_synthetic_resources<K: Key, R: Key, W: Key>(
     resource_schedules: Vec<ResourceSchedule<K, R, W>>,
 ) -> Vec<ResourceSchedule<K, R, W>> {
@@ -829,11 +1189,20 @@ where
     R: Key,
     W: Key,
 {
+    if infinite_resources {
+        return rebuild_lanes(
+            resource_schedules,
+            graph,
+            final_activities,
+            start_time,
+            finish_time,
+        );
+    }
+
     let mut builders: Vec<ResourceScheduleBuilder<K, R, W>> = Vec::new();
     for old_schedule in resource_schedules {
         let mut builder = match &old_schedule.resource {
             None => ResourceScheduleBuilder::new_unmapped(),
-            Some(_) if infinite_resources => ResourceScheduleBuilder::new_unmapped(),
             Some(resource) => ResourceScheduleBuilder::new(resource.clone()),
         };
 
@@ -857,6 +1226,103 @@ where
         }
     }
     Ok(output)
+}
+
+// The activities of one lane, each with its start time on the lane.
+type Lane<'a, K, R, W> = Vec<(i32, &'a Activity<K, R, W>)>;
+
+// With infinite resources, the schedules are lanes with no resource: they show
+// how many activities run at the same time. Each activity goes at its earliest
+// start time, because the lanes add no dependency to the plan.
+//
+// An activity that the scheduler started at its earliest start time stays on its
+// lane. Those activities do not overlap, because the scheduler put no two of them
+// on one lane at once. The scheduler holds an activity with a maximum LFT back to
+// the latest start that meets it, and the critical path can pull an activity back
+// to before its predecessors. Such an activity is at another time here than in
+// the scheduler. It goes on its own lane when that is free for the whole of its
+// new time, and else on the first lane that is, or on a new lane. Thus, no lane
+// has two activities at once, and the lanes are those of the scheduler for a plan
+// with no maximum LFT.
+fn rebuild_lanes<K, R, W>(
+    resource_schedules: &[ResourceSchedule<K, R, W>],
+    graph: &dyn IResourceSchedulingGraph<K, R, W>,
+    final_activities: &[Activity<K, R, W>],
+    start_time: i32,
+    finish_time: i32,
+) -> Result<Vec<ResourceSchedule<K, R, W>>, GraphError>
+where
+    K: Key,
+    R: Key,
+    W: Key,
+{
+    let mut lanes: Vec<Lane<K, R, W>> = Vec::new();
+    let mut moved: Vec<(usize, &Activity<K, R, W>)> = Vec::new();
+
+    for (lane_index, old_schedule) in resource_schedules.iter().enumerate() {
+        let mut lane: Lane<K, R, W> = Vec::new();
+        for scheduled_activity in &old_schedule.scheduled_activities {
+            let activity = &graph.activity(scheduled_activity.id).activity;
+            if scheduled_activity.start_time == activity.earliest_start_time.unwrap_or(0) {
+                lane.push((scheduled_activity.start_time, activity));
+            } else {
+                moved.push((lane_index, activity));
+            }
+        }
+        lanes.push(lane);
+    }
+
+    for (lane_index, activity) in moved {
+        let earliest_start_time = activity.earliest_start_time.unwrap_or(0);
+        let mut target: Option<usize> = None;
+        if is_lane_free(&lanes[lane_index], earliest_start_time, activity.duration) {
+            target = Some(lane_index);
+        }
+        if target.is_none() {
+            target = lanes
+                .iter()
+                .position(|lane| is_lane_free(lane, earliest_start_time, activity.duration));
+        }
+        let target = target.unwrap_or_else(|| {
+            lanes.push(Vec::new());
+            lanes.len() - 1
+        });
+        lanes[target].push((earliest_start_time, activity));
+    }
+
+    let mut output = Vec::new();
+    for mut lane in lanes {
+        if lane.is_empty() {
+            continue;
+        }
+        let mut builder = ResourceScheduleBuilder::new_unmapped();
+        // The sort is stable (as the C# `OrderBy` is): it keeps the order of two
+        // activities that start at the same time.
+        lane.sort_by_key(|(lane_start_time, _)| *lane_start_time);
+        for (lane_start_time, activity) in lane {
+            builder.append_activity_without_checks(activity, lane_start_time);
+        }
+        output.push(builder.to_resource_schedule(final_activities, start_time, finish_time)?);
+    }
+    Ok(output)
+}
+
+// Whether no activity of the lane runs at any time from the start time to the
+// start time plus the duration.
+fn is_lane_free<K: Key, R: Key, W: Key>(
+    lane: &[(i32, &Activity<K, R, W>)],
+    start_time: i32,
+    duration: i32,
+) -> bool {
+    let finish_time = i64::from(start_time) + i64::from(duration);
+    for (lane_start_time, activity) in lane {
+        if i64::from(*lane_start_time) < finish_time
+            && i64::from(start_time) < i64::from(*lane_start_time) + i64::from(activity.duration)
+        {
+            return false;
+        }
+    }
+    true
 }
 
 /// Returns schedules for Indirect resources that were not directly assigned

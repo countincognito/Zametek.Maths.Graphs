@@ -265,6 +265,10 @@ foreach (IResourceSchedule<int, int, int> schedule in result.ResourceSchedules)
 
 A third overload, `Compile(resources, workStreams, cancellationToken)`, additionally reports which `IWorkStream`s were used.
 
+**With no resources, the schedules are lanes.** A compile with no resources still returns `ResourceSchedules`, so that a chart can show how many activities run at the same time. Each schedule is a lane: it has no resource (`Resource` is null), and each activity that takes time is on one lane, at its earliest start time. No lane has two activities at once. The lanes change nothing in the plan. The times, the slack, the critical activities and the finish are those of the critical path alone, and `ResourceDependencies` stays empty. `AllocatedToResources` holds the number of the lane of the activity (1 for the first lane), as it did before.
+
+Up to 4.1.1, the compile made each lane a synthetic resource: an activity depended on the activity before it on its lane. Two activities with no connection then had a dependency, and the first one lost slack, or was shown as critical. With a maximum LFT or a minimum free slack, an activity could also start later, and the plan could finish later than its critical path.
+
 ### Targeting resources and explicit targets
 
 By default the scheduler may place any activity on any (non-explicit) resource. You can constrain this from both sides.
@@ -297,6 +301,17 @@ The resulting `IResourceSchedule` exposes these decisions as per-time-unit strea
 ### Allocation order
 
 When more than one resource could take an activity, the scheduler offers work to resources in ascending `AllocationOrder` (the resources are sorted by it to build the priority list). Lower numbers are preferred, so `AllocationOrder` lets you express "fill resource A before resource B". Dependencies and target-resource constraints are always honoured within that order.
+
+**An activity gives way to one that has no other resource.** At each moment, the scheduler goes through the activities that are ready, in the order of the priority list (least total slack first), and each takes the first free resource in the allocation order that it can use. An activity with `LogicalOperator.OR` can use any one of its targets, and an activity with no targets can use any one resource that is not an explicit target. Thus, such an activity can take the one resource that a later activity in the list needs, while another resource that it could use stays free. The scheduler then moves it to the free resource, and the other activity starts at the same moment. A move can need a chain of moves (A leaves R1 for R2, and B leaves R2 for R3). The scheduler makes the fewest moves, and it tries the resources in the allocation order.
+
+For example, R1 has allocation order 0 and R2 has allocation order 1. Activity 2 can use R1 or R2, activity 3 can use only R1, and both are ready at time 1, with 2 first in the priority list. Activity 2 takes R1, and so 3 has no resource. Activity 2 then moves to R2, and 3 starts on R1 at time 1. Up to 4.1.1, activity 3 waited for R1 while R2 did nothing.
+
+The rule has limits, and they are deliberate:
+
+- It acts only when a resource is free and an activity that could start now waits. With no such activity, each activity is on the first free resource in the allocation order, as before.
+- Only an activity that started at that same moment moves. The scheduler does not look ahead, and it does not move an activity that started earlier. An activity that takes R1 today can still hold up an activity that becomes ready tomorrow and can use only R1.
+- An activity that needs all of its targets (`AND`, `ACTIVE_AND`) does not move. But it can be the one that waits: each activity on one of its targets then moves to a resource that it does not need.
+- No activity starts later at that moment than it did without the rule. But a different choice of resource changes what follows, and so a plan can also finish later than before. In 5,000 random plans with 2 to 4 resources, 901 got another schedule: 605 finished earlier and 46 finished later.
 
 ### Work-stream phases
 
@@ -379,7 +394,7 @@ A draw is rounded to the nearest whole time unit, with halves up, because the sc
 
 **Cost.** An iteration costs about as much as a compile, and the cost grows with the square of the number of activities. On the sample plan of the application (46 activities and 15 resources), one iteration takes about 0.8 ms; on a layered plan of 1,000 activities it takes about 100 ms. The simulator reports its progress to an `IProgress<int>`, and it stops between iterations when its token is cancelled. Behind the simulator, one internal class (`SimulationIterationRunner`) does the scheduling of an iteration, and the tests hold it to a full compile of the same plan with the same durations, so that a faster scheduler can replace it later.
 
-**A plan with no resources.** With no resources, a compile schedules the plan onto synthetic resources, and that can make more activities critical when two activities meet at the same moment. By default a simulation of such a plan stops after the first critical-path calculation: the finish times are those of a compile, and the critical activities are those of the plan alone. Set `ScheduleOntoSyntheticResources` to do what the compile does.
+**A plan with no resources.** With no resources, an iteration is the critical-path calculation alone, as a compile is: the finish times and the critical activities are those of the plan. `ScheduleOntoSyntheticResources` has no effect any more. Up to 4.1.1, a compile with no resources scheduled the plan onto synthetic resources, which could make more activities critical, and the setting made a simulation do the same.
 
 The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator::new` uses the standard engines, and `ScheduleSimulator::with_factory` takes a factory in the same way as the constructor above: a value that implements the trait `IVertexGraphFactory`, such as `VertexGraphFactory::with_engines(engines)`. The trait requires `Send + Sync`, which is the Rust form of "safe for use by many threads".
 
@@ -574,6 +589,15 @@ The standard factories do this for the two kinds of ID that the library knows. `
 The critical-path engines and SCC finders read graph state through the read-only `IArrowGraphState<…>` / `IVertexGraphState<…>` contracts. The transitive reducers and the dummy-edge orchestrator restructure the graph, so they take the concrete `ArrowGraphState<…>` / `VertexGraphState<…>` directly: the state type is public, but its structural-mutation API is `internal`, so an external engine can read the state yet only the library's own engines can restructure it. Injected engines are preserved through `CloneObject()`.
 
 ## Breaking changes
+
+### 4.2.0
+
+Two changes to the result of a compile, in .NET and in Rust. The release does not change the API of 4.1.1. But it changes the schedule of some plans that compiled without errors, and the times of a plan that is compiled with no resources.
+
+- **An activity gives way to one that has no other resource.** The scheduler goes through the ready activities in the order of the priority list, and each takes the first free resource in the allocation order that it can use. An activity that can use any one of several resources (`LogicalOperator.OR`, or no targets) could take the one resource that a later activity in the list needed, while another resource that it could use stayed free. The later activity then waited, and the free resource did nothing. Now the activities that started at that moment move to free resources, so that the activity that waits can start. Nothing changes at a moment when no resource is free, or when no activity waits that could start. In 5,000 random plans with 2 to 4 resources, 901 got another schedule: 605 finished earlier and 46 finished later. See [Allocation order](#allocation-order).
+- **A compile with no resources gives the critical path of the plan alone.** Up to 4.1.1, such a compile made each lane of its schedule a synthetic resource, and an activity depended on the activity before it on its lane. Two activities with no connection then had a dependency: the first one lost slack, and it could be shown as critical. With a maximum LFT or a minimum free slack, an activity could also start later, and the plan could finish later than its critical path. Now the times, the slack, the critical activities and the finish are those of the plan, and `ResourceDependencies` stays empty. The compile still returns the lanes in `ResourceSchedules`, each activity at its earliest start time, with no two activities at once on a lane. `AllocatedToResources` holds the number of the lane, as before. A compile with resources is not affected: it still makes the resource dependencies and calculates the critical path with them. See [Scheduling with resources](#scheduling-with-resources).
+- **`SimulationSettings.ScheduleOntoSyntheticResources` has no effect.** With no resources, an iteration of a simulation is the critical-path calculation alone, as a compile is. The setting stays, so that the API does not change. In Rust, the field `schedule_onto_synthetic_resources` stays in the same way.
+- **`IResourceSchedulingEngine.ReplaceWithSyntheticResources` is no longer called by the compile.** It stays in the interface. An engine of your own that rebuilds the schedules of a compile with no resources (`RebuildAlignedResourceSchedules` with `infiniteResources`) must give lanes that have no two activities at once: no dependency does that for it any more.
 
 ### 4.1.1
 

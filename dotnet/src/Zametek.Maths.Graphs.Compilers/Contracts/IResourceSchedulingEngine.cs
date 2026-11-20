@@ -44,15 +44,21 @@ namespace Zametek.Maths.Graphs
             List<IResource<TResourceId, TWorkStreamId>> filteredResources);
 
         /// <summary>
-        /// Replaces infinite-resource schedules with synthetic resource IDs so
-        /// that resource-dependency chaining works in the second compile pass.
+        /// Replaces infinite-resource schedules with synthetic resource IDs. Up
+        /// to 4.1.1 the compile called this, so that it could chain the
+        /// activities of each schedule with resource dependencies. The compile
+        /// no longer calls it: with infinite resources the schedule adds no
+        /// dependency to the plan. It stays for callers of their own.
         /// </summary>
         List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules);
 
         /// <summary>
         /// Rebuilds resource schedules aligned to the CPM-computed earliest start
-        /// times of the final activities.
+        /// times of the final activities. With <paramref name="infiniteResources"/>
+        /// the schedules are lanes with no resource, and no dependency keeps two
+        /// activities off one lane at the same time: the engine must give lanes
+        /// that have no two activities at once.
         /// </summary>
         IEnumerable<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildAlignedResourceSchedules(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,

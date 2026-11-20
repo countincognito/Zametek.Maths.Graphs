@@ -12,6 +12,10 @@
 //! 3. the resource dependencies that the schedule implies,
 //! 4. the second critical-path calculation, which includes them.
 //!
+//! With no resources, the first calculation is the whole iteration, as it is the
+//! whole result of a compile: no activity waits for a resource, and so the
+//! schedule adds no dependency to the plan.
+//!
 //! Then it checks each maximum LFT, because a maximum that the durations cannot
 //! meet pulls its activity back, and the finish time with it. Such an iteration
 //! fails, as a compile reports an error for it.
@@ -37,7 +41,6 @@ pub(crate) struct SimulationIterationRunner<K: Key, R: Key, W: Key> {
     activity_ids: Vec<K>,
     active_resources: Vec<Resource<R, W>>,
     stop_after_the_first_pass: bool,
-    replace_with_synthetic_resources: bool,
     constrained_activities: Vec<usize>,
     missed_maximum_latest_finish_times: Vec<usize>,
     failure: SimulationIterationFailure,
@@ -51,7 +54,6 @@ impl<K: Key, R: Key, W: Key> SimulationIterationRunner<K, R, W> {
         mut builder: VertexGraphBuilder<K, R, W>,
         activities: &[DependentActivity<K, R, W>],
         resources: &[Resource<R, W>],
-        schedule_onto_synthetic_resources: bool,
     ) -> Result<Self, GraphError> {
         if builder.activities().next().is_some() {
             return Err(GraphError::new(
@@ -93,8 +95,7 @@ impl<K: Key, R: Key, W: Key> SimulationIterationRunner<K, R, W> {
                 .filter(|x| !x.is_inactive)
                 .cloned()
                 .collect(),
-            stop_after_the_first_pass: infinite && !schedule_onto_synthetic_resources,
-            replace_with_synthetic_resources: infinite,
+            stop_after_the_first_pass: infinite,
             constrained_activities,
             missed_maximum_latest_finish_times: Vec::new(),
             failure: SimulationIterationFailure::None,
@@ -164,7 +165,7 @@ impl<K: Key, R: Key, W: Key> SimulationIterationRunner<K, R, W> {
         self.builder.calculate_critical_path()?;
 
         if !self.stop_after_the_first_pass {
-            let mut schedules = match self
+            let schedules = match self
                 .builder
                 .calculate_resource_schedules_by_priority_list(&self.active_resources)
             {
@@ -175,16 +176,6 @@ impl<K: Key, R: Key, W: Key> SimulationIterationRunner<K, R, W> {
                 }
                 Err(error) => return Err(error),
             };
-
-            // Without resources the first calculation could not hold resource
-            // dependencies, and so the compile makes synthetic resources for
-            // them to work.
-            if self.replace_with_synthetic_resources {
-                schedules = self
-                    .builder
-                    .resource_scheduling_engine()
-                    .replace_with_synthetic_resources(schedules);
-            }
 
             self.builder.assign_resource_dependencies(&schedules);
             self.builder.calculate_critical_path()?;

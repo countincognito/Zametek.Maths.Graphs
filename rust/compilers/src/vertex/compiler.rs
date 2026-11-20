@@ -258,8 +258,9 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
         }
 
         // First CPM pass -> schedule -> wire resource dependencies -> second CPM pass.
+        // With infinite resources there are no resource dependencies, and the first pass stands.
         self.builder.calculate_critical_path()?;
-        let mut resource_schedules = match self
+        let resource_schedules = match self
             .builder
             .calculate_resource_schedules_by_priority_list(&filtered_resources)
         {
@@ -282,21 +283,25 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
             Err(error) => return Err(error),
         };
 
-        // If the previous calculation was performed with infinite resources,
-        // then it will not be possible to handle resource dependencies. So here
-        // we need to create fake resources for resource dependencies to work in
-        // the next step.
-        if infinite_resources {
-            resource_schedules = self
-                .builder
-                .resource_scheduling_engine()
-                .replace_with_synthetic_resources(resource_schedules);
+        // With infinite resources, no activity waits for a resource, and so the
+        // schedule adds no dependency to the plan: the times of the first
+        // calculation are the result. The schedules are only lanes, which show
+        // how many activities run at the same time.
+        //
+        // Up to 4.1.1, each lane was made a synthetic resource here, and an
+        // activity depended on the activity before it on its lane. That kept two
+        // activities off one lane at the same time, but it also changed the plan:
+        // two activities with no connection had a dependency, and the first lost
+        // slack. With a maximum LFT or a minimum free slack, an activity could
+        // start later, and the plan could finish later. The lanes are now kept
+        // free of overlaps where they are rebuilt
+        // (`rebuild_aligned_resource_schedules`).
+        if !infinite_resources {
+            // Determine the resource dependencies and add them to the compiled dependencies.
+            self.builder
+                .assign_resource_dependencies(&resource_schedules);
+            self.builder.calculate_critical_path()?;
         }
-
-        // Determine the resource dependencies and add them to the compiled dependencies.
-        self.builder
-            .assign_resource_dependencies(&resource_schedules);
-        self.builder.calculate_critical_path()?;
 
         // The per-value limits bound each declared duration and constraint, but not
         // their sum: enough activities in sequence can still push the compiled
@@ -358,6 +363,24 @@ impl<K: Key, R: Key, W: Key> VertexGraphCompiler<K, R, W> {
             start_time,
             finish_time,
         )?;
+
+        // With infinite resources, each activity is allocated to the number of
+        // its lane (1 for the first lane), as it was when the lanes were
+        // synthetic resources.
+        if infinite_resources {
+            let mut lane_id = R::default();
+            for lane in &new_schedules {
+                lane_id = lane_id.next();
+                for scheduled_activity in &lane.scheduled_activities {
+                    self.builder
+                        .activity_mut(scheduled_activity.id)
+                        .expect("activity must exist")
+                        .allocated_to_resources
+                        .insert(lane_id);
+                }
+            }
+        }
+
         let indirect_schedules = engine.collect_indirect_resource_schedules(
             &filtered_resources,
             &new_schedules,

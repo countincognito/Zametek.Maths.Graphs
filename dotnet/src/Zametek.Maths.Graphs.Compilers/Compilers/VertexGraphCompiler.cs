@@ -259,6 +259,7 @@ namespace Zametek.Maths.Graphs
                 }
 
                 // First CPM pass → schedule → wire resource dependencies → second CPM pass.
+                // With infinite resources there are no resource dependencies, and the first pass stands.
                 m_VertexGraphBuilder.CalculateCriticalPath();
 
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules;
@@ -282,17 +283,21 @@ namespace Zametek.Maths.Graphs
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // If the previous calculation was performed with infinite resources, then it will not be possible
-                // to handle resource dependencies. So here we need to create fake resources for resource dependencies
-                // to work in the next step.
-                if (infiniteResources)
+                // With infinite resources, no activity waits for a resource, and so the schedule adds no dependency to the
+                // plan: the times of the first calculation are the result. The schedules are only lanes, which show how
+                // many activities run at the same time.
+                //
+                // Up to 4.1.1, each lane was made a synthetic resource here, and an activity depended on the activity
+                // before it on its lane. That kept two activities off one lane at the same time, but it also changed the
+                // plan: two activities with no connection had a dependency, and the first lost slack. With a maximum LFT
+                // or a minimum free slack, an activity could start later, and the plan could finish later. The lanes are
+                // now kept free of overlaps where they are rebuilt (RebuildAlignedResourceSchedules).
+                if (!infiniteResources)
                 {
-                    resourceSchedules = m_VertexGraphBuilder.ResourceSchedulingEngine.ReplaceWithSyntheticResources(resourceSchedules);
+                    // Determine the resource dependencies and add them to the compiled dependencies.
+                    m_VertexGraphBuilder.AssignResourceDependencies(resourceSchedules);
+                    m_VertexGraphBuilder.CalculateCriticalPath();
                 }
-
-                // Determine the resource dependencies and add them to the compiled dependencies.
-                m_VertexGraphBuilder.AssignResourceDependencies(resourceSchedules);
-                m_VertexGraphBuilder.CalculateCriticalPath();
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -347,6 +352,22 @@ namespace Zametek.Maths.Graphs
                         m_VertexGraphBuilder,
                         finalActivities, startTime, finishTime)
                     .ToList();
+
+                // With infinite resources, each activity is allocated to the number of its lane (1 for the first lane),
+                // as it was when the lanes were synthetic resources.
+                if (infiniteResources)
+                {
+                    TResourceId laneId = default;
+                    foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> lane in newSchedules)
+                    {
+                        laneId = laneId.Next();
+                        foreach (IScheduledActivity<T> scheduledActivity in lane.ScheduledActivities)
+                        {
+                            m_VertexGraphBuilder.Activity(scheduledActivity.Id).AllocatedToResources.Add(laneId);
+                        }
+                    }
+                }
+
                 List<IResourceSchedule<T, TResourceId, TWorkStreamId>> indirectSchedules =
                     m_VertexGraphBuilder.ResourceSchedulingEngine.CollectIndirectResourceSchedules(
                         filteredResources, newSchedules, finalActivities, startTime, finishTime)
