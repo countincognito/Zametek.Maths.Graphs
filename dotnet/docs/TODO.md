@@ -134,7 +134,7 @@ With a maximum LFT, a minimum EST or a minimum free slack on some activities (5,
 
 A plan gets another schedule only if, at some moment, an activity waited while a resource was free that a chain of moves could put to use. ProjectPlan pins the outputs of about 250 `zpp` runs, and those of such plans change: the resource of some activities, and then the times of what follows. The schedule of a simulation iteration changes in the same way, because an iteration uses the same scheduler.
 
-The API does not change. But the release changes the schedule of some plans that compiled without errors, which no release of 4.x has done. Thus, it is not a patch release in the sense of 4.1.1. A minor release (4.2.0) fits the form of the change, and the maintainer decides if the change of the schedules needs more than that.
+The API does not change. But the release changes the schedule of some plans that compiled without errors, which no release of 4.x has done. Thus, it is not a patch release in the sense of 4.1.1. It goes out in a minor release (4.2.0).
 
 ## A compile with no resources changed the times of the plan through synthetic resources - DONE
 
@@ -184,7 +184,7 @@ The maintainer chose on 2026-11-20: a compile with no resources returns the crit
 
 For a plan with no resources (in ProjectPlan: the resources are disabled), the activities have no resource dependencies. LST, LFT, the slack and the critical flags are those of the plan, and so fewer activities are critical in some plans. With a maximum LFT or a minimum free slack, the earliest times and the finish can be earlier than before. The lanes are the same unless a maximum LFT holds an activity back in the scheduler. A plan with resources is not affected. The outputs of the `zpp` runs that ProjectPlan pins change for plans with no resources.
 
-The API does not change. As for the change above, a minor release (4.2.0) fits, and the maintainer decides.
+The API does not change. The change goes out in 4.2.0, with the one above.
 
 ## Priority-list calculation (was cubic; Phases 0 to 3 done)
 

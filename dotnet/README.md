@@ -590,6 +590,15 @@ The critical-path engines and SCC finders read graph state through the read-only
 
 ## Breaking changes
 
+### 4.2.0
+
+Two changes to the result of a compile, in .NET and in Rust. The release does not change the API of 4.1.1. But it changes the schedule of some plans that compiled without errors, and the times of a plan that is compiled with no resources.
+
+- **An activity gives way to one that has no other resource.** The scheduler goes through the ready activities in the order of the priority list, and each takes the first free resource in the allocation order that it can use. An activity that can use any one of several resources (`LogicalOperator.OR`, or no targets) could take the one resource that a later activity in the list needed, while another resource that it could use stayed free. The later activity then waited, and the free resource did nothing. Now the activities that started at that moment move to free resources, so that the activity that waits can start. Nothing changes at a moment when no resource is free, or when no activity waits that could start. In 5,000 random plans with 2 to 4 resources, 901 got another schedule: 605 finished earlier and 46 finished later. See [Allocation order](#allocation-order).
+- **A compile with no resources gives the critical path of the plan alone.** Up to 4.1.1, such a compile made each lane of its schedule a synthetic resource, and an activity depended on the activity before it on its lane. Two activities with no connection then had a dependency: the first one lost slack, and it could be shown as critical. With a maximum LFT or a minimum free slack, an activity could also start later, and the plan could finish later than its critical path. Now the times, the slack, the critical activities and the finish are those of the plan, and `ResourceDependencies` stays empty. The compile still returns the lanes in `ResourceSchedules`, each activity at its earliest start time, with no two activities at once on a lane. `AllocatedToResources` holds the number of the lane, as before. A compile with resources is not affected: it still makes the resource dependencies and calculates the critical path with them. See [Scheduling with resources](#scheduling-with-resources).
+- **`SimulationSettings.ScheduleOntoSyntheticResources` has no effect.** With no resources, an iteration of a simulation is the critical-path calculation alone, as a compile is. The setting stays, so that the API does not change. In Rust, the field `schedule_onto_synthetic_resources` stays in the same way.
+- **`IResourceSchedulingEngine.ReplaceWithSyntheticResources` is no longer called by the compile.** It stays in the interface. An engine of your own that rebuilds the schedules of a compile with no resources (`RebuildAlignedResourceSchedules` with `infiniteResources`) must give lanes that have no two activities at once: no dependency does that for it any more.
+
 ### 4.1.1
 
 A fix, in .NET and in Rust. The release does not change the API of 4.1.0. A compile that did not throw before gives the same result as before, and a simulation gives the same iterations.
