@@ -221,6 +221,385 @@ namespace Zametek.Maths.Graphs
                     keepLooking = true;
                 }
             }
+
+            // With infinite resources each ready activity gets a builder, and so none waits for one.
+            if (!infiniteResources)
+            {
+                GiveWayToWaitingActivities(ready, builders, graph, started, timeCounter);
+            }
+        }
+
+        // Each ready activity has now taken the first free builder in the allocation order that it can use. A ready
+        // activity can still wait while a builder is free: an activity that started at this tick took the builder that
+        // it needs, and that activity can also use the free one. Then the activity that started moves to the free builder,
+        // and the activity that waits starts on the builder that it leaves. Neither starts later than it did, and a
+        // resource does not stay idle for an activity that could not use it.
+        //
+        // A move can need a chain of moves: A leaves R1 for R2, and B leaves R2 for the free R3. The search is breadth
+        // first, and so it makes the fewest moves, and it tries the builders in the allocation order. Only an activity
+        // that can use any one of several builders moves. An activity that needs all of its targets stays, but it can be
+        // the one that waits: then each activity on one of its builders must move to a builder that it does not need.
+        //
+        // Nothing happens when no builder is free, or when no activity waits that could start now. Thus, the schedule is
+        // the one of the first-free rule alone, except at a tick where that rule leaves a builder idle that a chain of
+        // moves can put to use.
+        private static void GiveWayToWaitingActivities(
+            List<T?> ready,
+            List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
+            HashSet<T> started,
+            int timeCounter)
+        {
+            int builderCount = builders.Count;
+            bool anyFree = false;
+            for (int index = 0; index < builderCount && !anyFree; index++)
+            {
+                anyFree = builders[index].EarliestAvailableStartTimeForNextActivity <= timeCounter;
+            }
+            if (!anyFree)
+            {
+                return;
+            }
+
+            // The activities that wait and whose time gates are open. An activity of zero duration takes no time on a
+            // builder, and the first-free rule alone decides where it goes.
+            var waiting = new List<int>();
+            for (int i = 0; i < ready.Count; i++)
+            {
+                if (!ready[i].HasValue)
+                {
+                    continue;
+                }
+                IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(ready[i].GetValueOrDefault());
+                if (!activity.IsDummy && CanStartAt(activity, timeCounter))
+                {
+                    waiting.Add(i);
+                }
+            }
+            if (waiting.Count == 0)
+            {
+                return;
+            }
+
+            var seats = new TickSeats(builders, graph, timeCounter);
+            var newlySeated = new List<(int ReadyIndex, List<int> Seats)>();
+
+            foreach (int readyIndex in waiting)
+            {
+                T activityId = ready[readyIndex].GetValueOrDefault();
+                IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(activityId);
+
+                List<int>? taken = CanUseAnyOneOfItsBuilders(activity)
+                    ? seats.TrySeatOnOne(activityId)
+                    : seats.TrySeatOnAll(activityId, activity);
+
+                if (taken != null)
+                {
+                    newlySeated.Add((readyIndex, taken));
+                }
+            }
+
+            if (newlySeated.Count == 0)
+            {
+                return;
+            }
+
+            // First take each activity that moves off its builder. It is the last one there, because it started at this
+            // tick and it takes time. Then put each on its new builder, and start the activities that waited.
+            List<T> movers = seats.Movers();
+            foreach (T mover in movers)
+            {
+                builders[seats.OriginalSeatOf(mover)].RemoveLastActivity();
+            }
+            foreach (T mover in movers)
+            {
+                builders[seats.SeatOf(mover)].AppendActivity(graph.Activity(mover), timeCounter);
+            }
+            foreach ((int readyIndex, List<int> taken) in newlySeated)
+            {
+                T activityId = ready[readyIndex].GetValueOrDefault();
+                IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(activityId);
+
+                // A later move can have moved an activity that waited to another builder.
+                List<int> finalSeats = CanUseAnyOneOfItsBuilders(activity)
+                    ? new List<int> { seats.SeatOf(activityId) }
+                    : taken;
+                foreach (int seat in finalSeats)
+                {
+                    builders[seat].AppendActivity(activity, timeCounter);
+                }
+                started.Add(activityId);
+                ready[readyIndex] = null;
+            }
+        }
+
+        // Whether the time gates of the activity are open at this tick: its earliest start time is reached, a maximum
+        // latest finish time does not hold it back to a later start, and it finishes within the supported time horizon.
+        private static bool CanStartAt(IActivity<T, TResourceId, TWorkStreamId> activity, int timeCounter)
+        {
+            if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
+            {
+                return false;
+            }
+            if (activity.MaximumLatestFinishTime.HasValue
+                && activity.MaximumLatestFinishTime.GetValueOrDefault() > ((long)timeCounter + activity.Duration))
+            {
+                return false;
+            }
+            // Starting here would push the finish time past the supported time
+            // horizon; the activity can never start, which the stall detector reports.
+            if ((long)timeCounter + activity.Duration > GraphLimits.MaximumTimeValue)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        // An activity with no targets can use any one builder that is not an explicit target, and an activity with the
+        // OR operator can use any one of its targets. An activity with AND or ACTIVE_AND needs all of its targets at once.
+        private static bool CanUseAnyOneOfItsBuilders(IActivity<T, TResourceId, TWorkStreamId> activity)
+        {
+            return activity.TargetResources.Count == 0
+                || activity.TargetResourceOperator == LogicalOperator.OR;
+        }
+
+        // The builders of one tick, for GiveWayToWaitingActivities: which are free, and which hold an activity that
+        // started at this tick and can move. The moves are made here first, and on the builders themselves only when the
+        // search is over.
+        private sealed class TickSeats
+        {
+            private readonly List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> m_Builders;
+            private readonly IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> m_Graph;
+            private readonly bool[] m_IsFree;
+            private readonly T?[] m_HolderOf;
+            private readonly Dictionary<T, int> m_SeatOf = new Dictionary<T, int>();
+            private readonly Dictionary<T, int> m_OriginalSeatOf = new Dictionary<T, int>();
+            private readonly Dictionary<T, List<int>> m_UsableBuilders = new Dictionary<T, List<int>>();
+
+            // The builders that a search must not use. A search that fails leaves its marks: the builders that it reached
+            // lead to no free builder, also for the next activity that waits. A search that succeeds clears them, because
+            // its moves change what can be reached.
+            private readonly bool[] m_Closed;
+            private readonly int[] m_Previous;
+            private readonly Queue<int> m_Queue = new Queue<int>();
+
+            internal TickSeats(
+                List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>> builders,
+                IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
+                int timeCounter)
+            {
+                m_Builders = builders;
+                m_Graph = graph;
+                m_IsFree = new bool[builders.Count];
+                m_HolderOf = new T?[builders.Count];
+                m_Closed = new bool[builders.Count];
+                m_Previous = new int[builders.Count];
+
+                for (int index = 0; index < builders.Count; index++)
+                {
+                    m_IsFree[index] = builders[index].EarliestAvailableStartTimeForNextActivity <= timeCounter;
+                    if (m_IsFree[index])
+                    {
+                        continue;
+                    }
+                    // A builder that is not free holds an activity that takes time. It started at this tick when its
+                    // start time is this tick, and then it can move when it can use any one of several builders.
+                    IScheduledActivity<T>? last = builders[index].LastScheduledActivity;
+                    if (last != null
+                        && last.StartTime == timeCounter
+                        && CanUseAnyOneOfItsBuilders(graph.Activity(last.Id)))
+                    {
+                        m_HolderOf[index] = last.Id;
+                        m_SeatOf.Add(last.Id, index);
+                        m_OriginalSeatOf.Add(last.Id, index);
+                    }
+                }
+            }
+
+            internal int SeatOf(T activityId) => m_SeatOf[activityId];
+
+            internal int OriginalSeatOf(T activityId) => m_OriginalSeatOf[activityId];
+
+            // The activities that started at this tick and are now on another builder.
+            internal List<T> Movers()
+            {
+                var movers = new List<T>();
+                foreach (KeyValuePair<T, int> original in m_OriginalSeatOf)
+                {
+                    if (m_SeatOf[original.Key] != original.Value)
+                    {
+                        movers.Add(original.Key);
+                    }
+                }
+                return movers;
+            }
+
+            // Seats an activity that can use any one of its builders. Returns its builder, or null.
+            internal List<int>? TrySeatOnOne(T activityId)
+            {
+                int seat = FreeOneFor(activityId);
+                if (seat < 0)
+                {
+                    return null;
+                }
+                Occupy(seat, activityId);
+                Array.Clear(m_Closed, 0, m_Closed.Length);
+                return new List<int> { seat };
+            }
+
+            // Seats an activity that needs all of its builders: each activity on one of them moves to a builder that is not
+            // one of them. Returns the builders, or null when one of them cannot be made free. Then nothing has moved.
+            internal List<int>? TrySeatOnAll(T activityId, IActivity<T, TResourceId, TWorkStreamId> activity)
+            {
+                List<int> needed = UsableBuilders(activityId);
+
+                // With AND, each target must be a resource of the plan. With ACTIVE_AND, the targets that are resources of
+                // the plan are enough, and there must be one.
+                if (needed.Count == 0
+                    || (activity.TargetResourceOperator == LogicalOperator.AND && needed.Count != activity.TargetResources.Count))
+                {
+                    return null;
+                }
+
+                bool[] isFreeBefore = (bool[])m_IsFree.Clone();
+                T?[] holderOfBefore = (T?[])m_HolderOf.Clone();
+                var seatOfBefore = new Dictionary<T, int>(m_SeatOf);
+                bool[] closedBefore = (bool[])m_Closed.Clone();
+
+                bool allFree = true;
+                foreach (int index in needed)
+                {
+                    if (m_IsFree[index])
+                    {
+                        continue;
+                    }
+                    T? holder = m_HolderOf[index];
+                    if (!holder.HasValue)
+                    {
+                        allFree = false;
+                        break;
+                    }
+                    // The holder must not move to a builder that the activity needs.
+                    Array.Clear(m_Closed, 0, m_Closed.Length);
+                    foreach (int reserved in needed)
+                    {
+                        m_Closed[reserved] = true;
+                    }
+                    int seat = FreeOneFor(holder.GetValueOrDefault());
+                    if (seat < 0)
+                    {
+                        allFree = false;
+                        break;
+                    }
+                    Occupy(seat, holder.GetValueOrDefault());
+                    m_HolderOf[index] = null;
+                    m_IsFree[index] = true;
+                }
+
+                if (!allFree)
+                {
+                    Array.Copy(isFreeBefore, m_IsFree, m_IsFree.Length);
+                    Array.Copy(holderOfBefore, m_HolderOf, m_HolderOf.Length);
+                    m_SeatOf.Clear();
+                    foreach (KeyValuePair<T, int> seat in seatOfBefore)
+                    {
+                        m_SeatOf.Add(seat.Key, seat.Value);
+                    }
+                    Array.Copy(closedBefore, m_Closed, m_Closed.Length);
+                    return null;
+                }
+
+                // An activity that needs all of its builders does not move, and so it is no holder.
+                foreach (int index in needed)
+                {
+                    m_IsFree[index] = false;
+                    m_HolderOf[index] = null;
+                }
+                Array.Clear(m_Closed, 0, m_Closed.Length);
+                return needed;
+            }
+
+            private void Occupy(int index, T activityId)
+            {
+                m_IsFree[index] = false;
+                m_HolderOf[index] = activityId;
+                m_SeatOf[activityId] = index;
+            }
+
+            // The builders that the activity can use, in the allocation order: its targets, or each builder that is not an
+            // explicit target when it has no targets.
+            private List<int> UsableBuilders(T activityId)
+            {
+                if (!m_UsableBuilders.TryGetValue(activityId, out List<int>? usable))
+                {
+                    IActivity<T, TResourceId, TWorkStreamId> activity = m_Graph.Activity(activityId);
+                    bool targeted = activity.TargetResources.Count != 0;
+                    usable = new List<int>();
+                    for (int index = 0; index < m_Builders.Count; index++)
+                    {
+                        ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder = m_Builders[index];
+                        if (targeted
+                            ? builder.ResourceId != null && activity.TargetResources.Contains(builder.ResourceId.GetValueOrDefault())
+                            : !builder.IsExplicitTarget)
+                        {
+                            usable.Add(index);
+                        }
+                    }
+                    m_UsableBuilders.Add(activityId, usable);
+                }
+                return usable;
+            }
+
+            // Makes one builder free that the activity can use, and returns it, or -1. The search goes from the builders of
+            // the activity, through the builders that the holders of those can use, to a builder that is free. Then each
+            // holder on the way moves one step along it, and the first builder of the way is free.
+            private int FreeOneFor(T activityId)
+            {
+                m_Queue.Clear();
+                foreach (int index in UsableBuilders(activityId))
+                {
+                    if (!m_Closed[index])
+                    {
+                        m_Closed[index] = true;
+                        m_Previous[index] = -1;
+                        m_Queue.Enqueue(index);
+                    }
+                }
+
+                while (m_Queue.Count != 0)
+                {
+                    int index = m_Queue.Dequeue();
+                    if (m_IsFree[index])
+                    {
+                        int current = index;
+                        while (m_Previous[current] != -1)
+                        {
+                            int previous = m_Previous[current];
+                            Occupy(current, m_HolderOf[previous].GetValueOrDefault());
+                            current = previous;
+                        }
+                        m_HolderOf[current] = null;
+                        m_IsFree[current] = true;
+                        return current;
+                    }
+
+                    T? holder = m_HolderOf[index];
+                    if (!holder.HasValue)
+                    {
+                        continue;
+                    }
+                    foreach (int next in UsableBuilders(holder.GetValueOrDefault()))
+                    {
+                        if (!m_Closed[next])
+                        {
+                            m_Closed[next] = true;
+                            m_Previous[next] = index;
+                            m_Queue.Enqueue(next);
+                        }
+                    }
+                }
+                return -1;
+            }
         }
 
         private static bool TryScheduleUnrestricted(
@@ -242,18 +621,7 @@ namespace Zametek.Maths.Graphs
                 {
                     continue;
                 }
-                if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
-                {
-                    continue;
-                }
-                if (activity.MaximumLatestFinishTime.HasValue
-                    && activity.MaximumLatestFinishTime.GetValueOrDefault() > ((long)timeCounter + activity.Duration))
-                {
-                    continue;
-                }
-                // Starting here would push the finish time past the supported time
-                // horizon; the activity can never start, which the stall detector reports.
-                if ((long)timeCounter + activity.Duration > GraphLimits.MaximumTimeValue)
+                if (!CanStartAt(activity, timeCounter))
                 {
                     continue;
                 }
@@ -288,18 +656,7 @@ namespace Zametek.Maths.Graphs
                 {
                     continue;
                 }
-                if (activity.EarliestStartTime.GetValueOrDefault() > timeCounter)
-                {
-                    continue;
-                }
-                if (activity.MaximumLatestFinishTime.HasValue
-                    && activity.MaximumLatestFinishTime.GetValueOrDefault() > ((long)timeCounter + activity.Duration))
-                {
-                    continue;
-                }
-                // Starting here would push the finish time past the supported time
-                // horizon; the activity can never start, which the stall detector reports.
-                if ((long)timeCounter + activity.Duration > GraphLimits.MaximumTimeValue)
+                if (!CanStartAt(activity, timeCounter))
                 {
                     continue;
                 }

@@ -107,6 +107,10 @@ namespace Zametek.Maths.Graphs
         /// </summary>
         public int EarliestAvailableStartTimeForNextActivity => LastActivityFinishTime;
 
+        // The last scheduled activity, or null when empty. The scheduler reads it to find the activity that started on
+        // this resource at the current tick.
+        internal IScheduledActivity<T>? LastScheduledActivity => m_ScheduledActivities.Last?.Value;
+
         #endregion
 
         #region Private Methods
@@ -650,6 +654,16 @@ namespace Zametek.Maths.Graphs
                 activity.Id, activity.Name, activity.HasNoCost, activity.HasNoBilling,
                 activity.HasNoEffort, activity.Duration, startTime, startTime + activity.Duration);
             AddActivity(scheduledActivity);
+        }
+
+        // Takes the last scheduled activity off this resource. The scheduler does this when an activity that started at
+        // the current tick moves to another resource, to let an activity start that can use only this one.
+        internal void RemoveLastActivity()
+        {
+            if (m_ScheduledActivities.Count != 0)
+            {
+                m_ScheduledActivities.RemoveLast();
+            }
         }
 
         /// <summary>

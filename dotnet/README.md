@@ -298,6 +298,17 @@ The resulting `IResourceSchedule` exposes these decisions as per-time-unit strea
 
 When more than one resource could take an activity, the scheduler offers work to resources in ascending `AllocationOrder` (the resources are sorted by it to build the priority list). Lower numbers are preferred, so `AllocationOrder` lets you express "fill resource A before resource B". Dependencies and target-resource constraints are always honoured within that order.
 
+**An activity gives way to one that has no other resource.** At each moment, the scheduler goes through the activities that are ready, in the order of the priority list (least total slack first), and each takes the first free resource in the allocation order that it can use. An activity with `LogicalOperator.OR` can use any one of its targets, and an activity with no targets can use any one resource that is not an explicit target. Thus, such an activity can take the one resource that a later activity in the list needs, while another resource that it could use stays free. The scheduler then moves it to the free resource, and the other activity starts at the same moment. A move can need a chain of moves (A leaves R1 for R2, and B leaves R2 for R3). The scheduler makes the fewest moves, and it tries the resources in the allocation order.
+
+For example, R1 has allocation order 0 and R2 has allocation order 1. Activity 2 can use R1 or R2, activity 3 can use only R1, and both are ready at time 1, with 2 first in the priority list. Activity 2 takes R1, and so 3 has no resource. Activity 2 then moves to R2, and 3 starts on R1 at time 1. Up to 4.1.1, activity 3 waited for R1 while R2 did nothing.
+
+The rule has limits, and they are deliberate:
+
+- It acts only when a resource is free and an activity that could start now waits. With no such activity, each activity is on the first free resource in the allocation order, as before.
+- Only an activity that started at that same moment moves. The scheduler does not look ahead, and it does not move an activity that started earlier. An activity that takes R1 today can still hold up an activity that becomes ready tomorrow and can use only R1.
+- An activity that needs all of its targets (`AND`, `ACTIVE_AND`) does not move. But it can be the one that waits: each activity on one of its targets then moves to a resource that it does not need.
+- No activity starts later at that moment than it did without the rule. But a different choice of resource changes what follows, and so a plan can also finish later than before. In 5,000 random plans with 2 to 4 resources, 901 got another schedule: 605 finished earlier and 46 finished later.
+
 ### Work-stream phases
 
 Work streams (`IWorkStream`) group activities into phases of a project; an activity declares the phases it belongs to via `TargetWorkStreams`. A resource declares the phases it is associated with via `InterActivityPhases` (a set of work-stream ids). This matters mostly for indirect resources, where the phases tie an overhead resource to the parts of the project it spans. When you call `Compile(resources, workStreams, cancellationToken)`, the result's `WorkStreams` is exactly the set of phases actually used - the intersection of the work streams referenced by activities and those referenced by the scheduled resources.

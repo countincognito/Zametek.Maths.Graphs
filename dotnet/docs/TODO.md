@@ -6,7 +6,7 @@ Work identified during investigation, with what was observed, why it matters, an
 
 This document is the investigation record for the items that were actually worked: the measurements before and after, the corpora and baselines that guard them, the counter-examples that settled design arguments, and the reasoning behind what was changed - including the reasoning behind approaches that were tried and abandoned. Where an entry here has a wider status, `PERFORMANCE.md` holds it; where an item there needs its evidence, it points back to a section here. Neither document is complete on its own, and the two use overlapping phase numbers for different sequences - "Phase 3" here is the incremental recalculation, "Phase 3" there is the topological CPM.
 
-**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items.
+**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items. A change to the resource that an activity takes came from an examination in ProjectPlan on 2026-11-20. It is done, and its section follows that of the crash.
 
 The other open item is a performance gap in Rust, and not a defect. The incremental critical-path walk of Rust reaches its nodes by ID, with a hash for each one. The C# session holds them by reference. Thus, Rust is now about twice as slow as C# on deep graphs. The section "Rust: the incremental walk reaches its nodes by ID" records it. Everything else that this investigation found is done, in both languages:
 
@@ -85,6 +85,56 @@ The Rust port had the same code in `rust/compilers/src/scheduling/schedule_build
 - The iterations of a simulation did not crash. A new test passed before the change too. In it, a milestone with a maximum LFT of 0 can draw a duration. Each iteration that draws one fails with `InvalidConstraints`. In each way to schedule the iterations, 73 of 200 fail, in C# and in Rust.
 
 - The fix goes out in a patch release (4.1.1), because the API does not change. ProjectPlan then updates its package.
+
+## An activity took the one resource that another ready activity could use, while a resource was free - DONE
+
+**Found on 2026-11-20 by an examination in ProjectPlan, with 4.1.1.** The examination looked at a vertex graph that showed other times than the schedule. The cause was in the application, which compiled its compiled activities a second time. But the second schedule was two days longer than the first, and the reason for that was in the scheduler of this library.
+
+The scheduler goes through the ready activities in the order of the priority list, and each takes the first free resource in the allocation order that it can use. An activity that can use any one of several resources (`LogicalOperator.OR`, or no targets) took the first one, also when a later activity in the list could use only that one and another resource was free. The later activity then waited, and the free resource did nothing.
+
+The smallest case has two resources, R1 (allocation order 0) and R2 (allocation order 1), and four activities of 1 time unit: 1 (R1), 2 (R1 or R2, after 1), 3 (R1, after 1) and 4 (R2, after 2 and 3). The compile gave R1: 1, 2, 3 and R2: 4, and it finished at time 4. The schedule R1: 1, 3 and R2: 2, 4 finishes at time 3.
+
+### What was decided
+
+The maintainer chose the rule and its form on 2026-11-20, from three rules that were measured first. Each was run on 5,000 random plans (4 to 30 activities, 2 to 4 resources, a third of the activities with no targets, a quarter with one target, a third with several targets and OR, the rest with AND or ACTIVE_AND), and on a copy of the plan of the examination (61 activities, 39 of them with the targets "1 or 2" and 11 with the target 1 alone).
+
+| Rule | Plans with another schedule | Finish earlier | Finish later | The plan of the examination |
+| - | - | - | - | - |
+| Give way: an activity that started at the same moment moves to a free resource | 901 | 605 | 46 | The same schedule (finish 91). The second compile of the application gives 91, not 93 |
+| Lookahead: take the free resource with the least work to come that only it can do | 2,335 | 1,068 | 372 | The same finish, 6 activities at other times |
+| Both | 2,454 | 1,172 | 359 | The same finish, 6 activities at other times |
+
+The lookahead gains more, but it also loses more, and it goes against the allocation order whenever some work can use only one resource. It does not fix the smallest case: the two resources tie there. Thus, the choice was the first rule, as the default and with no option: the old rule is gone.
+
+With a maximum LFT, a minimum EST or a minimum free slack on some activities (5,000 more plans), the rule made 21 plans report `C0010` that did not before, and it made 24 plans compile that reported an error before. A constraint can be met in one schedule and missed in another.
+
+### What was changed
+
+- `PriorityListResourceScheduler.AssignReadyActivitiesToResources` calls `GiveWayToWaitingActivities` after the first-free pass, for finite resources. It acts only when a builder is free and a ready activity whose time gates are open still waits. It searches, breadth first and in the allocation order, from the builders of that activity, through the builders that their holders can use, to a free builder. Then each holder on the way moves one step. Only an activity that started at that tick moves, and only if it can use any one of several builders. An activity that needs all of its targets can be the one that waits: each holder of one of its builders must then move to a builder that it does not need, or nothing moves. An activity of zero duration is left to the first-free rule.
+
+- The comments of the method give the reasoning. The nested class `TickSeats` holds the builders of one tick, and the moves are made on the builders only when the search is over. `ResourceScheduleBuilder` has two internal members for this (`LastScheduledActivity`, `RemoveLastActivity`). The public API is the same.
+
+- The Rust port has the same rule in `rust/compilers/src/scheduling/scheduler.rs`.
+
+- No activity starts later at that tick than it did. But another choice of resource changes what follows, and so a plan can finish later (46 of the 5,000). The smallest such plan found has four resources and four activities: an activity moves to a resource that a critical activity needs two ticks later.
+
+- The rule does not look ahead, and it does not move an activity that started at an earlier tick. `SchedulerResourceChoiceTests` holds that limit in a test of its own, with the other cases.
+
+### Tests
+
+- `SchedulerResourceChoiceTests` (and `scheduler_resource_choice_tests.rs`): the smallest case with explicit targets and without, the same with an activity that has no targets, an activity that needs all of its targets and waits, a chain of two moves, the limit, and the cases that must stay: the allocation order with no contention, AND and ACTIVE_AND, the resources that are not explicit targets, and more ready activities than resources. One test checks 300 random plans for the rules of a schedule: no resource has two activities at once, each dependency holds, and each activity is on resources that it can use.
+
+- The tests of the smallest case, of the activity with no targets, of the activity that needs all of its targets and of the chain fail without the change.
+
+- No test that existed changed its expected values (810 in .NET). None of them held a case where the choice of resource matters. The baseline of the simulation and the sample plan are the same.
+
+- Cost: none that can be measured. `MeasureCompileSplit` gives 16 ms for the scheduling part at 2,000 activities before the change and 19 ms after it, of a compile of about 310 ms.
+
+### What a consumer must expect
+
+A plan gets another schedule only if, at some moment, an activity waited while a resource was free that a chain of moves could put to use. ProjectPlan pins the outputs of about 250 `zpp` runs, and those of such plans change: the resource of some activities, and then the times of what follows. The schedule of a simulation iteration changes in the same way, because an iteration uses the same scheduler.
+
+The API does not change. But the release changes the schedule of some plans that compiled without errors, which no release of 4.x has done. Thus, it is not a patch release in the sense of 4.1.1. A minor release (4.2.0) fits the form of the change, and the maintainer decides if the change of the schedules needs more than that.
 
 ## Priority-list calculation (was cubic; Phases 0 to 3 done)
 
