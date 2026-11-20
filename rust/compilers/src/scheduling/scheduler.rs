@@ -1140,8 +1140,9 @@ where
     output
 }
 
-/// Replaces infinite-resource schedules with synthetic resource IDs so that
-/// resource-dependency chaining works in the second compile pass.
+/// Replaces infinite-resource schedules with synthetic resource IDs. Up to
+/// 4.1.1 the compile called this, to chain the activities of each schedule with
+/// resource dependencies. It no longer does, and this stays for other callers.
 pub(crate) fn replace_with_synthetic_resources<K: Key, R: Key, W: Key>(
     resource_schedules: Vec<ResourceSchedule<K, R, W>>,
 ) -> Vec<ResourceSchedule<K, R, W>> {
@@ -1188,11 +1189,20 @@ where
     R: Key,
     W: Key,
 {
+    if infinite_resources {
+        return rebuild_lanes(
+            resource_schedules,
+            graph,
+            final_activities,
+            start_time,
+            finish_time,
+        );
+    }
+
     let mut builders: Vec<ResourceScheduleBuilder<K, R, W>> = Vec::new();
     for old_schedule in resource_schedules {
         let mut builder = match &old_schedule.resource {
             None => ResourceScheduleBuilder::new_unmapped(),
-            Some(_) if infinite_resources => ResourceScheduleBuilder::new_unmapped(),
             Some(resource) => ResourceScheduleBuilder::new(resource.clone()),
         };
 
@@ -1216,6 +1226,103 @@ where
         }
     }
     Ok(output)
+}
+
+// The activities of one lane, each with its start time on the lane.
+type Lane<'a, K, R, W> = Vec<(i32, &'a Activity<K, R, W>)>;
+
+// With infinite resources, the schedules are lanes with no resource: they show
+// how many activities run at the same time. Each activity goes at its earliest
+// start time, because the lanes add no dependency to the plan.
+//
+// An activity that the scheduler started at its earliest start time stays on its
+// lane. Those activities do not overlap, because the scheduler put no two of them
+// on one lane at once. The scheduler holds an activity with a maximum LFT back to
+// the latest start that meets it, and the critical path can pull an activity back
+// to before its predecessors. Such an activity is at another time here than in
+// the scheduler. It goes on its own lane when that is free for the whole of its
+// new time, and else on the first lane that is, or on a new lane. Thus, no lane
+// has two activities at once, and the lanes are those of the scheduler for a plan
+// with no maximum LFT.
+fn rebuild_lanes<K, R, W>(
+    resource_schedules: &[ResourceSchedule<K, R, W>],
+    graph: &dyn IResourceSchedulingGraph<K, R, W>,
+    final_activities: &[Activity<K, R, W>],
+    start_time: i32,
+    finish_time: i32,
+) -> Result<Vec<ResourceSchedule<K, R, W>>, GraphError>
+where
+    K: Key,
+    R: Key,
+    W: Key,
+{
+    let mut lanes: Vec<Lane<K, R, W>> = Vec::new();
+    let mut moved: Vec<(usize, &Activity<K, R, W>)> = Vec::new();
+
+    for (lane_index, old_schedule) in resource_schedules.iter().enumerate() {
+        let mut lane: Lane<K, R, W> = Vec::new();
+        for scheduled_activity in &old_schedule.scheduled_activities {
+            let activity = &graph.activity(scheduled_activity.id).activity;
+            if scheduled_activity.start_time == activity.earliest_start_time.unwrap_or(0) {
+                lane.push((scheduled_activity.start_time, activity));
+            } else {
+                moved.push((lane_index, activity));
+            }
+        }
+        lanes.push(lane);
+    }
+
+    for (lane_index, activity) in moved {
+        let earliest_start_time = activity.earliest_start_time.unwrap_or(0);
+        let mut target: Option<usize> = None;
+        if is_lane_free(&lanes[lane_index], earliest_start_time, activity.duration) {
+            target = Some(lane_index);
+        }
+        if target.is_none() {
+            target = lanes
+                .iter()
+                .position(|lane| is_lane_free(lane, earliest_start_time, activity.duration));
+        }
+        let target = target.unwrap_or_else(|| {
+            lanes.push(Vec::new());
+            lanes.len() - 1
+        });
+        lanes[target].push((earliest_start_time, activity));
+    }
+
+    let mut output = Vec::new();
+    for mut lane in lanes {
+        if lane.is_empty() {
+            continue;
+        }
+        let mut builder = ResourceScheduleBuilder::new_unmapped();
+        // The sort is stable (as the C# `OrderBy` is): it keeps the order of two
+        // activities that start at the same time.
+        lane.sort_by_key(|(lane_start_time, _)| *lane_start_time);
+        for (lane_start_time, activity) in lane {
+            builder.append_activity_without_checks(activity, lane_start_time);
+        }
+        output.push(builder.to_resource_schedule(final_activities, start_time, finish_time)?);
+    }
+    Ok(output)
+}
+
+// Whether no activity of the lane runs at any time from the start time to the
+// start time plus the duration.
+fn is_lane_free<K: Key, R: Key, W: Key>(
+    lane: &[(i32, &Activity<K, R, W>)],
+    start_time: i32,
+    duration: i32,
+) -> bool {
+    let finish_time = i64::from(start_time) + i64::from(duration);
+    for (lane_start_time, activity) in lane {
+        if i64::from(*lane_start_time) < finish_time
+            && i64::from(start_time) < i64::from(*lane_start_time) + i64::from(activity.duration)
+        {
+            return false;
+        }
+    }
+    true
 }
 
 /// Returns schedules for Indirect resources that were not directly assigned

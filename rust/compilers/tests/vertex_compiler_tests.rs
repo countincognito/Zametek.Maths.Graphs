@@ -271,26 +271,31 @@ fn given_compile_with_post_compilation_invalid_constraints_then_finds_invalid_co
         4 -> LatestStartTime cannot be less than zero\n";
     assert_eq!(compilation.compilation_errors[0].error_message, expected);
 
+    // Activity 4 cannot meet its maximum LFT, and so it is pulled back to the
+    // times from -6 to 5, before the finish of activity 2, which it depends on.
+    // Up to 4.1.1, 2 and 4 were on one lane at the same time. Now 4 and its
+    // successor 7 are on a lane of their own, and no lane has two activities at
+    // once.
     let schedules = &compilation.resource_schedules;
-    assert_eq!(schedules.len(), 3);
+    assert_eq!(schedules.len(), 4);
+    assert!(schedules.iter().all(|x| x.resource.is_none()));
 
-    assert!(schedules[0].resource.is_none());
-    assert_eq!(schedules[0].scheduled_activities.len(), 3);
+    assert_eq!(schedules[0].scheduled_activities.len(), 1);
     assert_scheduled(&schedules[0].scheduled_activities[0], 2, 0, 7);
-    assert_scheduled(&schedules[0].scheduled_activities[1], 4, -6, 5);
-    assert_scheduled(&schedules[0].scheduled_activities[2], 7, 5, 9);
 
-    assert!(schedules[1].resource.is_none());
     assert_eq!(schedules[1].scheduled_activities.len(), 3);
     assert_scheduled(&schedules[1].scheduled_activities[0], 3, 0, 8);
     assert_scheduled(&schedules[1].scheduled_activities[1], 5, 8, 16);
     assert_scheduled(&schedules[1].scheduled_activities[2], 9, 16, 26);
 
-    assert!(schedules[2].resource.is_none());
     assert_eq!(schedules[2].scheduled_activities.len(), 3);
     assert_scheduled(&schedules[2].scheduled_activities[0], 1, 0, 6);
     assert_scheduled(&schedules[2].scheduled_activities[1], 6, 8, 15);
     assert_scheduled(&schedules[2].scheduled_activities[2], 8, 15, 19);
+
+    assert_eq!(schedules[3].scheduled_activities.len(), 2);
+    assert_scheduled(&schedules[3].scheduled_activities[0], 4, -6, 5);
+    assert_scheduled(&schedules[3].scheduled_activities[1], 7, 5, 9);
 
     let builder = compiler.builder();
 
@@ -405,8 +410,7 @@ fn given_compile_with_compiled_dependencies_and_unlimited_resources_then_resourc
     assert_eq!(a4.dependencies.len(), 1);
     assert!(a4.dependencies.contains(&2));
     assert_eq!(a4.planning_dependencies.len(), 0);
-    assert_eq!(a4.resource_dependencies.len(), 1);
-    assert!(a4.resource_dependencies.contains(&2));
+    assert_eq!(a4.resource_dependencies.len(), 0);
     assert_eq!(a4.successors.len(), 2);
     assert!(a4.successors.contains(&7));
     assert!(a4.successors.contains(&8));
@@ -423,8 +427,7 @@ fn given_compile_with_compiled_dependencies_and_unlimited_resources_then_resourc
     assert!(a5.dependencies.contains(&2));
     assert!(a5.dependencies.contains(&3));
     assert_eq!(a5.planning_dependencies.len(), 0);
-    assert_eq!(a5.resource_dependencies.len(), 1);
-    assert!(a5.resource_dependencies.contains(&3));
+    assert_eq!(a5.resource_dependencies.len(), 0);
     assert_eq!(a5.successors.len(), 1);
     assert!(a5.successors.contains(&9));
 
@@ -438,8 +441,7 @@ fn given_compile_with_compiled_dependencies_and_unlimited_resources_then_resourc
     assert_eq!(a6.dependencies.len(), 1);
     assert!(a6.dependencies.contains(&3));
     assert_eq!(a6.planning_dependencies.len(), 0);
-    assert_eq!(a6.resource_dependencies.len(), 1);
-    assert!(a6.resource_dependencies.contains(&1));
+    assert_eq!(a6.resource_dependencies.len(), 0);
     assert_eq!(a6.successors.len(), 1);
     assert!(a6.successors.contains(&8));
 
@@ -453,8 +455,7 @@ fn given_compile_with_compiled_dependencies_and_unlimited_resources_then_resourc
     assert_eq!(a7.dependencies.len(), 1);
     assert!(a7.dependencies.contains(&4));
     assert_eq!(a7.planning_dependencies.len(), 0);
-    assert_eq!(a7.resource_dependencies.len(), 1);
-    assert!(a7.resource_dependencies.contains(&4));
+    assert_eq!(a7.resource_dependencies.len(), 0);
     assert_eq!(a7.successors.len(), 0);
 
     let a8 = builder.activity(8).unwrap();
@@ -468,8 +469,7 @@ fn given_compile_with_compiled_dependencies_and_unlimited_resources_then_resourc
     assert!(a8.dependencies.contains(&4));
     assert!(a8.dependencies.contains(&6));
     assert_eq!(a8.planning_dependencies.len(), 0);
-    assert_eq!(a8.resource_dependencies.len(), 1);
-    assert!(a8.resource_dependencies.contains(&6));
+    assert_eq!(a8.resource_dependencies.len(), 0);
     assert_eq!(a8.successors.len(), 0);
 
     let a9 = builder.activity(9).unwrap();
@@ -482,8 +482,7 @@ fn given_compile_with_compiled_dependencies_and_unlimited_resources_then_resourc
     assert_eq!(a9.dependencies.len(), 1);
     assert!(a9.dependencies.contains(&5));
     assert_eq!(a9.planning_dependencies.len(), 0);
-    assert_eq!(a9.resource_dependencies.len(), 1);
-    assert!(a9.resource_dependencies.contains(&5));
+    assert_eq!(a9.resource_dependencies.len(), 0);
     assert_eq!(a9.successors.len(), 0);
 }
 
@@ -666,8 +665,8 @@ fn given_transitive_reduction_when_redundant_dependencies_then_redundant_depende
     assert_eq!(a2.dependencies.len(), 1);
     assert!(a2.dependencies.contains(&1));
     assert_eq!(a2.planning_dependencies.len(), 0);
-    assert_eq!(a2.resource_dependencies.len(), 1);
-    assert!(a2.resource_dependencies.contains(&1));
+    assert_eq!(a2.resource_dependencies.len(), 0);
+    assert!(a2.resource_dependencies.is_empty());
     assert_eq!(a2.successors.len(), 1);
     assert!(a2.successors.contains(&3));
 
@@ -675,8 +674,8 @@ fn given_transitive_reduction_when_redundant_dependencies_then_redundant_depende
     assert_eq!(a3.dependencies.len(), 1);
     assert!(a3.dependencies.contains(&2));
     assert_eq!(a3.planning_dependencies.len(), 0);
-    assert_eq!(a3.resource_dependencies.len(), 1);
-    assert!(a3.resource_dependencies.contains(&2));
+    assert_eq!(a3.resource_dependencies.len(), 0);
+    assert!(a3.resource_dependencies.is_empty());
     assert_eq!(a3.successors.len(), 0);
 }
 
@@ -698,8 +697,8 @@ fn given_transitive_reduction_when_redundant_planning_dependencies_then_removed(
     assert_eq!(a2.dependencies.len(), 0);
     assert_eq!(a2.planning_dependencies.len(), 1);
     assert!(a2.planning_dependencies.contains(&1));
-    assert_eq!(a2.resource_dependencies.len(), 1);
-    assert!(a2.resource_dependencies.contains(&1));
+    assert_eq!(a2.resource_dependencies.len(), 0);
+    assert!(a2.resource_dependencies.is_empty());
     assert_eq!(a2.successors.len(), 1);
     assert!(a2.successors.contains(&3));
 
@@ -707,8 +706,8 @@ fn given_transitive_reduction_when_redundant_planning_dependencies_then_removed(
     assert_eq!(a3.dependencies.len(), 0);
     assert_eq!(a3.planning_dependencies.len(), 1);
     assert!(a3.planning_dependencies.contains(&2));
-    assert_eq!(a3.resource_dependencies.len(), 1);
-    assert!(a3.resource_dependencies.contains(&2));
+    assert_eq!(a3.resource_dependencies.len(), 0);
+    assert!(a3.resource_dependencies.is_empty());
     assert_eq!(a3.successors.len(), 0);
 }
 
@@ -736,8 +735,8 @@ fn given_transitive_reduction_when_dependencies_redundant_across_planning_depend
     assert_eq!(a3.dependencies.len(), 1);
     assert!(a3.dependencies.contains(&2));
     assert_eq!(a3.planning_dependencies.len(), 0);
-    assert_eq!(a3.resource_dependencies.len(), 1);
-    assert!(a3.resource_dependencies.contains(&2));
+    assert_eq!(a3.resource_dependencies.len(), 0);
+    assert!(a3.resource_dependencies.is_empty());
     assert_eq!(a3.successors.len(), 0);
 }
 
@@ -765,8 +764,8 @@ fn given_transitive_reduction_when_planning_dependencies_redundant_across_depend
     assert_eq!(a3.dependencies.len(), 0);
     assert_eq!(a3.planning_dependencies.len(), 1);
     assert!(a3.planning_dependencies.contains(&2));
-    assert_eq!(a3.resource_dependencies.len(), 1);
-    assert!(a3.resource_dependencies.contains(&2));
+    assert_eq!(a3.resource_dependencies.len(), 0);
+    assert!(a3.resource_dependencies.is_empty());
     assert_eq!(a3.successors.len(), 0);
 }
 
@@ -824,8 +823,8 @@ fn given_transitive_reduction_when_dependencies_and_planning_dependencies_redund
     assert_eq!(a2.dependencies.len(), 0);
     assert_eq!(a2.planning_dependencies.len(), 1);
     assert!(a2.planning_dependencies.contains(&1));
-    assert_eq!(a2.resource_dependencies.len(), 1);
-    assert!(a2.resource_dependencies.contains(&1));
+    assert_eq!(a2.resource_dependencies.len(), 0);
+    assert!(a2.resource_dependencies.is_empty());
     assert_eq!(a2.successors.len(), 1);
     assert!(a2.successors.contains(&3));
 
@@ -833,7 +832,7 @@ fn given_transitive_reduction_when_dependencies_and_planning_dependencies_redund
     assert_eq!(a3.dependencies.len(), 1);
     assert!(a3.dependencies.contains(&2));
     assert_eq!(a3.planning_dependencies.len(), 1);
-    assert!(a3.resource_dependencies.contains(&2));
+    assert!(a3.resource_dependencies.is_empty());
     assert_eq!(a3.successors.len(), 0);
 }
 
@@ -863,8 +862,8 @@ fn given_transitive_reduction_when_dependencies_and_planning_dependencies_redund
     assert_eq!(a2.dependencies.len(), 1);
     assert!(a2.dependencies.contains(&1));
     assert_eq!(a2.planning_dependencies.len(), 0);
-    assert_eq!(a2.resource_dependencies.len(), 1);
-    assert!(a2.resource_dependencies.contains(&1));
+    assert_eq!(a2.resource_dependencies.len(), 0);
+    assert!(a2.resource_dependencies.is_empty());
     assert_eq!(a2.successors.len(), 1);
     assert!(a2.successors.contains(&3));
 
@@ -872,7 +871,7 @@ fn given_transitive_reduction_when_dependencies_and_planning_dependencies_redund
     assert_eq!(a3.dependencies.len(), 1);
     assert!(a3.dependencies.contains(&2));
     assert_eq!(a3.planning_dependencies.len(), 1);
-    assert!(a3.resource_dependencies.contains(&2));
+    assert!(a3.resource_dependencies.is_empty());
     assert_eq!(a3.successors.len(), 0);
 }
 
@@ -924,7 +923,7 @@ fn given_compile_with_minimum_free_slack_post_compilation_invalid_constraints_th
     assert_eq!(a2.latest_finish_time, Some(20));
     assert_eq!(a2.dependencies.len(), 1);
     assert_eq!(a2.planning_dependencies.len(), 0);
-    assert_eq!(a2.resource_dependencies.len(), 1);
+    assert_eq!(a2.resource_dependencies.len(), 0);
     assert_eq!(a2.successors.len(), 0);
 }
 
@@ -1284,15 +1283,15 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
     assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
     assert_eq!(
         compiler.builder().activity(2).unwrap().total_slack(),
-        Some(9)
+        Some(16)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().latest_start_time(),
-        Some(9)
+        Some(16)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().latest_finish_time,
-        Some(16)
+        Some(23)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().dependencies.len(),
@@ -1404,15 +1403,15 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
     assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
     assert_eq!(
         compiler.builder().activity(4).unwrap().total_slack(),
-        Some(9)
+        Some(19)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().latest_start_time(),
-        Some(16)
+        Some(26)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().latest_finish_time,
-        Some(27)
+        Some(37)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().dependencies.len(),
@@ -1440,14 +1439,8 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(4)
-        .unwrap()
-        .resource_dependencies
-        .contains(&2));
     assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
     assert!(compiler
         .builder()
@@ -1524,14 +1517,8 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(5)
-        .unwrap()
-        .resource_dependencies
-        .contains(&1));
     assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -1590,14 +1577,8 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(6)
-        .unwrap()
-        .resource_dependencies
-        .contains(&3));
     assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -1617,18 +1598,18 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
             .earliest_finish_time(),
         Some(22)
     );
-    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(9));
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(19));
     assert_eq!(
         compiler.builder().activity(7).unwrap().total_slack(),
-        Some(9)
+        Some(19)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().latest_start_time(),
-        Some(27)
+        Some(37)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().latest_finish_time,
-        Some(31)
+        Some(41)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().dependencies.len(),
@@ -1656,14 +1637,8 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(7)
-        .unwrap()
-        .resource_dependencies
-        .contains(&4));
     assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(8).unwrap().earliest_start_time,
@@ -1722,14 +1697,8 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(8)
-        .unwrap()
-        .resource_dependencies
-        .contains(&6));
     assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(9).unwrap().earliest_start_time,
@@ -1782,14 +1751,8 @@ fn given_compile_with_compiled_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(9)
-        .unwrap()
-        .resource_dependencies
-        .contains(&7));
     assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
 }
 
@@ -4627,14 +4590,8 @@ fn given_compile_with_planning_dependencies_and_unlimited_resources_then_resourc
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(4)
-        .unwrap()
-        .resource_dependencies
-        .contains(&2));
     assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
     assert!(compiler
         .builder()
@@ -4711,14 +4668,8 @@ fn given_compile_with_planning_dependencies_and_unlimited_resources_then_resourc
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(5)
-        .unwrap()
-        .resource_dependencies
-        .contains(&3));
     assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -4777,14 +4728,8 @@ fn given_compile_with_planning_dependencies_and_unlimited_resources_then_resourc
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(6)
-        .unwrap()
-        .resource_dependencies
-        .contains(&1));
     assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -4843,14 +4788,8 @@ fn given_compile_with_planning_dependencies_and_unlimited_resources_then_resourc
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(7)
-        .unwrap()
-        .resource_dependencies
-        .contains(&4));
     assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(8).unwrap().earliest_start_time,
@@ -4909,14 +4848,8 @@ fn given_compile_with_planning_dependencies_and_unlimited_resources_then_resourc
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(8)
-        .unwrap()
-        .resource_dependencies
-        .contains(&6));
     assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(9).unwrap().earliest_start_time,
@@ -4969,14 +4902,8 @@ fn given_compile_with_planning_dependencies_and_unlimited_resources_then_resourc
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(9)
-        .unwrap()
-        .resource_dependencies
-        .contains(&5));
     assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
 }
 
@@ -5177,15 +5104,15 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
     assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
     assert_eq!(
         compiler.builder().activity(2).unwrap().total_slack(),
-        Some(9)
+        Some(16)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().latest_start_time(),
-        Some(9)
+        Some(16)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().latest_finish_time,
-        Some(16)
+        Some(23)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().dependencies.len(),
@@ -5297,15 +5224,15 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
     assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
     assert_eq!(
         compiler.builder().activity(4).unwrap().total_slack(),
-        Some(9)
+        Some(19)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().latest_start_time(),
-        Some(16)
+        Some(26)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().latest_finish_time,
-        Some(27)
+        Some(37)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().dependencies.len(),
@@ -5333,14 +5260,8 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(4)
-        .unwrap()
-        .resource_dependencies
-        .contains(&2));
     assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
     assert!(compiler
         .builder()
@@ -5417,14 +5338,8 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(5)
-        .unwrap()
-        .resource_dependencies
-        .contains(&1));
     assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -5483,14 +5398,8 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(6)
-        .unwrap()
-        .resource_dependencies
-        .contains(&3));
     assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -5510,18 +5419,18 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
             .earliest_finish_time(),
         Some(22)
     );
-    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(9));
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(19));
     assert_eq!(
         compiler.builder().activity(7).unwrap().total_slack(),
-        Some(9)
+        Some(19)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().latest_start_time(),
-        Some(27)
+        Some(37)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().latest_finish_time,
-        Some(31)
+        Some(41)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().dependencies.len(),
@@ -5549,14 +5458,8 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(7)
-        .unwrap()
-        .resource_dependencies
-        .contains(&4));
     assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(8).unwrap().earliest_start_time,
@@ -5615,14 +5518,8 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(8)
-        .unwrap()
-        .resource_dependencies
-        .contains(&6));
     assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(9).unwrap().earliest_start_time,
@@ -5675,14 +5572,8 @@ fn given_compile_with_planning_dependencies_and_free_slack_unlimited_resources_t
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(9)
-        .unwrap()
-        .resource_dependencies
-        .contains(&7));
     assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
 }
 
@@ -8520,14 +8411,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(4)
-        .unwrap()
-        .resource_dependencies
-        .contains(&2));
     assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
     assert!(compiler
         .builder()
@@ -8604,14 +8489,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(5)
-        .unwrap()
-        .resource_dependencies
-        .contains(&3));
     assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -8670,14 +8549,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(6)
-        .unwrap()
-        .resource_dependencies
-        .contains(&1));
     assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -8736,14 +8609,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(7)
-        .unwrap()
-        .resource_dependencies
-        .contains(&4));
     assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(8).unwrap().earliest_start_time,
@@ -8802,14 +8669,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(8)
-        .unwrap()
-        .resource_dependencies
-        .contains(&6));
     assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(9).unwrap().earliest_start_time,
@@ -8862,14 +8723,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_unlimited_resources
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(9)
-        .unwrap()
-        .resource_dependencies
-        .contains(&5));
     assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
 }
 
@@ -9070,15 +8925,15 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
     assert_eq!(compiler.builder().activity(2).unwrap().free_slack, Some(0));
     assert_eq!(
         compiler.builder().activity(2).unwrap().total_slack(),
-        Some(9)
+        Some(16)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().latest_start_time(),
-        Some(9)
+        Some(16)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().latest_finish_time,
-        Some(16)
+        Some(23)
     );
     assert_eq!(
         compiler.builder().activity(2).unwrap().dependencies.len(),
@@ -9190,15 +9045,15 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
     assert_eq!(compiler.builder().activity(4).unwrap().free_slack, Some(0));
     assert_eq!(
         compiler.builder().activity(4).unwrap().total_slack(),
-        Some(9)
+        Some(19)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().latest_start_time(),
-        Some(16)
+        Some(26)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().latest_finish_time,
-        Some(27)
+        Some(37)
     );
     assert_eq!(
         compiler.builder().activity(4).unwrap().dependencies.len(),
@@ -9226,14 +9081,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(4)
-        .unwrap()
-        .resource_dependencies
-        .contains(&2));
     assert_eq!(compiler.builder().activity(4).unwrap().successors.len(), 2);
     assert!(compiler
         .builder()
@@ -9310,14 +9159,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(5)
-        .unwrap()
-        .resource_dependencies
-        .contains(&1));
     assert_eq!(compiler.builder().activity(5).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -9376,14 +9219,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(6)
-        .unwrap()
-        .resource_dependencies
-        .contains(&3));
     assert_eq!(compiler.builder().activity(6).unwrap().successors.len(), 1);
     assert!(compiler
         .builder()
@@ -9403,18 +9240,18 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
             .earliest_finish_time(),
         Some(22)
     );
-    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(9));
+    assert_eq!(compiler.builder().activity(7).unwrap().free_slack, Some(19));
     assert_eq!(
         compiler.builder().activity(7).unwrap().total_slack(),
-        Some(9)
+        Some(19)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().latest_start_time(),
-        Some(27)
+        Some(37)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().latest_finish_time,
-        Some(31)
+        Some(41)
     );
     assert_eq!(
         compiler.builder().activity(7).unwrap().dependencies.len(),
@@ -9442,14 +9279,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(7)
-        .unwrap()
-        .resource_dependencies
-        .contains(&4));
     assert_eq!(compiler.builder().activity(7).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(8).unwrap().earliest_start_time,
@@ -9508,14 +9339,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(8)
-        .unwrap()
-        .resource_dependencies
-        .contains(&6));
     assert_eq!(compiler.builder().activity(8).unwrap().successors.len(), 0);
     assert_eq!(
         compiler.builder().activity(9).unwrap().earliest_start_time,
@@ -9568,14 +9393,8 @@ fn given_compile_with_compiled_and_planning_dependencies_and_free_slack_unlimite
             .unwrap()
             .resource_dependencies
             .len(),
-        1
+        0
     );
-    assert!(compiler
-        .builder()
-        .activity(9)
-        .unwrap()
-        .resource_dependencies
-        .contains(&7));
     assert_eq!(compiler.builder().activity(9).unwrap().successors.len(), 0);
 }
 

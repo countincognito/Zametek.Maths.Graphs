@@ -370,7 +370,6 @@ impl<'a, K: Key, R: Key, W: Key> Worker<'a, K, R, W> {
             simulator.factory.create_builder(),
             &simulator.activities,
             &simulator.resources,
-            settings.schedule_onto_synthetic_resources,
         )?;
         let tracer = CriticalPathTracer::new(&simulator.activity_ids);
         Ok(Self {

@@ -6,7 +6,7 @@ Work identified during investigation, with what was observed, why it matters, an
 
 This document is the investigation record for the items that were actually worked: the measurements before and after, the corpora and baselines that guard them, the counter-examples that settled design arguments, and the reasoning behind what was changed - including the reasoning behind approaches that were tried and abandoned. Where an entry here has a wider status, `PERFORMANCE.md` holds it; where an item there needs its evidence, it points back to a section here. Neither document is complete on its own, and the two use overlapping phase numbers for different sequences - "Phase 3" here is the incremental recalculation, "Phase 3" there is the topological CPM.
 
-**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items. A change to the resource that an activity takes came from an examination in ProjectPlan on 2026-11-20. It is done, and its section follows that of the crash.
+**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items. Two changes to the result of a compile came from an examination in ProjectPlan on 2026-11-20: the resource that an activity takes, and the times of a compile with no resources. They are done, and their sections follow that of the crash.
 
 The other open item is a performance gap in Rust, and not a defect. The incremental critical-path walk of Rust reaches its nodes by ID, with a hash for each one. The C# session holds them by reference. Thus, Rust is now about twice as slow as C# on deep graphs. The section "Rust: the incremental walk reaches its nodes by ID" records it. Everything else that this investigation found is done, in both languages:
 
@@ -135,6 +135,56 @@ With a maximum LFT, a minimum EST or a minimum free slack on some activities (5,
 A plan gets another schedule only if, at some moment, an activity waited while a resource was free that a chain of moves could put to use. ProjectPlan pins the outputs of about 250 `zpp` runs, and those of such plans change: the resource of some activities, and then the times of what follows. The schedule of a simulation iteration changes in the same way, because an iteration uses the same scheduler.
 
 The API does not change. But the release changes the schedule of some plans that compiled without errors, which no release of 4.x has done. Thus, it is not a patch release in the sense of 4.1.1. A minor release (4.2.0) fits the form of the change, and the maintainer decides if the change of the schedules needs more than that.
+
+## A compile with no resources changed the times of the plan through synthetic resources - DONE
+
+**Found on 2026-11-20 by the same examination in ProjectPlan, with 4.1.1.** With no resources, the scheduler puts the activities on lanes: schedules with no resource, one more each time that no lane is free. Since November 2024 (`f4f3b83`), the compile made each lane a synthetic resource, wired a dependency between each two successive activities on a lane, and calculated the critical path again with those links. That commit fixed lanes that had two activities at once: the scheduler holds an activity with a maximum LFT back to the latest start that meets it, but the critical path lets the activity start earlier, and the schedules were rebuilt from the times of the critical path.
+
+The links also changed the plan. Two activities with no connection got a dependency, because the scheduler put them one after the other on one lane.
+
+- The smallest case has four activities: 1 (5 time units), 2 (1), 3 (2) and 4 (1, after 3). Activity 4 got the resource dependency 2, and 2 got LST 3, LFT 4 and free slack 1. The critical path of the plan gives LST 4, LFT 5 and free slack 4.
+
+- In 5,000 random plans with no constraints, 4,436 had such a link, the latest times or the slack differed from the critical path of the plan in 4,278, and 860 showed an activity as critical that is not. The earliest times and the finish were the same in each.
+
+- With a maximum LFT or a minimum free slack, the earliest times and the finish moved too. In 5,000 random plans with such constraints on some activities, an EST differed in 2,654 and the finish in 2,369. The smallest case has four activities with no dependencies: 1 (1 time unit), 2 (3, with a maximum LFT of 58), 3 (3) and 4 (2). The scheduler held 2 back, and so it put 2 after 1 on one lane. Thus, 2 started at time 1, and the plan finished at time 4. Its longest activity takes 3. A minimum free slack of an activity delayed the next activity on its lane in the same way.
+
+The README said that a compile with no resources gives the pure critical-path schedule. The simulation already did that by default (`ScheduleOntoSyntheticResources`), because the links made more activities critical.
+
+### What was decided
+
+The maintainer chose on 2026-11-20: a compile with no resources returns the critical path of the plan alone, and it still returns the lanes for the charts. The other choices were to leave the result and document it, or to add an option.
+
+### What was changed
+
+- `VertexGraphCompiler.Compile` no longer makes synthetic resources, and with no resources it wires no resource dependencies and does not calculate a second time. The times of the first calculation stand. `ResourceDependencies` of each activity stays empty.
+
+- `PriorityListResourceScheduler.RebuildAlignedResourceSchedules` builds the lanes from the final times when the resources are infinite (`RebuildLanes`). Each activity goes at its earliest start time. An activity that the scheduler started at that time stays on its lane. An activity that is at another time than in the scheduler goes on its own lane if that lane is free for the whole of its time, and else on the first lane that is, or on a new lane. Thus, no lane has two activities at once, which is what the fix of 2024 was for, and the lanes are those of the scheduler for each plan with no maximum LFT.
+
+- `AllocatedToResources` holds the number of the lane of the activity, as before: the compile sets it from the lanes that it returns.
+
+- An iteration of a simulation of a plan with no resources is the first calculation alone. `SimulationSettings.ScheduleOntoSyntheticResources` stays, so that the API does not change, but it has no effect.
+
+- `IResourceSchedulingEngine.ReplaceWithSyntheticResources` stays for the same reason. The compile does not call it. An engine of a caller that rebuilds the schedules in its own way must keep its lanes free of overlaps itself: the links no longer do that for it.
+
+- The Rust port has the same changes in `rust/compilers/src/vertex/compiler.rs`, `scheduling/scheduler.rs` and `simulation/iteration_runner.rs`.
+
+- The arrow graph compiler is not affected: it does no resource scheduling.
+
+### Tests
+
+- `CompileWithNoResourcesTests` (and `compile_with_no_resources_tests.rs`): the two smallest cases above, the case of 2024 with its lanes, 200 random plans with milestones and constraints whose times, slack, critical activities and finish must be those of the critical path of the plan, with no two activities at once on a lane, and a compile with one real resource, which must keep its resource dependency. The first four fail without the change.
+
+- 15 of the 689 tests of the compilers that existed pinned the links, and they have new expected values. 14 are in `VertexGraphCompilerTests`: the six compiles with unlimited resources, the six transitive reductions and the two post-compilation constraint tests. Each asserted the resource dependencies of a compile with no resources. The three unlimited compiles with a minimum free slack also asserted the slack and the latest times that followed from the links (30 values). One of the constraint tests asserted three lanes, of which one held two activities at the same time: an activity that a maximum LFT pulled back, and the activity that it depends on. It now asserts four lanes. The other test is `SimulationSpikeTests.LeanPath_GivenTheReferenceSample_ThenItGivesWhatAFullCompileGives`, which measured how many compiles had a larger critical set than the plan. That number is now 0.
+
+- In `ScheduleSimulatorTests`, the test that holds an iteration to a compile now demands the same critical activities with no resources too. Two of its cases differed only in the setting, and they are one test now. Thus, the compilers have 707 tests, and not 708.
+
+- The final code was run on the copy of the plan of the examination with no resources: 61 of 61 activities have the times and the slack of the critical path of the plan, and none has a resource dependency. With 4.1.1, 23 activities differed and 31 had a resource dependency.
+
+### What a consumer must expect
+
+For a plan with no resources (in ProjectPlan: the resources are disabled), the activities have no resource dependencies. LST, LFT, the slack and the critical flags are those of the plan, and so fewer activities are critical in some plans. With a maximum LFT or a minimum free slack, the earliest times and the finish can be earlier than before. The lanes are the same unless a maximum LFT holds an activity back in the scheduler. A plan with resources is not affected. The outputs of the `zpp` runs that ProjectPlan pins change for plans with no resources.
+
+The API does not change. As for the change above, a minor release (4.2.0) fits, and the maintainer decides.
 
 ## Priority-list calculation (was cubic; Phases 0 to 3 done)
 

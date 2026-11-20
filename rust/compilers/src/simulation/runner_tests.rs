@@ -45,18 +45,16 @@ fn resources(count: i32) -> Vec<Resource<i32, i32>> {
         .collect()
 }
 
-fn assert_agrees_with_the_compile(resource_count: i32, onto_synthetic: bool) {
+fn assert_agrees_with_the_compile(resource_count: i32) {
     let activities = plan();
     let resources = resources(resource_count);
     let mut runner = SimulationIterationRunner::new(
         VertexGraphBuilder::new(PreviousIdGeneratorFactory::new(0)),
         &activities,
         &resources,
-        onto_synthetic,
     )
     .unwrap();
     let ids: Vec<i32> = activities.iter().map(|x| x.id()).collect();
-    let shortcut = resource_count == 0 && !onto_synthetic;
     let mut random = SimulationRandom::new(2024);
 
     for iteration in 0..60 {
@@ -78,14 +76,10 @@ fn assert_agrees_with_the_compile(resource_count: i32, onto_synthetic: bool) {
         assert_eq!(finish, compiler.finish_time(), "iteration {iteration}");
 
         for (id, expected) in ids.iter().zip(&compilation.dependent_activities) {
+            // With no resources too: a compile gives the critical activities of
+            // the plan alone, as an iteration does.
             let critical = runner.builder().activity(*id).unwrap().is_critical();
-            if shortcut {
-                // With no resources the compile may mark more activities critical,
-                // and never fewer.
-                assert!(!critical || expected.is_critical(), "iteration {iteration}");
-            } else {
-                assert_eq!(critical, expected.is_critical(), "iteration {iteration}");
-            }
+            assert_eq!(critical, expected.is_critical(), "iteration {iteration}");
         }
     }
 }
@@ -93,17 +87,17 @@ fn assert_agrees_with_the_compile(resource_count: i32, onto_synthetic: bool) {
 #[test]
 fn run_given_a_plan_with_resources_then_gives_the_finish_and_the_critical_activities_of_a_compile()
 {
-    assert_agrees_with_the_compile(3, false);
+    assert_agrees_with_the_compile(3);
 }
 
+// Up to 4.1.1 there were two tests here. A compile with no resources linked the
+// activities on its synthetic resources, and so it could mark more activities
+// critical than an iteration did, unless the iteration was set to do the same.
+// Now neither links them, and an iteration gives the critical activities of a
+// compile.
 #[test]
-fn run_given_no_resources_and_the_compile_way_then_gives_the_critical_activities_of_a_compile() {
-    assert_agrees_with_the_compile(0, true);
-}
-
-#[test]
-fn run_given_no_resources_and_the_shortcut_then_gives_the_finish_of_a_compile() {
-    assert_agrees_with_the_compile(0, false);
+fn run_given_no_resources_then_gives_the_finish_and_the_critical_activities_of_a_compile() {
+    assert_agrees_with_the_compile(0);
 }
 
 #[test]
@@ -112,7 +106,7 @@ fn new_given_a_builder_that_already_holds_activities_then_fails() {
     let mut builder = VertexGraphBuilder::new(PreviousIdGeneratorFactory::new(0));
     builder.add_activity(activities[0].clone());
 
-    let error = SimulationIterationRunner::new(builder, &activities, &resources(3), false)
+    let error = SimulationIterationRunner::new(builder, &activities, &resources(3))
         .err()
         .expect("a builder that holds activities is refused");
 

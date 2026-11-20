@@ -972,8 +972,8 @@ namespace Zametek.Maths.Graphs
             return output;
         }
 
-        // Replaces infinite-resource schedules with synthetic resource IDs so that resource-dependency
-        // chaining works in the second compile pass.
+        // Replaces infinite-resource schedules with synthetic resource IDs. Up to 4.1.1 the compile called this, to chain
+        // the activities of each schedule with resource dependencies. It no longer does, and this stays for other callers.
         /// <inheritdoc/>
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
@@ -1011,11 +1011,16 @@ namespace Zametek.Maths.Graphs
             int startTime,
             int finishTime)
         {
+            if (infiniteResources)
+            {
+                return RebuildLanes(resourceSchedules, graph, finalActivities, startTime, finishTime);
+            }
+
             var builders = new List<ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>>();
             foreach (IResourceSchedule<T, TResourceId, TWorkStreamId> oldSchedule in resourceSchedules)
             {
                 ResourceScheduleBuilder<T, TResourceId, TWorkStreamId> builder =
-                    oldSchedule.Resource == null || infiniteResources
+                    oldSchedule.Resource == null
                     ? new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>()
                     : new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>(oldSchedule.Resource);
 
@@ -1031,6 +1036,102 @@ namespace Zametek.Maths.Graphs
                 .Select(x => x.ToResourceSchedule(finalActivities, startTime, finishTime))
                 .Where(x => x.ScheduledActivities.Any())
                 .ToList();
+        }
+
+        // With infinite resources, the schedules are lanes with no resource: they show how many activities run at the
+        // same time. Each activity goes at its earliest start time, because the lanes add no dependency to the plan.
+        //
+        // An activity that the scheduler started at its earliest start time stays on its lane. Those activities do not
+        // overlap, because the scheduler put no two of them on one lane at once. The scheduler holds an activity with a
+        // maximum LFT back to the latest start that meets it, and the critical path can pull an activity back to before
+        // its predecessors. Such an activity is at another time here than in the scheduler. It goes on its own lane when
+        // that is free for the whole of its new time, and else on the first lane that is, or on a new lane. Thus, no lane
+        // has two activities at once, and the lanes are those of the scheduler for a plan with no maximum LFT.
+        private static List<IResourceSchedule<T, TResourceId, TWorkStreamId>> RebuildLanes(
+            List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules,
+            IResourceSchedulingGraph<T, TResourceId, TWorkStreamId> graph,
+            List<IActivity<T, TResourceId, TWorkStreamId>> finalActivities,
+            int startTime,
+            int finishTime)
+        {
+            var lanes = new List<List<(int StartTime, IActivity<T, TResourceId, TWorkStreamId> Activity)>>();
+            var moved = new List<(int Lane, IActivity<T, TResourceId, TWorkStreamId> Activity)>();
+
+            for (int laneIndex = 0; laneIndex < resourceSchedules.Count; laneIndex++)
+            {
+                var lane = new List<(int StartTime, IActivity<T, TResourceId, TWorkStreamId> Activity)>();
+                foreach (IScheduledActivity<T> scheduledActivity in resourceSchedules[laneIndex].ScheduledActivities)
+                {
+                    IActivity<T, TResourceId, TWorkStreamId> activity = graph.Activity(scheduledActivity.Id);
+                    if (scheduledActivity.StartTime == activity.EarliestStartTime.GetValueOrDefault())
+                    {
+                        lane.Add((scheduledActivity.StartTime, activity));
+                    }
+                    else
+                    {
+                        moved.Add((laneIndex, activity));
+                    }
+                }
+                lanes.Add(lane);
+            }
+
+            foreach ((int laneIndex, IActivity<T, TResourceId, TWorkStreamId> activity) in moved)
+            {
+                int earliestStartTime = activity.EarliestStartTime.GetValueOrDefault();
+                int target = -1;
+                if (IsLaneFree(lanes[laneIndex], earliestStartTime, activity.Duration))
+                {
+                    target = laneIndex;
+                }
+                for (int index = 0; index < lanes.Count && target < 0; index++)
+                {
+                    if (IsLaneFree(lanes[index], earliestStartTime, activity.Duration))
+                    {
+                        target = index;
+                    }
+                }
+                if (target < 0)
+                {
+                    lanes.Add(new List<(int StartTime, IActivity<T, TResourceId, TWorkStreamId> Activity)>());
+                    target = lanes.Count - 1;
+                }
+                lanes[target].Add((earliestStartTime, activity));
+            }
+
+            var output = new List<IResourceSchedule<T, TResourceId, TWorkStreamId>>();
+            foreach (List<(int StartTime, IActivity<T, TResourceId, TWorkStreamId> Activity)> lane in lanes)
+            {
+                if (lane.Count == 0)
+                {
+                    continue;
+                }
+                var builder = new ResourceScheduleBuilder<T, TResourceId, TWorkStreamId>();
+                // OrderBy keeps the order of two activities that start at the same time.
+                foreach ((int laneStartTime, IActivity<T, TResourceId, TWorkStreamId> activity) in lane.OrderBy(x => x.StartTime))
+                {
+                    builder.AppendActivityWithoutChecks(activity, laneStartTime);
+                }
+                output.Add(builder.ToResourceSchedule(finalActivities, startTime, finishTime));
+            }
+            return output;
+        }
+
+        // Whether no activity of the lane runs at any time from the start time to the start time plus the duration.
+        private static bool IsLaneFree(
+            List<(int StartTime, IActivity<T, TResourceId, TWorkStreamId> Activity)> lane,
+            int startTime,
+            int duration)
+        {
+            long finishTime = (long)startTime + duration;
+            foreach ((int laneStartTime, IActivity<T, TResourceId, TWorkStreamId> activity) in lane)
+            {
+                if (laneStartTime < finishTime
+                    && startTime < (long)laneStartTime + activity.Duration)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         // Returns schedules for Indirect resources that were not directly assigned any activities.

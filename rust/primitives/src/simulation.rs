@@ -93,11 +93,12 @@ pub struct SimulationSettings {
     pub record_critical_paths: bool,
     /// The most critical paths that one iteration records: 1 or more.
     pub maximum_critical_paths_per_iteration: usize,
-    /// With no resources, the compile schedules the plan onto synthetic
-    /// resources. When this is false, a simulation of a plan with no resources
-    /// stops after the critical-path calculation, which gives the same finish
-    /// times and the critical activities of the plan alone. When it is true,
-    /// the simulation does what the compile does.
+    /// This setting has no effect any more, and it stays only so that the API
+    /// does not change. With no resources, an iteration is the critical-path
+    /// calculation alone, as a compile is: the finish times and the critical
+    /// activities are those of the plan. Up to 4.1.1, a compile with no
+    /// resources scheduled the plan onto synthetic resources, which could make
+    /// more activities critical, and this setting made a simulation do the same.
     pub schedule_onto_synthetic_resources: bool,
 }
 

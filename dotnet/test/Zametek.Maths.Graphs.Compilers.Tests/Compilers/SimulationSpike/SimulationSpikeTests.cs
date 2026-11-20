@@ -392,16 +392,20 @@ namespace Zametek.Maths.Graphs.Tests
             SpikePlan plan = SpikePlan.ReferenceSample();
             List<int[]> vectors = DrawVectors(plan, SpikeDistribution.BetaPertMomentMatched, 60, seed: 14);
 
+            // Up to 4.1.1 a compile with no resources linked the activities on its synthetic resources. The lean path
+            // then had to do the same to give what the compile gave, and the compile had a larger critical set than the
+            // shortcut (the critical path alone) for some vectors. Now the compile is the critical path alone, and so the
+            // shortcut is the lean path that agrees with it, and no compile has a larger critical set.
             CountMismatches(
                 plan,
-                new SpikeLeanScheduler(plan, useResources: false) { CriticalPathOnlyWithoutResources = false },
+                new SpikeLeanScheduler(plan, useResources: false) { CriticalPathOnlyWithoutResources = true },
                 useResources: false,
                 vectors).ShouldBe(0);
 
             (int finishDifferences, int notASubset, int larger) = CompareShortcutWithCompile(plan, vectors);
             finishDifferences.ShouldBe(0);
             notASubset.ShouldBe(0);
-            larger.ShouldBeGreaterThan(0);
+            larger.ShouldBe(0);
             m_Output.WriteLine($@"Shortcut against compile, reference sample: {larger} of {vectors.Count} compiles have a larger critical set.");
         }
 

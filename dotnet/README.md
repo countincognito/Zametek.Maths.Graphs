@@ -265,6 +265,10 @@ foreach (IResourceSchedule<int, int, int> schedule in result.ResourceSchedules)
 
 A third overload, `Compile(resources, workStreams, cancellationToken)`, additionally reports which `IWorkStream`s were used.
 
+**With no resources, the schedules are lanes.** A compile with no resources still returns `ResourceSchedules`, so that a chart can show how many activities run at the same time. Each schedule is a lane: it has no resource (`Resource` is null), and each activity that takes time is on one lane, at its earliest start time. No lane has two activities at once. The lanes change nothing in the plan. The times, the slack, the critical activities and the finish are those of the critical path alone, and `ResourceDependencies` stays empty. `AllocatedToResources` holds the number of the lane of the activity (1 for the first lane), as it did before.
+
+Up to 4.1.1, the compile made each lane a synthetic resource: an activity depended on the activity before it on its lane. Two activities with no connection then had a dependency, and the first one lost slack, or was shown as critical. With a maximum LFT or a minimum free slack, an activity could also start later, and the plan could finish later than its critical path.
+
 ### Targeting resources and explicit targets
 
 By default the scheduler may place any activity on any (non-explicit) resource. You can constrain this from both sides.
@@ -390,7 +394,7 @@ A draw is rounded to the nearest whole time unit, with halves up, because the sc
 
 **Cost.** An iteration costs about as much as a compile, and the cost grows with the square of the number of activities. On the sample plan of the application (46 activities and 15 resources), one iteration takes about 0.8 ms; on a layered plan of 1,000 activities it takes about 100 ms. The simulator reports its progress to an `IProgress<int>`, and it stops between iterations when its token is cancelled. Behind the simulator, one internal class (`SimulationIterationRunner`) does the scheduling of an iteration, and the tests hold it to a full compile of the same plan with the same durations, so that a faster scheduler can replace it later.
 
-**A plan with no resources.** With no resources, a compile schedules the plan onto synthetic resources, and that can make more activities critical when two activities meet at the same moment. By default a simulation of such a plan stops after the first critical-path calculation: the finish times are those of a compile, and the critical activities are those of the plan alone. Set `ScheduleOntoSyntheticResources` to do what the compile does.
+**A plan with no resources.** With no resources, an iteration is the critical-path calculation alone, as a compile is: the finish times and the critical activities are those of the plan. `ScheduleOntoSyntheticResources` has no effect any more. Up to 4.1.1, a compile with no resources scheduled the plan onto synthetic resources, which could make more activities critical, and the setting made a simulation do the same.
 
 The Rust port has the same types and the same behaviour (`ScheduleSimulator`, `SimulationSettings`, `SimulationResult` and the others), and the same iterations for the same seed. The Rust `ScheduleSimulator::new` uses the standard engines, and `ScheduleSimulator::with_factory` takes a factory in the same way as the constructor above: a value that implements the trait `IVertexGraphFactory`, such as `VertexGraphFactory::with_engines(engines)`. The trait requires `Send + Sync`, which is the Rust form of "safe for use by many threads".
 
