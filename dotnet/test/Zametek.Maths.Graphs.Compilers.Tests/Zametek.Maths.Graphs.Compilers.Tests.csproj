@@ -12,6 +12,7 @@
 	  <None Remove="Builders\TestFiles\ResourceSchedule3.json" />
 	  <None Remove="Compilers\TestFiles\PriorityListBaseline.txt" />
 	  <None Remove="Compilers\TestFiles\ArrowCriticalPathBaseline.txt" />
+	  <None Remove="Compilers\TestFiles\CompileParityBaseline.txt" />
 	  <None Remove="Compilers\TestFiles\SamplePlan.json" />
 	  <None Remove="Compilers\TestFiles\SimulationBaseline.txt" />
 	</ItemGroup>
@@ -21,6 +22,9 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="Compilers\TestFiles\ArrowCriticalPathBaseline.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Compilers\TestFiles\CompileParityBaseline.txt">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="Compilers\TestFiles\SamplePlan.json">

@@ -6,7 +6,7 @@ Work identified during investigation, with what was observed, why it matters, an
 
 This document is the investigation record for the items that were actually worked: the measurements before and after, the corpora and baselines that guard them, the counter-examples that settled design arguments, and the reasoning behind what was changed - including the reasoning behind approaches that were tried and abandoned. Where an entry here has a wider status, `PERFORMANCE.md` holds it; where an item there needs its evidence, it points back to a section here. Neither document is complete on its own, and the two use overlapping phase numbers for different sequences - "Phase 3" here is the incremental recalculation, "Phase 3" there is the topological CPM.
 
-**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items. Two changes to the result of a compile came from an examination in ProjectPlan on 2026-11-20: the resource that an activity takes, and the times of a compile with no resources. They are done, and their sections follow that of the crash.
+**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items. Two changes to the result of a compile came from an examination in ProjectPlan on 2026-11-20: the resource that an activity takes, and the times of a compile with no resources. They are done, and their sections follow that of the crash. After them comes the comparison of whole compiles between the two languages, which did not exist before 2026-11-21.
 
 The other open item is a performance gap in Rust, and not a defect. The incremental critical-path walk of Rust reaches its nodes by ID, with a hash for each one. The C# session holds them by reference. Thus, Rust is now about twice as slow as C# on deep graphs. The section "Rust: the incremental walk reaches its nodes by ID" records it. Everything else that this investigation found is done, in both languages:
 
@@ -185,6 +185,22 @@ The maintainer chose on 2026-11-20: a compile with no resources returns the crit
 For a plan with no resources (in ProjectPlan: the resources are disabled), the activities have no resource dependencies. LST, LFT, the slack and the critical flags are those of the plan, and so fewer activities are critical in some plans. With a maximum LFT or a minimum free slack, the earliest times and the finish can be earlier than before. The lanes are the same unless a maximum LFT holds an activity back in the scheduler. A plan with resources is not affected. The outputs of the `zpp` runs that ProjectPlan pins change for plans with no resources.
 
 The API does not change. The change goes out in 4.2.0, with the one above.
+
+## The two languages were not compared on whole compiles - DONE
+
+**Asked for on 2026-11-21, after 4.2.0.** The parity of the Rust port rested on the mirrored tests, on the two corpora that both suites check (priority lists, arrow critical path) and on the sample project. No test put the same random plans through `VertexGraphCompiler.Compile` in both languages, with the resource scheduler, and compared the whole result. The two changes of 4.2.0 were ported with mirrored tests whose random plans were not the same plans in the two languages.
+
+- `CompileParityCorpus` (and `rust/compilers/tests/compile_parity_corpus`) builds the same plans in both languages with the xorshift generator of `CorpusShapes`. There are four kinds: with 2 to 4 resources (explicit targets or not, allocation orders that can tie, activities with no targets, one target, several targets with OR, or two targets with AND or ACTIVE_AND), the same with constraints (a minimum EST, a maximum LFT or a minimum free slack on about one activity in seven, and milestones), and each of the two with no resources.
+
+- For each plan, both languages write the same text of the result: the error codes and messages, the finish, for each activity its four times, free and total slack, the resources that it is on, its resource dependencies and its successors, and each resource schedule with its activities. A 64-bit FNV-1a hash of that text, written out in both languages, goes in `Compilers/TestFiles/CompileParityBaseline.txt`. C# writes the file (`CompileParityTests.RegenerateBaseline`, explicit), and both suites check it: `CompileParityTests` and `compile_parity_tests.rs`. A plan that differs fails the test with the plan and the whole text.
+
+- The file holds 500 plans of each kind. All 2,000 agree. A one-off run of 5,000 of each kind (20,000 plans) agrees too: C# wrote the baseline, and the Rust port matched each line. The comments of the two test files say how to run it again (`WriteLargeBaseline`, and the ignored Rust test, with `COMPILE_PARITY_BASELINE_PATH`).
+
+- 94 of the 500 plans with resources and constraints, and 12 of the 500 with no resources and constraints, report `C0010`, and both languages report the same. No plan of the corpus reports `C0020` or a pre-compilation error: each target is a resource of the plan, and so no plan can stall. Thus, that path is not compared here.
+
+- The check failed when it had to: with one hash of the file changed by hand, both tests failed and named the plan.
+
+- Not in the text, and so not compared: the allocation streams of a schedule, the work streams, and the names and flags of the scheduled activities. The messages are compared with their line endings made the same.
 
 ## Priority-list calculation (was cubic; Phases 0 to 3 done)
 

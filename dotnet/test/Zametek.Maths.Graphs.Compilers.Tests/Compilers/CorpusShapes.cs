@@ -61,8 +61,9 @@ namespace Zametek.Maths.Graphs.Tests
         #endregion
 
         // Small xorshift32 generator: fully specified, so the corpus is reproducible on
-        // any runtime and the committed baselines stay valid.
-        private sealed class DeterministicRandom
+        // any runtime and the committed baselines stay valid. Internal, because the
+        // compile parity corpus (CompileParityCorpus) builds its plans with it too.
+        internal sealed class DeterministicRandom
         {
             private uint m_State;
 

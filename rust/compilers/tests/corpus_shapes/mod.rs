@@ -55,13 +55,14 @@ pub struct GraphSpec {
 /// any runtime and the committed baselines stay valid.
 ///
 /// The shifts wrap in exactly the way C#'s `uint` does, so the sequence matches
-/// the original generator value for value.
-struct DeterministicRandom {
+/// the original generator value for value. Public, because the compile parity
+/// corpus (`compile_parity_corpus`) builds its plans with it too.
+pub struct DeterministicRandom {
     state: u32,
 }
 
 impl DeterministicRandom {
-    fn new(seed: u32) -> Self {
+    pub fn new(seed: u32) -> Self {
         Self {
             state: if seed == 0 { 1 } else { seed },
         }
@@ -76,15 +77,15 @@ impl DeterministicRandom {
         x
     }
 
-    fn next(&mut self, max_exclusive: i32) -> i32 {
+    pub fn next(&mut self, max_exclusive: i32) -> i32 {
         (self.next_u32() % (max_exclusive as u32)) as i32
     }
 
-    fn next_between(&mut self, min_inclusive: i32, max_exclusive: i32) -> i32 {
+    pub fn next_between(&mut self, min_inclusive: i32, max_exclusive: i32) -> i32 {
         min_inclusive + self.next(max_exclusive - min_inclusive)
     }
 
-    fn next_chance(&mut self, percent: i32) -> bool {
+    pub fn next_chance(&mut self, percent: i32) -> bool {
         self.next(100) < percent
     }
 }
