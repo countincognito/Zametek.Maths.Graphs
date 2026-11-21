@@ -975,6 +975,7 @@ namespace Zametek.Maths.Graphs
         // Replaces infinite-resource schedules with synthetic resource IDs. Up to 4.1.1 the compile called this, to chain
         // the activities of each schedule with resource dependencies. It no longer does, and this stays for other callers.
         /// <inheritdoc/>
+        [Obsolete(@"The compile does not call this method since 4.2.0. It goes away in 5.0.0.")]
         public List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules)
         {

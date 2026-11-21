@@ -145,7 +145,11 @@ namespace Zametek.Maths.Graphs.Tests
                 List<IResourceSchedule<int, int, int>> schedules = Schedule(cancellationToken);
                 if (m_Infinite)
                 {
+                    // The method is obsolete: the compile does not call it since 4.2.0. The spike keeps the call, because
+                    // this branch is its record of what a compile with no resources did up to 4.1.1.
+#pragma warning disable CS0618
                     schedules = m_Builder.ResourceSchedulingEngine.ReplaceWithSyntheticResources(schedules);
+#pragma warning restore CS0618
                 }
                 last = Mark(timing, last, Split.Schedule);
 

@@ -99,6 +99,7 @@ pub struct SimulationSettings {
     /// activities are those of the plan. Up to 4.1.1, a compile with no
     /// resources scheduled the plan onto synthetic resources, which could make
     /// more activities critical, and this setting made a simulation do the same.
+    #[deprecated(note = "This setting has no effect since 4.2.0. It goes away in 5.0.0.")]
     pub schedule_onto_synthetic_resources: bool,
 }
 
@@ -134,6 +135,8 @@ impl SimulationSettings {
 }
 
 impl Default for SimulationSettings {
+    // The default gives each field its value, also the field that is deprecated.
+    #[allow(deprecated)]
     fn default() -> Self {
         Self {
             iterations: Self::DEFAULT_ITERATIONS,

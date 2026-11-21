@@ -50,6 +50,7 @@ namespace Zametek.Maths.Graphs
         /// no longer calls it: with infinite resources the schedule adds no
         /// dependency to the plan. It stays for callers of their own.
         /// </summary>
+        [Obsolete(@"The compile does not call this method since 4.2.0. It goes away in 5.0.0.")]
         List<IResourceSchedule<T, TResourceId, TWorkStreamId>> ReplaceWithSyntheticResources(
             List<IResourceSchedule<T, TResourceId, TWorkStreamId>> resourceSchedules);
 

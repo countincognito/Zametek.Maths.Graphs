@@ -715,7 +715,9 @@ fn new_given_an_activity_that_must_finish_by_time_zero_then_the_plan_reports_c00
 // before time 0, and no activity finishes after it. Each such iteration must
 // fail with InvalidConstraints, in each way to schedule it, and each other
 // iteration finishes at time 0.
+// The setting is deprecated and has no effect. This test sets it to hold that: each value gives the same result.
 #[test]
+#[allow(deprecated)]
 fn run_given_a_milestone_that_must_finish_by_time_zero_and_can_take_time_then_the_iterations_that_take_time_fail(
 ) {
     for (with_resource, schedule_onto_synthetic_resources) in

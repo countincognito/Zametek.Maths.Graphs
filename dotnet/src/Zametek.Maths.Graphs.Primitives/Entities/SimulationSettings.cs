@@ -132,6 +132,7 @@ namespace Zametek.Maths.Graphs
         /// compile with no resources scheduled the plan onto synthetic resources, which could make
         /// more activities critical, and this setting made a simulation do the same.
         /// </summary>
+        [Obsolete(@"This setting has no effect since 4.2.0. It goes away in 5.0.0.")]
         public bool ScheduleOntoSyntheticResources { get; set; }
     }
 }

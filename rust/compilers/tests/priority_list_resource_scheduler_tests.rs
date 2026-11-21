@@ -215,7 +215,9 @@ fn gather_unavailable_resources_with_or_operator_and_partial_match_then_returns_
 
 // -- ReplaceWithSyntheticResources -------------------------------------------
 
+// The method is deprecated: it stays in the API until 5.0.0, and until then it must do what it did.
 #[test]
+#[allow(deprecated)]
 fn replace_with_synthetic_resources_with_empty_input_then_returns_empty() {
     let scheduler = PriorityListResourceScheduler;
 
@@ -226,6 +228,7 @@ fn replace_with_synthetic_resources_with_empty_input_then_returns_empty() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn replace_with_synthetic_resources_with_schedules_then_assigns_synthetic_resource_ids() {
     let scheduler = PriorityListResourceScheduler;
     let resource = Resource::new(

@@ -827,7 +827,10 @@ namespace Zametek.Maths.Graphs.Tests
                 new Dictionary<int, DurationEstimate> { [1] = new DurationEstimate(0, 0, 3) });
             simulator.CompilationErrors.ShouldBeEmpty();
 
+            // The setting is obsolete and has no effect. This test sets it to hold that: each value gives the same result.
+#pragma warning disable CS0618
             SimulationResult<int> result = Run(simulator, new SimulationSettings { Iterations = 200, Seed = 1, ScheduleOntoSyntheticResources = scheduleOntoSyntheticResources });
+#pragma warning restore CS0618
 
             // Each way to schedule the iterations fails the same 73 of them: the ones that draw a duration. The same seed
             // gives the same draws in the Rust port, which checks the same number.

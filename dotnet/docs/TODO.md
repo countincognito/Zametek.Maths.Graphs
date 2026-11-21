@@ -6,9 +6,9 @@ Work identified during investigation, with what was observed, why it matters, an
 
 This document is the investigation record for the items that were actually worked: the measurements before and after, the corpora and baselines that guard them, the counter-examples that settled design arguments, and the reasoning behind what was changed - including the reasoning behind approaches that were tried and abandoned. Where an entry here has a wider status, `PERFORMANCE.md` holds it; where an item there needs its evidence, it points back to a section here. Neither document is complete on its own, and the two use overlapping phase numbers for different sequences - "Phase 3" here is the incremental recalculation, "Phase 3" there is the topological CPM.
 
-**Two items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. A crash of the compile came from the same source. It is fixed, and its section comes after the two open items. Two changes to the result of a compile came from an examination in ProjectPlan on 2026-11-20: the resource that an activity takes, and the times of a compile with no resources. They are done, and their sections follow that of the crash. After them comes the comparison of whole compiles between the two languages, which did not exist before 2026-11-21.
+**Three items are open.** One came from ProjectPlan's zpp skill on 2026-11-14: a suggestion for the statistics of a simulation, in the first section below. One is the removal, in 5.0.0, of two members of the API that have no effect since 4.2.0: they are marked obsolete, and the section comes after that of the Rust walk. A crash of the compile came from the same source. It is fixed, and its section comes after the open items. Two changes to the result of a compile came from an examination in ProjectPlan on 2026-11-20: the resource that an activity takes, and the times of a compile with no resources. They are done, and their sections follow that of the crash. After them comes the comparison of whole compiles between the two languages, which did not exist before 2026-11-21.
 
-The other open item is a performance gap in Rust, and not a defect. The incremental critical-path walk of Rust reaches its nodes by ID, with a hash for each one. The C# session holds them by reference. Thus, Rust is now about twice as slow as C# on deep graphs. The section "Rust: the incremental walk reaches its nodes by ID" records it. Everything else that this investigation found is done, in both languages:
+The third open item is a performance gap in Rust, and not a defect. The incremental critical-path walk of Rust reaches its nodes by ID, with a hash for each one. The C# session holds them by reference. Thus, Rust is now about twice as slow as C# on deep graphs. The section "Rust: the incremental walk reaches its nodes by ID" records it. Everything else that this investigation found is done, in both languages:
 
 - **Priority-list Phases 0 to 3** - the calculation was cubic on a layered graph and is now roughly 80x faster at 8,000 activities than where it started, with allocation down from 91 GB to 721 MB. Phase 3 was the item held back as conditional; it is now implemented, and with it the case for keeping `GraphLimits.MaximumActivityCount` at 2,000 is a domain decision rather than a performance one. Raising it is deliberately left to whoever owns that call.
 
@@ -67,6 +67,30 @@ The measurement to reproduce it, after a release build:
 ```
 cargo test --release --test priority_list_equivalence_tests -- --ignored --nocapture measure_priority_list_scaling
 ```
+
+## Remove the two members that have no effect - OPEN, FOR 5.0.0
+
+**Decided by the maintainer on 2026-11-21.** Since 4.2.0, a compile with no resources is the critical path of the plan alone (see the section on synthetic resources below). Two members of the API were left with nothing to do, and they stayed only because a removal breaks the API:
+
+- `SimulationSettings.ScheduleOntoSyntheticResources` (Rust: the field `schedule_onto_synthetic_resources`). An iteration with no resources is the first calculation alone, whatever the setting is.
+
+- `IResourceSchedulingEngine.ReplaceWithSyntheticResources` (Rust: the trait method `replace_with_synthetic_resources`), with its implementation in `PriorityListResourceScheduler`. The compile does not call it.
+
+Both are now marked: `[Obsolete]` in .NET, as a warning and not as an error, and `#[deprecated]` in Rust. A caller that sets the setting or calls the method gets a warning that names 5.0.0. The mark goes out with the next release, and it does not change the API.
+
+### What the mark does not cover
+
+- An engine of a caller must still write `ReplaceWithSyntheticResources`, because it is a member of the interface (in Rust: a method of the trait with no default). The compiler does not warn there. Only the removal ends this.
+
+- The library and its tests still touch the members in a few places, and each has a comment: the default of the Rust field, the tests that hold that the setting has no effect and that the method does what it did, the engines of the tests that wrap the scheduler, and the lean scheduler of the simulation spike, which keeps the call as its record of the compile of 4.1.1.
+
+### What the removal needs (5.0.0)
+
+- Remove the property and the field, the member of the interface and of the trait, the method of `PriorityListResourceScheduler` and the Rust function `replace_with_synthetic_resources`, and the tests and suppressions above.
+
+- Remove the branch of `SpikeLeanScheduler` that calls the method (`CriticalPathOnlyWithoutResources = false`), or keep its own copy of the old step there.
+
+- A major version, or an entry in `CompatibilitySuppressions.xml`, because the pack script compares the API with the last release (RELEASING.md).
 
 ## A maximum LFT that pulled the whole schedule back to time 0 crashed the compile - DONE
 

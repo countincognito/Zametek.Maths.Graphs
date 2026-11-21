@@ -180,6 +180,9 @@ namespace Zametek.Maths.Graphs.Tests
             output.ShouldBeEmpty();
         }
 
+        // The two tests of ReplaceWithSyntheticResources call a method that is obsolete: it stays in the API until 5.0.0,
+        // and until then it must do what it did.
+#pragma warning disable CS0618
         [Fact]
         public void PriorityListResourceScheduler_GivenReplaceWithSyntheticResources_WithEmptyInput_ThenReturnsEmpty()
         {
@@ -213,6 +216,8 @@ namespace Zametek.Maths.Graphs.Tests
             output[0].Resource.ShouldNotBeNull();
             output[0].Resource.Id.ShouldNotBe(99);
         }
+
+#pragma warning restore CS0618
 
         [Fact]
         public void PriorityListResourceScheduler_GivenCollectIndirectResourceSchedules_WithUnscheduledIndirectResource_ThenIncludesIndirectResource()

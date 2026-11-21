@@ -157,6 +157,7 @@ namespace Zametek.Maths.Graphs.Tests
                 List<IResource<int, int>> filteredResources) =>
                 m_Inner.GatherUnavailableResources(activities, filteredResources);
 
+            [Obsolete(@"The compile does not call this method since 4.2.0. It goes away in 5.0.0.")]
             public List<IResourceSchedule<int, int, int>> ReplaceWithSyntheticResources(
                 List<IResourceSchedule<int, int, int>> resourceSchedules) =>
                 m_Inner.ReplaceWithSyntheticResources(resourceSchedules);

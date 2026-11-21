@@ -205,6 +205,9 @@ pub trait IResourceSchedulingEngine<K: Key, R: Key, W: Key>: Send + Sync {
     /// each schedule with resource dependencies. The compile no longer calls
     /// it: with infinite resources the schedule adds no dependency to the plan.
     /// It stays for callers of their own.
+    #[deprecated(
+        note = "The compile does not call this method since 4.2.0. It goes away in 5.0.0."
+    )]
     fn replace_with_synthetic_resources(
         &self,
         resource_schedules: Vec<ResourceSchedule<K, R, W>>,

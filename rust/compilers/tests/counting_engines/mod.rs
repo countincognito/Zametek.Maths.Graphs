@@ -289,6 +289,8 @@ impl IResourceSchedulingEngine<i32, i32, i32> for CountingScheduler {
             .gather_unavailable_resources(activities, filtered_resources)
     }
 
+    // The method is deprecated. An engine that wraps the scheduler must still hand the call on.
+    #[allow(deprecated)]
     fn replace_with_synthetic_resources(
         &self,
         resource_schedules: Vec<ResourceSchedule<i32, i32, i32>>,
